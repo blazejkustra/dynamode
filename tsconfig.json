@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "module": "commonjs",
+    "target": "ES2021",
+    "lib": ["ES2021"],
+    "moduleResolution": "node",
+    "rootDir": "./",
+    "outDir": "dist",
+    "strict": true
+  },
+  "include": ["src/**/*"],
+}

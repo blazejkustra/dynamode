@@ -61,8 +61,5 @@ typings/
 .DS_Store
 
 .idea
-dst/
+dist/
 /.dynamodb/
-/.serverless/
-.build/
-.esbuild
