@@ -1,0 +1,58 @@
+{
+  "name": "dynamode",
+  "version": "0.0.1",
+  "description": "Dynamode is a modeling tool for Amazon's DynamoDB",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "lint": "eslint . --ext .ts,.js --max-warnings 0",
+    "lint:fix": "npm run lint -- --fix"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.131.0",
+    "@aws-sdk/util-dynamodb": "^3.131.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.6",
+    "@typescript-eslint/eslint-plugin": "^5.30.7",
+    "@typescript-eslint/parser": "^5.30.7",
+    "eslint": "^8.20.0",
+    "prettier": "^2.7.1",
+    "typescript": "^4.7.4",
+    "vitest": "^0.18.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blazejkustra/dynamode.git"
+  },
+  "author": {
+    "name": "Błażej Kustra",
+    "email": "kustra.blazej@gmail.com"
+  },
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/blazejkustra/dynamode/issues"
+  },
+  "homepage": "https://github.com/blazejkustra/dynamode#readme",
+  "keywords": [
+    "dynamodb",
+    "dynamo",
+    "aws",
+    "amazon",
+    "document",
+    "model",
+    "schema",
+    "database",
+    "data",
+    "datastore",
+    "nosql",
+    "db"
+  ],
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8",
+    "yarn": "please-use-npm",
+    "pnpm": "please-use-npm"
+  }
+}
