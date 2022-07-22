@@ -76,6 +76,16 @@ export class Model {
     return item;
   }
 
+  public static async delete<M extends typeof Model>(this: M, primaryKey: SimpleKey): Promise<void>;
+  public static async delete<M extends typeof Model>(this: M, primaryKey: CompositeKey): Promise<void>;
+  public static async delete<M extends typeof Model>(this: M, primaryKey: SimpleKey | CompositeKey): Promise<void> {
+    await this.table.wait();
+    await this.ddb.deleteItem({
+      TableName: this.table.name,
+      Key: objectToDynamo(convertPrimaryKey(primaryKey, this.table)),
+    });
+  }
+
   private static parse<M extends typeof Model>(Class: M, item: GenericObject): InstanceType<M> {
     const { primaryKey } = this.table;
 
