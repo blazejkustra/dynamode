@@ -7,7 +7,10 @@
     "moduleResolution": "node",
     "rootDir": "./",
     "outDir": "dist",
-    "strict": true
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "strictPropertyInitialization": false,
   },
-  "include": ["src/**/*"],
+  "include": ["lib/**/*"],
+  "exclude": ["local/test.ts"],
 }
