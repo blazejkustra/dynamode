@@ -1,16 +1,21 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
     "module": "commonjs",
     "target": "ES2021",
     "lib": ["ES2021"],
     "moduleResolution": "node",
-    "rootDir": "./",
+    "rootDir": "lib",
     "outDir": "dist",
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "strictPropertyInitialization": false,
+    "declaration": true,
+    "esModuleInterop": true,
   },
-  "include": ["lib/**/*"],
-  "exclude": ["local/test.ts"],
+  "include": ["lib"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "local"
+  ]
 }
