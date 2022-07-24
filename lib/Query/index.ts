@@ -46,4 +46,9 @@ export class Query<M extends typeof Model> {
     this.queryInput.ExclusiveStartKey = objectToDynamo(key);
     return this;
   }
+
+  public sort(order: 'ascending' | 'descending') {
+    this.queryInput.ScanIndexForward = order === 'ascending';
+    return this;
+  }
 }
