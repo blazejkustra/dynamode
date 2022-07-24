@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && tsc-alias",
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "lint": "eslint . --ext .ts,.js --max-warnings 0",
@@ -30,6 +30,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "prettier": "^2.7.1",
+    "tsc-alias": "^1.7.0",
     "typescript": "^4.7.4",
     "vitest": "^0.18.1"
   },
