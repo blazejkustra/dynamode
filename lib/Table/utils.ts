@@ -1,6 +1,6 @@
 import { DynamoDB, TableDescription } from '@aws-sdk/client-dynamodb';
-import { error } from '../utils';
-import { GlobalIndex, KeyType, LocalIndex, PrimaryKey } from './types';
+import { error } from '@lib/utils';
+import { GlobalIndex, KeyType, LocalIndex, PrimaryKey } from '@Table/types';
 
 export async function getTableDetails(ddb: DynamoDB, name: string): Promise<TableDescription> {
   const { Table } = await ddb.describeTable({ TableName: name });

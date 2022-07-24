@@ -2,4 +2,7 @@
   "cSpell.words": [
     "dynamode"
   ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
 }

@@ -1,5 +1,5 @@
-import DDB, { DDBInterface } from './ddb';
-import Converter from './converter';
+import Converter from '@aws/converter';
+import DDB, { DDBInterface } from '@aws/ddb';
 
 export class AWS {
   static default: AWS = new AWS();

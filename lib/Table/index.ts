@@ -1,6 +1,6 @@
-import { TableDescription, DynamoDB } from '@aws-sdk/client-dynamodb';
-import { GlobalIndex, LocalIndex, PrimaryKey } from './types';
-import { getTableDetails, getTableGlobalIndexes, getTableLocalIndexes, getTablePrimaryKey } from './utils';
+import { DynamoDB, TableDescription } from '@aws-sdk/client-dynamodb';
+import { GlobalIndex, LocalIndex, PrimaryKey } from '@Table/types';
+import { getTableDetails, getTableGlobalIndexes, getTableLocalIndexes, getTablePrimaryKey } from '@Table/utils';
 
 /* Represents a single DynamoDB table */
 export class Table {

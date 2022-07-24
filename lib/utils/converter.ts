@@ -1,8 +1,8 @@
+import awsConverter from '@aws/converter';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
-import { Model } from '../Model';
-import awsConverter from '../aws/converter';
-import { Table } from '../Table';
-import { CompositeKey, KeyType, SimpleKey } from '../Table/types';
+import { Model } from '@Model/index';
+import { Table } from '@Table/index';
+import { CompositeKey, KeyType, SimpleKey } from '@Table/types';
 
 export type AttributeMap = Record<string, AttributeValue>;
 export type GenericObject = Record<string, unknown>;

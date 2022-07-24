@@ -1,11 +1,22 @@
 {
+  "compileOnSave": true,
   "compilerOptions": {
     "module": "commonjs",
-    "target": "ES2021",
-    "lib": ["ES2021"],
+    "target": "es2015",
+    "lib": ["ES2015"],
     "moduleResolution": "node",
     "rootDir": "lib",
+    "baseUrl": "lib",
     "outDir": "dist",
+    "paths": {
+      "@lib/*": ["./*"],
+      "@aws/*": ["aws/*"],
+      "@Model/*": ["Model/*"],
+      "@Query/*": ["Query/*"],
+      "@Table/*": ["Table/*"],
+      "@Transaction/*": ["Transaction/*"],
+      "@Scan/*": ["Scan/*"],
+  },
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "strictPropertyInitialization": false,
@@ -16,5 +27,6 @@
   "exclude": [
     "node_modules",
     "dist",
-  ]
+    "docs"
+  ],
 }

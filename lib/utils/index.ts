@@ -1,3 +1,3 @@
-import * as error from './Error';
+import * as error from '@lib/utils/Error';
 
 export { error };

@@ -1,9 +1,9 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
-import { CompositeKey, SimpleKey } from '../Table/types';
-import { error } from '../utils';
-import { convertPrimaryKey, fromDynamo, GenericObject, modelToDynamo, objectToDynamo } from '../utils/converter';
-import { Table } from '../Table';
-import { Query, QueryOptions } from '../Query';
+import { error } from '@lib/utils';
+import { convertPrimaryKey, fromDynamo, GenericObject, modelToDynamo, objectToDynamo } from '@lib/utils/converter';
+import { Query, QueryOptions } from '@Query/index';
+import { Table } from '@Table/index';
+import { CompositeKey, SimpleKey } from '@Table/types';
 
 export type ChildProps<M extends typeof Model> = Omit<Partial<ConstructorParameters<M>[0]>, keyof Model>;
 

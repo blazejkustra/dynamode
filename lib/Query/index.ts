@@ -1,6 +1,6 @@
 import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
-import { Model } from '../Model';
-import { Table } from '../Table';
+import { Model } from '@Model/index';
+import { Table } from '@Table/index';
 
 export interface QueryOptions {
   index: any;

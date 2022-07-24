@@ -1,6 +1,6 @@
-import { AWS } from './aws';
-import { Table } from './Table';
-import { Model } from './Model';
+import { AWS } from '@aws/index';
+import { Model } from '@Model/index';
+import { Table } from '@Table/index';
 
 const aws = AWS.default;
 
