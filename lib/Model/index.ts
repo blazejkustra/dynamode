@@ -3,12 +3,14 @@ import { CompositeKey, SimpleKey } from '../Table/types';
 import { error } from '../utils';
 import { convertPrimaryKey, fromDynamo, GenericObject, modelToDynamo, objectToDynamo } from '../utils/converter';
 import { Table } from '../Table';
+import { Query } from '../Query';
 
 export type ChildProps<M extends typeof Model> = Omit<Partial<ConstructorParameters<M>[0]>, keyof Model>;
 
 export class Model {
   public static table: Table;
   public static ddb: DynamoDB;
+
   public pk: string;
   public sk: string;
   public prefix?: string;
@@ -19,6 +21,10 @@ export class Model {
     this.sk = props.sk;
     this.prefix = props.prefix;
     this.suffix = props.suffix;
+  }
+
+  public static get query() {
+    return new Query(this);
   }
 
   public static async get<M extends typeof Model>(this: M, primaryKey: SimpleKey): Promise<InstanceType<M>>;
@@ -90,6 +96,7 @@ export class Model {
     const { primaryKey } = this.table;
 
     return new Class({
+      //TODO: get rid of real primary key here
       ...(item as any),
       pk: item[primaryKey.pk],
       sk: 'sk' in primaryKey ? item[primaryKey.sk] : undefined,
