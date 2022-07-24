@@ -1,4 +1,6 @@
 import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
+import { objectToDynamo } from '@lib/utils/converter';
+import { GenericObject } from '@lib/utils/types';
 import { Model } from '@Model/index';
 import { Table } from '@Table/index';
 
@@ -35,7 +37,13 @@ export class Query<M extends typeof Model> {
     };
   }
 
-  public async limit(count: number) {
+  public limit(count: number) {
     this.queryInput.Limit = count;
+    return this;
+  }
+
+  public startAt(key: GenericObject) {
+    this.queryInput.ExclusiveStartKey = objectToDynamo(key);
+    return this;
   }
 }

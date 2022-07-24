@@ -31,7 +31,7 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 
 * [X] .exec() to run the query
 * [X] .limit() limit the number of documents that DynamoDB will query in this request
-* [ ] .startAt() for pagination purposes
+* [X] .startAt() for pagination purposes
 * [ ] .sort() sorting options
 * [ ] .index() use index to query
 * [ ] .consistent() consistency mode
