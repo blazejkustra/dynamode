@@ -1,12 +1,8 @@
 import awsConverter from '@aws/converter';
-import { AttributeValue } from '@aws-sdk/client-dynamodb';
+import { AttributeMap, Class, GenericObject } from '@lib/utils/types';
 import { Model } from '@Model/index';
 import { Table } from '@Table/index';
 import { CompositeKey, KeyType, SimpleKey } from '@Table/types';
-
-export type AttributeMap = Record<string, AttributeValue>;
-export type GenericObject = Record<string, unknown>;
-export type Class = { new (...args: any[]): any };
 
 export function objectToDynamo(object: GenericObject): AttributeMap {
   return awsConverter().marshall(object, { removeUndefinedValues: true });

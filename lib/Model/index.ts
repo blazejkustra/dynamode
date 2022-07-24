@@ -1,6 +1,7 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { error } from '@lib/utils';
-import { convertPrimaryKey, fromDynamo, GenericObject, modelToDynamo, objectToDynamo } from '@lib/utils/converter';
+import { convertPrimaryKey, fromDynamo, modelToDynamo, objectToDynamo } from '@lib/utils/converter';
+import { GenericObject } from '@lib/utils/types';
 import { Query, QueryOptions } from '@Query/index';
 import { Table } from '@Table/index';
 import { CompositeKey, SimpleKey } from '@Table/types';
