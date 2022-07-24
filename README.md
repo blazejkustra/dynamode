@@ -29,8 +29,8 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 
 ### Query
 
-* [ ] .exec() to run the query
-* [ ] .limit() limit the number of documents that DynamoDB will query in this request
+* [X] .exec() to run the query
+* [X] .limit() limit the number of documents that DynamoDB will query in this request
 * [ ] .startAt() for pagination purposes
 * [ ] .sort() sorting options
 * [ ] .index() use index to query
@@ -41,6 +41,7 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [ ] Add possibility to pass DynamoDB condition object
 
 Other conditions:
+
 * [ ] .and() join conditions together
 * [ ] .or() join conditions together
 * [ ] .not() negate condition
@@ -55,7 +56,7 @@ Other conditions:
 
 ### Scan
 
-* [ ] Nothing special, implement scan overlay 
+* [ ] Nothing special, implement scan overlay
 
 ### Transaction
 
@@ -69,4 +70,3 @@ Other conditions:
 * [ ] Think about idea to introduce toJSON to more easily convert classes to objects
 * [ ] Improve how ddb and table is passed over
 * [ ] Add logging possibility
-

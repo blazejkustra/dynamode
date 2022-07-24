@@ -3,7 +3,7 @@ import { CompositeKey, SimpleKey } from '../Table/types';
 import { error } from '../utils';
 import { convertPrimaryKey, fromDynamo, GenericObject, modelToDynamo, objectToDynamo } from '../utils/converter';
 import { Table } from '../Table';
-import { Query } from '../Query';
+import { Query, QueryOptions } from '../Query';
 
 export type ChildProps<M extends typeof Model> = Omit<Partial<ConstructorParameters<M>[0]>, keyof Model>;
 
@@ -23,8 +23,8 @@ export class Model {
     this.suffix = props.suffix;
   }
 
-  public static get query() {
-    return new Query(this);
+  public static query<M extends typeof Model>(this: M, options: QueryOptions) {
+    return new Query(this, options);
   }
 
   public static async get<M extends typeof Model>(this: M, primaryKey: SimpleKey): Promise<InstanceType<M>>;
@@ -44,7 +44,7 @@ export class Model {
     }
 
     const item = fromDynamo(result.Item || {});
-    return this.parse(this, item);
+    return this.parseFromDynamo(this, item);
   }
 
   public static async update<M extends typeof Model>(this: M, primaryKey: SimpleKey, props: ChildProps<M>): Promise<InstanceType<M>>; // prettier-ignore
@@ -69,7 +69,7 @@ export class Model {
     });
 
     const item = fromDynamo(result.Attributes || {});
-    return this.parse(this, item);
+    return this.parseFromDynamo(this, item);
   }
 
   public static async put<M extends typeof Model>(this: M, item: InstanceType<M>): Promise<InstanceType<M>> {
@@ -92,7 +92,7 @@ export class Model {
     });
   }
 
-  private static parse<M extends typeof Model>(Class: M, item: GenericObject): InstanceType<M> {
+  public static parseFromDynamo<M extends typeof Model>(Class: M, item: GenericObject): InstanceType<M> {
     const { primaryKey } = this.table;
 
     return new Class({
