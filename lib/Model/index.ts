@@ -1,7 +1,5 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
-import { error } from '@lib/utils';
-import { convertPrimaryKey, fromDynamo, modelToDynamo, objectToDynamo } from '@lib/utils/converter';
-import { GenericObject } from '@lib/utils/types';
+import { convertPrimaryKey, fromDynamo, GenericObject, modelToDynamo, NotFoundError, objectToDynamo } from '@lib/utils';
 import { Query, QueryOptions } from '@Query/index';
 import { Table } from '@Table/index';
 import { CompositeKey, SimpleKey } from '@Table/types';
@@ -41,7 +39,7 @@ export class Model {
     });
 
     if (!result || !result.Item) {
-      throw new error.NotFoundError();
+      throw new NotFoundError();
     }
 
     const item = fromDynamo(result.Item || {});

@@ -34,9 +34,9 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [X] .startAt() for pagination purposes
 * [X] .sort() sorting options
 * [ ] .index() use index to query
-* [ ] .consistent() consistency mode
-* [ ] .count() return count of items instead of classes
-* [ ] .attributes() limit which attributes DynamoDB returns for each item in the table.
+* [X] .consistent() consistency mode
+* [X] .count() return count of items instead of classes
+* [X] .attributes() limit which attributes DynamoDB returns for each item in the table.
 * [ ] .all() get all items even in multiple requests
 * [ ] Add possibility to pass DynamoDB condition object
 

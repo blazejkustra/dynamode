@@ -1,11 +1,10 @@
 import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
-import { objectToDynamo } from '@lib/utils/converter';
-import { GenericObject } from '@lib/utils/types';
+import { checkDuplicatesInArray, DefaultError, GenericObject, NonFunctionProperties, objectToDynamo } from '@lib/utils';
 import { Model } from '@Model/index';
 import { Table } from '@Table/index';
 
 export interface QueryOptions {
-  index: any;
+  index: unknown;
 }
 
 export class Query<M extends typeof Model> {
@@ -25,6 +24,10 @@ export class Query<M extends typeof Model> {
     this.queryInput = {
       TableName: this.table.name,
     };
+  }
+
+  get input() {
+    return this.queryInput;
   }
 
   public async exec() {
@@ -49,6 +52,25 @@ export class Query<M extends typeof Model> {
 
   public sort(order: 'ascending' | 'descending') {
     this.queryInput.ScanIndexForward = order === 'ascending';
+    return this;
+  }
+
+  public consistent() {
+    this.queryInput.ConsistentRead = true;
+    return this;
+  }
+
+  public count() {
+    this.queryInput.Select = 'COUNT';
+    return this;
+  }
+
+  public attributes(attributes: NonFunctionProperties<InstanceType<M>>[]) {
+    if (checkDuplicatesInArray(attributes)) {
+      throw new DefaultError();
+    }
+
+    this.queryInput.ProjectionExpression = attributes.join(', ');
     return this;
   }
 }

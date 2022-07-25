@@ -1,5 +1,5 @@
 import awsConverter from '@aws/converter';
-import { AttributeMap, Class, GenericObject } from '@lib/utils/types';
+import { AttributeMap, Class, GenericObject } from '@lib/utils';
 import { Model } from '@Model/index';
 import { Table } from '@Table/index';
 import { CompositeKey, KeyType, SimpleKey } from '@Table/types';
