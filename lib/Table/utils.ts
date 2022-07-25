@@ -1,11 +1,11 @@
 import { DynamoDB, TableDescription } from '@aws-sdk/client-dynamodb';
-import { error } from '@lib/utils';
+import { DefaultError } from '@lib/utils';
 import { GlobalIndex, KeyType, LocalIndex, PrimaryKey } from '@Table/types';
 
 export async function getTableDetails(ddb: DynamoDB, name: string): Promise<TableDescription> {
   const { Table } = await ddb.describeTable({ TableName: name });
   if (!Table) {
-    throw new error.DefaultError();
+    throw new DefaultError();
   }
 
   return Table;
@@ -17,7 +17,7 @@ export function getTablePrimaryKey(describeTable: TableDescription): PrimaryKey 
   const sk = KeySchema?.find((key) => key.KeyType === 'RANGE')?.AttributeName;
 
   if (!pk) {
-    throw new error.DefaultError();
+    throw new DefaultError();
   }
 
   if (sk) {
@@ -43,7 +43,7 @@ export function getTableGlobalIndexes(describeTable: TableDescription): GlobalIn
       const sk = KeySchema?.find((key) => key.KeyType === 'RANGE')?.AttributeName;
 
       if (!pk || !IndexName) {
-        throw new error.DefaultError();
+        throw new DefaultError();
       }
 
       if (sk) {
@@ -72,7 +72,7 @@ export function getTableLocalIndexes(describeTable: TableDescription): LocalInde
       const sk = KeySchema?.find((key) => key.KeyType === 'RANGE')?.AttributeName;
 
       if (!sk || !IndexName) {
-        throw new error.DefaultError();
+        throw new DefaultError();
       }
 
       return {
