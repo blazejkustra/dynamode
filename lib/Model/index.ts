@@ -1,62 +1,78 @@
-import { DynamoDB } from '@aws-sdk/client-dynamodb';
-import { convertPrimaryKey, fromDynamo, GenericObject, modelToDynamo, NotFoundError, objectToDynamo } from '@lib/utils';
-import { Query, QueryOptions } from '@Query/index';
+import type { DynamoDB } from '@aws-sdk/client-dynamodb';
+import { Query, QueryOptions } from '@lib/Query';
+import {
+  AttributeMap,
+  classToObject,
+  fromDynamo,
+  GenericObject,
+  NotFoundError,
+  objectToDynamo,
+  removeUndefinedInObject,
+  SYMBOL,
+} from '@lib/utils';
 import { Table } from '@Table/index';
-import { CompositeKey, SimpleKey } from '@Table/types';
 
-export type ChildProps<M extends typeof Model> = Omit<Partial<ConstructorParameters<M>[0]>, keyof Model>;
+export type PrimaryKey<M extends typeof Model> = Record<
+  InstanceType<M>['table']['partitionKey'] | InstanceType<M>['table']['sortKey'],
+  string
+>;
+
+export type TablePrimaryKey<T extends typeof Table> = Record<T['partitionKey'] | T['sortKey'], string>;
+
+export type GlobalSecondaryIndex<T extends typeof Table> = Record<
+  T['gsi1Name'] | T['gsi1PartitionKey'] | T['gsi1SortKey'],
+  string
+>;
+
+export interface ModelProps<T extends typeof Table> {
+  pk: TablePrimaryKey<typeof Table>;
+  gsi1?: GlobalSecondaryIndex<T>;
+}
 
 export class Model {
-  public static table: Table;
+  public static prefixPk: string;
+  public static prefixSk: string;
+  public static suffixPk: string;
+  public static suffixSk: string;
+  public static table: typeof Table;
   public static ddb: DynamoDB;
 
-  public pk: string;
-  public sk: string;
-  public prefix?: string;
-  public suffix?: string;
+  public table: typeof Table;
+  public pk: TablePrimaryKey<typeof Table>;
+  public gsi1?: GlobalSecondaryIndex<typeof Table>;
 
-  constructor(props: Model) {
+  constructor(props: ModelProps<typeof Table>, table: typeof Table) {
     this.pk = props.pk;
-    this.sk = props.sk;
-    this.prefix = props.prefix;
-    this.suffix = props.suffix;
+    this.table = table;
+    this.gsi1 = props.gsi1;
   }
 
-  public static query<M extends typeof Model>(this: M, options: QueryOptions) {
+  public static query<M extends typeof Model>(this: M, options: QueryOptions): InstanceType<typeof Query<M>> {
     return new Query(this, options);
   }
 
-  public static async get<M extends typeof Model>(this: M, primaryKey: SimpleKey): Promise<InstanceType<M>>;
-  public static async get<M extends typeof Model>(this: M, primaryKey: CompositeKey): Promise<InstanceType<M>>;
-  public static async get<M extends typeof Model>(
-    this: M,
-    primaryKey: SimpleKey | CompositeKey,
-  ): Promise<InstanceType<M>> {
-    await this.table.wait();
+  public static async get<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>): Promise<InstanceType<M>> {
     const result = await this.ddb.getItem({
-      TableName: this.table.name,
-      Key: objectToDynamo(convertPrimaryKey(primaryKey, this.table)),
+      TableName: this.table.tableName,
+      Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
     });
 
     if (!result || !result.Item) {
       throw new NotFoundError();
     }
 
-    const item = fromDynamo(result.Item || {});
+    const item = this.modelFromDynamo(this, result.Item || {});
     return this.parseFromDynamo(this, item);
   }
 
-  public static async update<M extends typeof Model>(this: M, primaryKey: SimpleKey, props: ChildProps<M>): Promise<InstanceType<M>>; // prettier-ignore
-  public static async update<M extends typeof Model>(this: M, primaryKey: CompositeKey, props: ChildProps<M>): Promise<InstanceType<M>>; // prettier-ignore
   public static async update<M extends typeof Model>(
     this: M,
-    primaryKey: SimpleKey | CompositeKey,
-    props: ChildProps<M>,
+    primaryKey: PrimaryKey<M>,
+    props: Omit<Partial<ConstructorParameters<M>[0]>, keyof M>,
   ): Promise<InstanceType<M>> {
-    await this.table.wait();
     const result = await this.ddb.updateItem({
-      TableName: this.table.name,
-      Key: objectToDynamo(convertPrimaryKey(primaryKey, this.table)),
+      TableName: this.table.tableName,
+      Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
       ReturnValues: 'ALL_NEW',
       //TODO: implement better querying!!!
       UpdateExpression: `set ${Object.entries(props)
@@ -67,38 +83,79 @@ export class Model {
       }),
     });
 
-    const item = fromDynamo(result.Attributes || {});
+    const item = this.modelFromDynamo(this, result.Attributes || {});
     return this.parseFromDynamo(this, item);
   }
 
   public static async put<M extends typeof Model>(this: M, item: InstanceType<M>): Promise<InstanceType<M>> {
-    await this.table.wait();
     await this.ddb.putItem({
-      TableName: this.table.name,
-      Item: modelToDynamo({ ...item }, this.table),
+      TableName: this.table.tableName,
+      Item: this.modelToDynamo(this, item),
     });
 
     return item;
   }
 
-  public static async delete<M extends typeof Model>(this: M, primaryKey: SimpleKey): Promise<void>;
-  public static async delete<M extends typeof Model>(this: M, primaryKey: CompositeKey): Promise<void>;
-  public static async delete<M extends typeof Model>(this: M, primaryKey: SimpleKey | CompositeKey): Promise<void> {
-    await this.table.wait();
+  public static async delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>): Promise<void> {
     await this.ddb.deleteItem({
-      TableName: this.table.name,
-      Key: objectToDynamo(convertPrimaryKey(primaryKey, this.table)),
+      TableName: this.table.tableName,
+      Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
     });
   }
 
-  public static parseFromDynamo<M extends typeof Model>(Class: M, item: GenericObject): InstanceType<M> {
-    const { primaryKey } = this.table;
+  private static parseFromDynamo<M extends typeof Model>(Class: M, item: GenericObject): InstanceType<M> {
+    return new Class(item as any, this.table) as InstanceType<M>;
+  }
 
-    return new Class({
-      //TODO: get rid of real primary key here
-      ...(item as any),
-      pk: item[primaryKey.pk],
-      sk: 'sk' in primaryKey ? item[primaryKey.sk] : undefined,
-    }) as InstanceType<M>;
+  private static modelToDynamo<M extends typeof Model>(model: M, item: InstanceType<M>): AttributeMap {
+    const object = classToObject(item, this.appendPrefixSuffix(model, item.pk));
+    delete object.pk;
+    delete object.table;
+    removeUndefinedInObject(object);
+    return objectToDynamo(object);
+  }
+
+  private static modelFromDynamo<M extends typeof Model>(model: M, attributeMap: AttributeMap): GenericObject {
+    const { table } = model;
+    const item = fromDynamo(attributeMap);
+    item.pk = this.truncatePrefixSuffix(model, {
+      [table.partitionKey]: item[table.partitionKey],
+      [table.sortKey]: item[table.sortKey],
+    });
+
+    delete item[table.partitionKey];
+    delete item[table.sortKey];
+
+    return item;
+  }
+
+  private static appendPrefixSuffix<M extends typeof Model>(model: M, primaryKey: GenericObject): GenericObject {
+    const { table, prefixPk, prefixSk, suffixPk, suffixSk } = model;
+    const partitionKey = [prefixPk, primaryKey[table.partitionKey], suffixPk].filter((p) => p).join(SYMBOL);
+    const sortKey = [prefixSk, primaryKey[table.sortKey], suffixSk].filter((s) => s).join(SYMBOL);
+
+    return {
+      [table.partitionKey]: partitionKey,
+      [table.sortKey]: sortKey,
+    };
+  }
+
+  private static truncatePrefixSuffix<M extends typeof Model>(model: M, primaryKey: GenericObject): GenericObject {
+    const { table, prefixPk, prefixSk, suffixPk, suffixSk } = model;
+    let partitionKey = primaryKey[table.partitionKey];
+    let sortKey = primaryKey[table.sortKey];
+
+    if (typeof partitionKey === 'string') {
+      partitionKey = partitionKey.replace(`${prefixPk}${SYMBOL}`, '').replace(`${SYMBOL}${suffixPk}`, '');
+    }
+
+    if (typeof sortKey === 'string') {
+      sortKey = sortKey.replace(`${prefixSk}${SYMBOL}`, '').replace(`${SYMBOL}${suffixSk}`, '');
+    }
+
+    return {
+      [table.partitionKey]: partitionKey,
+      [table.sortKey]: sortKey,
+    };
   }
 }

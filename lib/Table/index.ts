@@ -1,38 +1,30 @@
-import { DynamoDB, TableDescription } from '@aws-sdk/client-dynamodb';
-import { GlobalIndex, LocalIndex, PrimaryKey } from '@Table/types';
-import { getTableDetails, getTableGlobalIndexes, getTableLocalIndexes, getTablePrimaryKey } from '@Table/utils';
-
-/* Represents a single DynamoDB table */
 export class Table {
-  name: string;
-  primaryKey: PrimaryKey;
-  globalSecondaryIndexes: GlobalIndex[];
-  localSecondaryIndexes: LocalIndex[];
+  public static readonly tableName: string;
 
-  private ddb: DynamoDB;
-  private tableDescription: TableDescription;
-  private pendingTasks: Array<Promise<unknown>> = [];
+  public static readonly partitionKey: string | number;
+  public static readonly sortKey: string | number;
 
-  _ready = false;
+  public static readonly gsi1Name: string;
+  public static readonly gsi1PartitionKey: string | number;
+  public static readonly gsi1SortKey: string | number;
 
-  constructor(ddb: DynamoDB, name: string) {
-    this.name = name;
-    this.ddb = ddb;
+  public static readonly gsi2Name: string;
+  public static readonly gsi2Pk: string | number;
+  public static readonly gsi2Sk: string | number;
 
-    const getTableDetailsPromise = getTableDetails(this.ddb, name).then(async (tableDescription) => {
-      this.tableDescription = tableDescription;
+  public static readonly gsi3Name: string;
+  public static readonly gsi3Pk: string | number;
+  public static readonly gsi3Sk: string | number;
 
-      this.primaryKey = getTablePrimaryKey(this.tableDescription);
-      this.globalSecondaryIndexes = getTableGlobalIndexes(this.tableDescription);
-      this.localSecondaryIndexes = getTableLocalIndexes(this.tableDescription);
-    });
+  public static readonly gsi4Name: string;
+  public static readonly gsi4Pk: string | number;
+  public static readonly gsi4Sk: string | number;
 
-    this.pendingTasks.push(getTableDetailsPromise);
-  }
+  public static readonly gsi5Name: string;
+  public static readonly gsi5Pk: string | number;
+  public static readonly gsi5Sk: string | number;
 
-  async wait() {
-    await Promise.all(this.pendingTasks);
-    this.pendingTasks = [];
-    this._ready = true;
+  constructor(props: Table) {
+    console.log(props);
   }
 }

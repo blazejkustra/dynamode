@@ -1,10 +1,10 @@
 import { AWS } from '@aws/index';
-import { Model } from '@Model/index';
+import { Model, ModelProps, TablePrimaryKey } from '@Model/index';
 import { Table } from '@Table/index';
 
 const aws = AWS.default;
 
-export { aws, Table, Model };
+export { aws, Table, Model, ModelProps, TablePrimaryKey };
 
 ///// --- https://github.com/aws/aws-sdk-js-v3/issues/2125 ---
 // some @aws-sdk clients references these DOM lib interfaces,

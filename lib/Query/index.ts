@@ -1,6 +1,12 @@
 import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
-import { checkDuplicatesInArray, DefaultError, GenericObject, NonFunctionProperties, objectToDynamo } from '@lib/utils';
-import { Model } from '@Model/index';
+import { Model } from '@lib/Model';
+import {
+  checkDuplicatesInArray,
+  DefaultError,
+  ExtractPathExpressions,
+  GenericObject,
+  objectToDynamo,
+} from '@lib/utils';
 import { Table } from '@Table/index';
 
 export interface QueryOptions {
@@ -8,7 +14,7 @@ export interface QueryOptions {
 }
 
 export class Query<M extends typeof Model> {
-  private table: Table;
+  private table: typeof Table;
   private ddb: DynamoDB;
   private Class: M;
   private options: QueryOptions;
@@ -22,7 +28,7 @@ export class Query<M extends typeof Model> {
     this.options = options;
 
     this.queryInput = {
-      TableName: this.table.name,
+      TableName: this.table.tableName,
     };
   }
 
@@ -32,10 +38,10 @@ export class Query<M extends typeof Model> {
 
   public async exec() {
     const result = await this.ddb.query(this.queryInput);
-    const items = result.Items || [];
+    // const items = result.Items || [];
 
     return {
-      items: items.map((item) => this.Class.parseFromDynamo(this.Class, item)),
+      items: [], //items.map((item) => this.Class.parseFromDynamo(this.Class, item)),
       count: result.Count || 0,
     };
   }
@@ -65,7 +71,7 @@ export class Query<M extends typeof Model> {
     return this;
   }
 
-  public attributes(attributes: NonFunctionProperties<InstanceType<M>>[]) {
+  public attributes(attributes: ExtractPathExpressions<InstanceType<M>>[]) {
     if (checkDuplicatesInArray(attributes)) {
       throw new DefaultError();
     }
