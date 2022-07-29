@@ -1,5 +1,6 @@
 import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
 import { Model } from '@lib/Model';
+import { Table } from '@lib/Table';
 import {
   checkDuplicatesInArray,
   DefaultError,
@@ -7,7 +8,6 @@ import {
   GenericObject,
   objectToDynamo,
 } from '@lib/utils';
-import { Table } from '@Table/index';
 
 export interface QueryOptions {
   index: unknown;

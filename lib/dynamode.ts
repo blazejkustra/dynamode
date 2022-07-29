@@ -1,10 +1,8 @@
-import { AWS } from '@aws/index';
-import { Model, ModelProps, TablePrimaryKey } from '@Model/index';
-import { Table } from '@Table/index';
+import { AWS } from '@lib/aws';
+import { Model, ModelProps } from '@lib/Model';
+import { Table } from '@lib/Table';
 
-const aws = AWS.default;
-
-export { aws, Table, Model, ModelProps, TablePrimaryKey };
+import { dynamo, prefix, prefixPk, prefixSk, suffix, suffixPk, suffixSk, table } from './Model/decorators';
 
 ///// --- https://github.com/aws/aws-sdk-js-v3/issues/2125 ---
 // some @aws-sdk clients references these DOM lib interfaces,
@@ -14,3 +12,24 @@ declare global {
   interface ReadableStream {}
   interface File {}
 }
+
+const aws = AWS.default;
+
+export {
+  //AWS
+  aws,
+  //Table
+  Table,
+  // Model
+  Model,
+  ModelProps,
+  // decorators
+  dynamo,
+  prefix,
+  prefixPk,
+  prefixSk,
+  suffix,
+  suffixPk,
+  suffixSk,
+  table,
+};

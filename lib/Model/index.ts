@@ -1,5 +1,6 @@
 import type { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { Query, QueryOptions } from '@lib/Query';
+import { Table } from '@lib/Table';
 import {
   AttributeMap,
   classToObject,
@@ -10,40 +11,27 @@ import {
   removeUndefinedInObject,
   SYMBOL,
 } from '@lib/utils';
-import { Table } from '@Table/index';
-
-export type PrimaryKey<M extends typeof Model> = Record<
-  InstanceType<M>['table']['partitionKey'] | InstanceType<M>['table']['sortKey'],
-  string
->;
-
-export type TablePrimaryKey<T extends typeof Table> = Record<T['partitionKey'] | T['sortKey'], string>;
-
-export type GlobalSecondaryIndex<T extends typeof Table> = Record<
-  T['gsi1Name'] | T['gsi1PartitionKey'] | T['gsi1SortKey'],
-  string
->;
+import { GlobalSecondaryIndex, PrimaryKey, TablePrimaryKey } from '@Model/types';
 
 export interface ModelProps<T extends typeof Table> {
-  pk: TablePrimaryKey<typeof Table>;
+  pk: TablePrimaryKey<T>;
   gsi1?: GlobalSecondaryIndex<T>;
 }
 
 export class Model {
+  private static _ddb: DynamoDB;
+
   public static prefixPk: string;
   public static prefixSk: string;
   public static suffixPk: string;
   public static suffixSk: string;
   public static table: typeof Table;
-  public static ddb: DynamoDB;
 
-  public table: typeof Table;
   public pk: TablePrimaryKey<typeof Table>;
   public gsi1?: GlobalSecondaryIndex<typeof Table>;
 
-  constructor(props: ModelProps<typeof Table>, table: typeof Table) {
+  constructor(props: ModelProps<typeof Table>) {
     this.pk = props.pk;
-    this.table = table;
     this.gsi1 = props.gsi1;
   }
 
@@ -52,7 +40,7 @@ export class Model {
   }
 
   public static async get<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>): Promise<InstanceType<M>> {
-    const result = await this.ddb.getItem({
+    const result = await this._ddb.getItem({
       TableName: this.table.tableName,
       Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
     });
@@ -61,8 +49,7 @@ export class Model {
       throw new NotFoundError();
     }
 
-    const item = this.modelFromDynamo(this, result.Item || {});
-    return this.parseFromDynamo(this, item);
+    return this.parseFromDynamo(this, result.Item || {});
   }
 
   public static async update<M extends typeof Model>(
@@ -70,7 +57,7 @@ export class Model {
     primaryKey: PrimaryKey<M>,
     props: Omit<Partial<ConstructorParameters<M>[0]>, keyof M>,
   ): Promise<InstanceType<M>> {
-    const result = await this.ddb.updateItem({
+    const result = await this._ddb.updateItem({
       TableName: this.table.tableName,
       Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
       ReturnValues: 'ALL_NEW',
@@ -83,12 +70,11 @@ export class Model {
       }),
     });
 
-    const item = this.modelFromDynamo(this, result.Attributes || {});
-    return this.parseFromDynamo(this, item);
+    return this.parseFromDynamo(this, result.Attributes || {});
   }
 
   public static async put<M extends typeof Model>(this: M, item: InstanceType<M>): Promise<InstanceType<M>> {
-    await this.ddb.putItem({
+    await this._ddb.putItem({
       TableName: this.table.tableName,
       Item: this.modelToDynamo(this, item),
     });
@@ -97,19 +83,21 @@ export class Model {
   }
 
   public static async delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>): Promise<void> {
-    await this.ddb.deleteItem({
+    await this._ddb.deleteItem({
       TableName: this.table.tableName,
       Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
     });
   }
 
-  private static parseFromDynamo<M extends typeof Model>(Class: M, item: GenericObject): InstanceType<M> {
-    return new Class(item as any, this.table) as InstanceType<M>;
+  private static parseFromDynamo<M extends typeof Model>(model: M, dynamoItem: AttributeMap): InstanceType<M> {
+    const item = this.modelFromDynamo(this, dynamoItem);
+    return new model(item as any) as InstanceType<M>;
   }
 
   private static modelToDynamo<M extends typeof Model>(model: M, item: InstanceType<M>): AttributeMap {
     const object = classToObject(item, this.appendPrefixSuffix(model, item.pk));
     delete object.pk;
+    delete object.gsi1;
     delete object.table;
     removeUndefinedInObject(object);
     return objectToDynamo(object);
@@ -157,5 +145,9 @@ export class Model {
       [table.partitionKey]: partitionKey,
       [table.sortKey]: sortKey,
     };
+  }
+
+  static set ddb(value: DynamoDB) {
+    this._ddb = value;
   }
 }

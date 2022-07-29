@@ -9,12 +9,12 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [ ] flow to create Table from code
 * [ ] flow to update Table from code
 * [ ] flow to create Index from code
-* [ ] Possibility to add secondary indexes with custom name
+* [X] Possibility to add secondary indexes with custom name
 
 ### Model:
 
 * [ ] Add createdAt and updatedAt (possibility to add it with custom name)
-* [ ] Possibility to add indexes with custom name
+* [X] Possibility to add indexes with custom name
 * [ ] Implement Model.batchGet
 * [ ] Implement Model.batchPut
 * [ ] Implement Model.batchDelete
