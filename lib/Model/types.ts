@@ -1,8 +1,21 @@
-import { Model } from '@lib/Model';
 import { Table } from '@lib/Table';
+import {
+  gsi1PartitionKey,
+  gsi1SortKey,
+  gsi2PartitionKey,
+  gsi2SortKey,
+  partitionKey,
+  sortKey,
+} from '@lib/utils/symbols';
 
-export type PrimaryKey<M extends typeof Model> = Record<M['table']['partitionKey'] | M['table']['sortKey'], string>;
+export type PrimaryKey = { [partitionKey]: string; [sortKey]: string };
+export interface ModelProps<T extends Table> {
+  [partitionKey]: string;
+  [sortKey]: string;
 
-export type TablePrimaryKey<T extends typeof Table> = Record<T['partitionKey'] | T['sortKey'], string>;
+  [gsi1PartitionKey]?: string;
+  [gsi1SortKey]?: string;
 
-export type GlobalSecondaryIndex<T extends typeof Table> = Record<T['gsi1PartitionKey'] | T['gsi1SortKey'], string>;
+  [gsi2PartitionKey]?: string;
+  [gsi2SortKey]?: string;
+}

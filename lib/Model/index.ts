@@ -9,14 +9,17 @@ import {
   NotFoundError,
   objectToDynamo,
   removeUndefinedInObject,
-  SYMBOL,
+  SEPARATOR,
 } from '@lib/utils';
-import { GlobalSecondaryIndex, PrimaryKey, TablePrimaryKey } from '@Model/types';
-
-export interface ModelProps<T extends typeof Table> {
-  pk: TablePrimaryKey<T>;
-  gsi1?: GlobalSecondaryIndex<T>;
-}
+import {
+  gsi1PartitionKey,
+  gsi1SortKey,
+  gsi2PartitionKey,
+  gsi2SortKey,
+  partitionKey,
+  sortKey,
+} from '@lib/utils/symbols';
+import { ModelProps, PrimaryKey } from '@Model/types';
 
 export class Model {
   private static _ddb: DynamoDB;
@@ -27,19 +30,31 @@ export class Model {
   public static suffixSk: string;
   public static table: typeof Table;
 
-  public pk: TablePrimaryKey<typeof Table>;
-  public gsi1?: GlobalSecondaryIndex<typeof Table>;
+  [partitionKey]: string;
+  [sortKey]: string;
 
-  constructor(props: ModelProps<typeof Table>) {
-    this.pk = props.pk;
-    this.gsi1 = props.gsi1;
+  [gsi1PartitionKey]?: string;
+  [gsi1SortKey]?: string;
+
+  [gsi2PartitionKey]?: string;
+  [gsi2SortKey]?: string;
+
+  constructor(props: ModelProps<Table>) {
+    this[partitionKey] = props[partitionKey];
+    this[sortKey] = props[sortKey];
+
+    this[gsi1PartitionKey] = props[gsi1PartitionKey];
+    this[gsi1SortKey] = props[gsi1SortKey];
+
+    this[gsi1PartitionKey] = props[gsi2PartitionKey];
+    this[gsi1SortKey] = props[gsi2SortKey];
   }
 
   public static query<M extends typeof Model>(this: M, options: QueryOptions): InstanceType<typeof Query<M>> {
     return new Query(this, options);
   }
 
-  public static async get<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>): Promise<InstanceType<M>> {
+  public static async get<M extends typeof Model>(this: M, primaryKey: PrimaryKey): Promise<InstanceType<M>> {
     const result = await this._ddb.getItem({
       TableName: this.table.tableName,
       Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
@@ -54,7 +69,7 @@ export class Model {
 
   public static async update<M extends typeof Model>(
     this: M,
-    primaryKey: PrimaryKey<M>,
+    primaryKey: PrimaryKey,
     props: Omit<Partial<ConstructorParameters<M>[0]>, keyof M>,
   ): Promise<InstanceType<M>> {
     const result = await this._ddb.updateItem({
@@ -82,7 +97,7 @@ export class Model {
     return item;
   }
 
-  public static async delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>): Promise<void> {
+  public static async delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey): Promise<void> {
     await this._ddb.deleteItem({
       TableName: this.table.tableName,
       Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
@@ -95,10 +110,17 @@ export class Model {
   }
 
   private static modelToDynamo<M extends typeof Model>(model: M, item: InstanceType<M>): AttributeMap {
-    const object = classToObject(item, this.appendPrefixSuffix(model, item.pk));
-    delete object.pk;
-    delete object.gsi1;
-    delete object.table;
+    const primaryKey = { [partitionKey]: item[partitionKey], [sortKey]: item[sortKey] };
+    const object = classToObject(item, this.appendPrefixSuffix(model, primaryKey));
+    delete object[partitionKey];
+    delete object[sortKey];
+
+    object[this.table[gsi1PartitionKey]] = object[gsi1PartitionKey];
+    delete object[gsi1PartitionKey];
+
+    object[this.table[gsi1SortKey]] = object[gsi1SortKey];
+    delete object[gsi1SortKey];
+
     removeUndefinedInObject(object);
     return objectToDynamo(object);
   }
@@ -106,45 +128,44 @@ export class Model {
   private static modelFromDynamo<M extends typeof Model>(model: M, attributeMap: AttributeMap): GenericObject {
     const { table } = model;
     const item = fromDynamo(attributeMap);
-    item.pk = this.truncatePrefixSuffix(model, {
-      [table.partitionKey]: item[table.partitionKey],
-      [table.sortKey]: item[table.sortKey],
-    });
 
-    delete item[table.partitionKey];
-    delete item[table.sortKey];
+    item[partitionKey] = this.truncatePrefixSuffixPk(model, item);
+    delete item[table[partitionKey]];
+
+    item[sortKey] = this.truncatePrefixSuffixSk(model, item);
+    delete item[table[sortKey]];
+
+    item[gsi1PartitionKey] = item[table[gsi1PartitionKey]];
+    delete item[table[partitionKey]];
+
+    item[gsi1SortKey] = item[table[gsi1SortKey]];
+    delete item[table[sortKey]];
 
     return item;
   }
 
-  private static appendPrefixSuffix<M extends typeof Model>(model: M, primaryKey: GenericObject): GenericObject {
+  private static appendPrefixSuffix<M extends typeof Model>(model: M, primaryKey: PrimaryKey): GenericObject {
     const { table, prefixPk, prefixSk, suffixPk, suffixSk } = model;
-    const partitionKey = [prefixPk, primaryKey[table.partitionKey], suffixPk].filter((p) => p).join(SYMBOL);
-    const sortKey = [prefixSk, primaryKey[table.sortKey], suffixSk].filter((s) => s).join(SYMBOL);
-
     return {
-      [table.partitionKey]: partitionKey,
-      [table.sortKey]: sortKey,
+      [table[partitionKey]]: [prefixPk, primaryKey[partitionKey], suffixPk].filter((p) => p).join(SEPARATOR),
+      [table[sortKey]]: [prefixSk, primaryKey[sortKey], suffixSk].filter((s) => s).join(SEPARATOR),
     };
   }
 
-  private static truncatePrefixSuffix<M extends typeof Model>(model: M, primaryKey: GenericObject): GenericObject {
-    const { table, prefixPk, prefixSk, suffixPk, suffixSk } = model;
-    let partitionKey = primaryKey[table.partitionKey];
-    let sortKey = primaryKey[table.sortKey];
+  private static truncatePrefixSuffixPk<M extends typeof Model>(model: M, item: GenericObject): string {
+    const { table, prefixPk, suffixPk } = model;
 
-    if (typeof partitionKey === 'string') {
-      partitionKey = partitionKey.replace(`${prefixPk}${SYMBOL}`, '').replace(`${SYMBOL}${suffixPk}`, '');
-    }
+    return (item[table[partitionKey]] as string)
+      .replace(`${prefixPk}${SEPARATOR}`, '')
+      .replace(`${SEPARATOR}${suffixPk}`, '');
+  }
 
-    if (typeof sortKey === 'string') {
-      sortKey = sortKey.replace(`${prefixSk}${SYMBOL}`, '').replace(`${SYMBOL}${suffixSk}`, '');
-    }
+  private static truncatePrefixSuffixSk<M extends typeof Model>(model: M, item: GenericObject): string {
+    const { table, prefixSk, suffixSk } = model;
 
-    return {
-      [table.partitionKey]: partitionKey,
-      [table.sortKey]: sortKey,
-    };
+    return (item[table[sortKey]] as string)
+      .replace(`${prefixSk}${SEPARATOR}`, '')
+      .replace(`${SEPARATOR}${suffixSk}`, '');
   }
 
   static set ddb(value: DynamoDB) {

@@ -1,7 +1,7 @@
 import type { AttributeValue } from '@aws-sdk/client-dynamodb';
 
 export type AttributeMap = Record<string, AttributeValue>;
-export type GenericObject = Record<string, unknown>;
+export type GenericObject = Record<string | symbol, unknown>;
 
 export type ExtractPathExpressions<T> = Exclude<
   keyof {
