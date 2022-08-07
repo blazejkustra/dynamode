@@ -29,30 +29,27 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 
 ### Query
 
+* [ ] .all() get all items even in multiple requests
+* [X] Add possibility to pass DynamoDB condition object
 * [X] .exec() to run the query
 * [X] .limit() limit the number of documents that DynamoDB will query in this request
 * [X] .startAt() for pagination purposes
 * [X] .sort() sorting options
-* [ ] .index() use index to query
 * [X] .consistent() consistency mode
 * [X] .count() return count of items instead of classes
 * [X] .attributes() limit which attributes DynamoDB returns for each item in the table.
-* [ ] .all() get all items even in multiple requests
-* [ ] Add possibility to pass DynamoDB condition object
-
-Other conditions:
-
-* [ ] .and() join conditions together
-* [ ] .or() join conditions together
-* [ ] .not() negate condition
-* [ ] .filter() prepares a new conditional
-* [ ] .eq() see if the given filter key is equal
-* [ ] .exists() see if given filter exists
-* [ ] .lt() .le() .gt() .ge() see if given filter is greater/less etc
-* [ ] .beginsWith() see if given filter begins with
-* [ ] .contains() see if given filter contains
-* [ ] .in() see if given filter is in array
-* [ ] .between() see if given filter is between two values
+* [X] .and() join conditions together
+* [X] .or() join conditions together
+* [X] .not() negate condition
+* [X] .filter() prepares a new conditional
+* [X] .eq() see if the given filter key is equal
+* [X] .exists() see if given filter exists
+* [X] .lt() .le() .gt() .ge() see if given filter is greater/less etc
+* [X] .beginsWith() see if given filter begins with
+* [X] .contains() see if given filter contains
+* [X] .in() see if given filter is in array
+* [X] .between() see if given filter is between two values
+* [X] .parenthesis() and group()
 
 ### Scan
 

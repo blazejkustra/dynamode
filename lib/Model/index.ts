@@ -1,5 +1,6 @@
 import type { DynamoDB } from '@aws-sdk/client-dynamodb';
-import { Query, QueryOptions } from '@lib/Query';
+import { Condition } from '@lib/Condition';
+import { Query } from '@lib/Query';
 import { Table } from '@lib/Table';
 import {
   AttributeMap,
@@ -16,6 +17,8 @@ import {
   gsi1SortKey,
   gsi2PartitionKey,
   gsi2SortKey,
+  lsi1SortKey,
+  lsi2SortKey,
   partitionKey,
   sortKey,
 } from '@lib/utils/symbols';
@@ -30,14 +33,17 @@ export class Model {
   public static suffixSk: string;
   public static table: typeof Table;
 
-  [partitionKey]: string;
-  [sortKey]: string;
+  [partitionKey]: string | number;
+  [sortKey]: string | number;
 
-  [gsi1PartitionKey]?: string;
-  [gsi1SortKey]?: string;
+  [gsi1PartitionKey]?: string | number;
+  [gsi2PartitionKey]?: string | number;
 
-  [gsi2PartitionKey]?: string;
-  [gsi2SortKey]?: string;
+  [gsi1SortKey]?: string | number;
+  [gsi2SortKey]?: string | number;
+
+  [lsi1SortKey]?: string | number;
+  [lsi2SortKey]?: string | number;
 
   constructor(props: ModelProps<Table>) {
     this[partitionKey] = props[partitionKey];
@@ -46,12 +52,23 @@ export class Model {
     this[gsi1PartitionKey] = props[gsi1PartitionKey];
     this[gsi1SortKey] = props[gsi1SortKey];
 
-    this[gsi1PartitionKey] = props[gsi2PartitionKey];
-    this[gsi1SortKey] = props[gsi2SortKey];
+    this[gsi2PartitionKey] = props[gsi2PartitionKey];
+    this[gsi2SortKey] = props[gsi2SortKey];
+
+    this[lsi1SortKey] = props[lsi1SortKey];
+    this[lsi2SortKey] = props[lsi2SortKey];
   }
 
-  public static query<M extends typeof Model>(this: M, options: QueryOptions): InstanceType<typeof Query<M>> {
-    return new Query(this, options);
+  public static query<M extends typeof Model>(
+    this: M,
+    key: typeof partitionKey | typeof gsi1PartitionKey,
+    value: string | number,
+  ): InstanceType<typeof Query<M>> {
+    return new Query(this, key, value);
+  }
+
+  public static condition<M extends typeof Model>(this: M, key: string | number): InstanceType<typeof Condition<M>> {
+    return new Condition(this, key);
   }
 
   public static async get<M extends typeof Model>(this: M, primaryKey: PrimaryKey): Promise<InstanceType<M>> {
@@ -121,6 +138,12 @@ export class Model {
     object[this.table[gsi1SortKey]] = object[gsi1SortKey];
     delete object[gsi1SortKey];
 
+    object[this.table[lsi1SortKey]] = object[lsi1SortKey];
+    delete object[lsi1SortKey];
+
+    object[this.table[lsi2SortKey]] = object[lsi2SortKey];
+    delete object[lsi2SortKey];
+
     removeUndefinedInObject(object);
     return objectToDynamo(object);
   }
@@ -136,10 +159,13 @@ export class Model {
     delete item[table[sortKey]];
 
     item[gsi1PartitionKey] = item[table[gsi1PartitionKey]];
-    delete item[table[partitionKey]];
+    delete item[table[gsi1PartitionKey]];
 
     item[gsi1SortKey] = item[table[gsi1SortKey]];
-    delete item[table[sortKey]];
+    delete item[table[gsi1SortKey]];
+
+    item[lsi2SortKey] = item[table[lsi2SortKey]];
+    delete item[table[lsi2SortKey]];
 
     return item;
   }

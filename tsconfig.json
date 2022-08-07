@@ -16,6 +16,7 @@
       "@Table/*": ["Table/*"],
       "@Transaction/*": ["Transaction/*"],
       "@Scan/*": ["Scan/*"],
+      "@Condition/*": ["Condition/*"],
   },
     "strict": true,
     "allowSyntheticDefaultImports": true,
