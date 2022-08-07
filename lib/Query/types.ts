@@ -1,7 +1,12 @@
+import { QueryInput } from '@aws-sdk/client-dynamodb';
 import { AttributeType } from '@Condition/types';
 import { Query } from '@lib/Query';
 
 type QueryInstance = InstanceType<typeof Query>;
+
+export interface QueryOptions {
+  queryInput?: Partial<QueryInput>;
+}
 
 export interface KeyQueryCondition {
   eq: (value: string | number) => QueryInstance;

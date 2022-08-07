@@ -1,4 +1,4 @@
-export const reservedWords = [
+export const RESERVED_WORDS = [
   'ABORT',
   'ABSOLUTE',
   'ACTION',

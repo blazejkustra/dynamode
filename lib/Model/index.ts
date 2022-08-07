@@ -9,7 +9,6 @@ import {
   GenericObject,
   NotFoundError,
   objectToDynamo,
-  removeUndefinedInObject,
   SEPARATOR,
 } from '@lib/utils';
 import {
@@ -121,7 +120,7 @@ export class Model {
     });
   }
 
-  private static parseFromDynamo<M extends typeof Model>(model: M, dynamoItem: AttributeMap): InstanceType<M> {
+  public static parseFromDynamo<M extends typeof Model>(model: M, dynamoItem: AttributeMap): InstanceType<M> {
     const item = this.modelFromDynamo(this, dynamoItem);
     return new model(item as any) as InstanceType<M>;
   }
@@ -144,7 +143,6 @@ export class Model {
     object[this.table[lsi2SortKey]] = object[lsi2SortKey];
     delete object[lsi2SortKey];
 
-    removeUndefinedInObject(object);
     return objectToDynamo(object);
   }
 
@@ -196,5 +194,9 @@ export class Model {
 
   static set ddb(value: DynamoDB) {
     this._ddb = value;
+  }
+
+  static get ddb() {
+    return this._ddb;
   }
 }

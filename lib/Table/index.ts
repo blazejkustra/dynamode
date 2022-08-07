@@ -13,22 +13,22 @@ import {
 export class Table {
   public static readonly tableName: string;
 
-  public static readonly [partitionKey]: string | number;
-  public static readonly [sortKey]: string | number;
+  public static readonly [partitionKey]: string;
+  public static readonly [sortKey]: string;
 
   public static readonly gsi1Name: string;
-  public static readonly [gsi1PartitionKey]: string | number;
-  public static readonly [gsi1SortKey]: string | number;
+  public static readonly [gsi1PartitionKey]: string;
+  public static readonly [gsi1SortKey]: string;
 
   public static readonly gsi2Name: string;
-  public static readonly [gsi2PartitionKey]: string | number;
-  public static readonly [gsi2SortKey]: string | number;
+  public static readonly [gsi2PartitionKey]: string;
+  public static readonly [gsi2SortKey]: string;
 
   public static readonly lsi1Name: string;
-  public static readonly [lsi1SortKey]: string | number;
+  public static readonly [lsi1SortKey]: string;
 
   public static readonly lsi2Name: string;
-  public static readonly [lsi2SortKey]: string | number;
+  public static readonly [lsi2SortKey]: string;
 
   constructor(props: Table) {
     console.log(props);
