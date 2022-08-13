@@ -1,3 +1,6 @@
+import { DeleteItemCommandInput, GetItemCommandInput } from '@aws-sdk/client-dynamodb';
+import { ConditionInstance } from '@lib/Condition';
+import { Model } from '@lib/Model';
 import { Table } from '@lib/Table';
 import { gsi1PartitionKey, gsi1SortKey, gsi2PartitionKey, gsi2SortKey, lsi1SortKey, lsi2SortKey, partitionKey, sortKey } from '@lib/utils/symbols';
 
@@ -18,9 +21,18 @@ export interface ModelProps<T extends Table> {
   createdAt?: string | number;
 }
 
+type ReturnOption = 'default' | 'input' | 'output';
+
 export interface ModelGetOptions {
+  extraInput?: Partial<GetItemCommandInput>;
+  return?: ReturnOption;
   attributes?: string[];
   consistent?: boolean;
   consumedCapacity?: boolean;
-  return?: 'default' | 'input' | 'output';
+}
+
+export interface ModelDeleteOptions<M extends typeof Model> {
+  extraInput?: Partial<DeleteItemCommandInput>;
+  return?: ReturnOption;
+  condition?: ConditionInstance<M>;
 }

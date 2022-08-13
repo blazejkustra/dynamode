@@ -17,11 +17,6 @@ export const lsi2SortKey: unique symbol = Symbol('lsi2SortKey');
 
 export type PartitionKeys = typeof partitionKey | typeof gsi1PartitionKey | typeof gsi2PartitionKey;
 
-export type SortKeys =
-  | typeof sortKey
-  | typeof gsi1SortKey
-  | typeof gsi2SortKey
-  | typeof lsi1SortKey
-  | typeof lsi2SortKey;
+export type SortKeys = typeof sortKey | typeof gsi1SortKey | typeof gsi2SortKey | typeof lsi1SortKey | typeof lsi2SortKey;
 
 export type Keys = SortKeys | PartitionKeys;

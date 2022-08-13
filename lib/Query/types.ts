@@ -6,7 +6,7 @@ import { Query } from '@lib/Query';
 type QueryInstance<M extends typeof Model> = InstanceType<typeof Query<M>>;
 
 export interface QueryOptions {
-  queryInput?: Partial<QueryInput>;
+  extraInput?: Partial<QueryInput>;
 }
 
 export interface KeyQueryCondition<M extends typeof Model> {

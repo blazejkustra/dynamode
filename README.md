@@ -20,18 +20,21 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [ ] Implement Model.batchDelete
 * [ ] Implement Model.create (that creates object ensuring it doesnt exist already)
 * [ ] Implement Model.transaction
-* [ ] Implement Model.query
+* [X] Implement Model.condition
+* [X] Implement Model.query
 * [X] Model.get - supplement with all dynamoDB properties
 * [ ] Model.update - supplement with all dynamoDB properties
 * [ ] Model.put - supplement with all dynamoDB properties
-* [ ] Model.delete - supplement with all dynamoDB properties
+* [X] Model.delete - supplement with all dynamoDB properties
 * [ ] Show how to add new methods to class
+* [ ] Add remaining indexes
+
 
 ### Query
 
 * [ ] .all() get all items even in multiple requests
-* [ ] fix condition merge conflicts when using parenthesis
-* [ ] fix size() substituteKey option (key is still added to attributeNames)
+* [X] fix condition merge conflicts when using parenthesis
+* [X] fix size() substituteKey option (key is still added to attributeNames)
 * [ ] Add possibility to pass dynamode Condition class (without parenthesis)
 * [X] Add possibility to pass DynamoDB condition object
 * [X] .exec() to run the query
@@ -72,3 +75,6 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [ ] Improve how ddb and table is passed over
 * [ ] Add logging possibility
 * [ ] Add PartiQL support
+* [ ] Capture dynamoDB errors and make it easier to work with
+* [ ] Add dynamoDB streams support
+* [ ] Add tests XD gl

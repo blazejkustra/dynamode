@@ -1,10 +1,11 @@
-import { DynamoDB, GetItemCommandInput, GetItemCommandOutput } from '@aws-sdk/client-dynamodb';
+import { DeleteItemCommandInput, DeleteItemCommandOutput, DynamoDB, GetItemCommandInput, GetItemCommandOutput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
 import { Query } from '@lib/Query';
 import { Table } from '@lib/Table';
-import { AttributeMap, classToObject, fromDynamo, GenericObject, NotFoundError, objectToDynamo, SEPARATOR } from '@lib/utils';
+import { AttributeMap, classToObject, fromDynamo, GenericObject, isEmpty, NotFoundError, objectToDynamo, SEPARATOR } from '@lib/utils';
+import { substituteModelDeleteConditions } from '@lib/utils/substituteConditions';
 import { gsi1PartitionKey, gsi1SortKey, gsi2PartitionKey, gsi2SortKey, lsi1SortKey, lsi2SortKey, partitionKey, sortKey } from '@lib/utils/symbols';
-import { ModelProps, PrimaryKey } from '@Model/types';
+import { ModelDeleteOptions, ModelProps, PrimaryKey } from '@Model/types';
 
 import { ModelGetOptions } from './types';
 
@@ -43,11 +44,7 @@ export class Model {
     this[lsi2SortKey] = props[lsi2SortKey];
   }
 
-  public static query<M extends typeof Model>(
-    this: M,
-    key: typeof partitionKey | typeof gsi1PartitionKey,
-    value: string | number,
-  ): InstanceType<typeof Query<M>> {
+  public static query<M extends typeof Model>(this: M, key: typeof partitionKey | typeof gsi1PartitionKey, value: string | number): InstanceType<typeof Query<M>> {
     return new Query(this, key, value);
   }
 
@@ -56,18 +53,16 @@ export class Model {
   }
 
   public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey): Promise<InstanceType<M>>;
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: Omit<ModelGetOptions, 'return'>): Promise<InstanceType<M>>;
   public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions & { return: 'default' }): Promise<InstanceType<M>>;
   public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions & { return: 'output' }): Promise<GetItemCommandOutput>;
   public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions & { return: 'input' }): GetItemCommandInput;
-  public static get<M extends typeof Model>(
-    this: M,
-    primaryKey: PrimaryKey,
-    options?: ModelGetOptions,
-  ): Promise<InstanceType<M> | GetItemCommandOutput> | GetItemCommandInput {
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options?: ModelGetOptions): Promise<InstanceType<M> | GetItemCommandOutput> | GetItemCommandInput {
     const commandInput: GetItemCommandInput = {
       TableName: this.table.tableName,
       Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
       ConsistentRead: options?.consistent || false,
+      ...options?.extraInput,
     };
 
     if (options?.return === 'input') {
@@ -119,11 +114,38 @@ export class Model {
     return item;
   }
 
-  public static async delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey): Promise<void> {
-    await this._ddb.deleteItem({
+  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey): Promise<void>;
+  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: Omit<ModelDeleteOptions<M>, 'return'>): Promise<void>;
+  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelDeleteOptions<M> & { return: 'default' }): Promise<void>;
+  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelDeleteOptions<M> & { return: 'output' }): Promise<DeleteItemCommandOutput>;
+  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelDeleteOptions<M> & { return: 'input' }): DeleteItemCommandInput;
+  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options?: ModelDeleteOptions<M>): Promise<void | DeleteItemCommandOutput> | DeleteItemCommandInput {
+    const commandInput: DeleteItemCommandInput = {
       TableName: this.table.tableName,
       Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
-    });
+      ...options?.extraInput,
+    };
+
+    if (options?.condition) {
+      const { conditionExpression, attributeNames, attributeValues } = substituteModelDeleteConditions(options.condition.conditions);
+      if (conditionExpression) commandInput.ConditionExpression = conditionExpression;
+      if (!isEmpty(attributeNames)) commandInput.ExpressionAttributeNames = attributeNames;
+      if (!isEmpty(attributeValues)) commandInput.ExpressionAttributeValues = attributeValues;
+    }
+
+    if (options?.return === 'input') {
+      return commandInput;
+    }
+
+    return (async () => {
+      const result = await this._ddb.deleteItem(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      return;
+    })();
   }
 
   public static parseFromDynamo<M extends typeof Model>(model: M, dynamoItem: AttributeMap): InstanceType<M> {

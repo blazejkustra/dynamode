@@ -1,14 +1,4 @@
-import {
-  gsi1PartitionKey,
-  gsi1SortKey,
-  gsi2PartitionKey,
-  gsi2SortKey,
-  Keys,
-  lsi1SortKey,
-  lsi2SortKey,
-  partitionKey,
-  sortKey,
-} from '@lib/utils';
+import { gsi1PartitionKey, gsi1SortKey, gsi2PartitionKey, gsi2SortKey, Keys, lsi1SortKey, lsi2SortKey, partitionKey, sortKey } from '@lib/utils';
 
 export class Table {
   public static readonly tableName: string;

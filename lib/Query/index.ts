@@ -1,10 +1,10 @@
 import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
-import { Condition, ConditionInstance } from '@lib/Condition';
+import { ConditionInstance } from '@lib/Condition';
 import { AttributeType } from '@lib/Condition/types';
 import { Model } from '@lib/Model';
-import { ConditionExpression, substitute } from '@lib/Query/substitute';
 import { Table } from '@lib/Table';
 import { checkDuplicatesInArray, DefaultError, GenericObject, isEmpty, objectToDynamo } from '@lib/utils';
+import { ConditionExpression, substituteQueryConditions } from '@lib/utils/substituteConditions';
 import { Keys, PartitionKeys } from '@lib/utils/symbols';
 import { SortKeys } from '@lib/utils/symbols';
 import { FilterQueryCondition, KeyQueryCondition, QueryOptions } from '@Query/types';
@@ -39,7 +39,7 @@ export class Query<M extends typeof Model> {
   }
 
   public async exec(options?: QueryOptions) {
-    this.buildQueryInput(options?.queryInput);
+    this.buildQueryInput(options?.extraInput);
     this.validateQueryInput();
     const result = await this.ddb.query(this.queryInput);
     const items = result.Items || [];
@@ -50,16 +50,8 @@ export class Query<M extends typeof Model> {
     };
   }
 
-  public debug(queryInput?: Partial<QueryInput>) {
-    this.buildQueryInput(queryInput);
-    return this.queryInput;
-  }
-
   private buildQueryInput(queryInput?: Partial<QueryInput>) {
-    const { conditionExpression, keyConditionExpression, attributeNames, attributeValues } = substitute(
-      this.filterConditions,
-      this.keyConditions,
-    );
+    const { conditionExpression, keyConditionExpression, attributeNames, attributeValues } = substituteQueryConditions(this.filterConditions, this.keyConditions);
 
     if (keyConditionExpression) {
       this.queryInput.KeyConditionExpression = keyConditionExpression;
@@ -103,8 +95,7 @@ export class Query<M extends typeof Model> {
       gt: (value: string | number) => this._gt(this.keyConditions, this.table[key], value),
       ge: (value: string | number) => this._ge(this.keyConditions, this.table[key], value),
       beginsWith: (value: string | number) => this._beginsWith(this.keyConditions, this.table[key], value),
-      between: (value1: string | number, value2: string | number) =>
-        this._between(this.keyConditions, this.table[key], value1, value2),
+      between: (value1: string | number, value2: string | number) => this._between(this.keyConditions, this.table[key], value1, value2),
     };
   }
 
@@ -122,8 +113,7 @@ export class Query<M extends typeof Model> {
       gt: (value: string | number): QueryInstance<M> => this._gt(this.filterConditions, key, value),
       ge: (value: string | number): QueryInstance<M> => this._ge(this.filterConditions, key, value),
       beginsWith: (value: string | number): QueryInstance<M> => this._beginsWith(this.filterConditions, key, value),
-      between: (value1: string | number, value2: string | number): QueryInstance<M> =>
-        this._between(this.filterConditions, key, value1, value2),
+      between: (value1: string | number, value2: string | number): QueryInstance<M> => this._between(this.filterConditions, key, value1, value2),
       contains: (value: string | number): QueryInstance<M> => {
         this.filterConditions.push({ key, values: [value], expr: `contains($K, $V)` });
         return this;
@@ -202,7 +192,7 @@ export class Query<M extends typeof Model> {
     return this;
   }
 
-  public parenthesis(condition: InstanceType<typeof Condition>) {
+  public parenthesis(condition: ConditionInstance<M>) {
     if (this.filterConditions.length > 0) {
       this.filterConditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
     }
@@ -284,12 +274,7 @@ export class Query<M extends typeof Model> {
     return this;
   }
 
-  private _between(
-    conditions: ConditionExpression[],
-    key: string,
-    v1: string | number,
-    v2: string | number,
-  ): QueryInstance<M> {
+  private _between(conditions: ConditionExpression[], key: string, v1: string | number, v2: string | number): QueryInstance<M> {
     conditions.push({ key, values: [v1, v2], expr: '$K BETWEEN $V AND $V' });
     return this;
   }

@@ -1,8 +1,8 @@
 import { RESERVED_WORDS } from '@aws/reservedWords';
 
-import { valueToDynamo } from '../utils/converter';
-import { DefaultError } from '../utils/Error';
-import { AttributeMap } from '../utils/types';
+import { valueToDynamo } from './converter';
+import { DefaultError } from './Error';
+import { AttributeMap } from './types';
 
 export type ConditionExpression = {
   key?: string;
@@ -10,14 +10,32 @@ export type ConditionExpression = {
   expr: string;
 };
 
-interface Substitute {
+interface SubstituteQueryConditions {
   attributeNames: Record<string, string>;
   attributeValues: AttributeMap;
   conditionExpression: string;
   keyConditionExpression: string;
 }
 
-export function substitute(conditions: ConditionExpression[], keyConditions: ConditionExpression[]): Substitute {
+export function substituteQueryConditions(filterConditions: ConditionExpression[], keyConditions: ConditionExpression[]): SubstituteQueryConditions {
+  const attributeNames: Record<string, string> = {};
+  const attributeValues: AttributeMap = {};
+
+  return {
+    attributeNames,
+    attributeValues,
+    conditionExpression: buildExpression(filterConditions, attributeNames, attributeValues),
+    keyConditionExpression: buildExpression(keyConditions, attributeNames, attributeValues),
+  };
+}
+
+interface SubstituteModelDeleteConditions {
+  attributeNames: Record<string, string>;
+  attributeValues: AttributeMap;
+  conditionExpression: string;
+}
+
+export function substituteModelDeleteConditions(conditions: ConditionExpression[]): SubstituteModelDeleteConditions {
   const attributeNames: Record<string, string> = {};
   const attributeValues: AttributeMap = {};
 
@@ -25,15 +43,10 @@ export function substitute(conditions: ConditionExpression[], keyConditions: Con
     attributeNames,
     attributeValues,
     conditionExpression: buildExpression(conditions, attributeNames, attributeValues),
-    keyConditionExpression: buildExpression(keyConditions, attributeNames, attributeValues),
   };
 }
 
-export function buildExpression(
-  conditions: ConditionExpression[],
-  attributeNames: Record<string, string>,
-  attributeValues: AttributeMap,
-): string {
+function buildExpression(conditions: ConditionExpression[], attributeNames: Record<string, string>, attributeValues: AttributeMap): string {
   return conditions
     .map((condition) => {
       let { expr } = condition;
@@ -56,7 +69,7 @@ export function buildExpression(
     .join(' ');
 }
 
-export function substituteAttributeName(attributeNames: Record<string, string>, name: string): string {
+function substituteAttributeName(attributeNames: Record<string, string>, name: string): string {
   const keys = name.split('.');
   return keys
     .map((key) => {
@@ -70,7 +83,7 @@ export function substituteAttributeName(attributeNames: Record<string, string>, 
     .join('.');
 }
 
-export function substituteAttributeValues(attributeValues: AttributeMap, name: string, value: unknown): string {
+function substituteAttributeValues(attributeValues: AttributeMap, name: string, value: unknown): string {
   const key = name.split('.').join('_');
 
   for (let appendix = 0; appendix < 1000; appendix++) {

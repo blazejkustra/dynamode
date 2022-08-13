@@ -1,16 +1,7 @@
 import { AWS } from '@lib/aws';
 import { Model } from '@lib/Model';
 import { Table } from '@lib/Table';
-import {
-  gsi1Name,
-  gsi1PartitionKey,
-  gsi1SortKey,
-  gsi2Name,
-  gsi2PartitionKey,
-  gsi2SortKey,
-  partitionKey,
-  sortKey,
-} from '@lib/utils/symbols';
+import { gsi1Name, gsi1PartitionKey, gsi1SortKey, gsi2Name, gsi2PartitionKey, gsi2SortKey, partitionKey, sortKey } from '@lib/utils/symbols';
 import { dynamo, prefix, prefixPk, prefixSk, suffix, suffixPk, suffixSk, table } from '@Model/decorators';
 import { ModelProps } from '@Model/types';
 

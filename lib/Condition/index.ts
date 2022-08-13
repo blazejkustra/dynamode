@@ -1,6 +1,6 @@
 import { AttributeType, NegateFunction, SizeFunction } from '@Condition/types';
 import { Model } from '@lib/Model';
-import { ConditionExpression } from '@lib/Query/substitute';
+import { ConditionExpression } from '@lib/utils/substituteConditions';
 
 export type ConditionInstance<M extends typeof Model> = InstanceType<typeof Condition<M>>;
 
@@ -192,12 +192,7 @@ export class Condition<M extends typeof Model> {
     return this;
   }
 
-  private _between(
-    conditions: ConditionExpression[],
-    key: string,
-    v1: string | number,
-    v2: string | number,
-  ): ConditionInstance<M> {
+  private _between(conditions: ConditionExpression[], key: string, v1: string | number, v2: string | number): ConditionInstance<M> {
     conditions.push({ key, values: [v1, v2], expr: '$K BETWEEN $V AND $V' });
     return this;
   }
