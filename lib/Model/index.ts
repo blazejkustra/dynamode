@@ -1,11 +1,11 @@
-import { DeleteItemCommandInput, DeleteItemCommandOutput, DynamoDB, GetItemCommandInput, GetItemCommandOutput } from '@aws-sdk/client-dynamodb';
+import { DeleteItemCommandInput, DeleteItemCommandOutput, DynamoDB, GetItemCommandInput, GetItemCommandOutput, PutItemCommandInput, PutItemCommandOutput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
 import { Query } from '@lib/Query';
 import { Table } from '@lib/Table';
-import { AttributeMap, classToObject, fromDynamo, GenericObject, isEmpty, NotFoundError, objectToDynamo, SEPARATOR } from '@lib/utils';
-import { substituteModelDeleteConditions } from '@lib/utils/substituteConditions';
+import { AttributeMap, classToObject, fromDynamo, GenericObject, NotFoundError, objectToDynamo, SEPARATOR } from '@lib/utils';
+import { substituteModelDeleteConditions, substituteModelPutConditions } from '@lib/utils/substituteConditions';
 import { gsi1PartitionKey, gsi1SortKey, gsi2PartitionKey, gsi2SortKey, lsi1SortKey, lsi2SortKey, partitionKey, sortKey } from '@lib/utils/symbols';
-import { ModelDeleteOptions, ModelProps, PrimaryKey } from '@Model/types';
+import { ModelDeleteOptions, ModelProps, ModelPutOptions, PrimaryKey } from '@Model/types';
 
 import { ModelGetOptions } from './types';
 
@@ -105,13 +105,35 @@ export class Model {
     return this.parseFromDynamo(this, result.Attributes || {});
   }
 
-  public static async put<M extends typeof Model>(this: M, item: InstanceType<M>): Promise<InstanceType<M>> {
-    await this._ddb.putItem({
+  public static put<M extends typeof Model>(this: M, item: InstanceType<M>): Promise<InstanceType<M>>;
+  public static put<M extends typeof Model>(this: M, item: InstanceType<M>, options: Omit<ModelPutOptions<M>, 'return'>): Promise<InstanceType<M>>;
+  public static put<M extends typeof Model>(this: M, item: InstanceType<M>, options: ModelPutOptions<M> & { return: 'default' }): Promise<InstanceType<M>>;
+  public static put<M extends typeof Model>(this: M, item: InstanceType<M>, options: ModelPutOptions<M> & { return: 'output' }): Promise<PutItemCommandOutput>;
+  public static put<M extends typeof Model>(this: M, item: InstanceType<M>, options: ModelPutOptions<M> & { return: 'input' }): PutItemCommandInput;
+  public static put<M extends typeof Model>(this: M, item: InstanceType<M>, options?: ModelPutOptions<M>): Promise<InstanceType<M> | PutItemCommandOutput> | PutItemCommandInput {
+    const overwrite = options?.overwrite ?? true;
+    const overwriteCondition = overwrite ? undefined : this.condition(this.table[partitionKey]).not().exists();
+
+    const commandInput: PutItemCommandInput = {
       TableName: this.table.tableName,
       Item: this.modelToDynamo(this, item),
-    });
+      ...substituteModelPutConditions(overwriteCondition, options?.condition),
+      ...options?.extraInput,
+    };
 
-    return item;
+    if (options?.return === 'input') {
+      return commandInput;
+    }
+
+    return (async () => {
+      const result = await this._ddb.putItem(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      return item;
+    })();
   }
 
   public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey): Promise<void>;
@@ -123,15 +145,9 @@ export class Model {
     const commandInput: DeleteItemCommandInput = {
       TableName: this.table.tableName,
       Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
+      ...substituteModelDeleteConditions(options?.condition),
       ...options?.extraInput,
     };
-
-    if (options?.condition) {
-      const { conditionExpression, attributeNames, attributeValues } = substituteModelDeleteConditions(options.condition.conditions);
-      if (conditionExpression) commandInput.ConditionExpression = conditionExpression;
-      if (!isEmpty(attributeNames)) commandInput.ExpressionAttributeNames = attributeNames;
-      if (!isEmpty(attributeValues)) commandInput.ExpressionAttributeValues = attributeValues;
-    }
 
     if (options?.return === 'input') {
       return commandInput;

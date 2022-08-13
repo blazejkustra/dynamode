@@ -127,7 +127,7 @@ export class Query<M extends typeof Model> {
         return this;
       },
       exists: (): QueryInstance<M> => {
-        this.filterConditions.push({ key, expr: 'attribute_not_exists($K)' });
+        this.filterConditions.push({ key, expr: 'attribute_exists($K)' });
         return this;
       },
       size: () => ({
@@ -192,17 +192,30 @@ export class Query<M extends typeof Model> {
     return this;
   }
 
-  public parenthesis(condition: ConditionInstance<M>) {
-    if (this.filterConditions.length > 0) {
-      this.filterConditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
+  public parenthesis(condition?: ConditionInstance<M>) {
+    if (condition) {
+      if (this.filterConditions.length > 0) {
+        this.filterConditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
+      }
+      this.orBetweenCondition = false;
+      this.filterConditions.push(...[{ expr: '(' }, ...condition.conditions, { expr: ')' }]);
     }
-    this.orBetweenCondition = false;
-    this.filterConditions.push(...[{ expr: '(' }, ...condition.conditions, { expr: ')' }]);
     return this;
   }
 
-  public group(condition: ConditionInstance<M>) {
+  public group(condition?: ConditionInstance<M>) {
     return this.parenthesis(condition);
+  }
+
+  public condition(condition?: ConditionInstance<M>) {
+    if (condition) {
+      if (this.filterConditions.length > 0) {
+        this.filterConditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
+      }
+      this.orBetweenCondition = false;
+      this.filterConditions.push(...condition.conditions);
+    }
+    return this;
   }
 
   public limit(count: number) {

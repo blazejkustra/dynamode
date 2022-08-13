@@ -1,8 +1,12 @@
 import { RESERVED_WORDS } from '@aws/reservedWords';
+import { ConditionInstance } from '@lib/Condition';
+import { Model } from '@lib/Model';
 
-import { valueToDynamo } from './converter';
-import { DefaultError } from './Error';
-import { AttributeMap } from './types';
+import { valueToDynamo } from '../utils/converter';
+import { DefaultError } from '../utils/Error';
+import { AttributeMap } from '../utils/types';
+
+import { isEmpty } from './helpers';
 
 export type ConditionExpression = {
   key?: string;
@@ -29,20 +33,41 @@ export function substituteQueryConditions(filterConditions: ConditionExpression[
   };
 }
 
-interface SubstituteModelDeleteConditions {
-  attributeNames: Record<string, string>;
-  attributeValues: AttributeMap;
-  conditionExpression: string;
+interface SubstituteModelConditions {
+  ExpressionAttributeNames?: Record<string, string>;
+  ExpressionAttributeValues?: AttributeMap;
+  ConditionExpression?: string;
 }
 
-export function substituteModelDeleteConditions(conditions: ConditionExpression[]): SubstituteModelDeleteConditions {
+export function substituteModelPutConditions<M extends typeof Model>(overwriteCondition?: ConditionInstance<M>, optionsCondition?: ConditionInstance<M>): SubstituteModelConditions {
   const attributeNames: Record<string, string> = {};
   const attributeValues: AttributeMap = {};
+  let conditionExpression: string | undefined = undefined;
+
+  if (overwriteCondition && optionsCondition) {
+    conditionExpression = buildExpression(overwriteCondition.condition(optionsCondition).conditions, attributeNames, attributeValues);
+  } else if (overwriteCondition) {
+    conditionExpression = buildExpression(overwriteCondition.conditions, attributeNames, attributeValues);
+  } else if (optionsCondition) {
+    conditionExpression = buildExpression(optionsCondition.conditions, attributeNames, attributeValues);
+  }
 
   return {
-    attributeNames,
-    attributeValues,
-    conditionExpression: buildExpression(conditions, attributeNames, attributeValues),
+    ...(!isEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
+    ...(!isEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+    ...(conditionExpression ? { ConditionExpression: conditionExpression } : {}),
+  };
+}
+
+export function substituteModelDeleteConditions<M extends typeof Model>(optionsCondition?: ConditionInstance<M>): SubstituteModelConditions {
+  const attributeNames: Record<string, string> = {};
+  const attributeValues: AttributeMap = {};
+  const conditionExpression = buildExpression(optionsCondition?.conditions || [], attributeNames, attributeValues);
+
+  return {
+    ...(!isEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
+    ...(!isEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+    ...(conditionExpression ? { ConditionExpression: conditionExpression } : {}),
   };
 }
 

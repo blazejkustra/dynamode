@@ -1,4 +1,4 @@
-import { DeleteItemCommandInput, GetItemCommandInput } from '@aws-sdk/client-dynamodb';
+import { DeleteItemCommandInput, GetItemCommandInput, PutItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { ConditionInstance } from '@lib/Condition';
 import { Model } from '@lib/Model';
 import { Table } from '@lib/Table';
@@ -29,6 +29,13 @@ export interface ModelGetOptions {
   attributes?: string[];
   consistent?: boolean;
   consumedCapacity?: boolean;
+}
+
+export interface ModelPutOptions<M extends typeof Model> {
+  extraInput?: Partial<PutItemCommandInput>;
+  return?: ReturnOption;
+  overwrite?: boolean;
+  condition?: ConditionInstance<M>;
 }
 
 export interface ModelDeleteOptions<M extends typeof Model> {

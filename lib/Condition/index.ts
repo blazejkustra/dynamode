@@ -37,17 +37,30 @@ export class Condition<M extends typeof Model> {
     return this;
   }
 
-  public parenthesis(condition: ConditionInstance<M>) {
-    if (this.conditions.length > 0) {
-      this.conditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
+  public parenthesis(condition?: ConditionInstance<M>) {
+    if (condition) {
+      if (this.conditions.length > 0) {
+        this.conditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
+      }
+      this.orBetweenCondition = false;
+      this.conditions.push(...[{ expr: '(' }, ...condition.conditions, { expr: ')' }]);
     }
-    this.orBetweenCondition = false;
-    this.conditions.push(...[{ expr: '(' }, ...condition.conditions, { expr: ')' }]);
     return this;
   }
 
-  public group(condition: ConditionInstance<M>) {
+  public group(condition?: ConditionInstance<M>) {
     return this.parenthesis(condition);
+  }
+
+  public condition(condition?: ConditionInstance<M>) {
+    if (condition) {
+      if (this.conditions.length > 0) {
+        this.conditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
+      }
+      this.orBetweenCondition = false;
+      this.conditions.push(...condition.conditions);
+    }
+    return this;
   }
 
   public contains(value: string | number): ConditionInstance<M> {
@@ -122,7 +135,7 @@ export class Condition<M extends typeof Model> {
   }
 
   public exists(): ConditionInstance<M> {
-    this.conditions.push({ key: this.key, expr: 'attribute_not_exists($K)' });
+    this.conditions.push({ key: this.key, expr: 'attribute_exists($K)' });
     return this;
   }
 

@@ -24,18 +24,17 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [X] Implement Model.query
 * [X] Model.get - supplement with all dynamoDB properties
 * [ ] Model.update - supplement with all dynamoDB properties
-* [ ] Model.put - supplement with all dynamoDB properties
+* [X] Model.put - supplement with all dynamoDB properties
 * [X] Model.delete - supplement with all dynamoDB properties
 * [ ] Show how to add new methods to class
 * [ ] Add remaining indexes
-
 
 ### Query
 
 * [ ] .all() get all items even in multiple requests
 * [X] fix condition merge conflicts when using parenthesis
 * [X] fix size() substituteKey option (key is still added to attributeNames)
-* [ ] Add possibility to pass dynamode Condition class (without parenthesis)
+* [X] Add possibility to pass dynamode Condition class (without parenthesis)
 * [X] Add possibility to pass DynamoDB condition object
 * [X] .exec() to run the query
 * [X] .limit() limit the number of documents that DynamoDB will query in this request
