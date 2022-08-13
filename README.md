@@ -21,7 +21,7 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [ ] Implement Model.create (that creates object ensuring it doesnt exist already)
 * [ ] Implement Model.transaction
 * [ ] Implement Model.query
-* [ ] Model.get - supplement with all dynamoDB properties
+* [X] Model.get - supplement with all dynamoDB properties
 * [ ] Model.update - supplement with all dynamoDB properties
 * [ ] Model.put - supplement with all dynamoDB properties
 * [ ] Model.delete - supplement with all dynamoDB properties

@@ -1,14 +1,5 @@
 import { Table } from '@lib/Table';
-import {
-  gsi1PartitionKey,
-  gsi1SortKey,
-  gsi2PartitionKey,
-  gsi2SortKey,
-  lsi1SortKey,
-  lsi2SortKey,
-  partitionKey,
-  sortKey,
-} from '@lib/utils/symbols';
+import { gsi1PartitionKey, gsi1SortKey, gsi2PartitionKey, gsi2SortKey, lsi1SortKey, lsi2SortKey, partitionKey, sortKey } from '@lib/utils/symbols';
 
 export type PrimaryKey = { [partitionKey]: string | number; [sortKey]: string | number };
 export interface ModelProps<T extends Table> {
@@ -23,4 +14,13 @@ export interface ModelProps<T extends Table> {
 
   [lsi1SortKey]?: string;
   [lsi2SortKey]?: string;
+
+  createdAt?: string | number;
+}
+
+export interface ModelGetOptions {
+  attributes?: string[];
+  consistent?: boolean;
+  consumedCapacity?: boolean;
+  return?: 'default' | 'input' | 'output';
 }

@@ -1,27 +1,12 @@
-import type { DynamoDB } from '@aws-sdk/client-dynamodb';
+import { DynamoDB, GetItemCommandInput, GetItemCommandOutput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
 import { Query } from '@lib/Query';
 import { Table } from '@lib/Table';
-import {
-  AttributeMap,
-  classToObject,
-  fromDynamo,
-  GenericObject,
-  NotFoundError,
-  objectToDynamo,
-  SEPARATOR,
-} from '@lib/utils';
-import {
-  gsi1PartitionKey,
-  gsi1SortKey,
-  gsi2PartitionKey,
-  gsi2SortKey,
-  lsi1SortKey,
-  lsi2SortKey,
-  partitionKey,
-  sortKey,
-} from '@lib/utils/symbols';
+import { AttributeMap, classToObject, fromDynamo, GenericObject, NotFoundError, objectToDynamo, SEPARATOR } from '@lib/utils';
+import { gsi1PartitionKey, gsi1SortKey, gsi2PartitionKey, gsi2SortKey, lsi1SortKey, lsi2SortKey, partitionKey, sortKey } from '@lib/utils/symbols';
 import { ModelProps, PrimaryKey } from '@Model/types';
+
+import { ModelGetOptions } from './types';
 
 export class Model {
   private static _ddb: DynamoDB;
@@ -63,30 +48,51 @@ export class Model {
     key: typeof partitionKey | typeof gsi1PartitionKey,
     value: string | number,
   ): InstanceType<typeof Query<M>> {
-    return new Query<M>(this, key, value);
+    return new Query(this, key, value);
   }
 
   public static condition<M extends typeof Model>(this: M, key: string): InstanceType<typeof Condition<M>> {
     return new Condition(this, key);
   }
 
-  public static async get<M extends typeof Model>(this: M, primaryKey: PrimaryKey): Promise<InstanceType<M>> {
-    const result = await this._ddb.getItem({
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey): Promise<InstanceType<M>>;
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions & { return: 'default' }): Promise<InstanceType<M>>;
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions & { return: 'output' }): Promise<GetItemCommandOutput>;
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions & { return: 'input' }): GetItemCommandInput;
+  public static get<M extends typeof Model>(
+    this: M,
+    primaryKey: PrimaryKey,
+    options?: ModelGetOptions,
+  ): Promise<InstanceType<M> | GetItemCommandOutput> | GetItemCommandInput {
+    const commandInput: GetItemCommandInput = {
       TableName: this.table.tableName,
       Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
-    });
+      ConsistentRead: options?.consistent || false,
+    };
 
-    if (!result || !result.Item) {
-      throw new NotFoundError();
+    if (options?.return === 'input') {
+      return commandInput;
     }
 
-    return this.parseFromDynamo(this, result.Item || {});
+    return (async () => {
+      const result = await this._ddb.getItem(commandInput);
+
+      if (!result || !result.Item) {
+        throw new NotFoundError();
+      }
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      return this.parseFromDynamo(this, result.Item || {});
+    })();
   }
 
   public static async update<M extends typeof Model>(
     this: M,
     primaryKey: PrimaryKey,
-    props: Omit<Partial<ConstructorParameters<M>[0]>, keyof M>,
+    props: Omit<Partial<ConstructorParameters<M>[0]>, typeof partitionKey | typeof sortKey>,
   ): Promise<InstanceType<M>> {
     const result = await this._ddb.updateItem({
       TableName: this.table.tableName,
@@ -179,17 +185,13 @@ export class Model {
   private static truncatePrefixSuffixPk<M extends typeof Model>(model: M, item: GenericObject): string {
     const { table, prefixPk, suffixPk } = model;
 
-    return (item[table[partitionKey]] as string)
-      .replace(`${prefixPk}${SEPARATOR}`, '')
-      .replace(`${SEPARATOR}${suffixPk}`, '');
+    return (item[table[partitionKey]] as string).replace(`${prefixPk}${SEPARATOR}`, '').replace(`${SEPARATOR}${suffixPk}`, '');
   }
 
   private static truncatePrefixSuffixSk<M extends typeof Model>(model: M, item: GenericObject): string {
     const { table, prefixSk, suffixSk } = model;
 
-    return (item[table[sortKey]] as string)
-      .replace(`${prefixSk}${SEPARATOR}`, '')
-      .replace(`${SEPARATOR}${suffixSk}`, '');
+    return (item[table[sortKey]] as string).replace(`${prefixSk}${SEPARATOR}`, '').replace(`${SEPARATOR}${suffixSk}`, '');
   }
 
   static set ddb(value: DynamoDB) {
