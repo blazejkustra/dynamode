@@ -63,10 +63,10 @@ export class Model {
     key: typeof partitionKey | typeof gsi1PartitionKey,
     value: string | number,
   ): InstanceType<typeof Query<M>> {
-    return new Query(this, key, value);
+    return new Query<M>(this, key, value);
   }
 
-  public static condition<M extends typeof Model>(this: M, key: string | number): InstanceType<typeof Condition<M>> {
+  public static condition<M extends typeof Model>(this: M, key: string): InstanceType<typeof Condition<M>> {
     return new Condition(this, key);
   }
 

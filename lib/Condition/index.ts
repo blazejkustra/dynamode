@@ -1,39 +1,17 @@
-import { AttributeType } from '@Condition/types';
+import { AttributeType, NegateFunction, SizeFunction } from '@Condition/types';
 import { Model } from '@lib/Model';
+import { ConditionExpression } from '@lib/Query/substitute';
 
-export interface QueryOptions {
-  index: unknown;
-}
+export type ConditionInstance<M extends typeof Model> = InstanceType<typeof Condition<M>>;
 
-interface SizeFunction {
-  eq: (value: string | number) => InstanceType<typeof Condition>;
-  ne: (value: string | number) => InstanceType<typeof Condition>;
-  lt: (value: string | number) => InstanceType<typeof Condition>;
-  le: (value: string | number) => InstanceType<typeof Condition>;
-  gt: (value: string | number) => InstanceType<typeof Condition>;
-  ge: (value: string | number) => InstanceType<typeof Condition>;
-}
-
-interface NegateFunction {
-  eq: (value: string | number) => InstanceType<typeof Condition>;
-  ne: (value: string | number) => InstanceType<typeof Condition>;
-  lt: (value: string | number) => InstanceType<typeof Condition>;
-  le: (value: string | number) => InstanceType<typeof Condition>;
-  gt: (value: string | number) => InstanceType<typeof Condition>;
-  ge: (value: string | number) => InstanceType<typeof Condition>;
-  exists: () => InstanceType<typeof Condition>;
-  in: (values: string[]) => InstanceType<typeof Condition>;
-  contains: (value: string | number) => InstanceType<typeof Condition>;
-}
-
-export class Condition<M extends typeof Model = typeof Model> {
+export class Condition<M extends typeof Model> {
   private Class: M;
 
-  public conditions: string[];
-  private key: string | number;
+  public conditions: ConditionExpression[];
+  private key: string;
   private orBetweenCondition: boolean;
 
-  constructor(model: M, key: string | number) {
+  constructor(model: M, key: string) {
     this.Class = model;
 
     this.conditions = [];
@@ -41,9 +19,9 @@ export class Condition<M extends typeof Model = typeof Model> {
     this.key = key;
   }
 
-  public attribute(key: string | number) {
+  public attribute(key: string) {
     if (this.conditions.length > 0) {
-      this.conditions.push(`${this.orBetweenCondition ? 'OR' : 'AND'}`);
+      this.conditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
     }
     this.orBetweenCondition = false;
     this.key = key;
@@ -59,145 +37,168 @@ export class Condition<M extends typeof Model = typeof Model> {
     return this;
   }
 
-  public parenthesis() {
+  public parenthesis(condition: ConditionInstance<M>) {
+    if (this.conditions.length > 0) {
+      this.conditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
+    }
+    this.orBetweenCondition = false;
+    this.conditions.push(...[{ expr: '(' }, ...condition.conditions, { expr: ')' }]);
     return this;
   }
 
-  public group() {
-    return this.parenthesis();
+  public group(condition: ConditionInstance<M>) {
+    return this.parenthesis(condition);
   }
 
-  public contains(value: string | number): InstanceType<typeof Condition> {
-    this.conditions.push(`contains(${this.key}, ${value})`);
+  public contains(value: string | number): ConditionInstance<M> {
+    this.conditions.push({ key: this.key, values: [value], expr: `contains($K, $V)` });
     return this;
   }
 
-  public in(values: string[]): InstanceType<typeof Condition> {
-    this.conditions.push(`${this.key} IN ${values.join(', ')}`);
+  public in(values: string[]): ConditionInstance<M> {
+    this.conditions.push({ key: this.key, values, expr: `$K IN ${values.map(() => '$V').join(', ')}` });
     return this;
   }
 
-  public type(value: AttributeType): InstanceType<typeof Condition> {
-    this.conditions.push(`attribute_type(${this.key}, ${value})`);
+  public type(value: AttributeType): ConditionInstance<M> {
+    this.conditions.push({ key: this.key, values: [value], expr: 'attribute_type($K, $V)' });
     return this;
   }
 
   public size(): SizeFunction {
     return {
-      eq: (value: string | number) => this._eq(this.conditions, `size(${this.key})`, value),
-      ne: (value: string | number) => this._ne(this.conditions, `size(${this.key})`, value),
-      lt: (value: string | number) => this._lt(this.conditions, `size(${this.key})`, value),
-      le: (value: string | number) => this._le(this.conditions, `size(${this.key})`, value),
-      gt: (value: string | number) => this._gt(this.conditions, `size(${this.key})`, value),
-      ge: (value: string | number) => this._ge(this.conditions, `size(${this.key})`, value),
+      eq: (value: string | number): ConditionInstance<M> => {
+        this.conditions.push({ key: this.key, values: [value], expr: 'size($K) = $V' });
+        return this;
+      },
+      ne: (value: string | number): ConditionInstance<M> => {
+        this.conditions.push({ key: this.key, values: [value], expr: 'size($K) <> $V' });
+        return this;
+      },
+      lt: (value: string | number): ConditionInstance<M> => {
+        this.conditions.push({ key: this.key, values: [value], expr: 'size($K) < $V' });
+        return this;
+      },
+      le: (value: string | number): ConditionInstance<M> => {
+        this.conditions.push({ key: this.key, values: [value], expr: 'size($K) <= $V' });
+        return this;
+      },
+      gt: (value: string | number): ConditionInstance<M> => {
+        this.conditions.push({ key: this.key, values: [value], expr: 'size($K) > $V' });
+        return this;
+      },
+      ge: (value: string | number): ConditionInstance<M> => {
+        this.conditions.push({ key: this.key, values: [value], expr: 'size($K) >= $V' });
+        return this;
+      },
     };
   }
 
   public not(): NegateFunction {
     return {
-      eq: (value: string | number) => this._ne(this.conditions, this.key, value),
-      ne: (value: string | number) => this._eq(this.conditions, this.key, value),
-      lt: (value: string | number) => this._ge(this.conditions, this.key, value),
-      le: (value: string | number) => this._gt(this.conditions, this.key, value),
-      gt: (value: string | number) => this._le(this.conditions, this.key, value),
-      ge: (value: string | number) => this._lt(this.conditions, this.key, value),
-      contains: (value: string | number) => {
-        this.conditions.push(`NOT contains(${this.key}, ${value})`);
+      eq: (value: string | number): ConditionInstance<M> => this._ne(this.conditions, this.key, value),
+      ne: (value: string | number): ConditionInstance<M> => this._eq(this.conditions, this.key, value),
+      lt: (value: string | number): ConditionInstance<M> => this._ge(this.conditions, this.key, value),
+      le: (value: string | number): ConditionInstance<M> => this._gt(this.conditions, this.key, value),
+      gt: (value: string | number): ConditionInstance<M> => this._le(this.conditions, this.key, value),
+      ge: (value: string | number): ConditionInstance<M> => this._lt(this.conditions, this.key, value),
+      contains: (value: string | number): ConditionInstance<M> => {
+        this.conditions.push({
+          key: this.key,
+          values: [value],
+          expr: `NOT contains($K, $V)`,
+        });
         return this;
       },
-      in: (values: string[]) => {
-        this.conditions.push(`NOT (${this.key} IN ${values.join(', ')})`);
+      in: (values: string[]): ConditionInstance<M> => {
+        this.conditions.push({ key: this.key, values, expr: `NOT ($K IN ${values.map(() => '$V').join(', ')})` });
         return this;
       },
-      exists: () => {
-        this.conditions.push(`attribute_not_exists(${this.key})`);
+      exists: (): ConditionInstance<M> => {
+        this.conditions.push({ key: this.key, expr: 'attribute_not_exists($K)' });
         return this;
       },
     };
   }
 
-  public exists(): InstanceType<typeof Condition> {
-    this.conditions.push(`attribute_exists(${this.key})`);
+  public exists(): ConditionInstance<M> {
+    this.conditions.push({ key: this.key, expr: 'attribute_not_exists($K)' });
     return this;
   }
 
-  public eq(value: string | number): InstanceType<typeof Condition> {
+  public eq(value: string | number): ConditionInstance<M> {
     return this._eq(this.conditions, this.key, value);
   }
 
-  public ne(value: string | number): InstanceType<typeof Condition> {
+  public ne(value: string | number): ConditionInstance<M> {
     return this._ne(this.conditions, this.key, value);
   }
 
-  public lt(value: string | number): InstanceType<typeof Condition> {
+  public lt(value: string | number): ConditionInstance<M> {
     return this._lt(this.conditions, this.key, value);
   }
-  public le(value: string | number): InstanceType<typeof Condition> {
+  public le(value: string | number): ConditionInstance<M> {
     return this._le(this.conditions, this.key, value);
   }
 
-  public gt(value: string | number): InstanceType<typeof Condition> {
+  public gt(value: string | number): ConditionInstance<M> {
     return this._gt(this.conditions, this.key, value);
   }
 
-  public ge(value: string | number): InstanceType<typeof Condition> {
+  public ge(value: string | number): ConditionInstance<M> {
     return this._ge(this.conditions, this.key, value);
   }
 
-  public beginsWith(value: string | number): InstanceType<typeof Condition> {
+  public beginsWith(value: string | number): ConditionInstance<M> {
     return this._beginsWith(this.conditions, this.key, value);
   }
 
-  public between(value1: string | number, value2: string | number): InstanceType<typeof Condition> {
+  public between(value1: string | number, value2: string | number): ConditionInstance<M> {
     return this._between(this.conditions, this.key, value1, value2);
   }
 
-  private _eq(conditions: string[], key: string | number, value: string | number): InstanceType<typeof Condition> {
-    conditions.push(`${key} = ${value}`);
+  private _eq(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
+    conditions.push({ key, values: [value], expr: '$K = $V' });
     return this;
   }
 
-  private _ne(conditions: string[], key: string | number, value: string | number): InstanceType<typeof Condition> {
-    conditions.push(`${key} <> ${value}`);
+  private _ne(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
+    conditions.push({ key, values: [value], expr: '$K = $V' });
     return this;
   }
 
-  private _lt(conditions: string[], key: string | number, value: string | number): InstanceType<typeof Condition> {
-    conditions.push(`${key} < ${value}`);
+  private _lt(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
+    conditions.push({ key, values: [value], expr: '$K < $V' });
     return this;
   }
 
-  private _le(conditions: string[], key: string | number, value: string | number): InstanceType<typeof Condition> {
-    conditions.push(`${key} <= ${value}`);
+  private _le(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
+    conditions.push({ key, values: [value], expr: '$K <= $V' });
     return this;
   }
 
-  private _gt(conditions: string[], key: string | number, value: string | number): InstanceType<typeof Condition> {
-    conditions.push(`${key} > ${value}`);
+  private _gt(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
+    conditions.push({ key, values: [value], expr: '$K > $V' });
     return this;
   }
 
-  private _ge(conditions: string[], key: string | number, value: string | number): InstanceType<typeof Condition> {
-    conditions.push(`${key} >= ${value}`);
+  private _ge(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
+    conditions.push({ key, values: [value], expr: '$K >= $V' });
     return this;
   }
 
-  private _beginsWith(
-    conditions: string[],
-    key: string | number,
-    value: string | number,
-  ): InstanceType<typeof Condition> {
-    conditions.push(`begins_with(${key}, ${value})`);
+  private _beginsWith(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
+    conditions.push({ key, values: [value], expr: 'begins_with($K, $V)' });
     return this;
   }
 
   private _between(
-    conditions: string[],
-    key: string | number,
-    value1: string | number,
-    value2: string | number,
-  ): InstanceType<typeof Condition> {
-    conditions.push(`${key} BETWEEN ${value1} AND ${value2}`);
+    conditions: ConditionExpression[],
+    key: string,
+    v1: string | number,
+    v2: string | number,
+  ): ConditionInstance<M> {
+    conditions.push({ key, values: [v1, v2], expr: '$K BETWEEN $V AND $V' });
     return this;
   }
 }

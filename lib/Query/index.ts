@@ -1,29 +1,26 @@
 import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
-import { Condition } from '@lib/Condition';
+import { Condition, ConditionInstance } from '@lib/Condition';
 import { AttributeType } from '@lib/Condition/types';
 import { Model } from '@lib/Model';
+import { ConditionExpression, substitute } from '@lib/Query/substitute';
 import { Table } from '@lib/Table';
-import { AttributeMap, checkDuplicatesInArray, DefaultError, GenericObject, isEmpty, objectToDynamo } from '@lib/utils';
-import { substituteAttribute, substituteAttributeName, substituteAttributeValue } from '@lib/utils/substitute';
+import { checkDuplicatesInArray, DefaultError, GenericObject, isEmpty, objectToDynamo } from '@lib/utils';
 import { Keys, PartitionKeys } from '@lib/utils/symbols';
 import { SortKeys } from '@lib/utils/symbols';
 import { FilterQueryCondition, KeyQueryCondition, QueryOptions } from '@Query/types';
 
-type QueryInstance = InstanceType<typeof Query>;
+type QueryInstance<M extends typeof Model> = InstanceType<typeof Query<M>>;
 
-export class Query<M extends typeof Model = typeof Model> {
+export class Query<M extends typeof Model> {
   private table: typeof Table;
   private ddb: DynamoDB;
   private Class: M;
 
   private queryInput: QueryInput;
-  private keyConditions: string[];
-  private filterConditions: string[];
+  private keyConditions: ConditionExpression[];
+  private filterConditions: ConditionExpression[];
   private keys: Keys[];
   private orBetweenCondition: boolean;
-
-  private attributeNames: Record<string, string>;
-  private attributeValues: AttributeMap;
 
   constructor(model: M, key: PartitionKeys, value: string | number) {
     this.table = model.table;
@@ -31,13 +28,10 @@ export class Query<M extends typeof Model = typeof Model> {
     this.Class = model;
 
     this.orBetweenCondition = false;
-    this.attributeNames = {};
-    this.attributeValues = {};
     this.keys = [key];
     this.filterConditions = [];
-
-    const { k, v } = substituteAttribute(this.attributeNames, this.attributeValues, this.table[key], value);
-    this.keyConditions = [`${k} = ${v}`];
+    this.keyConditions = [];
+    this._eq(this.keyConditions, this.table[key], value);
 
     this.queryInput = {
       TableName: this.table.tableName,
@@ -56,20 +50,31 @@ export class Query<M extends typeof Model = typeof Model> {
     };
   }
 
-  public debug() {
-    this.buildQueryInput();
+  public debug(queryInput?: Partial<QueryInput>) {
+    this.buildQueryInput(queryInput);
     return this.queryInput;
   }
 
   private buildQueryInput(queryInput?: Partial<QueryInput>) {
-    const keyConditions = this.keyConditions.join(' ');
-    if (keyConditions) {
-      this.queryInput.KeyConditionExpression = keyConditions;
+    const { conditionExpression, keyConditionExpression, attributeNames, attributeValues } = substitute(
+      this.filterConditions,
+      this.keyConditions,
+    );
+
+    if (keyConditionExpression) {
+      this.queryInput.KeyConditionExpression = keyConditionExpression;
     }
 
-    const filterConditions = this.filterConditions.join(' ');
-    if (filterConditions) {
-      this.queryInput.FilterExpression = filterConditions;
+    if (conditionExpression) {
+      this.queryInput.FilterExpression = conditionExpression;
+    }
+
+    if (!isEmpty(attributeNames)) {
+      this.queryInput.ExpressionAttributeNames = attributeNames;
+    }
+
+    if (!isEmpty(attributeValues)) {
+      this.queryInput.ExpressionAttributeValues = attributeValues;
     }
 
     const indexName = this.table.getIndexName(this.keys[this.keys.length - 1]);
@@ -77,24 +82,18 @@ export class Query<M extends typeof Model = typeof Model> {
       this.queryInput.IndexName = indexName;
     }
 
-    if (!isEmpty(this.attributeNames)) {
-      this.queryInput.ExpressionAttributeNames = this.attributeNames;
-    }
-
-    if (!isEmpty(this.attributeValues)) {
-      this.queryInput.ExpressionAttributeValues = this.attributeValues;
-    }
-
     this.queryInput = { ...this.queryInput, ...queryInput };
   }
 
   //TODO: Implement validation
   private validateQueryInput() {
+    // ValidationException: Invalid FilterExpression: The BETWEEN operator requires upper bound to be greater than or equal to lower bound; lower bound operand: AttributeValue: {S:5}, upper bound operand: AttributeValue: {S:100}
+    // Index validation
     console.log('validateQueryInput');
   }
 
-  public sortKey(key: SortKeys): KeyQueryCondition {
-    this.keyConditions.push(`AND`);
+  public sortKey(key: SortKeys): KeyQueryCondition<M> {
+    this.keyConditions.push({ expr: 'AND' });
 
     return {
       eq: (value: string | number) => this._eq(this.keyConditions, this.table[key], value),
@@ -109,82 +108,88 @@ export class Query<M extends typeof Model = typeof Model> {
     };
   }
 
-  public filter(key: string): FilterQueryCondition {
+  public filter(key: string): FilterQueryCondition<M> {
     if (this.filterConditions.length > 0) {
-      this.filterConditions.push(`${this.orBetweenCondition ? 'OR' : 'AND'}`);
+      this.filterConditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
     }
     this.orBetweenCondition = false;
 
     return {
-      eq: (value: string | number): QueryInstance => this._eq(this.filterConditions, key, value),
-      ne: (value: string | number): QueryInstance => this._ne(this.filterConditions, key, value),
-      lt: (value: string | number): QueryInstance => this._lt(this.filterConditions, key, value),
-      le: (value: string | number): QueryInstance => this._le(this.filterConditions, key, value),
-      gt: (value: string | number): QueryInstance => this._gt(this.filterConditions, key, value),
-      ge: (value: string | number): QueryInstance => this._ge(this.filterConditions, key, value),
-      beginsWith: (value: string | number): QueryInstance => this._beginsWith(this.filterConditions, key, value),
-      between: (value1: string | number, value2: string | number): QueryInstance =>
+      eq: (value: string | number): QueryInstance<M> => this._eq(this.filterConditions, key, value),
+      ne: (value: string | number): QueryInstance<M> => this._ne(this.filterConditions, key, value),
+      lt: (value: string | number): QueryInstance<M> => this._lt(this.filterConditions, key, value),
+      le: (value: string | number): QueryInstance<M> => this._le(this.filterConditions, key, value),
+      gt: (value: string | number): QueryInstance<M> => this._gt(this.filterConditions, key, value),
+      ge: (value: string | number): QueryInstance<M> => this._ge(this.filterConditions, key, value),
+      beginsWith: (value: string | number): QueryInstance<M> => this._beginsWith(this.filterConditions, key, value),
+      between: (value1: string | number, value2: string | number): QueryInstance<M> =>
         this._between(this.filterConditions, key, value1, value2),
-      contains: (value: string | number): QueryInstance => {
-        const { k, v } = substituteAttribute(this.attributeNames, this.attributeValues, key, value);
-        this.filterConditions.push(`contains(${k}, ${v})`);
+      contains: (value: string | number): QueryInstance<M> => {
+        this.filterConditions.push({ key, values: [value], expr: `contains($K, $V)` });
         return this;
       },
-      in: (values: string[]): QueryInstance => {
-        const k = substituteAttributeName(this.attributeNames, key);
-        this.filterConditions.push(
-          `${k} IN ${values.map((v) => substituteAttributeValue(this.attributeValues, key, v)).join(', ')}`,
-        );
+      in: (values: string[]): QueryInstance<M> => {
+        this.filterConditions.push({ key, values, expr: `$K IN ${values.map(() => '$V').join(', ')}` });
         return this;
       },
-      type: (value: AttributeType): QueryInstance => {
-        const { k, v } = substituteAttribute(this.attributeNames, this.attributeValues, key, value);
-        this.filterConditions.push(`attribute_type(${k}, ${v})`);
+      type: (value: AttributeType): QueryInstance<M> => {
+        this.filterConditions.push({ key, values: [value], expr: 'attribute_type($K, $V)' });
         return this;
       },
-      exists: (): QueryInstance => {
-        const k = substituteAttributeName(this.attributeNames, key);
-        this.filterConditions.push(`attribute_exists(${k})`);
+      exists: (): QueryInstance<M> => {
+        this.filterConditions.push({ key, expr: 'attribute_not_exists($K)' });
         return this;
       },
-      size: () => {
-        const k = substituteAttributeName(this.attributeNames, key);
-        return {
-          eq: (value: string | number): QueryInstance => this._eq(this.filterConditions, `size(${k})`, value, false),
-          ne: (value: string | number): QueryInstance => this._ne(this.filterConditions, `size(${k})`, value, false),
-          lt: (value: string | number): QueryInstance => this._lt(this.filterConditions, `size(${k})`, value, false),
-          le: (value: string | number): QueryInstance => this._le(this.filterConditions, `size(${k})`, value, false),
-          gt: (value: string | number): QueryInstance => this._gt(this.filterConditions, `size(${k})`, value, false),
-          ge: (value: string | number): QueryInstance => this._ge(this.filterConditions, `size(${k})`, value, false),
-        };
-      },
-      not: () => {
-        return {
-          eq: (value: string | number): QueryInstance => this._ne(this.filterConditions, key, value),
-          ne: (value: string | number): QueryInstance => this._eq(this.filterConditions, key, value),
-          lt: (value: string | number): QueryInstance => this._ge(this.filterConditions, key, value),
-          le: (value: string | number): QueryInstance => this._gt(this.filterConditions, key, value),
-          gt: (value: string | number): QueryInstance => this._le(this.filterConditions, key, value),
-          ge: (value: string | number): QueryInstance => this._lt(this.filterConditions, key, value),
-          contains: (value: string | number): QueryInstance => {
-            const { k, v } = substituteAttribute(this.attributeNames, this.attributeValues, key, value);
-            this.filterConditions.push(`NOT contains(${k}, ${v})`);
-            return this;
-          },
-          in: (values: string[]): QueryInstance => {
-            const k = substituteAttributeName(this.attributeNames, key);
-            this.filterConditions.push(
-              `NOT (${k} IN ${values.map((v) => substituteAttributeValue(this.attributeValues, key, v)).join(', ')})`,
-            );
-            return this;
-          },
-          exists: (): QueryInstance => {
-            const k = substituteAttributeName(this.attributeNames, key);
-            this.filterConditions.push(`attribute_not_exists(${k})`);
-            return this;
-          },
-        };
-      },
+      size: () => ({
+        eq: (value: string | number): QueryInstance<M> => {
+          this.filterConditions.push({ key, values: [value], expr: 'size($K) = $V' });
+          return this;
+        },
+        ne: (value: string | number): QueryInstance<M> => {
+          this.filterConditions.push({ key, values: [value], expr: 'size($K) <> $V' });
+          return this;
+        },
+        lt: (value: string | number): QueryInstance<M> => {
+          this.filterConditions.push({ key, values: [value], expr: 'size($K) < $V' });
+          return this;
+        },
+        le: (value: string | number): QueryInstance<M> => {
+          this.filterConditions.push({ key, values: [value], expr: 'size($K) <= $V' });
+          return this;
+        },
+        gt: (value: string | number): QueryInstance<M> => {
+          this.filterConditions.push({ key, values: [value], expr: 'size($K) > $V' });
+          return this;
+        },
+        ge: (value: string | number): QueryInstance<M> => {
+          this.filterConditions.push({ key, values: [value], expr: 'size($K) >= $V' });
+          return this;
+        },
+      }),
+      not: () => ({
+        eq: (value: string | number): QueryInstance<M> => this._ne(this.filterConditions, key, value),
+        ne: (value: string | number): QueryInstance<M> => this._eq(this.filterConditions, key, value),
+        lt: (value: string | number): QueryInstance<M> => this._ge(this.filterConditions, key, value),
+        le: (value: string | number): QueryInstance<M> => this._gt(this.filterConditions, key, value),
+        gt: (value: string | number): QueryInstance<M> => this._le(this.filterConditions, key, value),
+        ge: (value: string | number): QueryInstance<M> => this._lt(this.filterConditions, key, value),
+        contains: (value: string | number): QueryInstance<M> => {
+          this.filterConditions.push({
+            key,
+            values: [value],
+            expr: `NOT contains($K, $V)`,
+          });
+          return this;
+        },
+        in: (values: string[]): QueryInstance<M> => {
+          this.filterConditions.push({ key, values, expr: `NOT ($K IN ${values.map(() => '$V').join(', ')})` });
+          return this;
+        },
+        exists: (): QueryInstance<M> => {
+          this.filterConditions.push({ key, expr: 'attribute_not_exists($K)' });
+          return this;
+        },
+      }),
     };
   }
 
@@ -199,14 +204,14 @@ export class Query<M extends typeof Model = typeof Model> {
 
   public parenthesis(condition: InstanceType<typeof Condition>) {
     if (this.filterConditions.length > 0) {
-      this.filterConditions.push(`${this.orBetweenCondition ? 'OR' : 'AND'}`);
+      this.filterConditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
     }
     this.orBetweenCondition = false;
-    this.filterConditions.push(...['(', ...condition.conditions, ')']);
+    this.filterConditions.push(...[{ expr: '(' }, ...condition.conditions, { expr: ')' }]);
     return this;
   }
 
-  public group(condition: InstanceType<typeof Condition>) {
+  public group(condition: ConditionInstance<M>) {
     return this.parenthesis(condition);
   }
 
@@ -244,52 +249,48 @@ export class Query<M extends typeof Model = typeof Model> {
     return this;
   }
 
-  private _eq(conditions: string[], key: string, value: string | number, substituteKey = true): QueryInstance {
-    const { k, v } = substituteAttribute(this.attributeNames, this.attributeValues, key, value);
-    conditions.push(`${substituteKey ? k : key} = ${v}`);
+  private _eq(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
+    conditions.push({ key, values: [value], expr: '$K = $V' });
     return this;
   }
 
-  private _ne(conditions: string[], key: string, value: string | number, substituteKey = true): QueryInstance {
-    const { k, v } = substituteAttribute(this.attributeNames, this.attributeValues, key, value);
-    conditions.push(`${substituteKey ? k : key} <> ${v}`);
+  private _ne(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
+    conditions.push({ key, values: [value], expr: '$K = $V' });
     return this;
   }
 
-  private _lt(conditions: string[], key: string, value: string | number, substituteKey = true): QueryInstance {
-    const { k, v } = substituteAttribute(this.attributeNames, this.attributeValues, key, value);
-    conditions.push(`${substituteKey ? k : key} < ${v}`);
+  private _lt(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
+    conditions.push({ key, values: [value], expr: '$K < $V' });
     return this;
   }
 
-  private _le(conditions: string[], key: string, value: string | number, substituteKey = true): QueryInstance {
-    const { k, v } = substituteAttribute(this.attributeNames, this.attributeValues, key, value);
-    conditions.push(`${substituteKey ? k : key} <= ${v}`);
+  private _le(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
+    conditions.push({ key, values: [value], expr: '$K <= $V' });
     return this;
   }
 
-  private _gt(conditions: string[], key: string, value: string | number, substituteKey = true): QueryInstance {
-    const { k, v } = substituteAttribute(this.attributeNames, this.attributeValues, key, value);
-    conditions.push(`${substituteKey ? k : key} > ${v}`);
+  private _gt(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
+    conditions.push({ key, values: [value], expr: '$K > $V' });
     return this;
   }
 
-  private _ge(conditions: string[], key: string, value: string | number, substituteKey = true): QueryInstance {
-    const { k, v } = substituteAttribute(this.attributeNames, this.attributeValues, key, value);
-    conditions.push(`${substituteKey ? k : key} >= ${v}`);
+  private _ge(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
+    conditions.push({ key, values: [value], expr: '$K >= $V' });
     return this;
   }
 
-  private _beginsWith(conditions: string[], key: string, value: string | number): QueryInstance {
-    const { k, v } = substituteAttribute(this.attributeNames, this.attributeValues, key, value);
-    conditions.push(`begins_with(${k}, ${v})`);
+  private _beginsWith(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
+    conditions.push({ key, values: [value], expr: 'begins_with($K, $V)' });
     return this;
   }
 
-  private _between(conditions: string[], key: string, value1: string | number, value2: string | number): QueryInstance {
-    const { k, v: v1 } = substituteAttribute(this.attributeNames, this.attributeValues, key, value1);
-    const v2 = substituteAttributeValue(this.attributeValues, key, value2);
-    conditions.push(`${k} BETWEEN ${v1} AND ${v2}`);
+  private _between(
+    conditions: ConditionExpression[],
+    key: string,
+    v1: string | number,
+    v2: string | number,
+  ): QueryInstance<M> {
+    conditions.push({ key, values: [v1, v2], expr: '$K BETWEEN $V AND $V' });
     return this;
   }
 }

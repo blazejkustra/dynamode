@@ -30,6 +30,9 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 ### Query
 
 * [ ] .all() get all items even in multiple requests
+* [ ] fix condition merge conflicts when using parenthesis
+* [ ] fix size() substituteKey option (key is still added to attributeNames)
+* [ ] Add possibility to pass dynamode Condition class (without parenthesis)
 * [X] Add possibility to pass DynamoDB condition object
 * [X] .exec() to run the query
 * [X] .limit() limit the number of documents that DynamoDB will query in this request
@@ -61,9 +64,11 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 
 ### Global
 
+* [ ] Change license to MIT
 * [ ] Think about idea that Model might be created locally and not yet created in dynamoDB (maybe Model.save)
 * [ ] Return whole request instead of mapped values in Model
 * [ ] Way to override properties when getting/updating/putting in Model
 * [ ] Think about idea to introduce toJSON to more easily convert classes to objects
 * [ ] Improve how ddb and table is passed over
 * [ ] Add logging possibility
+* [ ] Add PartiQL support
