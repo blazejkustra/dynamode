@@ -24,8 +24,9 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [X] Implement Model.batchPut
 * [X] Implement Model.batchDelete
 * [X] Implement Model.create (that creates object ensuring it doesnt exist already)
-* [ ] Add createdAt and updatedAt (possibility to add it with custom name)
 * [X] Add remaining indexes
+* [ ] Add createdAt and updatedAt (possibility to add it with custom name)
+* [ ] Fix issue with empty set when using Model.update
 * [ ] Implement Model.transaction
 
 ### Query
@@ -65,14 +66,12 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 
 ### Global
 
-* [ ] Change license to MIT
-* [ ] Think about idea that Model might be created locally and not yet created in dynamoDB (maybe Model.save)
-* [ ] Return whole request instead of mapped values in Model
-* [ ] Way to override properties when getting/updating/putting in Model
-* [ ] Think about idea to introduce toJSON to more easily convert classes to objects
-* [ ] Improve how ddb and table is passed over
+* [X] Way to override properties when getting/updating/putting in Model
+* [X] Improve how ddb and table is passed over
+* [X] Return whole request instead of mapped values in Model
+* [X] Change license to MIT
 * [ ] Add logging possibility
-* [ ] Add PartiQL support
 * [ ] Capture dynamoDB errors and make it easier to work with
 * [ ] Add dynamoDB streams support
 * [ ] Add tests XD gl
+* [ ] Add PartiQL support
