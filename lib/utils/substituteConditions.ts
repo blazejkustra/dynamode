@@ -117,11 +117,11 @@ function buildExpression(conditions: ConditionExpression[], attributeNames: Reco
 
 const NESTED_ATTRIBUTE_REGEX = /\.(\d*)(\.|$)/;
 
-export function replaceNestedAttributesRegex(key: string): string {
+function replaceNestedAttributesRegex(key: string): string {
   return key.replace(NESTED_ATTRIBUTE_REGEX, '[$1]$2');
 }
 
-function substituteAttributeName(attributeNames: Record<string, string>, name: string): string {
+export function substituteAttributeName(attributeNames: Record<string, string>, name: string): string {
   const keys = replaceNestedAttributesRegex(name).split('.');
 
   return keys
@@ -136,7 +136,7 @@ function substituteAttributeName(attributeNames: Record<string, string>, name: s
     .join('.');
 }
 
-function substituteAttributeValues(attributeValues: AttributeMap, name: string, value: unknown): string {
+export function substituteAttributeValues(attributeValues: AttributeMap, name: string, value: unknown): string {
   const key = name.split('.').join('_');
 
   for (let appendix = 0; appendix < 1000; appendix++) {

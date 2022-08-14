@@ -61,7 +61,7 @@ export class Query<M extends typeof Model> {
       const items = result.Items || [];
 
       return {
-        items: items.map((item) => this.Class.parseFromDynamo(this.Class, item)),
+        items: items.map((item) => this.Class.parseFromDynamo(item)),
         count: result.Count || 0,
       };
     })();

@@ -11,8 +11,6 @@ export function buildUpdateConditions<M extends Model>(props: UpdateProps<M>): C
   const setValues: unknown[] = [];
   const setExpr: string[] = [];
 
-  console.log(set, Object.keys(set || {}), Object.values(set || {}));
-
   if (set && !isEmpty(set)) {
     setKeys.push(...Object.keys(set));
     setValues.push(...Object.values(set));
@@ -76,8 +74,6 @@ export function buildUpdateConditions<M extends Model>(props: UpdateProps<M>): C
   if (remove && remove.length > 0) {
     conditions.push({ expr: 'REMOVE' }, { keys: remove.map((key) => `${key}`), expr: remove.map(() => '$K').join(', ') });
   }
-
-  console.log(conditions);
 
   return conditions;
 }

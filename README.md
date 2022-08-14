@@ -20,7 +20,7 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [X] Model.update - supplement with all dynamoDB properties
 * [X] Model.put - supplement with all dynamoDB properties
 * [X] Model.delete - supplement with all dynamoDB properties
-* [ ] Implement Model.batchGet
+* [X] Implement Model.batchGet
 * [ ] Implement Model.batchPut
 * [ ] Implement Model.batchDelete
 * [ ] Implement Model.create (that creates object ensuring it doesnt exist already)
