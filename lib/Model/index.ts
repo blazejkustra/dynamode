@@ -1,6 +1,8 @@
 import {
   BatchGetItemCommandInput,
   BatchGetItemCommandOutput,
+  BatchWriteItemCommandInput,
+  BatchWriteItemCommandOutput,
   DeleteItemCommandInput,
   DeleteItemCommandOutput,
   DynamoDB,
@@ -18,7 +20,21 @@ import { AttributeMap, classToObject, fromDynamo, GenericObject, NotFoundError, 
 import { buildProjectionExpression } from '@lib/utils/projectionExpression';
 import { substituteModelDeleteConditions, substituteModelPutConditions, substituteModelUpdateConditions } from '@lib/utils/substituteConditions';
 import { gsi1PartitionKey, gsi1SortKey, gsi2PartitionKey, gsi2SortKey, lsi1SortKey, lsi2SortKey, partitionKey, sortKey } from '@lib/utils/symbols';
-import { ModelBatchGetOptions, ModelBatchGetOutput, ModelDeleteOptions, ModelGetOptions, ModelProps, ModelPutOptions, ModelUpdateOptions, PrimaryKey, UpdateProps } from '@Model/types';
+import {
+  ModelBatchDeleteOptions,
+  ModelBatchDeleteOutput,
+  ModelBatchGetOptions,
+  ModelBatchGetOutput,
+  ModelBatchPutOptions,
+  ModelBatchPutOutput,
+  ModelDeleteOptions,
+  ModelGetOptions,
+  ModelProps,
+  ModelPutOptions,
+  ModelUpdateOptions,
+  PrimaryKey,
+  UpdateProps,
+} from '@Model/types';
 
 export class Model {
   private static _ddb: DynamoDB;
@@ -216,6 +232,82 @@ export class Model {
       const unprocessedKeys = result.UnprocessedKeys?.[this.table.tableName]?.Keys?.map((key) => this.primaryKeyFromDynamo(fromDynamo(key)) as PrimaryKey) || [];
 
       return { items: items.map((item) => this.parseFromDynamo(item)), unprocessedKeys };
+    })();
+  }
+
+  public static batchPut<M extends typeof Model>(this: M, items: Array<InstanceType<M>>): Promise<ModelBatchPutOutput<M>>;
+  public static batchPut<M extends typeof Model>(this: M, items: Array<InstanceType<M>>, options: Omit<ModelBatchPutOptions, 'return'>): Promise<ModelBatchPutOutput<M>>;
+  public static batchPut<M extends typeof Model>(this: M, items: Array<InstanceType<M>>, options: ModelBatchPutOptions & { return: 'default' }): Promise<ModelBatchPutOutput<M>>;
+  public static batchPut<M extends typeof Model>(this: M, items: Array<InstanceType<M>>, options: ModelBatchPutOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
+  public static batchPut<M extends typeof Model>(this: M, items: Array<InstanceType<M>>, options: ModelBatchPutOptions & { return: 'input' }): BatchWriteItemCommandInput;
+  public static batchPut<M extends typeof Model>(this: M, items: Array<InstanceType<M>>, options?: ModelBatchPutOptions): Promise<ModelBatchPutOutput<M> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
+    const commandInput: BatchWriteItemCommandInput = {
+      RequestItems: {
+        [this.table.tableName]: items.map((item) => ({
+          PutRequest: {
+            Item: this.modelToDynamo(item),
+          },
+        })),
+      },
+      ...options?.extraInput,
+    };
+
+    if (options?.return === 'input') {
+      return commandInput;
+    }
+
+    return (async () => {
+      const result = await this._ddb.batchWriteItem(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      const unprocessedItems =
+        result.UnprocessedItems?.[this.table.tableName]
+          ?.map((request) => request.PutRequest?.Item)
+          ?.filter((item): item is AttributeMap => !!item)
+          ?.map((item) => this.parseFromDynamo(item)) || [];
+
+      return { items, unprocessedItems };
+    })();
+  }
+
+  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[]): Promise<ModelBatchDeleteOutput>;
+  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options: Omit<ModelBatchDeleteOptions, 'return'>): Promise<ModelBatchDeleteOutput>;
+  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options: ModelBatchDeleteOptions & { return: 'default' }): Promise<ModelBatchDeleteOutput>;
+  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options: ModelBatchDeleteOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
+  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options: ModelBatchDeleteOptions & { return: 'input' }): BatchWriteItemCommandInput;
+  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options?: ModelBatchDeleteOptions): Promise<ModelBatchDeleteOutput | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
+    const commandInput: BatchWriteItemCommandInput = {
+      RequestItems: {
+        [this.table.tableName]: primaryKeys.map((primaryKey) => ({
+          DeleteRequest: {
+            Key: objectToDynamo(this.appendPrefixSuffix(primaryKey)),
+          },
+        })),
+      },
+      ...options?.extraInput,
+    };
+
+    if (options?.return === 'input') {
+      return commandInput;
+    }
+
+    return (async () => {
+      const result = await this._ddb.batchWriteItem(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      const unprocessedItems =
+        result.UnprocessedItems?.[this.table.tableName]
+          ?.map((request) => request.DeleteRequest?.Key)
+          ?.filter((item): item is AttributeMap => !!item)
+          .map((key) => this.primaryKeyFromDynamo(fromDynamo(key)) as PrimaryKey) || [];
+
+      return { unprocessedItems };
     })();
   }
 

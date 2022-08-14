@@ -1,6 +1,6 @@
 import { RequireAtLeastOne } from 'type-fest';
 
-import { BatchGetItemCommandInput, DeleteItemCommandInput, GetItemCommandInput, PutItemCommandInput, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
+import { BatchGetItemCommandInput, BatchWriteItemCommandInput, DeleteItemCommandInput, GetItemCommandInput, PutItemCommandInput, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { ConditionInstance } from '@lib/Condition';
 import { Model } from '@lib/Model';
 import { Table } from '@lib/Table';
@@ -61,6 +61,26 @@ export interface ModelBatchGetOptions<M extends typeof Model> {
   attributes?: Array<keyof ModelKeys<InstanceType<M>>>;
   consistent?: boolean;
 }
+
+export interface ModelBatchDeleteOutput {
+  unprocessedItems: Array<PrimaryKey>;
+}
+
+export interface ModelBatchPutOptions {
+  extraInput?: Partial<BatchWriteItemCommandInput>;
+  return?: ReturnOption;
+}
+
+export interface ModelBatchPutOutput<M extends typeof Model> {
+  items: Array<InstanceType<M>>;
+  unprocessedItems: Array<InstanceType<M>>;
+}
+
+export interface ModelBatchDeleteOptions {
+  extraInput?: Partial<BatchWriteItemCommandInput>;
+  return?: ReturnOption;
+}
+
 export interface ModelBatchGetOutput<M extends typeof Model> {
   items: Array<InstanceType<M>>;
   unprocessedKeys: Array<PrimaryKey>;

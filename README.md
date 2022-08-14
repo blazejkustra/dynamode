@@ -21,8 +21,8 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [X] Model.put - supplement with all dynamoDB properties
 * [X] Model.delete - supplement with all dynamoDB properties
 * [X] Implement Model.batchGet
-* [ ] Implement Model.batchPut
-* [ ] Implement Model.batchDelete
+* [X] Implement Model.batchPut
+* [X] Implement Model.batchDelete
 * [ ] Implement Model.create (that creates object ensuring it doesnt exist already)
 * [ ] Add createdAt and updatedAt (possibility to add it with custom name)
 * [ ] Add remaining indexes
