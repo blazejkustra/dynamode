@@ -23,7 +23,7 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [X] Implement Model.batchGet
 * [X] Implement Model.batchPut
 * [X] Implement Model.batchDelete
-* [ ] Implement Model.create (that creates object ensuring it doesnt exist already)
+* [X] Implement Model.create (that creates object ensuring it doesnt exist already)
 * [ ] Add createdAt and updatedAt (possibility to add it with custom name)
 * [ ] Add remaining indexes
 * [ ] Implement Model.transaction

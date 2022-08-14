@@ -43,6 +43,12 @@ export interface ModelPutOptions<M extends typeof Model> {
   condition?: ConditionInstance<M>;
 }
 
+export interface ModelCreateOptions<M extends typeof Model> {
+  extraInput?: Partial<PutItemCommandInput>;
+  return?: ReturnOption;
+  condition?: ConditionInstance<M>;
+}
+
 export interface ModelUpdateOptions<M extends typeof Model> {
   extraInput?: Partial<UpdateItemCommandInput>;
   return?: ReturnOption;

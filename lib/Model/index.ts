@@ -27,6 +27,7 @@ import {
   ModelBatchGetOutput,
   ModelBatchPutOptions,
   ModelBatchPutOutput,
+  ModelCreateOptions,
   ModelDeleteOptions,
   ModelGetOptions,
   ModelProps,
@@ -170,6 +171,15 @@ export class Model {
 
       return item;
     })();
+  }
+
+  public static create<M extends typeof Model>(this: M, item: InstanceType<M>): Promise<InstanceType<M>>;
+  public static create<M extends typeof Model>(this: M, item: InstanceType<M>, options: Omit<ModelCreateOptions<M>, 'return'>): Promise<InstanceType<M>>;
+  public static create<M extends typeof Model>(this: M, item: InstanceType<M>, options: ModelCreateOptions<M> & { return: 'default' }): Promise<InstanceType<M>>;
+  public static create<M extends typeof Model>(this: M, item: InstanceType<M>, options: ModelCreateOptions<M> & { return: 'output' }): Promise<PutItemCommandOutput>;
+  public static create<M extends typeof Model>(this: M, item: InstanceType<M>, options: ModelCreateOptions<M> & { return: 'input' }): PutItemCommandInput;
+  public static create<M extends typeof Model>(this: M, item: InstanceType<M>, options?: ModelCreateOptions<M>): Promise<InstanceType<M> | PutItemCommandOutput> | PutItemCommandInput {
+    return this.put(item, { ...options, overwrite: false });
   }
 
   public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey): Promise<void>;
