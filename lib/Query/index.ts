@@ -1,4 +1,4 @@
-import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
+import { DynamoDB, QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import { ConditionInstance } from '@lib/Condition';
 import { AttributeType } from '@lib/Condition/types';
 import { Model } from '@lib/Model';
@@ -7,7 +7,7 @@ import { checkDuplicatesInArray, DefaultError, GenericObject, isEmpty, objectToD
 import { ConditionExpression, substituteQueryConditions } from '@lib/utils/substituteConditions';
 import { Keys, PartitionKeys } from '@lib/utils/symbols';
 import { SortKeys } from '@lib/utils/symbols';
-import { FilterQueryCondition, KeyQueryCondition, QueryOptions } from '@Query/types';
+import { FilterQueryCondition, KeyQueryCondition, QueryExecOptions, QueryExecOutput } from '@Query/types';
 
 type QueryInstance<M extends typeof Model> = InstanceType<typeof Query<M>>;
 
@@ -38,16 +38,33 @@ export class Query<M extends typeof Model> {
     };
   }
 
-  public async exec(options?: QueryOptions) {
+  public exec(): Promise<QueryExecOutput<M>>;
+  public exec(options: Omit<QueryExecOptions, 'return'>): Promise<QueryExecOutput<M>>;
+  public exec(options: QueryExecOptions & { return: 'default' }): Promise<QueryExecOutput<M>>;
+  public exec(options: QueryExecOptions & { return: 'output' }): Promise<QueryCommandOutput>;
+  public exec(options: QueryExecOptions & { return: 'input' }): QueryInput;
+  public exec(options?: QueryExecOptions): Promise<QueryExecOutput<M> | QueryCommandOutput> | QueryInput {
     this.buildQueryInput(options?.extraInput);
     this.validateQueryInput();
-    const result = await this.ddb.query(this.queryInput);
-    const items = result.Items || [];
 
-    return {
-      items: items.map((item) => this.Class.parseFromDynamo(this.Class, item)),
-      count: result.Count || 0,
-    };
+    if (options?.return === 'input') {
+      return this.queryInput;
+    }
+
+    return (async () => {
+      const result = await this.ddb.query(this.queryInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      const items = result.Items || [];
+
+      return {
+        items: items.map((item) => this.Class.parseFromDynamo(this.Class, item)),
+        count: result.Count || 0,
+      };
+    })();
   }
 
   private buildQueryInput(queryInput?: Partial<QueryInput>) {
@@ -115,44 +132,44 @@ export class Query<M extends typeof Model> {
       beginsWith: (value: string | number): QueryInstance<M> => this._beginsWith(this.filterConditions, key, value),
       between: (value1: string | number, value2: string | number): QueryInstance<M> => this._between(this.filterConditions, key, value1, value2),
       contains: (value: string | number): QueryInstance<M> => {
-        this.filterConditions.push({ key, values: [value], expr: `contains($K, $V)` });
+        this.filterConditions.push({ keys: [key], values: [value], expr: `contains($K, $V)` });
         return this;
       },
       in: (values: string[]): QueryInstance<M> => {
-        this.filterConditions.push({ key, values, expr: `$K IN ${values.map(() => '$V').join(', ')}` });
+        this.filterConditions.push({ keys: [key], values, expr: `$K IN ${values.map(() => '$V').join(', ')}` });
         return this;
       },
       type: (value: AttributeType): QueryInstance<M> => {
-        this.filterConditions.push({ key, values: [value], expr: 'attribute_type($K, $V)' });
+        this.filterConditions.push({ keys: [key], values: [value], expr: 'attribute_type($K, $V)' });
         return this;
       },
       exists: (): QueryInstance<M> => {
-        this.filterConditions.push({ key, expr: 'attribute_exists($K)' });
+        this.filterConditions.push({ keys: [key], expr: 'attribute_exists($K)' });
         return this;
       },
       size: () => ({
         eq: (value: string | number): QueryInstance<M> => {
-          this.filterConditions.push({ key, values: [value], expr: 'size($K) = $V' });
+          this.filterConditions.push({ keys: [key], values: [value], expr: 'size($K) = $V' });
           return this;
         },
         ne: (value: string | number): QueryInstance<M> => {
-          this.filterConditions.push({ key, values: [value], expr: 'size($K) <> $V' });
+          this.filterConditions.push({ keys: [key], values: [value], expr: 'size($K) <> $V' });
           return this;
         },
         lt: (value: string | number): QueryInstance<M> => {
-          this.filterConditions.push({ key, values: [value], expr: 'size($K) < $V' });
+          this.filterConditions.push({ keys: [key], values: [value], expr: 'size($K) < $V' });
           return this;
         },
         le: (value: string | number): QueryInstance<M> => {
-          this.filterConditions.push({ key, values: [value], expr: 'size($K) <= $V' });
+          this.filterConditions.push({ keys: [key], values: [value], expr: 'size($K) <= $V' });
           return this;
         },
         gt: (value: string | number): QueryInstance<M> => {
-          this.filterConditions.push({ key, values: [value], expr: 'size($K) > $V' });
+          this.filterConditions.push({ keys: [key], values: [value], expr: 'size($K) > $V' });
           return this;
         },
         ge: (value: string | number): QueryInstance<M> => {
-          this.filterConditions.push({ key, values: [value], expr: 'size($K) >= $V' });
+          this.filterConditions.push({ keys: [key], values: [value], expr: 'size($K) >= $V' });
           return this;
         },
       }),
@@ -165,18 +182,18 @@ export class Query<M extends typeof Model> {
         ge: (value: string | number): QueryInstance<M> => this._lt(this.filterConditions, key, value),
         contains: (value: string | number): QueryInstance<M> => {
           this.filterConditions.push({
-            key,
+            keys: [key],
             values: [value],
             expr: `NOT contains($K, $V)`,
           });
           return this;
         },
         in: (values: string[]): QueryInstance<M> => {
-          this.filterConditions.push({ key, values, expr: `NOT ($K IN ${values.map(() => '$V').join(', ')})` });
+          this.filterConditions.push({ keys: [key], values, expr: `NOT ($K IN ${values.map(() => '$V').join(', ')})` });
           return this;
         },
         exists: (): QueryInstance<M> => {
-          this.filterConditions.push({ key, expr: 'attribute_not_exists($K)' });
+          this.filterConditions.push({ keys: [key], expr: 'attribute_not_exists($K)' });
           return this;
         },
       }),
@@ -253,42 +270,42 @@ export class Query<M extends typeof Model> {
   }
 
   private _eq(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
-    conditions.push({ key, values: [value], expr: '$K = $V' });
+    conditions.push({ keys: [key], values: [value], expr: '$K = $V' });
     return this;
   }
 
   private _ne(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
-    conditions.push({ key, values: [value], expr: '$K = $V' });
+    conditions.push({ keys: [key], values: [value], expr: '$K = $V' });
     return this;
   }
 
   private _lt(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
-    conditions.push({ key, values: [value], expr: '$K < $V' });
+    conditions.push({ keys: [key], values: [value], expr: '$K < $V' });
     return this;
   }
 
   private _le(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
-    conditions.push({ key, values: [value], expr: '$K <= $V' });
+    conditions.push({ keys: [key], values: [value], expr: '$K <= $V' });
     return this;
   }
 
   private _gt(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
-    conditions.push({ key, values: [value], expr: '$K > $V' });
+    conditions.push({ keys: [key], values: [value], expr: '$K > $V' });
     return this;
   }
 
   private _ge(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
-    conditions.push({ key, values: [value], expr: '$K >= $V' });
+    conditions.push({ keys: [key], values: [value], expr: '$K >= $V' });
     return this;
   }
 
   private _beginsWith(conditions: ConditionExpression[], key: string, value: string | number): QueryInstance<M> {
-    conditions.push({ key, values: [value], expr: 'begins_with($K, $V)' });
+    conditions.push({ keys: [key], values: [value], expr: 'begins_with($K, $V)' });
     return this;
   }
 
   private _between(conditions: ConditionExpression[], key: string, v1: string | number, v2: string | number): QueryInstance<M> {
-    conditions.push({ key, values: [v1, v2], expr: '$K BETWEEN $V AND $V' });
+    conditions.push({ keys: [key], values: [v1, v2], expr: '$K BETWEEN $V AND $V' });
     return this;
   }
 }

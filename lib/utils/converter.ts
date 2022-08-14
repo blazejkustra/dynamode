@@ -11,7 +11,7 @@ export function objectToDynamo(object: GenericObject): AttributeMap {
 }
 
 export function valueToDynamo(value: any): AttributeValue {
-  return awsConverter().convertToAttr(value);
+  return awsConverter().convertToAttr(value, { convertEmptyValues: true });
 }
 
 export function fromDynamo(object: AttributeMap): GenericObject {

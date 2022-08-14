@@ -1,8 +1,11 @@
-import { DeleteItemCommandInput, GetItemCommandInput, PutItemCommandInput } from '@aws-sdk/client-dynamodb';
+import { RequireAtLeastOne } from 'type-fest';
+
+import { DeleteItemCommandInput, GetItemCommandInput, PutItemCommandInput, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { ConditionInstance } from '@lib/Condition';
 import { Model } from '@lib/Model';
 import { Table } from '@lib/Table';
 import { gsi1PartitionKey, gsi1SortKey, gsi2PartitionKey, gsi2SortKey, lsi1SortKey, lsi2SortKey, partitionKey, sortKey } from '@lib/utils/symbols';
+import { Flatten, PickByType } from '@lib/utils/types';
 
 export type PrimaryKey = { [partitionKey]: string | number; [sortKey]: string | number };
 export interface ModelProps<T extends Table> {
@@ -21,14 +24,15 @@ export interface ModelProps<T extends Table> {
   createdAt?: string | number;
 }
 
-type ReturnOption = 'default' | 'input' | 'output';
+export type ReturnOption = 'default' | 'input' | 'output';
 
-export interface ModelGetOptions {
+type ExcludeFromModel = Date | Set<unknown> | symbol;
+type ModelKeys<M extends Model> = Omit<Partial<Flatten<M, ExcludeFromModel>>, symbol>;
+export interface ModelGetOptions<M extends typeof Model> {
   extraInput?: Partial<GetItemCommandInput>;
   return?: ReturnOption;
-  attributes?: string[];
+  attributes?: (keyof ModelKeys<InstanceType<M>>)[];
   consistent?: boolean;
-  consumedCapacity?: boolean;
 }
 
 export interface ModelPutOptions<M extends typeof Model> {
@@ -38,8 +42,25 @@ export interface ModelPutOptions<M extends typeof Model> {
   condition?: ConditionInstance<M>;
 }
 
+export interface ModelUpdateOptions<M extends typeof Model> {
+  extraInput?: Partial<UpdateItemCommandInput>;
+  return?: ReturnOption;
+  condition?: ConditionInstance<M>;
+}
+
 export interface ModelDeleteOptions<M extends typeof Model> {
   extraInput?: Partial<DeleteItemCommandInput>;
   return?: ReturnOption;
   condition?: ConditionInstance<M>;
 }
+
+export type UpdateProps<M extends Model> = RequireAtLeastOne<{
+  add?: PickByType<ModelKeys<M>, number | Set<unknown>>;
+  set?: ModelKeys<M>;
+  setIfNotExists?: ModelKeys<M>;
+  listAppend?: PickByType<ModelKeys<M>, Array<unknown>>;
+  increment?: PickByType<ModelKeys<M>, number>;
+  decrement?: PickByType<ModelKeys<M>, number>;
+  delete?: PickByType<ModelKeys<M>, Set<unknown>>;
+  remove?: (keyof ModelKeys<M>)[];
+}>;

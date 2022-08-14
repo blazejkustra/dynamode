@@ -1,11 +1,11 @@
-import { DeleteItemCommandInput, DeleteItemCommandOutput, DynamoDB, GetItemCommandInput, GetItemCommandOutput, PutItemCommandInput, PutItemCommandOutput } from '@aws-sdk/client-dynamodb';
+import { DeleteItemCommandInput, DeleteItemCommandOutput, DynamoDB, GetItemCommandInput, GetItemCommandOutput, PutItemCommandInput, PutItemCommandOutput, UpdateItemCommandInput, UpdateItemCommandOutput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
 import { Query } from '@lib/Query';
 import { Table } from '@lib/Table';
 import { AttributeMap, classToObject, fromDynamo, GenericObject, NotFoundError, objectToDynamo, SEPARATOR } from '@lib/utils';
-import { substituteModelDeleteConditions, substituteModelPutConditions } from '@lib/utils/substituteConditions';
+import { replaceNestedAttributesRegex, substituteModelDeleteConditions, substituteModelPutConditions, substituteModelUpdateConditions } from '@lib/utils/substituteConditions';
 import { gsi1PartitionKey, gsi1SortKey, gsi2PartitionKey, gsi2SortKey, lsi1SortKey, lsi2SortKey, partitionKey, sortKey } from '@lib/utils/symbols';
-import { ModelDeleteOptions, ModelProps, ModelPutOptions, PrimaryKey } from '@Model/types';
+import { ModelDeleteOptions, ModelProps, ModelPutOptions, ModelUpdateOptions, PrimaryKey, UpdateProps } from '@Model/types';
 
 import { ModelGetOptions } from './types';
 
@@ -53,15 +53,16 @@ export class Model {
   }
 
   public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey): Promise<InstanceType<M>>;
-  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: Omit<ModelGetOptions, 'return'>): Promise<InstanceType<M>>;
-  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions & { return: 'default' }): Promise<InstanceType<M>>;
-  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions & { return: 'output' }): Promise<GetItemCommandOutput>;
-  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions & { return: 'input' }): GetItemCommandInput;
-  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options?: ModelGetOptions): Promise<InstanceType<M> | GetItemCommandOutput> | GetItemCommandInput {
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: Omit<ModelGetOptions<M>, 'return'>): Promise<InstanceType<M>>;
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions<M> & { return: 'default' }): Promise<InstanceType<M>>;
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions<M> & { return: 'output' }): Promise<GetItemCommandOutput>;
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions<M> & { return: 'input' }): GetItemCommandInput;
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options?: ModelGetOptions<M>): Promise<InstanceType<M> | GetItemCommandOutput> | GetItemCommandInput {
     const commandInput: GetItemCommandInput = {
       TableName: this.table.tableName,
       Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
       ConsistentRead: options?.consistent || false,
+      ProjectionExpression: options?.attributes?.map((attr) => replaceNestedAttributesRegex(`${attr}`)).join(', '),
       ...options?.extraInput,
     };
 
@@ -84,25 +85,33 @@ export class Model {
     })();
   }
 
-  public static async update<M extends typeof Model>(
-    this: M,
-    primaryKey: PrimaryKey,
-    props: Omit<Partial<ConstructorParameters<M>[0]>, typeof partitionKey | typeof sortKey>,
-  ): Promise<InstanceType<M>> {
-    const result = await this._ddb.updateItem({
+  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey, props: UpdateProps<InstanceType<M>>): Promise<InstanceType<M>>;
+  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey, props: UpdateProps<InstanceType<M>>, options: Omit<ModelUpdateOptions<M>, 'return'>): Promise<InstanceType<M>>;
+  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey, props: UpdateProps<InstanceType<M>>, options: ModelUpdateOptions<M> & { return: 'default' }): Promise<InstanceType<M>>;
+  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey, props: UpdateProps<InstanceType<M>>, options: ModelUpdateOptions<M> & { return: 'output' }): Promise<UpdateItemCommandOutput>;
+  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey, props: UpdateProps<InstanceType<M>>, options: ModelUpdateOptions<M> & { return: 'input' }): UpdateItemCommandInput;
+  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey, props: UpdateProps<InstanceType<M>>, options?: ModelUpdateOptions<M>): Promise<InstanceType<M> | UpdateItemCommandOutput> | UpdateItemCommandInput {
+    const commandInput: UpdateItemCommandInput = {
       TableName: this.table.tableName,
       Key: objectToDynamo(this.appendPrefixSuffix(this, primaryKey)),
       ReturnValues: 'ALL_NEW',
-      //TODO: implement better querying!!!
-      UpdateExpression: `set ${Object.entries(props)
-        .map(([key]) => `${key} = :${key}`)
-        .join(', ')}`,
-      ExpressionAttributeValues: objectToDynamo({
-        ...Object.fromEntries(Object.entries(props).map(([key, value]) => [`:${key}`, value])),
-      }),
-    });
+      ...substituteModelUpdateConditions(props),
+      ...options?.extraInput,
+    };
 
-    return this.parseFromDynamo(this, result.Attributes || {});
+    if (options?.return === 'input') {
+      return commandInput;
+    }
+
+    return (async () => {
+      const result = await this._ddb.updateItem(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      return this.parseFromDynamo(this, result.Attributes || {});
+    })();
   }
 
   public static put<M extends typeof Model>(this: M, item: InstanceType<M>): Promise<InstanceType<M>>;
@@ -223,13 +232,13 @@ export class Model {
   private static truncatePrefixSuffixPk<M extends typeof Model>(model: M, item: GenericObject): string {
     const { table, prefixPk, suffixPk } = model;
 
-    return (item[table[partitionKey]] as string).replace(`${prefixPk}${SEPARATOR}`, '').replace(`${SEPARATOR}${suffixPk}`, '');
+    return ((item[table[partitionKey]] as string) || '').replace(`${prefixPk}${SEPARATOR}`, '').replace(`${SEPARATOR}${suffixPk}`, '');
   }
 
   private static truncatePrefixSuffixSk<M extends typeof Model>(model: M, item: GenericObject): string {
     const { table, prefixSk, suffixSk } = model;
 
-    return (item[table[sortKey]] as string).replace(`${prefixSk}${SEPARATOR}`, '').replace(`${SEPARATOR}${suffixSk}`, '');
+    return ((item[table[sortKey]] as string) || '').replace(`${prefixSk}${SEPARATOR}`, '').replace(`${SEPARATOR}${suffixSk}`, '');
   }
 
   static set ddb(value: DynamoDB) {

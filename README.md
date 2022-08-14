@@ -13,21 +13,21 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 
 ### Model:
 
-* [ ] Add createdAt and updatedAt (possibility to add it with custom name)
 * [X] Possibility to add indexes with custom name
+* [X] Implement Model.condition
+* [X] Implement Model.query
+* [X] Model.get - supplement with all dynamoDB properties
+* [X] Model.update - supplement with all dynamoDB properties
+* [X] Model.put - supplement with all dynamoDB properties
+* [X] Model.delete - supplement with all dynamoDB properties
 * [ ] Implement Model.batchGet
 * [ ] Implement Model.batchPut
 * [ ] Implement Model.batchDelete
 * [ ] Implement Model.create (that creates object ensuring it doesnt exist already)
-* [ ] Implement Model.transaction
-* [X] Implement Model.condition
-* [X] Implement Model.query
-* [X] Model.get - supplement with all dynamoDB properties
-* [ ] Model.update - supplement with all dynamoDB properties
-* [X] Model.put - supplement with all dynamoDB properties
-* [X] Model.delete - supplement with all dynamoDB properties
-* [ ] Show how to add new methods to class
+* [ ] Add createdAt and updatedAt (possibility to add it with custom name)
 * [ ] Add remaining indexes
+* [ ] Implement Model.transaction
+* [ ] Show how to add new methods to class
 
 ### Query
 

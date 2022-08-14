@@ -1,16 +1,18 @@
 import { RESERVED_WORDS } from '@aws/reservedWords';
 import { ConditionInstance } from '@lib/Condition';
 import { Model } from '@lib/Model';
+import { UpdateProps } from '@lib/Model/types';
 
 import { valueToDynamo } from '../utils/converter';
 import { DefaultError } from '../utils/Error';
 import { AttributeMap } from '../utils/types';
 
 import { isEmpty } from './helpers';
+import { buildUpdateConditions } from './updateExpression';
 
 export type ConditionExpression = {
-  key?: string;
-  values?: (string | number)[];
+  keys?: string[];
+  values?: unknown[];
   expr: string;
 };
 
@@ -30,6 +32,25 @@ export function substituteQueryConditions(filterConditions: ConditionExpression[
     attributeValues,
     conditionExpression: buildExpression(filterConditions, attributeNames, attributeValues),
     keyConditionExpression: buildExpression(keyConditions, attributeNames, attributeValues),
+  };
+}
+
+interface SubstituteModelUpdateConditions {
+  ExpressionAttributeNames?: Record<string, string>;
+  ExpressionAttributeValues?: AttributeMap;
+  UpdateExpression?: string;
+}
+
+export function substituteModelUpdateConditions<M extends Model>(props: UpdateProps<M>): SubstituteModelUpdateConditions {
+  const attributeNames: Record<string, string> = {};
+  const attributeValues: AttributeMap = {};
+  const conditions = buildUpdateConditions(props);
+  const updateExpression = buildExpression(conditions, attributeNames, attributeValues);
+
+  return {
+    ...(!isEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
+    ...(!isEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+    ...(updateExpression ? { UpdateExpression: updateExpression } : {}),
   };
 }
 
@@ -75,18 +96,18 @@ function buildExpression(conditions: ConditionExpression[], attributeNames: Reco
   return conditions
     .map((condition) => {
       let { expr } = condition;
-      const { key, values } = condition;
+      const { keys, values } = condition;
 
-      if (key) {
-        const substituteKey = substituteAttributeName(attributeNames, key);
-        expr = expr.replace('$K', substituteKey);
+      if (keys) {
+        keys.forEach((key) => {
+          const substituteKey = substituteAttributeName(attributeNames, key);
+          expr = expr.replace('$K', substituteKey);
+        });
 
-        if (values) {
-          values.forEach((value) => {
-            const substituteValueKey = substituteAttributeValues(attributeValues, key, value);
-            expr = expr.replace('$V', substituteValueKey);
-          });
-        }
+        values?.forEach((value, idx) => {
+          const substituteValueKey = substituteAttributeValues(attributeValues, keys[idx], value);
+          expr = expr.replace('$V', substituteValueKey);
+        });
       }
 
       return expr;
@@ -94,8 +115,15 @@ function buildExpression(conditions: ConditionExpression[], attributeNames: Reco
     .join(' ');
 }
 
+const NESTED_ATTRIBUTE_REGEX = /\.(\d*)(\.|$)/;
+
+export function replaceNestedAttributesRegex(key: string): string {
+  return key.replace(NESTED_ATTRIBUTE_REGEX, '[$1]$2');
+}
+
 function substituteAttributeName(attributeNames: Record<string, string>, name: string): string {
-  const keys = name.split('.');
+  const keys = replaceNestedAttributesRegex(name).split('.');
+
   return keys
     .map((key) => {
       if (!RESERVED_WORDS.find((word) => word === key.toUpperCase())) {
@@ -112,7 +140,7 @@ function substituteAttributeValues(attributeValues: AttributeMap, name: string, 
   const key = name.split('.').join('_');
 
   for (let appendix = 0; appendix < 1000; appendix++) {
-    const substituteValueKey = `:${key}${appendix ? `_${appendix}` : ''}`;
+    const substituteValueKey = `:${key}${appendix ? `__${appendix}` : ''}`;
     if (!attributeValues[substituteValueKey]) {
       attributeValues[substituteValueKey] = valueToDynamo(value);
       return substituteValueKey;

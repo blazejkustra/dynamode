@@ -1,12 +1,19 @@
 import { QueryInput } from '@aws-sdk/client-dynamodb';
 import { AttributeType } from '@Condition/types';
 import { Model } from '@lib/Model';
+import { ReturnOption } from '@lib/Model/types';
 import { Query } from '@lib/Query';
 
 type QueryInstance<M extends typeof Model> = InstanceType<typeof Query<M>>;
 
-export interface QueryOptions {
+export interface QueryExecOptions {
   extraInput?: Partial<QueryInput>;
+  return?: ReturnOption;
+}
+
+export interface QueryExecOutput<M extends typeof Model> {
+  items: Array<InstanceType<M>>;
+  count: number;
 }
 
 export interface KeyQueryCondition<M extends typeof Model> {

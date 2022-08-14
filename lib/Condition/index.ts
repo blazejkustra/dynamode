@@ -64,44 +64,44 @@ export class Condition<M extends typeof Model> {
   }
 
   public contains(value: string | number): ConditionInstance<M> {
-    this.conditions.push({ key: this.key, values: [value], expr: `contains($K, $V)` });
+    this.conditions.push({ keys: [this.key], values: [value], expr: `contains($K, $V)` });
     return this;
   }
 
   public in(values: string[]): ConditionInstance<M> {
-    this.conditions.push({ key: this.key, values, expr: `$K IN ${values.map(() => '$V').join(', ')}` });
+    this.conditions.push({ keys: [this.key], values, expr: `$K IN ${values.map(() => '$V').join(', ')}` });
     return this;
   }
 
   public type(value: AttributeType): ConditionInstance<M> {
-    this.conditions.push({ key: this.key, values: [value], expr: 'attribute_type($K, $V)' });
+    this.conditions.push({ keys: [this.key], values: [value], expr: 'attribute_type($K, $V)' });
     return this;
   }
 
   public size(): SizeFunction {
     return {
       eq: (value: string | number): ConditionInstance<M> => {
-        this.conditions.push({ key: this.key, values: [value], expr: 'size($K) = $V' });
+        this.conditions.push({ keys: [this.key], values: [value], expr: 'size($K) = $V' });
         return this;
       },
       ne: (value: string | number): ConditionInstance<M> => {
-        this.conditions.push({ key: this.key, values: [value], expr: 'size($K) <> $V' });
+        this.conditions.push({ keys: [this.key], values: [value], expr: 'size($K) <> $V' });
         return this;
       },
       lt: (value: string | number): ConditionInstance<M> => {
-        this.conditions.push({ key: this.key, values: [value], expr: 'size($K) < $V' });
+        this.conditions.push({ keys: [this.key], values: [value], expr: 'size($K) < $V' });
         return this;
       },
       le: (value: string | number): ConditionInstance<M> => {
-        this.conditions.push({ key: this.key, values: [value], expr: 'size($K) <= $V' });
+        this.conditions.push({ keys: [this.key], values: [value], expr: 'size($K) <= $V' });
         return this;
       },
       gt: (value: string | number): ConditionInstance<M> => {
-        this.conditions.push({ key: this.key, values: [value], expr: 'size($K) > $V' });
+        this.conditions.push({ keys: [this.key], values: [value], expr: 'size($K) > $V' });
         return this;
       },
       ge: (value: string | number): ConditionInstance<M> => {
-        this.conditions.push({ key: this.key, values: [value], expr: 'size($K) >= $V' });
+        this.conditions.push({ keys: [this.key], values: [value], expr: 'size($K) >= $V' });
         return this;
       },
     };
@@ -117,25 +117,25 @@ export class Condition<M extends typeof Model> {
       ge: (value: string | number): ConditionInstance<M> => this._lt(this.conditions, this.key, value),
       contains: (value: string | number): ConditionInstance<M> => {
         this.conditions.push({
-          key: this.key,
+          keys: [this.key],
           values: [value],
           expr: `NOT contains($K, $V)`,
         });
         return this;
       },
       in: (values: string[]): ConditionInstance<M> => {
-        this.conditions.push({ key: this.key, values, expr: `NOT ($K IN ${values.map(() => '$V').join(', ')})` });
+        this.conditions.push({ keys: [this.key], values, expr: `NOT ($K IN ${values.map(() => '$V').join(', ')})` });
         return this;
       },
       exists: (): ConditionInstance<M> => {
-        this.conditions.push({ key: this.key, expr: 'attribute_not_exists($K)' });
+        this.conditions.push({ keys: [this.key], expr: 'attribute_not_exists($K)' });
         return this;
       },
     };
   }
 
   public exists(): ConditionInstance<M> {
-    this.conditions.push({ key: this.key, expr: 'attribute_exists($K)' });
+    this.conditions.push({ keys: [this.key], expr: 'attribute_exists($K)' });
     return this;
   }
 
@@ -171,42 +171,42 @@ export class Condition<M extends typeof Model> {
   }
 
   private _eq(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
-    conditions.push({ key, values: [value], expr: '$K = $V' });
+    conditions.push({ keys: [key], values: [value], expr: '$K = $V' });
     return this;
   }
 
   private _ne(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
-    conditions.push({ key, values: [value], expr: '$K = $V' });
+    conditions.push({ keys: [key], values: [value], expr: '$K = $V' });
     return this;
   }
 
   private _lt(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
-    conditions.push({ key, values: [value], expr: '$K < $V' });
+    conditions.push({ keys: [key], values: [value], expr: '$K < $V' });
     return this;
   }
 
   private _le(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
-    conditions.push({ key, values: [value], expr: '$K <= $V' });
+    conditions.push({ keys: [key], values: [value], expr: '$K <= $V' });
     return this;
   }
 
   private _gt(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
-    conditions.push({ key, values: [value], expr: '$K > $V' });
+    conditions.push({ keys: [key], values: [value], expr: '$K > $V' });
     return this;
   }
 
   private _ge(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
-    conditions.push({ key, values: [value], expr: '$K >= $V' });
+    conditions.push({ keys: [key], values: [value], expr: '$K >= $V' });
     return this;
   }
 
   private _beginsWith(conditions: ConditionExpression[], key: string, value: string | number): ConditionInstance<M> {
-    conditions.push({ key, values: [value], expr: 'begins_with($K, $V)' });
+    conditions.push({ keys: [key], values: [value], expr: 'begins_with($K, $V)' });
     return this;
   }
 
   private _between(conditions: ConditionExpression[], key: string, v1: string | number, v2: string | number): ConditionInstance<M> {
-    conditions.push({ key, values: [v1, v2], expr: '$K BETWEEN $V AND $V' });
+    conditions.push({ keys: [key], values: [v1, v2], expr: '$K BETWEEN $V AND $V' });
     return this;
   }
 }
