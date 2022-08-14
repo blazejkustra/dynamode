@@ -19,7 +19,35 @@ import { Table } from '@lib/Table';
 import { AttributeMap, classToObject, fromDynamo, GenericObject, NotFoundError, objectToDynamo, SEPARATOR } from '@lib/utils';
 import { buildProjectionExpression } from '@lib/utils/projectionExpression';
 import { substituteModelDeleteConditions, substituteModelPutConditions, substituteModelUpdateConditions } from '@lib/utils/substituteConditions';
-import { gsi1PartitionKey, gsi1SortKey, gsi2PartitionKey, gsi2SortKey, lsi1SortKey, lsi2SortKey, partitionKey, sortKey } from '@lib/utils/symbols';
+import {
+  gsi1PartitionKey,
+  gsi1SortKey,
+  gsi2PartitionKey,
+  gsi2SortKey,
+  gsi3PartitionKey,
+  gsi3SortKey,
+  gsi4PartitionKey,
+  gsi4SortKey,
+  gsi5PartitionKey,
+  gsi5SortKey,
+  gsi6PartitionKey,
+  gsi6SortKey,
+  gsi7PartitionKey,
+  gsi7SortKey,
+  gsi8PartitionKey,
+  gsi8SortKey,
+  gsi9PartitionKey,
+  gsi9SortKey,
+  gsi10PartitionKey,
+  gsi10SortKey,
+  lsi1SortKey,
+  lsi2SortKey,
+  lsi3SortKey,
+  lsi4SortKey,
+  lsi5SortKey,
+  partitionKey,
+  sortKey,
+} from '@lib/utils/symbols';
 import {
   ModelBatchDeleteOptions,
   ModelBatchDeleteOutput,
@@ -50,13 +78,40 @@ export class Model {
   [sortKey]: string | number;
 
   [gsi1PartitionKey]?: string | number;
-  [gsi2PartitionKey]?: string | number;
-
   [gsi1SortKey]?: string | number;
+
+  [gsi2PartitionKey]?: string | number;
   [gsi2SortKey]?: string | number;
+
+  [gsi3PartitionKey]?: string | number;
+  [gsi3SortKey]?: string | number;
+
+  [gsi4PartitionKey]?: string | number;
+  [gsi4SortKey]?: string | number;
+
+  [gsi5PartitionKey]?: string | number;
+  [gsi5SortKey]?: string | number;
+
+  [gsi6PartitionKey]?: string | number;
+  [gsi6SortKey]?: string | number;
+
+  [gsi7PartitionKey]?: string | number;
+  [gsi7SortKey]?: string | number;
+
+  [gsi8PartitionKey]?: string | number;
+  [gsi8SortKey]?: string | number;
+
+  [gsi9PartitionKey]?: string | number;
+  [gsi9SortKey]?: string | number;
+
+  [gsi10PartitionKey]?: string | number;
+  [gsi10SortKey]?: string | number;
 
   [lsi1SortKey]?: string | number;
   [lsi2SortKey]?: string | number;
+  [lsi3SortKey]?: string | number;
+  [lsi4SortKey]?: string | number;
+  [lsi5SortKey]?: string | number;
 
   constructor(props: ModelProps<Table>) {
     this[partitionKey] = props[partitionKey];
