@@ -8,7 +8,7 @@ interface BuildProjectionExpression {
   ProjectionExpression?: string;
 }
 
-export function buildProjectionExpression<M extends Model>(attributes?: Array<keyof ModelKeys<M>>): BuildProjectionExpression {
+export function buildProjectionExpression<M extends typeof Model>(attributes?: Array<keyof ModelKeys<InstanceType<M>>>): BuildProjectionExpression {
   const attributeNames: Record<string, string> = {};
   const projectionExpression = attributes?.map((attr) => substituteAttributeName(attributeNames, `${attr}`)).join(', ');
 
