@@ -1,6 +1,6 @@
 import { AttributeType, NegateFunction, SizeFunction } from '@Condition/types';
 import { Model } from '@lib/Model';
-import { ConditionExpression } from '@lib/utils/substituteConditions';
+import { ConditionExpression } from '@lib/utils';
 
 export type ConditionInstance<M extends typeof Model> = InstanceType<typeof Condition<M>>;
 

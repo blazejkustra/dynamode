@@ -1,8 +1,5 @@
 import { RESERVED_WORDS } from '@aws/reservedWords';
-
-import { valueToDynamo } from '../utils/converter';
-import { DefaultError } from '../utils/Error';
-import { AttributeMap } from '../utils/types';
+import { AttributeMap, DefaultError, valueToDynamo } from '@lib/utils';
 
 export type ConditionExpression = {
   keys?: string[];

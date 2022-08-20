@@ -5,7 +5,9 @@ import { ConditionInstance } from '@lib/Condition';
 import { Model } from '@lib/Model';
 import { Table } from '@lib/Table';
 import {
+  AttributeMap,
   createdAt,
+  Flatten,
   gsi1PartitionKey,
   gsi1SortKey,
   gsi2PartitionKey,
@@ -32,10 +34,10 @@ import {
   lsi4SortKey,
   lsi5SortKey,
   partitionKey,
+  PickByType,
   sortKey,
   updatedAt,
-} from '@lib/utils/symbols';
-import { AttributeMap, Flatten, PickByType } from '@lib/utils/types';
+} from '@lib/utils';
 
 export type PrimaryKey<M extends typeof Model> = { [partitionKey]: InstanceType<M>[typeof partitionKey]; [sortKey]: InstanceType<M>[typeof sortKey] };
 export type ModelProps<T extends typeof Table> = {

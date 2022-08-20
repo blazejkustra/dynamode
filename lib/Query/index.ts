@@ -3,10 +3,7 @@ import { ConditionInstance } from '@lib/Condition';
 import { AttributeType } from '@lib/Condition/types';
 import { Model } from '@lib/Model';
 import { Table } from '@lib/Table';
-import { AttributeMap, checkDuplicatesInArray, DefaultError, GenericObject, isEmpty, objectToDynamo } from '@lib/utils';
-import { buildExpression, ConditionExpression } from '@lib/utils/substituteConditions';
-import { Keys, PartitionKeys } from '@lib/utils/symbols';
-import { SortKeys } from '@lib/utils/symbols';
+import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, GenericObject, isEmpty, Keys, objectToDynamo, PartitionKeys, SortKeys } from '@lib/utils';
 import { BuildQueryConditionExpression, FilterQueryCondition, KeyQueryCondition, QueryExecOptions, QueryExecOutput } from '@Query/types';
 
 type QueryInstance<M extends typeof Model> = InstanceType<typeof Query<M>>;

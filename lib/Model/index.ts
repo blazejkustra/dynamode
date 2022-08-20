@@ -16,10 +16,14 @@ import {
 import { Condition, ConditionInstance } from '@lib/Condition';
 import { Query } from '@lib/Query';
 import { Table } from '@lib/Table';
-import { AttributeMap, classToObject, fromDynamo, GenericObject, isEmpty, isEmptyWithoutSymbols, NotFoundError, objectToDynamo } from '@lib/utils';
-import { buildExpression, ConditionExpression, substituteAttributeName } from '@lib/utils/substituteConditions';
 import {
+  AttributeMap,
+  buildExpression,
+  classToObject,
+  ConditionExpression,
   createdAt,
+  fromDynamo,
+  GenericObject,
   gsi1PartitionKey,
   gsi1SortKey,
   gsi2PartitionKey,
@@ -40,16 +44,21 @@ import {
   gsi9SortKey,
   gsi10PartitionKey,
   gsi10SortKey,
+  isEmpty,
+  isEmptyWithoutSymbols,
   lsi1SortKey,
   lsi2SortKey,
   lsi3SortKey,
   lsi4SortKey,
   lsi5SortKey,
+  NotFoundError,
+  objectToDynamo,
   partitionKey,
   PartitionKeys,
   sortKey,
+  substituteAttributeName,
   updatedAt,
-} from '@lib/utils/symbols';
+} from '@lib/utils';
 import {
   BuildDeleteConditionExpression,
   BuildGetProjectionExpression,
@@ -71,8 +80,7 @@ import {
   PrimaryKey,
   UpdateProps,
 } from '@Model/types';
-
-import { addPrefixSuffix, getTimestampValue, truncatePrefixSuffix } from './utils';
+import { addPrefixSuffix, getTimestampValue, truncatePrefixSuffix } from '@Model/utils';
 
 export class Model {
   private static _ddb: DynamoDB;
