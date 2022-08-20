@@ -13,13 +13,13 @@ import {
   UpdateItemCommandInput,
   UpdateItemCommandOutput,
 } from '@aws-sdk/client-dynamodb';
-import { Condition } from '@lib/Condition';
+import { Condition, ConditionInstance } from '@lib/Condition';
 import { Query } from '@lib/Query';
 import { Table } from '@lib/Table';
-import { AttributeMap, classToObject, fromDynamo, GenericObject, NotFoundError, objectToDynamo, SEPARATOR } from '@lib/utils';
-import { buildProjectionExpression } from '@lib/utils/projectionExpression';
-import { substituteModelDeleteConditions, substituteModelPutConditions, substituteModelUpdateConditions } from '@lib/utils/substituteConditions';
+import { AttributeMap, classToObject, fromDynamo, GenericObject, isEmpty, isEmptyWithoutSymbols, NotFoundError, objectToDynamo } from '@lib/utils';
+import { buildExpression, ConditionExpression, substituteAttributeName } from '@lib/utils/substituteConditions';
 import {
+  createdAt,
   gsi1PartitionKey,
   gsi1SortKey,
   gsi2PartitionKey,
@@ -46,9 +46,15 @@ import {
   lsi4SortKey,
   lsi5SortKey,
   partitionKey,
+  PartitionKeys,
   sortKey,
+  updatedAt,
 } from '@lib/utils/symbols';
 import {
+  BuildDeleteConditionExpression,
+  BuildGetProjectionExpression,
+  BuildPutConditionExpression,
+  BuildUpdateConditionExpression,
   ModelBatchDeleteOptions,
   ModelBatchDeleteOutput,
   ModelBatchGetOptions,
@@ -58,12 +64,15 @@ import {
   ModelCreateOptions,
   ModelDeleteOptions,
   ModelGetOptions,
+  ModelKeys,
   ModelProps,
   ModelPutOptions,
   ModelUpdateOptions,
   PrimaryKey,
   UpdateProps,
 } from '@Model/types';
+
+import { addPrefixSuffix, getTimestampValue, truncatePrefixSuffix } from './utils';
 
 export class Model {
   private static _ddb: DynamoDB;
@@ -74,8 +83,11 @@ export class Model {
   public static suffixSk: string;
   public static table: typeof Table;
 
+  [createdAt]?: Date;
+  [updatedAt]?: Date;
+
   [partitionKey]: string | number;
-  [sortKey]: string | number;
+  [sortKey]?: string | number;
 
   [gsi1PartitionKey]?: string | number;
   [gsi1SortKey]?: string | number;
@@ -113,21 +125,15 @@ export class Model {
   [lsi4SortKey]?: string | number;
   [lsi5SortKey]?: string | number;
 
-  constructor(props: ModelProps<Table>) {
+  constructor(props: ModelProps<typeof Table>) {
+    this[createdAt] = props[createdAt] || new Date();
+    this[updatedAt] = props[updatedAt] || new Date();
+
     this[partitionKey] = props[partitionKey];
     this[sortKey] = props[sortKey];
-
-    this[gsi1PartitionKey] = props[gsi1PartitionKey];
-    this[gsi1SortKey] = props[gsi1SortKey];
-
-    this[gsi2PartitionKey] = props[gsi2PartitionKey];
-    this[gsi2SortKey] = props[gsi2SortKey];
-
-    this[lsi1SortKey] = props[lsi1SortKey];
-    this[lsi2SortKey] = props[lsi2SortKey];
   }
 
-  public static query<M extends typeof Model>(this: M, key: typeof partitionKey | typeof gsi1PartitionKey, value: string | number): InstanceType<typeof Query<M>> {
+  public static query<M extends typeof Model>(this: M, key: PartitionKeys, value: string | number): InstanceType<typeof Query<M>> {
     return new Query(this, key, value);
   }
 
@@ -135,17 +141,17 @@ export class Model {
     return new Condition(this, key);
   }
 
-  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey): Promise<InstanceType<M>>;
-  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: Omit<ModelGetOptions<M>, 'return'>): Promise<InstanceType<M>>;
-  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions<M> & { return: 'default' }): Promise<InstanceType<M>>;
-  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions<M> & { return: 'output' }): Promise<GetItemCommandOutput>;
-  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelGetOptions<M> & { return: 'input' }): GetItemCommandInput;
-  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options?: ModelGetOptions<M>): Promise<InstanceType<M> | GetItemCommandOutput> | GetItemCommandInput {
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>): Promise<InstanceType<M>>;
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, options: Omit<ModelGetOptions<M>, 'return'>): Promise<InstanceType<M>>;
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, options: ModelGetOptions<M> & { return: 'default' }): Promise<InstanceType<M>>;
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, options: ModelGetOptions<M> & { return: 'output' }): Promise<GetItemCommandOutput>;
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, options: ModelGetOptions<M> & { return: 'input' }): GetItemCommandInput;
+  public static get<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, options?: ModelGetOptions<M>): Promise<InstanceType<M> | GetItemCommandOutput> | GetItemCommandInput {
     const commandInput: GetItemCommandInput = {
       TableName: this.table.tableName,
-      Key: objectToDynamo(this.appendPrefixSuffix(primaryKey)),
+      Key: this.convertPrimaryKeyToDynamo(primaryKey),
       ConsistentRead: options?.consistent || false,
-      ...buildProjectionExpression(options?.attributes),
+      ...this.buildGetProjectionExpression(options?.attributes),
       ...options?.extraInput,
     };
 
@@ -168,17 +174,17 @@ export class Model {
     })();
   }
 
-  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey, props: UpdateProps<InstanceType<M>>): Promise<InstanceType<M>>;
-  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey, props: UpdateProps<InstanceType<M>>, options: Omit<ModelUpdateOptions<M>, 'return'>): Promise<InstanceType<M>>;
-  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey, props: UpdateProps<InstanceType<M>>, options: ModelUpdateOptions<M> & { return: 'default' }): Promise<InstanceType<M>>;
-  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey, props: UpdateProps<InstanceType<M>>, options: ModelUpdateOptions<M> & { return: 'output' }): Promise<UpdateItemCommandOutput>;
-  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey, props: UpdateProps<InstanceType<M>>, options: ModelUpdateOptions<M> & { return: 'input' }): UpdateItemCommandInput;
-  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey, props: UpdateProps<InstanceType<M>>, options?: ModelUpdateOptions<M>): Promise<InstanceType<M> | UpdateItemCommandOutput> | UpdateItemCommandInput {
+  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, props: UpdateProps<InstanceType<M>>): Promise<InstanceType<M>>;
+  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, props: UpdateProps<InstanceType<M>>, options: Omit<ModelUpdateOptions<M>, 'return'>): Promise<InstanceType<M>>;
+  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, props: UpdateProps<InstanceType<M>>, options: ModelUpdateOptions<M> & { return: 'default' }): Promise<InstanceType<M>>;
+  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, props: UpdateProps<InstanceType<M>>, options: ModelUpdateOptions<M> & { return: 'output' }): Promise<UpdateItemCommandOutput>;
+  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, props: UpdateProps<InstanceType<M>>, options: ModelUpdateOptions<M> & { return: 'input' }): UpdateItemCommandInput;
+  public static update<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, props: UpdateProps<InstanceType<M>>, options?: ModelUpdateOptions<M>): Promise<InstanceType<M> | UpdateItemCommandOutput> | UpdateItemCommandInput {
     const commandInput: UpdateItemCommandInput = {
       TableName: this.table.tableName,
-      Key: objectToDynamo(this.appendPrefixSuffix(primaryKey)),
+      Key: this.convertPrimaryKeyToDynamo(primaryKey),
       ReturnValues: 'ALL_NEW',
-      ...substituteModelUpdateConditions(props),
+      ...this.buildUpdateConditionExpression(props),
       ...options?.extraInput,
     };
 
@@ -209,7 +215,7 @@ export class Model {
     const commandInput: PutItemCommandInput = {
       TableName: this.table.tableName,
       Item: this.modelToDynamo(item),
-      ...substituteModelPutConditions(overwriteCondition, options?.condition),
+      ...this.buildPutConditionExpression(overwriteCondition, options?.condition),
       ...options?.extraInput,
     };
 
@@ -237,16 +243,16 @@ export class Model {
     return this.put(item, { ...options, overwrite: false });
   }
 
-  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey): Promise<void>;
-  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: Omit<ModelDeleteOptions<M>, 'return'>): Promise<void>;
-  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelDeleteOptions<M> & { return: 'default' }): Promise<void>;
-  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelDeleteOptions<M> & { return: 'output' }): Promise<DeleteItemCommandOutput>;
-  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options: ModelDeleteOptions<M> & { return: 'input' }): DeleteItemCommandInput;
-  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey, options?: ModelDeleteOptions<M>): Promise<void | DeleteItemCommandOutput> | DeleteItemCommandInput {
+  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>): Promise<void>;
+  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, options: Omit<ModelDeleteOptions<M>, 'return'>): Promise<void>;
+  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, options: ModelDeleteOptions<M> & { return: 'default' }): Promise<void>;
+  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, options: ModelDeleteOptions<M> & { return: 'output' }): Promise<DeleteItemCommandOutput>;
+  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, options: ModelDeleteOptions<M> & { return: 'input' }): DeleteItemCommandInput;
+  public static delete<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>, options?: ModelDeleteOptions<M>): Promise<void | DeleteItemCommandOutput> | DeleteItemCommandInput {
     const commandInput: DeleteItemCommandInput = {
       TableName: this.table.tableName,
-      Key: objectToDynamo(this.appendPrefixSuffix(primaryKey)),
-      ...substituteModelDeleteConditions(options?.condition),
+      Key: this.convertPrimaryKeyToDynamo(primaryKey),
+      ...this.buildDeleteConditionExpression(options?.condition),
       ...options?.extraInput,
     };
 
@@ -265,18 +271,18 @@ export class Model {
     })();
   }
 
-  public static batchGet<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[]): Promise<ModelBatchGetOutput<M>>;
-  public static batchGet<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options: Omit<ModelBatchGetOptions<M>, 'return'>): Promise<ModelBatchGetOutput<M>>;
-  public static batchGet<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options: ModelBatchGetOptions<M> & { return: 'default' }): Promise<InstanceType<M>>;
-  public static batchGet<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options: ModelBatchGetOptions<M> & { return: 'output' }): Promise<BatchGetItemCommandOutput>;
-  public static batchGet<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options: ModelBatchGetOptions<M> & { return: 'input' }): BatchGetItemCommandInput;
-  public static batchGet<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options?: ModelBatchGetOptions<M>): Promise<ModelBatchGetOutput<M> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
+  public static batchGet<M extends typeof Model>(this: M, primaryKeys: PrimaryKey<M>[]): Promise<ModelBatchGetOutput<M>>;
+  public static batchGet<M extends typeof Model>(this: M, primaryKeys: PrimaryKey<M>[], options: Omit<ModelBatchGetOptions<M>, 'return'>): Promise<ModelBatchGetOutput<M>>;
+  public static batchGet<M extends typeof Model>(this: M, primaryKeys: PrimaryKey<M>[], options: ModelBatchGetOptions<M> & { return: 'default' }): Promise<InstanceType<M>>;
+  public static batchGet<M extends typeof Model>(this: M, primaryKeys: PrimaryKey<M>[], options: ModelBatchGetOptions<M> & { return: 'output' }): Promise<BatchGetItemCommandOutput>;
+  public static batchGet<M extends typeof Model>(this: M, primaryKeys: PrimaryKey<M>[], options: ModelBatchGetOptions<M> & { return: 'input' }): BatchGetItemCommandInput;
+  public static batchGet<M extends typeof Model>(this: M, primaryKeys: PrimaryKey<M>[], options?: ModelBatchGetOptions<M>): Promise<ModelBatchGetOutput<M> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
     const commandInput: BatchGetItemCommandInput = {
       RequestItems: {
         [this.table.tableName]: {
-          Keys: primaryKeys.map((primaryKey) => objectToDynamo(this.appendPrefixSuffix(primaryKey))),
+          Keys: primaryKeys.map((primaryKey) => this.convertPrimaryKeyToDynamo(primaryKey)),
           ConsistentRead: options?.consistent || false,
-          ...buildProjectionExpression(options?.attributes),
+          ...this.buildGetProjectionExpression(options?.attributes),
         },
       },
       ...options?.extraInput,
@@ -294,7 +300,7 @@ export class Model {
       }
 
       const items = result.Responses?.[this.table.tableName] || [];
-      const unprocessedKeys = result.UnprocessedKeys?.[this.table.tableName]?.Keys?.map((key) => this.primaryKeyFromDynamo(fromDynamo(key)) as PrimaryKey) || [];
+      const unprocessedKeys = result.UnprocessedKeys?.[this.table.tableName]?.Keys?.map((key) => this.convertDynamoKeysToSymbols(fromDynamo(key)) as PrimaryKey<M>) || [];
 
       return { items: items.map((item) => this.parseFromDynamo(item)), unprocessedKeys };
     })();
@@ -338,17 +344,17 @@ export class Model {
     })();
   }
 
-  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[]): Promise<ModelBatchDeleteOutput>;
-  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options: Omit<ModelBatchDeleteOptions, 'return'>): Promise<ModelBatchDeleteOutput>;
-  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options: ModelBatchDeleteOptions & { return: 'default' }): Promise<ModelBatchDeleteOutput>;
-  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options: ModelBatchDeleteOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
-  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options: ModelBatchDeleteOptions & { return: 'input' }): BatchWriteItemCommandInput;
-  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey[], options?: ModelBatchDeleteOptions): Promise<ModelBatchDeleteOutput | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
+  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey<M>[]): Promise<ModelBatchDeleteOutput<M>>;
+  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey<M>[], options: Omit<ModelBatchDeleteOptions, 'return'>): Promise<ModelBatchDeleteOutput<M>>;
+  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey<M>[], options: ModelBatchDeleteOptions & { return: 'default' }): Promise<ModelBatchDeleteOutput<M>>;
+  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey<M>[], options: ModelBatchDeleteOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
+  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey<M>[], options: ModelBatchDeleteOptions & { return: 'input' }): BatchWriteItemCommandInput;
+  public static batchDelete<M extends typeof Model>(this: M, primaryKeys: PrimaryKey<M>[], options?: ModelBatchDeleteOptions): Promise<ModelBatchDeleteOutput<M> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
     const commandInput: BatchWriteItemCommandInput = {
       RequestItems: {
         [this.table.tableName]: primaryKeys.map((primaryKey) => ({
           DeleteRequest: {
-            Key: objectToDynamo(this.appendPrefixSuffix(primaryKey)),
+            Key: this.convertPrimaryKeyToDynamo(primaryKey),
           },
         })),
       },
@@ -370,97 +376,232 @@ export class Model {
         result.UnprocessedItems?.[this.table.tableName]
           ?.map((request) => request.DeleteRequest?.Key)
           ?.filter((item): item is AttributeMap => !!item)
-          .map((key) => this.primaryKeyFromDynamo(fromDynamo(key)) as PrimaryKey) || [];
+          .map((key) => this.convertDynamoKeysToSymbols(fromDynamo(key)) as PrimaryKey<M>) || [];
 
       return { unprocessedItems };
     })();
   }
 
   public static parseFromDynamo<M extends typeof Model>(this: M, dynamoItem: AttributeMap): InstanceType<M> {
-    const item = this.modelFromDynamo(dynamoItem);
-    return new this(item as any) as InstanceType<M>;
+    const props = this.modelFromDynamo(dynamoItem);
+    const item = new this(props) as InstanceType<M>;
+    return item;
+  }
+
+  private static convertSymbolsToDynamoKeys<M extends typeof Model>(this: M, object: GenericObject): GenericObject {
+    Object.getOwnPropertySymbols(object).forEach((symbolKey) => {
+      const dynamoDbKey = this.table[symbolKey as keyof Table];
+      const value = object[symbolKey];
+
+      if (dynamoDbKey) {
+        if (value instanceof Date && [createdAt, updatedAt].includes(symbolKey)) {
+          object[dynamoDbKey] = getTimestampValue(value, this.table.timestampsType);
+        } else if (symbolKey === partitionKey && typeof value === 'string') {
+          object[dynamoDbKey] = addPrefixSuffix(this.prefixPk, value, this.suffixPk);
+        } else if (symbolKey === sortKey && typeof value === 'string') {
+          object[dynamoDbKey] = addPrefixSuffix(this.prefixSk, value, this.suffixSk);
+        } else {
+          object[dynamoDbKey] = value;
+        }
+        delete object[symbolKey];
+      }
+    });
+
+    return object;
+  }
+
+  private static convertDynamoKeysToSymbols<M extends typeof Model>(this: M, object: GenericObject): GenericObject {
+    Object.getOwnPropertySymbols(this.table).forEach((symbolKey) => {
+      const dynamoDbKey = this.table[symbolKey as keyof Table];
+      const value = object[dynamoDbKey];
+
+      if (dynamoDbKey) {
+        if ([createdAt, updatedAt].includes(symbolKey) && (typeof value === 'string' || typeof value === 'number')) {
+          object[symbolKey] = new Date(value);
+        } else if (symbolKey === partitionKey && typeof value === 'string') {
+          object[symbolKey] = truncatePrefixSuffix(this.prefixPk, value, this.suffixPk);
+        } else if (symbolKey === sortKey && typeof value === 'string') {
+          object[symbolKey] = truncatePrefixSuffix(this.prefixSk, value, this.suffixSk);
+        } else {
+          object[symbolKey] = value;
+        }
+        delete object[dynamoDbKey];
+      }
+    });
+
+    return object;
   }
 
   private static modelToDynamo<M extends typeof Model>(this: M, item: InstanceType<M>): AttributeMap {
     const object = classToObject(item);
-    this.primaryKeyToDynamo(object, item);
-    this.indexesToDynamo(object);
+    this.convertSymbolsToDynamoKeys(object);
     return objectToDynamo(object);
   }
 
-  private static primaryKeyToDynamo<M extends typeof Model>(this: M, object: GenericObject, item: InstanceType<M>): GenericObject {
-    const primaryKey = this.appendPrefixSuffix({ [partitionKey]: item[partitionKey], [sortKey]: item[sortKey] });
-    object[this.table[partitionKey]] = primaryKey[this.table[partitionKey]];
-    delete object[partitionKey];
-
-    object[this.table[sortKey]] = primaryKey[this.table[sortKey]];
-    delete object[sortKey];
-
-    return object;
+  private static modelFromDynamo<M extends typeof Model>(this: M, attributeMap: AttributeMap): ModelProps<typeof Table> {
+    const object = fromDynamo(attributeMap);
+    const item = this.convertDynamoKeysToSymbols(object);
+    return item as ModelProps<typeof Table>;
   }
 
-  private static indexesToDynamo<M extends typeof Model>(this: M, object: GenericObject): GenericObject {
-    object[this.table[gsi1PartitionKey]] = object[gsi1PartitionKey];
-    delete object[gsi1PartitionKey];
-
-    object[this.table[gsi1SortKey]] = object[gsi1SortKey];
-    delete object[gsi1SortKey];
-
-    object[this.table[lsi1SortKey]] = object[lsi1SortKey];
-    delete object[lsi1SortKey];
-
-    object[this.table[lsi2SortKey]] = object[lsi2SortKey];
-    delete object[lsi2SortKey];
-
-    return object;
+  private static convertPrimaryKeyToDynamo<M extends typeof Model>(this: M, primaryKey: PrimaryKey<M>): AttributeMap {
+    return objectToDynamo(this.convertSymbolsToDynamoKeys(primaryKey));
   }
 
-  private static modelFromDynamo<M extends typeof Model>(this: M, attributeMap: AttributeMap): GenericObject {
-    const item = fromDynamo(attributeMap);
-    this.primaryKeyFromDynamo(item);
-    this.indexesFromDynamo(item);
-    return item;
+  private static convertToDynamoKey<M extends typeof Model>(this: M, key: string | symbol | number): string | number {
+    if (typeof key === 'symbol') {
+      return this.table[key as keyof Table];
+    }
+    return key;
   }
 
-  private static primaryKeyFromDynamo<M extends typeof Model>(this: M, item: GenericObject): GenericObject {
-    item[partitionKey] = this.truncatePrefixSuffixPk(item);
-    delete item[this.table[partitionKey]];
+  private static buildGetProjectionExpression<M extends typeof Model>(this: M, attributes?: Array<keyof ModelKeys<InstanceType<M>>>): BuildGetProjectionExpression {
+    const attributeNames: Record<string, string> = {};
+    const projectionExpression = attributes
+      ?.map((attribute) => this.convertToDynamoKey(attribute))
+      ?.map((attribute) => substituteAttributeName(attributeNames, `${attribute}`))
+      .join(', ');
 
-    item[sortKey] = this.truncatePrefixSuffixSk(item);
-    delete item[this.table[sortKey]];
-
-    return item;
-  }
-
-  private static indexesFromDynamo<M extends typeof Model>(this: M, item: GenericObject): GenericObject {
-    item[gsi1PartitionKey] = item[this.table[gsi1PartitionKey]];
-    delete item[this.table[gsi1PartitionKey]];
-
-    item[gsi1SortKey] = item[this.table[gsi1SortKey]];
-    delete item[this.table[gsi1SortKey]];
-
-    item[lsi2SortKey] = item[this.table[lsi2SortKey]];
-    delete item[this.table[lsi2SortKey]];
-
-    return item;
-  }
-
-  private static appendPrefixSuffix<M extends typeof Model>(this: M, primaryKey: PrimaryKey): GenericObject {
-    const { table, prefixPk, prefixSk, suffixPk, suffixSk } = this;
     return {
-      [table[partitionKey]]: [prefixPk, primaryKey[partitionKey], suffixPk].filter((p) => p).join(SEPARATOR),
-      [table[sortKey]]: [prefixSk, primaryKey[sortKey], suffixSk].filter((s) => s).join(SEPARATOR),
+      ...(!isEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
+      ...(projectionExpression ? { ProjectionExpression: projectionExpression } : {}),
     };
   }
 
-  private static truncatePrefixSuffixPk<M extends typeof Model>(this: M, item: GenericObject): string {
-    const { table, prefixPk, suffixPk } = this;
-    return ((item[table[partitionKey]] as string) || '').replace(`${prefixPk}${SEPARATOR}`, '').replace(`${SEPARATOR}${suffixPk}`, '');
+  private static buildUpdateConditionExpression<M extends typeof Model>(this: M, props: UpdateProps<InstanceType<M>>): BuildUpdateConditionExpression {
+    const attributeNames: Record<string, string> = {};
+    const attributeValues: AttributeMap = {};
+    const conditions = this.buildUpdateConditions(props);
+    const updateExpression = buildExpression(conditions, attributeNames, attributeValues);
+
+    return {
+      ...(!isEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
+      ...(!isEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+      ...(updateExpression ? { UpdateExpression: updateExpression } : {}),
+    };
   }
 
-  private static truncatePrefixSuffixSk<M extends typeof Model>(this: M, item: GenericObject): string {
-    const { table, prefixSk, suffixSk } = this;
-    return ((item[table[sortKey]] as string) || '').replace(`${prefixSk}${SEPARATOR}`, '').replace(`${SEPARATOR}${suffixSk}`, '');
+  private static buildUpdateConditions<M extends typeof Model>(this: M, props: UpdateProps<InstanceType<M>>): ConditionExpression[] {
+    const { set, setIfNotExists, listAppend, increment, decrement, add, delete: deleteOp, remove } = props;
+    const conditions: ConditionExpression[] = [];
+
+    const setKeys: string[] = [];
+    const setValues: unknown[] = [];
+    const setExpr: string[] = [];
+
+    const updatedAtDynamoKey = this.table[updatedAt];
+    const timestampType = this.table.timestampsType;
+    if (updatedAtDynamoKey && timestampType) {
+      setKeys.push(updatedAtDynamoKey);
+      setValues.push(getTimestampValue(new Date(), timestampType));
+      setExpr.push('$K = $V');
+    }
+
+    if (set && !isEmptyWithoutSymbols(set)) {
+      const convertedSet = this.convertSymbolsToDynamoKeys(set);
+      setKeys.push(...Object.keys(convertedSet));
+      setValues.push(...Object.values(convertedSet));
+      setExpr.push(...Object.keys(convertedSet).map(() => '$K = $V'));
+      console.log(convertedSet, setKeys, setValues, setExpr);
+    }
+
+    if (setIfNotExists && !isEmptyWithoutSymbols(setIfNotExists)) {
+      const convertedSetIfNotExists = this.convertSymbolsToDynamoKeys(setIfNotExists);
+      setKeys.push(...Object.keys(convertedSetIfNotExists).flatMap((k) => [k, k]));
+      setValues.push(...Object.values(convertedSetIfNotExists));
+      setExpr.push(...Object.keys(convertedSetIfNotExists).map(() => '$K = if_not_exists($K, $V)'));
+    }
+
+    if (listAppend && !isEmptyWithoutSymbols(listAppend)) {
+      const convertedListAppend = this.convertSymbolsToDynamoKeys(listAppend);
+      setKeys.push(...Object.keys(convertedListAppend).flatMap((k) => [k, k]));
+      setValues.push(...Object.values(convertedListAppend));
+      setExpr.push(...Object.keys(convertedListAppend).map(() => '$K = list_append($K, $V)'));
+    }
+
+    if (increment && !isEmptyWithoutSymbols(increment)) {
+      const convertedIncrement = this.convertSymbolsToDynamoKeys(increment);
+      setKeys.push(...Object.keys(convertedIncrement).flatMap((k) => [k, k]));
+      setValues.push(...Object.values(convertedIncrement));
+      setExpr.push(...Object.keys(convertedIncrement).map(() => '$K = $K + $V'));
+    }
+
+    if (decrement && !isEmptyWithoutSymbols(decrement)) {
+      const convertedDecrement = this.convertSymbolsToDynamoKeys(decrement);
+      setKeys.push(...Object.keys(convertedDecrement).flatMap((k) => [k, k]));
+      setValues.push(...Object.values(convertedDecrement));
+      setExpr.push(...Object.keys(convertedDecrement).map(() => '$K = $K - $V'));
+    }
+
+    if (setExpr.length > 0) {
+      conditions.push({ expr: 'SET' }, { keys: setKeys, values: setValues, expr: setExpr.join(', ') });
+    }
+
+    if (add && !isEmptyWithoutSymbols(add)) {
+      const convertedAdd = this.convertSymbolsToDynamoKeys(add);
+      conditions.push(
+        { expr: 'ADD' },
+        {
+          keys: Object.keys(convertedAdd),
+          values: Object.values(convertedAdd),
+          expr: Object.keys(convertedAdd)
+            .map(() => '$K $V')
+            .join(', '),
+        },
+      );
+    }
+
+    if (deleteOp && !isEmptyWithoutSymbols(deleteOp)) {
+      const convertedDeleteOp = this.convertSymbolsToDynamoKeys(deleteOp);
+      conditions.push(
+        { expr: 'DELETE' },
+        {
+          keys: Object.keys(convertedDeleteOp),
+          values: Object.values(convertedDeleteOp),
+          expr: Object.keys(convertedDeleteOp)
+            .map(() => '$K $V')
+            .join(', '),
+        },
+      );
+    }
+
+    if (remove && remove.length > 0) {
+      conditions.push({ expr: 'REMOVE' }, { keys: remove.map((key) => this.convertToDynamoKey(key)).map((key) => `${key}`), expr: remove.map(() => '$K').join(', ') });
+    }
+
+    return conditions;
+  }
+
+  private static buildPutConditionExpression<M extends typeof Model>(this: M, overwriteCondition?: ConditionInstance<M>, optionsCondition?: ConditionInstance<M>): BuildPutConditionExpression {
+    const attributeNames: Record<string, string> = {};
+    const attributeValues: AttributeMap = {};
+    let conditionExpression: string | undefined = undefined;
+
+    if (overwriteCondition && optionsCondition) {
+      conditionExpression = buildExpression(overwriteCondition.condition(optionsCondition).conditions, attributeNames, attributeValues);
+    } else if (overwriteCondition) {
+      conditionExpression = buildExpression(overwriteCondition.conditions, attributeNames, attributeValues);
+    } else if (optionsCondition) {
+      conditionExpression = buildExpression(optionsCondition.conditions, attributeNames, attributeValues);
+    }
+
+    return {
+      ...(!isEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
+      ...(!isEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+      ...(conditionExpression ? { ConditionExpression: conditionExpression } : {}),
+    };
+  }
+
+  private static buildDeleteConditionExpression<M extends typeof Model>(this: M, optionsCondition?: ConditionInstance<M>): BuildDeleteConditionExpression {
+    const attributeNames: Record<string, string> = {};
+    const attributeValues: AttributeMap = {};
+    const conditionExpression = buildExpression(optionsCondition?.conditions || [], attributeNames, attributeValues);
+
+    return {
+      ...(!isEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
+      ...(!isEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+      ...(conditionExpression ? { ConditionExpression: conditionExpression } : {}),
+    };
   }
 
   static set ddb(value: DynamoDB) {

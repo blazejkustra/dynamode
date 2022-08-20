@@ -3,6 +3,7 @@ import { AttributeType } from '@Condition/types';
 import { Model } from '@lib/Model';
 import { ReturnOption } from '@lib/Model/types';
 import { Query } from '@lib/Query';
+import { AttributeMap } from '@lib/utils';
 
 type QueryInstance<M extends typeof Model> = InstanceType<typeof Query<M>>;
 
@@ -59,4 +60,11 @@ export interface FilterQueryCondition<M extends typeof Model> {
     in: (values: string[]) => QueryInstance<M>;
     contains: (value: string | number) => QueryInstance<M>;
   };
+}
+
+export interface BuildQueryConditionExpression {
+  attributeNames: Record<string, string>;
+  attributeValues: AttributeMap;
+  conditionExpression: string;
+  keyConditionExpression: string;
 }

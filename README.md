@@ -70,6 +70,7 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [X] Improve how ddb and table is passed over
 * [X] Return whole request instead of mapped values in Model
 * [X] Change license to MIT
+* [ ] Add SEPARATOR to global settings, add dependsOn to global settings to throw/warn when updating
 * [ ] Add logging possibility
 * [ ] Capture dynamoDB errors and make it easier to work with
 * [ ] Add dynamoDB streams support

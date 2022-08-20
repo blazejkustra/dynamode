@@ -33,6 +33,11 @@ type _Explode<T, O = never> = Writable<T, O> extends infer U
                     }
               : never
             : never
+          : K extends symbol
+          ? {
+              key: K;
+              value: U[K];
+            }
           : never;
       }[keyof U]
     : { key: ''; value: U }

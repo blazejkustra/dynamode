@@ -1,3 +1,6 @@
+export const createdAt: unique symbol = Symbol('createdAt');
+export const updatedAt: unique symbol = Symbol('updatedAt');
+
 export const partitionKey: unique symbol = Symbol('partitionKey');
 export const sortKey: unique symbol = Symbol('sortKey');
 

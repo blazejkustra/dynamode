@@ -3,11 +3,11 @@ import { ConditionInstance } from '@lib/Condition';
 import { AttributeType } from '@lib/Condition/types';
 import { Model } from '@lib/Model';
 import { Table } from '@lib/Table';
-import { checkDuplicatesInArray, DefaultError, GenericObject, isEmpty, objectToDynamo } from '@lib/utils';
-import { ConditionExpression, substituteQueryConditions } from '@lib/utils/substituteConditions';
+import { AttributeMap, checkDuplicatesInArray, DefaultError, GenericObject, isEmpty, objectToDynamo } from '@lib/utils';
+import { buildExpression, ConditionExpression } from '@lib/utils/substituteConditions';
 import { Keys, PartitionKeys } from '@lib/utils/symbols';
 import { SortKeys } from '@lib/utils/symbols';
-import { FilterQueryCondition, KeyQueryCondition, QueryExecOptions, QueryExecOutput } from '@Query/types';
+import { BuildQueryConditionExpression, FilterQueryCondition, KeyQueryCondition, QueryExecOptions, QueryExecOutput } from '@Query/types';
 
 type QueryInstance<M extends typeof Model> = InstanceType<typeof Query<M>>;
 
@@ -68,7 +68,7 @@ export class Query<M extends typeof Model> {
   }
 
   private buildQueryInput(queryInput?: Partial<QueryInput>) {
-    const { conditionExpression, keyConditionExpression, attributeNames, attributeValues } = substituteQueryConditions(this.filterConditions, this.keyConditions);
+    const { conditionExpression, keyConditionExpression, attributeNames, attributeValues } = this.buildQueryConditionExpression();
 
     if (keyConditionExpression) {
       this.queryInput.KeyConditionExpression = keyConditionExpression;
@@ -307,5 +307,17 @@ export class Query<M extends typeof Model> {
   private _between(conditions: ConditionExpression[], key: string, v1: string | number, v2: string | number): QueryInstance<M> {
     conditions.push({ keys: [key], values: [v1, v2], expr: '$K BETWEEN $V AND $V' });
     return this;
+  }
+
+  private buildQueryConditionExpression(): BuildQueryConditionExpression {
+    const attributeNames: Record<string, string> = {};
+    const attributeValues: AttributeMap = {};
+
+    return {
+      attributeNames,
+      attributeValues,
+      conditionExpression: buildExpression(this.filterConditions, attributeNames, attributeValues),
+      keyConditionExpression: buildExpression(this.keyConditions, attributeNames, attributeValues),
+    };
   }
 }

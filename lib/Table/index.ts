@@ -1,4 +1,5 @@
 import {
+  createdAt,
   gsi1PartitionKey,
   gsi1SortKey,
   gsi2PartitionKey,
@@ -27,67 +28,147 @@ import {
   lsi5SortKey,
   partitionKey,
   sortKey,
+  updatedAt,
 } from '@lib/utils';
+
+export enum TimestampsType {
+  EPOCH = 'epoch',
+  ISO8601 = 'iso8601',
+}
 
 export class Table {
   public static readonly tableName: string;
 
+  // Timestamps
+  public static readonly timestampsType: TimestampsType;
+  public static readonly [createdAt]: string;
+  public static readonly [updatedAt]: string;
+
+  // Primary key
+  public static readonly partitionKeyType: string | number;
   public static readonly [partitionKey]: string;
+
+  public static readonly sortKeyType?: string | number;
   public static readonly [sortKey]: string;
 
+  // Global secondary index 1
   public static readonly gsi1Name: string;
+
+  public static readonly gsi1PartitionKeyType: string | number;
   public static readonly [gsi1PartitionKey]: string;
+
+  public static readonly gsi1SortKeyType: string | number;
   public static readonly [gsi1SortKey]: string;
 
+  // Global secondary index 2
   public static readonly gsi2Name: string;
+
+  public static readonly gsi2PartitionKeyType: string | number;
   public static readonly [gsi2PartitionKey]: string;
+
+  public static readonly gsi2SortKeyType: string | number;
   public static readonly [gsi2SortKey]: string;
 
+  // Global secondary index 3
   public static readonly gsi3Name: string;
+
+  public static readonly gsi3PartitionKeyType: string | number;
   public static readonly [gsi3PartitionKey]: string;
+
+  public static readonly gsi3SortKeyType: string | number;
   public static readonly [gsi3SortKey]: string;
 
+  // Global secondary index 4
   public static readonly gsi4Name: string;
+
+  public static readonly gsi4PartitionKeyType: string | number;
   public static readonly [gsi4PartitionKey]: string;
+
+  public static readonly gsi4SortKeyType: string | number;
   public static readonly [gsi4SortKey]: string;
 
+  // Global secondary index 5
   public static readonly gsi5Name: string;
+
+  public static readonly gsi5PartitionKeyType: string | number;
   public static readonly [gsi5PartitionKey]: string;
+
+  public static readonly gsi5SortKeyType: string | number;
   public static readonly [gsi5SortKey]: string;
 
+  // Global secondary index 6
   public static readonly gsi6Name: string;
+
+  public static readonly gsi6PartitionKeyType: string | number;
   public static readonly [gsi6PartitionKey]: string;
+
+  public static readonly gsi6SortKeyType: string | number;
   public static readonly [gsi6SortKey]: string;
 
+  // Global secondary index 7
   public static readonly gsi7Name: string;
+
+  public static readonly gsi7PartitionKeyType: string | number;
   public static readonly [gsi7PartitionKey]: string;
+
+  public static readonly gsi7SortKeyType: string | number;
   public static readonly [gsi7SortKey]: string;
 
+  // Global secondary index 8
   public static readonly gsi8Name: string;
+
+  public static readonly gsi8PartitionKeyType: string | number;
   public static readonly [gsi8PartitionKey]: string;
+
+  public static readonly gsi8SortKeyType: string | number;
   public static readonly [gsi8SortKey]: string;
 
+  // Global secondary index 9
   public static readonly gsi9Name: string;
+
+  public static readonly gsi9PartitionKeyType: string | number;
   public static readonly [gsi9PartitionKey]: string;
+
+  public static readonly gsi9SortKeyType: string | number;
   public static readonly [gsi9SortKey]: string;
 
+  // Global secondary index 10
   public static readonly gsi10Name: string;
+
+  public static readonly gsi10PartitionKeyType: string | number;
   public static readonly [gsi10PartitionKey]: string;
+
+  public static readonly gsi10SortKeyType: string | number;
   public static readonly [gsi10SortKey]: string;
 
+  // Local secondary index 1
   public static readonly lsi1Name: string;
+  public static readonly lsi1Type: string | number;
+
   public static readonly [lsi1SortKey]: string;
 
+  // Local secondary index 2
   public static readonly lsi2Name: string;
+  public static readonly lsi2Type: string | number;
+
   public static readonly [lsi2SortKey]: string;
 
+  // Local secondary index 3
   public static readonly lsi3Name: string;
+  public static readonly lsi3Type: string | number;
+
   public static readonly [lsi3SortKey]: string;
 
+  // Local secondary index 4
   public static readonly lsi4Name: string;
+  public static readonly lsi4Type: string | number;
+
   public static readonly [lsi4SortKey]: string;
 
+  // Local secondary index 5
   public static readonly lsi5Name: string;
+  public static readonly lsi5Type: string | number;
+
   public static readonly [lsi5SortKey]: string;
 
   constructor(props: Table) {
