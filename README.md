@@ -11,23 +11,23 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [ ] flow to create Index from code
 * [X] Possibility to add secondary indexes with custom name
 
-### Model:
+### Entity:
 
 * [X] Possibility to add indexes with custom name
-* [X] Implement Model.condition
-* [X] Implement Model.query
-* [X] Model.get - supplement with all dynamoDB properties
-* [X] Model.update - supplement with all dynamoDB properties
-* [X] Model.put - supplement with all dynamoDB properties
-* [X] Model.delete - supplement with all dynamoDB properties
-* [X] Implement Model.batchGet
-* [X] Implement Model.batchPut
-* [X] Implement Model.batchDelete
-* [X] Implement Model.create (that creates object ensuring it doesnt exist already)
+* [X] Implement Entity.condition
+* [X] Implement Entity.query
+* [X] Entity.get - supplement with all dynamoDB properties
+* [X] Entity.update - supplement with all dynamoDB properties
+* [X] Entity.put - supplement with all dynamoDB properties
+* [X] Entity.delete - supplement with all dynamoDB properties
+* [X] Implement Entity.batchGet
+* [X] Implement Entity.batchPut
+* [X] Implement Entity.batchDelete
+* [X] Implement Entity.create (that creates object ensuring it doesnt exist already)
 * [X] Add remaining indexes
 * [ ] Add createdAt and updatedAt (possibility to add it with custom name)
-* [ ] Fix issue with empty set when using Model.update
-* [ ] Implement Model.transaction
+* [ ] Fix issue with empty set when using Entity.update
+* [ ] Implement Entity.transaction
 
 ### Query
 
@@ -66,9 +66,9 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 
 ### Global
 
-* [X] Way to override properties when getting/updating/putting in Model
+* [X] Way to override properties when getting/updating/putting in Entity
 * [X] Improve how ddb and table is passed over
-* [X] Return whole request instead of mapped values in Model
+* [X] Return whole request instead of mapped values in Entity
 * [X] Change license to MIT
 * [ ] Add SEPARATOR to global settings, add dependsOn to global settings to throw/warn when updating
 * [ ] Add logging possibility

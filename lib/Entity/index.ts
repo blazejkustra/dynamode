@@ -17,18 +17,18 @@ import {
   BuildGetProjectionExpression,
   BuildPutConditionExpression,
   BuildUpdateConditionExpression,
+  EntityBatchDeleteOptions,
+  EntityBatchDeleteOutput,
+  EntityBatchGetOptions,
+  EntityBatchGetOutput,
+  EntityBatchPutOptions,
+  EntityBatchPutOutput,
+  EntityCreateOptions,
+  EntityDeleteOptions,
   EntityGetOptions,
   EntityKeys,
+  EntityPutOptions,
   EntityUpdateOptions,
-  ModelBatchDeleteOptions,
-  ModelBatchDeleteOutput,
-  ModelBatchGetOptions,
-  ModelBatchGetOutput,
-  ModelBatchPutOptions,
-  ModelBatchPutOutput,
-  ModelCreateOptions,
-  ModelDeleteOptions,
-  ModelPutOptions,
   UpdateProps,
 } from '@Entity/types';
 import { Condition } from '@lib/Condition';
@@ -113,11 +113,11 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
     }
 
     public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>): Promise<InstanceType<T>>;
-    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: Omit<ModelPutOptions<T>, 'return'>): Promise<InstanceType<T>>;
-    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: ModelPutOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: ModelPutOptions<T> & { return: 'output' }): Promise<PutItemCommandOutput>;
-    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: ModelPutOptions<T> & { return: 'input' }): PutItemCommandInput;
-    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options?: ModelPutOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
+    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: Omit<EntityPutOptions<T>, 'return'>): Promise<InstanceType<T>>;
+    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'output' }): Promise<PutItemCommandOutput>;
+    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'input' }): PutItemCommandInput;
+    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options?: EntityPutOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
       const overwrite = options?.overwrite ?? true;
       const overwriteCondition = overwrite
         ? undefined
@@ -127,7 +127,7 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
 
       const commandInput: PutItemCommandInput = {
         TableName: this.tableName,
-        Item: this.modelToDynamo(item),
+        Item: this.EntityToDynamo(item),
         ...this.buildPutConditionExpression(overwriteCondition, options?.condition),
         ...options?.extraInput,
       };
@@ -148,20 +148,20 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
     }
 
     public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>): Promise<InstanceType<T>>;
-    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: Omit<ModelCreateOptions<T>, 'return'>): Promise<InstanceType<T>>;
-    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: ModelCreateOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: ModelCreateOptions<T> & { return: 'output' }): Promise<PutItemCommandOutput>;
-    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: ModelCreateOptions<T> & { return: 'input' }): PutItemCommandInput;
-    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options?: ModelCreateOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
+    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: Omit<EntityCreateOptions<T>, 'return'>): Promise<InstanceType<T>>;
+    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: EntityCreateOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: EntityCreateOptions<T> & { return: 'output' }): Promise<PutItemCommandOutput>;
+    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: EntityCreateOptions<T> & { return: 'input' }): PutItemCommandInput;
+    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options?: EntityCreateOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
       return this.put(item, { ...options, overwrite: false });
     }
 
     public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey']): Promise<void>;
-    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: Omit<ModelDeleteOptions<T>, 'return'>): Promise<void>;
-    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: ModelDeleteOptions<T> & { return: 'default' }): Promise<void>;
-    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: ModelDeleteOptions<T> & { return: 'output' }): Promise<DeleteItemCommandOutput>;
-    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: ModelDeleteOptions<T> & { return: 'input' }): DeleteItemCommandInput;
-    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options?: ModelDeleteOptions<T>): Promise<void | DeleteItemCommandOutput> | DeleteItemCommandInput {
+    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: Omit<EntityDeleteOptions<T>, 'return'>): Promise<void>;
+    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: EntityDeleteOptions<T> & { return: 'default' }): Promise<void>;
+    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: EntityDeleteOptions<T> & { return: 'output' }): Promise<DeleteItemCommandOutput>;
+    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: EntityDeleteOptions<T> & { return: 'input' }): DeleteItemCommandInput;
+    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options?: EntityDeleteOptions<T>): Promise<void | DeleteItemCommandOutput> | DeleteItemCommandInput {
       const commandInput: DeleteItemCommandInput = {
         TableName: this.tableName,
         Key: this.convertPrimaryKeyToDynamo(primaryKey),
@@ -184,16 +184,16 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       })();
     }
 
-    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>): Promise<ModelBatchGetOutput<T, TableT['primaryKey']>>;
-    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: Omit<ModelBatchGetOptions<T>, 'return'>): Promise<ModelBatchGetOutput<T, TableT['primaryKey']>>;
-    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: ModelBatchGetOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: ModelBatchGetOptions<T> & { return: 'output' }): Promise<BatchGetItemCommandOutput>;
-    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: ModelBatchGetOptions<T> & { return: 'input' }): BatchGetItemCommandInput;
+    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>): Promise<EntityBatchGetOutput<T, TableT['primaryKey']>>;
+    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: Omit<EntityBatchGetOptions<T>, 'return'>): Promise<EntityBatchGetOutput<T, TableT['primaryKey']>>;
+    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchGetOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchGetOptions<T> & { return: 'output' }): Promise<BatchGetItemCommandOutput>;
+    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchGetOptions<T> & { return: 'input' }): BatchGetItemCommandInput;
     public static batchGet<T extends typeof BaseEntity>(
       this: T,
       primaryKeys: Array<TableT['primaryKey']>,
-      options?: ModelBatchGetOptions<T>,
-    ): Promise<ModelBatchGetOutput<T, TableT['primaryKey']> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
+      options?: EntityBatchGetOptions<T>,
+    ): Promise<EntityBatchGetOutput<T, TableT['primaryKey']> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
       const commandInput: BatchGetItemCommandInput = {
         RequestItems: {
           [this.tableName]: {
@@ -223,17 +223,17 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       })();
     }
 
-    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>): Promise<ModelBatchPutOutput<T>>;
-    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options: Omit<ModelBatchPutOptions, 'return'>): Promise<ModelBatchPutOutput<T>>;
-    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options: ModelBatchPutOptions & { return: 'default' }): Promise<ModelBatchPutOutput<T>>;
-    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options: ModelBatchPutOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
-    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options: ModelBatchPutOptions & { return: 'input' }): BatchWriteItemCommandInput;
-    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options?: ModelBatchPutOptions): Promise<ModelBatchPutOutput<T> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
+    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>): Promise<EntityBatchPutOutput<T>>;
+    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options: Omit<EntityBatchPutOptions, 'return'>): Promise<EntityBatchPutOutput<T>>;
+    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'default' }): Promise<EntityBatchPutOutput<T>>;
+    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
+    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'input' }): BatchWriteItemCommandInput;
+    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options?: EntityBatchPutOptions): Promise<EntityBatchPutOutput<T> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
       const commandInput: BatchWriteItemCommandInput = {
         RequestItems: {
           [this.tableName]: items.map((item) => ({
             PutRequest: {
-              Item: this.modelToDynamo(item),
+              Item: this.EntityToDynamo(item),
             },
           })),
         },
@@ -261,16 +261,16 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       })();
     }
 
-    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>): Promise<ModelBatchDeleteOutput<TableT['primaryKey']>>;
-    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: Omit<ModelBatchDeleteOptions, 'return'>): Promise<ModelBatchDeleteOutput<TableT['primaryKey']>>;
-    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: ModelBatchDeleteOptions & { return: 'default' }): Promise<ModelBatchDeleteOutput<TableT['primaryKey']>>;
-    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: ModelBatchDeleteOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
-    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: ModelBatchDeleteOptions & { return: 'input' }): BatchWriteItemCommandInput;
+    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>): Promise<EntityBatchDeleteOutput<TableT['primaryKey']>>;
+    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: Omit<EntityBatchDeleteOptions, 'return'>): Promise<EntityBatchDeleteOutput<TableT['primaryKey']>>;
+    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchDeleteOptions & { return: 'default' }): Promise<EntityBatchDeleteOutput<TableT['primaryKey']>>;
+    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchDeleteOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
+    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchDeleteOptions & { return: 'input' }): BatchWriteItemCommandInput;
     public static batchDelete<T extends typeof BaseEntity>(
       this: T,
       primaryKeys: Array<TableT['primaryKey']>,
-      options?: ModelBatchDeleteOptions,
-    ): Promise<ModelBatchDeleteOutput<TableT['primaryKey']> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
+      options?: EntityBatchDeleteOptions,
+    ): Promise<EntityBatchDeleteOutput<TableT['primaryKey']> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
       const commandInput: BatchWriteItemCommandInput = {
         RequestItems: {
           [this.tableName]: primaryKeys.map((primaryKey) => ({
@@ -309,7 +309,7 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       return item;
     }
 
-    public static modelToDynamo<T extends typeof BaseEntity>(this: T, item: InstanceType<T>): AttributeMap {
+    public static EntityToDynamo<T extends typeof BaseEntity>(this: T, item: InstanceType<T>): AttributeMap {
       const object = classToObject(item);
       return objectToDynamo(object);
     }

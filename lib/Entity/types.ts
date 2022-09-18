@@ -49,7 +49,7 @@ export interface BuildUpdateConditionExpression {
 
 // Entity.put
 
-export interface ModelPutOptions<T extends Class<unknown>> {
+export interface EntityPutOptions<T extends Class<unknown>> {
   extraInput?: Partial<PutItemCommandInput>;
   return?: ReturnOption;
   overwrite?: boolean;
@@ -64,7 +64,7 @@ export interface BuildPutConditionExpression {
 
 // Entity.create
 
-export interface ModelCreateOptions<T extends Class<unknown>> {
+export interface EntityCreateOptions<T extends Class<unknown>> {
   extraInput?: Partial<PutItemCommandInput>;
   return?: ReturnOption;
   condition?: Condition<T>;
@@ -72,7 +72,7 @@ export interface ModelCreateOptions<T extends Class<unknown>> {
 
 // Entity.delete
 
-export interface ModelDeleteOptions<T extends Class<unknown>> {
+export interface EntityDeleteOptions<T extends Class<unknown>> {
   extraInput?: Partial<DeleteItemCommandInput>;
   return?: ReturnOption;
   condition?: Condition<T>;
@@ -86,39 +86,39 @@ export interface BuildDeleteConditionExpression {
 
 // Entity.batchGet
 
-export interface ModelBatchGetOptions<T extends Class<unknown>> {
+export interface EntityBatchGetOptions<T extends Class<unknown>> {
   extraInput?: Partial<BatchGetItemCommandInput>;
   return?: ReturnOption;
   attributes?: Array<keyof EntityKeys<T>>;
   consistent?: boolean;
 }
 
-export interface ModelBatchDeleteOutput<PrimaryKey> {
+export interface EntityBatchDeleteOutput<PrimaryKey> {
   unprocessedItems: Array<PrimaryKey>;
 }
 
 // Entity.batchGet
 
-export interface ModelBatchGetOutput<T extends Class<unknown>, PrimaryKey> {
+export interface EntityBatchGetOutput<T extends Class<unknown>, PrimaryKey> {
   items: Array<InstanceType<T>>;
   unprocessedKeys: Array<PrimaryKey>;
 }
 
 // Entity.batchPut
 
-export interface ModelBatchPutOptions {
+export interface EntityBatchPutOptions {
   extraInput?: Partial<BatchWriteItemCommandInput>;
   return?: ReturnOption;
 }
 
-export interface ModelBatchPutOutput<T extends Class<unknown>> {
+export interface EntityBatchPutOutput<T extends Class<unknown>> {
   items: Array<InstanceType<T>>;
   unprocessedItems: Array<InstanceType<T>>;
 }
 
 // Entity.batchDelete
 
-export interface ModelBatchDeleteOptions {
+export interface EntityBatchDeleteOptions {
   extraInput?: Partial<BatchWriteItemCommandInput>;
   return?: ReturnOption;
 }
