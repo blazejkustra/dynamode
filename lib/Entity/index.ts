@@ -32,6 +32,7 @@ import {
   UpdateProps,
 } from '@Entity/types';
 import { Condition } from '@lib/Condition';
+import { Query } from '@lib/Query';
 import { Table as BaseTable } from '@lib/Table';
 import { AttributeMap, buildExpression, classToObject, ConditionExpression, fromDynamo, isEmpty, NotFoundError, objectToDynamo, substituteAttributeName } from '@lib/utils';
 
@@ -41,9 +42,9 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       super(args[0]);
     }
 
-    // public static query<T extends typeof BaseEntity>(this: T, key: PartitionKeys, value: string | number): InstanceType<typeof Query<T>> {
-    //   return new Query(this, key, value);
-    // }
+    public static query<T extends typeof BaseEntity>(this: T, key: keyof EntityKeys<T>, value: string | number): InstanceType<typeof Query<T>> {
+      return new Query(this, key, value);
+    }
 
     public static condition<T extends typeof BaseEntity>(this: T, key: keyof EntityKeys<T>): Condition<T> {
       return new Condition(this, key);
