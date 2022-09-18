@@ -1,9 +1,6 @@
 import { AWS } from '@lib/aws';
-import { Model } from '@lib/Model';
+import { Entity } from '@lib/Entity';
 import { Table } from '@lib/Table';
-import { gsi1Name, gsi1PartitionKey, gsi1SortKey, gsi2Name, gsi2PartitionKey, gsi2SortKey, partitionKey, sortKey } from '@lib/utils';
-import { dynamo, prefix, prefixPk, prefixSk, suffix, suffixPk, suffixSk, table } from '@Model/decorators';
-import { ModelProps } from '@Model/types';
 
 ///// --- https://github.com/aws/aws-sdk-js-v3/issues/2125 ---
 // some @aws-sdk clients references these DOM lib interfaces,
@@ -21,25 +18,7 @@ export {
   aws,
   //Table
   Table,
-  // Model
-  Model,
-  ModelProps,
+  // Entity
+  Entity,
   // decorators
-  dynamo,
-  prefix,
-  prefixPk,
-  prefixSk,
-  suffix,
-  suffixPk,
-  suffixSk,
-  table,
-  // symbols
-  partitionKey,
-  sortKey,
-  gsi1Name,
-  gsi1PartitionKey,
-  gsi1SortKey,
-  gsi2Name,
-  gsi2PartitionKey,
-  gsi2SortKey,
 };

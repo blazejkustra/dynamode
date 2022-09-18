@@ -4,8 +4,6 @@ import awsConverter from '@aws/converter';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
 import { AttributeMap, GenericObject } from '@lib/utils';
 
-export const SEPARATOR = '#';
-
 export function objectToDynamo(object: GenericObject): AttributeMap {
   return awsConverter().marshall(object, { removeUndefinedValues: true });
 }

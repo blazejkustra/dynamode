@@ -11,12 +11,13 @@
     "paths": {
       "@lib/*": ["./*"],
       "@aws/*": ["aws/*"],
-      "@Model/*": ["Model/*"],
+      "@Condition/*": ["Condition/*"],
+      "@Entity/*": ["Entity/*"],
       "@Query/*": ["Query/*"],
+      "@Scan/*": ["Scan/*"],
+      "@Storage/*": ["Storage/*"],
       "@Table/*": ["Table/*"],
       "@Transaction/*": ["Transaction/*"],
-      "@Scan/*": ["Scan/*"],
-      "@Condition/*": ["Condition/*"],
   },
     "strict": true,
     "allowSyntheticDefaultImports": true,
@@ -28,6 +29,6 @@
   "exclude": [
     "node_modules",
     "dist",
-    "docs"
+    "docs",
   ],
 }

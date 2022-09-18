@@ -5,7 +5,3 @@ export function checkDuplicatesInArray(arr: Array<unknown>): boolean {
 export function isEmpty(obj: object) {
   return Object.keys(obj).length === 0;
 }
-
-export function isEmptyWithoutSymbols(obj: object) {
-  return Object.keys(obj).length === 0 && Object.getOwnPropertySymbols(obj).length === 0;
-}

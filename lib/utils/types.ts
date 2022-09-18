@@ -1,7 +1,7 @@
 import type { AttributeValue } from '@aws-sdk/client-dynamodb';
 
 export type AttributeMap = Record<string, AttributeValue>;
-export type GenericObject = Record<string | symbol, unknown>;
+export type GenericObject = Record<string, unknown>;
 
 type Entry = { key: string; value: unknown };
 
@@ -33,11 +33,6 @@ type _Explode<T, O = never> = Writable<T, O> extends infer U
                     }
               : never
             : never
-          : K extends symbol
-          ? {
-              key: K;
-              value: U[K];
-            }
           : never;
       }[keyof U]
     : { key: ''; value: U }
@@ -58,3 +53,6 @@ export type Flatten<T, O> = Collapse<Explode<T, O>>;
 export type PickByType<T, Value> = {
   [P in keyof T as T[P] extends Value | undefined ? P : never]: T[P];
 };
+
+type Diff<T, U> = T extends U ? never : T;
+export type Optional<T, K extends keyof T> = Pick<T, Diff<keyof T, K>> & Partial<T>;
