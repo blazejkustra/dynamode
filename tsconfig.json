@@ -10,11 +10,11 @@
     "outDir": "dist",
     "paths": {
       "@lib/*": ["./*"],
-      "@aws/*": ["aws/*"],
       "@Condition/*": ["Condition/*"],
       "@Entity/*": ["Entity/*"],
       "@Query/*": ["Query/*"],
       "@Scan/*": ["Scan/*"],
+      "@Settings/*": ["Settings/*"],
       "@Storage/*": ["Storage/*"],
       "@Table/*": ["Table/*"],
       "@Transaction/*": ["Transaction/*"],

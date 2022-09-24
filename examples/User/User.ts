@@ -1,9 +1,8 @@
-import { column, entity } from '../../dist/decorators';
-import { Entity } from '../../dist/entity';
+import { column, prefix } from '../../dist/decorators';
 
-import { UserTable, UserTableProps } from './UserTable';
+import { UserTableEntity, UserTableEntityProps } from './UserTable';
 
-export type UserProps = UserTableProps & {
+export type UserProps = UserTableEntityProps & {
   string: string;
   object: {
     optional?: string;
@@ -16,13 +15,18 @@ export type UserProps = UserTableProps & {
   boolean: boolean;
 };
 
-const OBJECT = 'user';
-@entity()
-export class User extends Entity(UserTable) {
-  @column(String, { prefix: 'emailPREFIX' })
+const USER_OBJECT = 'user';
+export class User extends UserTableEntity {
+  @prefix(USER_OBJECT)
+  PK: string;
+
+  @prefix(USER_OBJECT)
+  GSI_1_PK: string;
+
+  @column(String)
   string: string;
 
-  @column(Object, { prefix: 'adresPREFIX', suffix: 'adresSuffix' })
+  @column(Object)
   object: {
     optional?: string;
     required: number;
@@ -34,7 +38,7 @@ export class User extends Entity(UserTable) {
   @column(Map)
   map: Map<string, string>;
 
-  @column(Set, { suffix: 'setPREFIX' })
+  @column(Set)
   set: Set<string>;
 
   @column(Number)
@@ -46,7 +50,7 @@ export class User extends Entity(UserTable) {
   constructor(props: UserProps) {
     super(props);
     // GSI_1_INDEX: Users sorted
-    this.GSI_1_PK = props.GSI_1_PK || `${OBJECT}#${props.PK}`;
+    this.GSI_1_PK = props.GSI_1_PK || props.PK;
     this.GSI_1_SK = props.GSI_1_SK || this.createdAt.getTime();
 
     this.string = props.string;

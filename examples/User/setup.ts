@@ -1,4 +1,4 @@
 import dynamode from '../../dist';
 
-dynamode.aws.ddb.local();
-export const ddb = dynamode.aws.ddb();
+dynamode.settings.ddb.local();
+export const ddb = dynamode.settings.ddb();

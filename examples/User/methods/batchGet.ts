@@ -1,15 +1,10 @@
 import { User } from '../User';
 
 async function batchGet() {
-  const userBatchGet = await User.batchGet(
-    [
-      { PK: 'pk1', SK: 'sk1' },
-      { PK: 'pk2', SK: 'sk2' },
-    ],
-    {
-      attributes: ['set', 'array'],
-    },
-  );
+  const userBatchGet = await User.batchGet([
+    { PK: 'pk1', SK: 'sk1' },
+    { PK: 'pk2', SK: 'sk2' },
+  ]);
 
   console.log();
   console.log('OUTPUT:');
