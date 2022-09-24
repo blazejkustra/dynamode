@@ -1,5 +1,4 @@
-import { RESERVED_WORDS } from '@aws/reservedWords';
-import { AttributeMap, DefaultError, valueToDynamo } from '@lib/utils';
+import { AttributeMap, DefaultError, NESTED_ATTRIBUTE_REGEX, RESERVED_WORDS, valueToDynamo } from '@lib/utils';
 
 export type ConditionExpression = {
   keys?: string[];
@@ -29,8 +28,6 @@ export function buildExpression(conditions: ConditionExpression[], attributeName
     })
     .join(' ');
 }
-
-const NESTED_ATTRIBUTE_REGEX = /\.(\d*)(\.|$)/;
 
 function replaceNestedAttributesRegex(key: string): string {
   return key.replace(NESTED_ATTRIBUTE_REGEX, '[$1]$2');
