@@ -1,19 +1,20 @@
-import { Class, RequireAtLeastOne } from 'type-fest';
+import { RequireAtLeastOne } from 'type-fest';
 
 import { BatchGetItemCommandInput, BatchWriteItemCommandInput, DeleteItemCommandInput, GetItemCommandInput, PutItemCommandInput, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
-import { AttributeMap, Flatten, PickByType } from '@lib/utils';
+import { AttributeMap, Flatten, PickByType, UnknownClass } from '@lib/utils';
 
 export type ReturnOption = 'default' | 'input' | 'output';
-export type ExcludeFromEntity = Date | Set<unknown>;
-export type EntityKeys<T extends Class<unknown>> = Partial<Flatten<InstanceType<T>, ExcludeFromEntity>>;
+export type ExcludeFromEntity = Date | Set<unknown> | Map<unknown, unknown>;
+export type EntityProperties<T extends UnknownClass> = Partial<Flatten<InstanceType<T>, ExcludeFromEntity>>;
+export type EntityKeys<T extends UnknownClass> = keyof EntityProperties<T>;
 
 // Entity.get
 
-export interface EntityGetOptions<T extends Class<unknown>> {
+export interface EntityGetOptions<T extends UnknownClass> {
   extraInput?: Partial<GetItemCommandInput>;
   return?: ReturnOption;
-  attributes?: Array<keyof EntityKeys<T>>;
+  attributes?: Array<EntityKeys<T>>;
   consistent?: boolean;
 }
 
@@ -24,18 +25,18 @@ export interface BuildGetProjectionExpression {
 
 // Entity.update
 
-export type UpdateProps<T extends Class<unknown>> = RequireAtLeastOne<{
-  add?: PickByType<EntityKeys<T>, number | Set<unknown>>;
-  set?: EntityKeys<T>;
-  setIfNotExists?: EntityKeys<T>;
-  listAppend?: PickByType<EntityKeys<T>, Array<unknown>>;
-  increment?: PickByType<EntityKeys<T>, number>;
-  decrement?: PickByType<EntityKeys<T>, number>;
-  delete?: PickByType<EntityKeys<T>, Set<unknown>>;
-  remove?: Array<keyof EntityKeys<T>>;
+export type UpdateProps<T extends UnknownClass> = RequireAtLeastOne<{
+  add?: PickByType<EntityProperties<T>, number | Set<unknown>>;
+  set?: EntityProperties<T>;
+  setIfNotExists?: EntityProperties<T>;
+  listAppend?: PickByType<EntityProperties<T>, Array<unknown>>;
+  increment?: PickByType<EntityProperties<T>, number>;
+  decrement?: PickByType<EntityProperties<T>, number>;
+  delete?: PickByType<EntityProperties<T>, Set<unknown>>;
+  remove?: Array<EntityKeys<T>>;
 }>;
 
-export interface EntityUpdateOptions<T extends Class<unknown>> {
+export interface EntityUpdateOptions<T extends UnknownClass> {
   extraInput?: Partial<UpdateItemCommandInput>;
   return?: ReturnOption;
   condition?: Condition<T>;
@@ -49,7 +50,7 @@ export interface BuildUpdateConditionExpression {
 
 // Entity.put
 
-export interface EntityPutOptions<T extends Class<unknown>> {
+export interface EntityPutOptions<T extends UnknownClass> {
   extraInput?: Partial<PutItemCommandInput>;
   return?: ReturnOption;
   overwrite?: boolean;
@@ -64,7 +65,7 @@ export interface BuildPutConditionExpression {
 
 // Entity.create
 
-export interface EntityCreateOptions<T extends Class<unknown>> {
+export interface EntityCreateOptions<T extends UnknownClass> {
   extraInput?: Partial<PutItemCommandInput>;
   return?: ReturnOption;
   condition?: Condition<T>;
@@ -72,7 +73,7 @@ export interface EntityCreateOptions<T extends Class<unknown>> {
 
 // Entity.delete
 
-export interface EntityDeleteOptions<T extends Class<unknown>> {
+export interface EntityDeleteOptions<T extends UnknownClass> {
   extraInput?: Partial<DeleteItemCommandInput>;
   return?: ReturnOption;
   condition?: Condition<T>;
@@ -86,10 +87,10 @@ export interface BuildDeleteConditionExpression {
 
 // Entity.batchGet
 
-export interface EntityBatchGetOptions<T extends Class<unknown>> {
+export interface EntityBatchGetOptions<T extends UnknownClass> {
   extraInput?: Partial<BatchGetItemCommandInput>;
   return?: ReturnOption;
-  attributes?: Array<keyof EntityKeys<T>>;
+  attributes?: Array<EntityKeys<T>>;
   consistent?: boolean;
 }
 
@@ -99,7 +100,7 @@ export interface EntityBatchDeleteOutput<PrimaryKey> {
 
 // Entity.batchGet
 
-export interface EntityBatchGetOutput<T extends Class<unknown>, PrimaryKey> {
+export interface EntityBatchGetOutput<T extends UnknownClass, PrimaryKey> {
   items: Array<InstanceType<T>>;
   unprocessedKeys: Array<PrimaryKey>;
 }
@@ -111,7 +112,7 @@ export interface EntityBatchPutOptions {
   return?: ReturnOption;
 }
 
-export interface EntityBatchPutOutput<T extends Class<unknown>> {
+export interface EntityBatchPutOutput<T extends UnknownClass> {
   items: Array<InstanceType<T>>;
   unprocessedItems: Array<InstanceType<T>>;
 }

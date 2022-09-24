@@ -32,33 +32,40 @@ import {
   UpdateProps,
 } from '@Entity/types';
 import { Condition } from '@lib/Condition';
+import { column } from '@lib/decorators';
 import { Query } from '@lib/Query';
+import { getDynamodeStorage } from '@lib/Storage';
 import { Table as BaseTable } from '@lib/Table';
-import { AttributeMap, buildExpression, classToObject, ConditionExpression, fromDynamo, isEmpty, NotFoundError, objectToDynamo, substituteAttributeName } from '@lib/utils';
+import { AttributeMap, buildExpression, ConditionExpression, DefaultError, fromDynamo, GenericObject, isNotEmpty, isNotEmptyArray, NotFoundError, objectToDynamo, substituteAttributeName } from '@lib/utils';
+
+import { addPrefixSuffix, truncatePrefixSuffix } from './utils';
 
 export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: TableT) {
-  return class BaseEntity extends Table {
+  class Entity extends Table {
+    public dynamodeObject: string;
+
     constructor(...args: any[]) {
       super(args[0]);
+      this.dynamodeObject = args[0]?.dynamodeObject || this.constructor.name;
     }
 
-    public static query<T extends typeof BaseEntity>(this: T, key: keyof EntityKeys<T>, value: string | number): InstanceType<typeof Query<T>> {
+    public static query<T extends typeof Entity>(this: T, key: EntityKeys<T>, value: string | number): InstanceType<typeof Query<T>> {
       return new Query(this, key, value);
     }
 
-    public static condition<T extends typeof BaseEntity>(this: T, key: keyof EntityKeys<T>): Condition<T> {
+    public static condition<T extends typeof Entity>(this: T, key: EntityKeys<T>): Condition<T> {
       return new Condition(this, key);
     }
 
-    public static get<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey']): Promise<InstanceType<T>>;
-    public static get<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: Omit<EntityGetOptions<T>, 'return'>): Promise<InstanceType<T>>;
-    public static get<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: EntityGetOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static get<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: EntityGetOptions<T> & { return: 'output' }): Promise<GetItemCommandOutput>;
-    public static get<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: EntityGetOptions<T> & { return: 'input' }): GetItemCommandInput;
-    public static get<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options?: EntityGetOptions<T>): Promise<InstanceType<T> | GetItemCommandOutput> | GetItemCommandInput {
+    public static get<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey']): Promise<InstanceType<T>>;
+    public static get<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], options: Omit<EntityGetOptions<T>, 'return'>): Promise<InstanceType<T>>;
+    public static get<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], options: EntityGetOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static get<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], options: EntityGetOptions<T> & { return: 'output' }): Promise<GetItemCommandOutput>;
+    public static get<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], options: EntityGetOptions<T> & { return: 'input' }): GetItemCommandInput;
+    public static get<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], options?: EntityGetOptions<T>): Promise<InstanceType<T> | GetItemCommandOutput> | GetItemCommandInput {
       const commandInput: GetItemCommandInput = {
         TableName: this.tableName,
-        Key: objectToDynamo(primaryKey),
+        Key: this.convertPrimaryKeyToDynamo(primaryKey),
         ConsistentRead: options?.consistent || false,
         ...this.buildGetProjectionExpression(options?.attributes),
         ...options?.extraInput,
@@ -83,16 +90,16 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       })();
     }
 
-    public static update<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], props: UpdateProps<T>): Promise<InstanceType<T>>;
-    public static update<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], props: UpdateProps<T>, options: Omit<EntityUpdateOptions<T>, 'return'>): Promise<InstanceType<T>>;
-    public static update<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static update<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'output' }): Promise<UpdateItemCommandOutput>;
-    public static update<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'input' }): UpdateItemCommandInput;
-    public static update<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], props: UpdateProps<T>, options?: EntityUpdateOptions<T>): Promise<InstanceType<T> | UpdateItemCommandOutput> | UpdateItemCommandInput {
+    public static update<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], props: UpdateProps<T>): Promise<InstanceType<T>>;
+    public static update<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], props: UpdateProps<T>, options: Omit<EntityUpdateOptions<T>, 'return'>): Promise<InstanceType<T>>;
+    public static update<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static update<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'output' }): Promise<UpdateItemCommandOutput>;
+    public static update<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'input' }): UpdateItemCommandInput;
+    public static update<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], props: UpdateProps<T>, options?: EntityUpdateOptions<T>): Promise<InstanceType<T> | UpdateItemCommandOutput> | UpdateItemCommandInput {
       const commandInput: UpdateItemCommandInput = {
         TableName: this.tableName,
-        Key: objectToDynamo(primaryKey),
-        ReturnValues: 'ALL_NEW',
+        Key: this.convertPrimaryKeyToDynamo(primaryKey),
+        ReturnValues: 'ALL_NEW', // TODO: Make adjustable
         ...this.buildUpdateConditionExpression(props),
         ...options?.extraInput,
       };
@@ -112,22 +119,19 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       })();
     }
 
-    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>): Promise<InstanceType<T>>;
-    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: Omit<EntityPutOptions<T>, 'return'>): Promise<InstanceType<T>>;
-    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'output' }): Promise<PutItemCommandOutput>;
-    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'input' }): PutItemCommandInput;
-    public static put<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options?: EntityPutOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
+    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>): Promise<InstanceType<T>>;
+    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options: Omit<EntityPutOptions<T>, 'return'>): Promise<InstanceType<T>>;
+    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'output' }): Promise<PutItemCommandOutput>;
+    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'input' }): PutItemCommandInput;
+    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityPutOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
       const overwrite = options?.overwrite ?? true;
-      const overwriteCondition = overwrite
-        ? undefined
-        : this.condition('PK' as any)
-            .not()
-            .exists(); // set real partition key here
+      const partitionKey = getDynamodeStorage().getTableMetadata(this.tableName).partitionKey?.propertyName as EntityKeys<T>;
+      const overwriteCondition = overwrite ? undefined : this.condition(partitionKey).not().exists();
 
       const commandInput: PutItemCommandInput = {
         TableName: this.tableName,
-        Item: this.EntityToDynamo(item),
+        Item: this.convertEntityToDynamo(item),
         ...this.buildPutConditionExpression(overwriteCondition, options?.condition),
         ...options?.extraInput,
       };
@@ -147,21 +151,21 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       })();
     }
 
-    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>): Promise<InstanceType<T>>;
-    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: Omit<EntityCreateOptions<T>, 'return'>): Promise<InstanceType<T>>;
-    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: EntityCreateOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: EntityCreateOptions<T> & { return: 'output' }): Promise<PutItemCommandOutput>;
-    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options: EntityCreateOptions<T> & { return: 'input' }): PutItemCommandInput;
-    public static create<T extends typeof BaseEntity>(this: T, item: InstanceType<T>, options?: EntityCreateOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>): Promise<InstanceType<T>>;
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: Omit<EntityCreateOptions<T>, 'return'>): Promise<InstanceType<T>>;
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityCreateOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityCreateOptions<T> & { return: 'output' }): Promise<PutItemCommandOutput>;
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityCreateOptions<T> & { return: 'input' }): PutItemCommandInput;
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityCreateOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
       return this.put(item, { ...options, overwrite: false });
     }
 
-    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey']): Promise<void>;
-    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: Omit<EntityDeleteOptions<T>, 'return'>): Promise<void>;
-    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: EntityDeleteOptions<T> & { return: 'default' }): Promise<void>;
-    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: EntityDeleteOptions<T> & { return: 'output' }): Promise<DeleteItemCommandOutput>;
-    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options: EntityDeleteOptions<T> & { return: 'input' }): DeleteItemCommandInput;
-    public static delete<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey'], options?: EntityDeleteOptions<T>): Promise<void | DeleteItemCommandOutput> | DeleteItemCommandInput {
+    public static delete<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey']): Promise<void>;
+    public static delete<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], options: Omit<EntityDeleteOptions<T>, 'return'>): Promise<void>;
+    public static delete<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], options: EntityDeleteOptions<T> & { return: 'default' }): Promise<void>;
+    public static delete<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], options: EntityDeleteOptions<T> & { return: 'output' }): Promise<DeleteItemCommandOutput>;
+    public static delete<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], options: EntityDeleteOptions<T> & { return: 'input' }): DeleteItemCommandInput;
+    public static delete<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey'], options?: EntityDeleteOptions<T>): Promise<void | DeleteItemCommandOutput> | DeleteItemCommandInput {
       const commandInput: DeleteItemCommandInput = {
         TableName: this.tableName,
         Key: this.convertPrimaryKeyToDynamo(primaryKey),
@@ -184,12 +188,12 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       })();
     }
 
-    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>): Promise<EntityBatchGetOutput<T, TableT['primaryKey']>>;
-    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: Omit<EntityBatchGetOptions<T>, 'return'>): Promise<EntityBatchGetOutput<T, TableT['primaryKey']>>;
-    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchGetOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchGetOptions<T> & { return: 'output' }): Promise<BatchGetItemCommandOutput>;
-    public static batchGet<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchGetOptions<T> & { return: 'input' }): BatchGetItemCommandInput;
-    public static batchGet<T extends typeof BaseEntity>(
+    public static batchGet<T extends typeof Entity>(this: T, primaryKeys: Array<TableT['primaryKey']>): Promise<EntityBatchGetOutput<T, TableT['primaryKey']>>;
+    public static batchGet<T extends typeof Entity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: Omit<EntityBatchGetOptions<T>, 'return'>): Promise<EntityBatchGetOutput<T, TableT['primaryKey']>>;
+    public static batchGet<T extends typeof Entity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchGetOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static batchGet<T extends typeof Entity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchGetOptions<T> & { return: 'output' }): Promise<BatchGetItemCommandOutput>;
+    public static batchGet<T extends typeof Entity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchGetOptions<T> & { return: 'input' }): BatchGetItemCommandInput;
+    public static batchGet<T extends typeof Entity>(
       this: T,
       primaryKeys: Array<TableT['primaryKey']>,
       options?: EntityBatchGetOptions<T>,
@@ -223,17 +227,17 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       })();
     }
 
-    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>): Promise<EntityBatchPutOutput<T>>;
-    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options: Omit<EntityBatchPutOptions, 'return'>): Promise<EntityBatchPutOutput<T>>;
-    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'default' }): Promise<EntityBatchPutOutput<T>>;
-    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
-    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'input' }): BatchWriteItemCommandInput;
-    public static batchPut<T extends typeof BaseEntity>(this: T, items: Array<InstanceType<T>>, options?: EntityBatchPutOptions): Promise<EntityBatchPutOutput<T> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
+    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>): Promise<EntityBatchPutOutput<T>>;
+    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: Omit<EntityBatchPutOptions, 'return'>): Promise<EntityBatchPutOutput<T>>;
+    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'default' }): Promise<EntityBatchPutOutput<T>>;
+    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
+    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'input' }): BatchWriteItemCommandInput;
+    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options?: EntityBatchPutOptions): Promise<EntityBatchPutOutput<T> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
       const commandInput: BatchWriteItemCommandInput = {
         RequestItems: {
           [this.tableName]: items.map((item) => ({
             PutRequest: {
-              Item: this.EntityToDynamo(item),
+              Item: this.convertEntityToDynamo(item),
             },
           })),
         },
@@ -261,12 +265,12 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       })();
     }
 
-    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>): Promise<EntityBatchDeleteOutput<TableT['primaryKey']>>;
-    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: Omit<EntityBatchDeleteOptions, 'return'>): Promise<EntityBatchDeleteOutput<TableT['primaryKey']>>;
-    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchDeleteOptions & { return: 'default' }): Promise<EntityBatchDeleteOutput<TableT['primaryKey']>>;
-    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchDeleteOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
-    public static batchDelete<T extends typeof BaseEntity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchDeleteOptions & { return: 'input' }): BatchWriteItemCommandInput;
-    public static batchDelete<T extends typeof BaseEntity>(
+    public static batchDelete<T extends typeof Entity>(this: T, primaryKeys: Array<TableT['primaryKey']>): Promise<EntityBatchDeleteOutput<TableT['primaryKey']>>;
+    public static batchDelete<T extends typeof Entity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: Omit<EntityBatchDeleteOptions, 'return'>): Promise<EntityBatchDeleteOutput<TableT['primaryKey']>>;
+    public static batchDelete<T extends typeof Entity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchDeleteOptions & { return: 'default' }): Promise<EntityBatchDeleteOutput<TableT['primaryKey']>>;
+    public static batchDelete<T extends typeof Entity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchDeleteOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
+    public static batchDelete<T extends typeof Entity>(this: T, primaryKeys: Array<TableT['primaryKey']>, options: EntityBatchDeleteOptions & { return: 'input' }): BatchWriteItemCommandInput;
+    public static batchDelete<T extends typeof Entity>(
       this: T,
       primaryKeys: Array<TableT['primaryKey']>,
       options?: EntityBatchDeleteOptions,
@@ -303,149 +307,186 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       })();
     }
 
-    public static parseFromDynamo<T extends typeof BaseEntity>(this: T, dynamoItem: AttributeMap): InstanceType<T> {
-      const props = fromDynamo(dynamoItem);
-      const item = new this(props) as InstanceType<T>;
+    public static parseFromDynamo<T extends typeof Entity>(this: T, dynamoItem: AttributeMap): InstanceType<T> {
+      const object = fromDynamo(dynamoItem);
+      const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
+      const { createdAt, updatedAt } = getDynamodeStorage().getTableMetadata(this.tableName);
+
+      if (createdAt?.propertyName) object[createdAt.propertyName] = new Date(object[createdAt.propertyName] as string | number);
+      if (updatedAt?.propertyName) object[updatedAt.propertyName] = new Date(object[updatedAt.propertyName] as string | number);
+
+      Object.entries(columns).forEach(([propertyName, metadata]) => {
+        let value = object[propertyName];
+
+        if (metadata.type === Map && value && typeof value === 'object') {
+          value = new Map(Object.entries(value));
+        }
+
+        const truncatedValue = typeof value === 'string' ? truncatePrefixSuffix(metadata.prefix || '', value, metadata.suffix || '') : value;
+        object[propertyName] = truncatedValue;
+      });
+
+      const item = new this(object) as InstanceType<T>;
       return item;
     }
 
-    public static EntityToDynamo<T extends typeof BaseEntity>(this: T, item: InstanceType<T>): AttributeMap {
-      const object = classToObject(item);
-      return objectToDynamo(object);
+    public static convertEntityToDynamo<T extends typeof Entity>(this: T, item: InstanceType<T>): AttributeMap {
+      const dynamoObject: GenericObject = {};
+      const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
+      const { createdAt, updatedAt } = getDynamodeStorage().getTableMetadata(this.tableName);
+
+      Object.entries(columns).forEach(([propertyName, metadata]) => {
+        let value: unknown = item[propertyName as keyof InstanceType<T>];
+
+        if (value instanceof Date) {
+          if (createdAt?.propertyName === propertyName && createdAt?.type === String) value = value.toISOString();
+          else if (createdAt?.propertyName === propertyName && createdAt?.type === Number) value = value.getTime();
+          else if (updatedAt?.propertyName === propertyName && updatedAt?.type === String) value = value.toISOString();
+          else if (updatedAt?.propertyName === propertyName && updatedAt?.type === Number) value = value.getTime();
+          else throw new DefaultError();
+        }
+
+        const prefixedSuffixedValue = typeof value === 'string' ? addPrefixSuffix(metadata.prefix || '', value, metadata.suffix || '') : value;
+        dynamoObject[propertyName] = prefixedSuffixedValue;
+      });
+
+      return objectToDynamo(dynamoObject);
     }
 
-    public static convertPrimaryKeyToDynamo<T extends typeof BaseEntity>(this: T, primaryKey: TableT['primaryKey']): AttributeMap {
-      return objectToDynamo(primaryKey);
+    public static convertPrimaryKeyToDynamo<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey']): AttributeMap {
+      const dynamoObject: GenericObject = {};
+      const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
+
+      Object.entries(primaryKey).forEach(([propertyName, value]) => {
+        const metadata = columns[propertyName];
+        const prefixedSuffixedValue = typeof value === 'string' ? addPrefixSuffix(metadata.prefix || '', value, metadata.suffix || '') : value;
+        dynamoObject[propertyName] = prefixedSuffixedValue;
+      });
+
+      return objectToDynamo(dynamoObject);
     }
 
-    public static buildGetProjectionExpression<T extends typeof BaseEntity>(this: T, attributes?: Array<keyof EntityKeys<T>>): BuildGetProjectionExpression {
+    public static buildGetProjectionExpression<T extends typeof Entity>(this: T, attributes?: Array<EntityKeys<T>>): BuildGetProjectionExpression {
       const attributeNames: Record<string, string> = {};
       const projectionExpression = attributes?.map((attribute) => substituteAttributeName(attributeNames, String(attribute))).join(', ');
 
       return {
-        ...(!isEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
+        ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
         ...(projectionExpression ? { ProjectionExpression: projectionExpression } : {}),
       };
     }
 
-    public static buildUpdateConditionExpression<T extends typeof BaseEntity>(this: T, props: UpdateProps<T>): BuildUpdateConditionExpression {
+    public static buildUpdateConditionExpression<T extends typeof Entity>(this: T, props: UpdateProps<T>): BuildUpdateConditionExpression {
       const attributeNames: Record<string, string> = {};
       const attributeValues: AttributeMap = {};
       const conditions = this.buildUpdateConditions(props);
       const updateExpression = buildExpression(conditions, attributeNames, attributeValues);
 
       return {
-        ...(!isEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
-        ...(!isEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+        ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
+        ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
         ...(updateExpression ? { UpdateExpression: updateExpression } : {}),
       };
     }
 
-    public static buildUpdateConditions<T extends typeof BaseEntity>(this: T, props: UpdateProps<T>): ConditionExpression[] {
-      const { set, setIfNotExists, listAppend, increment, decrement, add, delete: deleteOp, remove } = props;
+    public static buildUpdateConditions<T extends typeof Entity>(this: T, props: UpdateProps<T>): ConditionExpression[] {
       const conditions: ConditionExpression[] = [];
 
-      const setKeys: string[] = [];
-      const setValues: unknown[] = [];
-      const setExpr: string[] = [];
+      if (isNotEmpty(props.set) || isNotEmpty(props.setIfNotExists) || isNotEmpty(props.listAppend) || isNotEmpty(props.increment) || isNotEmpty(props.decrement)) {
+        const setKeys: string[] = [];
+        const setValues: unknown[] = [];
+        const setExprs: string[] = [];
+        const setProps = [
+          { ops: props.set, expr: '$K = $V', twoKeys: false },
+          { ops: props.setIfNotExists, expr: '$K = if_not_exists($K, $V)', twoKeys: true },
+          { ops: props.listAppend, expr: '$K = list_append($K, $V)', twoKeys: true },
+          { ops: props.increment, expr: '$K = $K + $V', twoKeys: true },
+          { ops: props.decrement, expr: '$K = $K - $V', twoKeys: true },
+        ];
 
-      if (set && !isEmpty(set)) {
-        setKeys.push(...Object.keys(set));
-        setValues.push(...Object.values(set));
-        setExpr.push(...Object.keys(set).map(() => '$K = $V'));
+        setProps.forEach(({ ops, expr, twoKeys }) => {
+          if (isNotEmpty(ops)) {
+            const keys = Object.keys(ops);
+            const values = Object.values(ops);
+
+            setKeys.push(...keys.flatMap((key) => Array(twoKeys ? 2 : 1).fill(key)));
+            setValues.push(...values);
+            setExprs.push(...Array(keys.length).fill(expr));
+          }
+        });
+
+        conditions.push({ expr: 'SET' }, { keys: setKeys, values: setValues, expr: setExprs.join(', ') });
       }
 
-      if (setIfNotExists && !isEmpty(setIfNotExists)) {
-        setKeys.push(...Object.keys(setIfNotExists).flatMap((k) => [k, k]));
-        setValues.push(...Object.values(setIfNotExists));
-        setExpr.push(...Object.keys(setIfNotExists).map(() => '$K = if_not_exists($K, $V)'));
-      }
+      if (isNotEmpty(props.add)) {
+        const keys = Object.keys(props.add);
+        const values = Object.values(props.add);
 
-      if (listAppend && !isEmpty(listAppend)) {
-        setKeys.push(...Object.keys(listAppend).flatMap((k) => [k, k]));
-        setValues.push(...Object.values(listAppend));
-        setExpr.push(...Object.keys(listAppend).map(() => '$K = list_append($K, $V)'));
-      }
-
-      if (increment && !isEmpty(increment)) {
-        setKeys.push(...Object.keys(increment).flatMap((k) => [k, k]));
-        setValues.push(...Object.values(increment));
-        setExpr.push(...Object.keys(increment).map(() => '$K = $K + $V'));
-      }
-
-      if (decrement && !isEmpty(decrement)) {
-        setKeys.push(...Object.keys(decrement).flatMap((k) => [k, k]));
-        setValues.push(...Object.values(decrement));
-        setExpr.push(...Object.keys(decrement).map(() => '$K = $K - $V'));
-      }
-
-      if (setExpr.length > 0) {
-        conditions.push({ expr: 'SET' }, { keys: setKeys, values: setValues, expr: setExpr.join(', ') });
-      }
-
-      if (add && !isEmpty(add)) {
         conditions.push(
           { expr: 'ADD' },
           {
-            keys: Object.keys(add),
-            values: Object.values(add),
-            expr: Object.keys(add)
-              .map(() => '$K $V')
-              .join(', '),
+            keys,
+            values,
+            expr: Array(keys.length).fill('$K $V').join(', '),
           },
         );
       }
 
-      if (deleteOp && !isEmpty(deleteOp)) {
+      if (isNotEmpty(props.delete)) {
+        const keys = Object.keys(props.delete);
+        const values = Object.values(props.delete);
+
         conditions.push(
           { expr: 'DELETE' },
           {
-            keys: Object.keys(deleteOp),
-            values: Object.values(deleteOp),
-            expr: Object.keys(deleteOp)
-              .map(() => '$K $V')
-              .join(', '),
+            keys,
+            values,
+            expr: Array(keys.length).fill('$K $V').join(', '),
           },
         );
       }
 
-      if (remove && remove.length > 0) {
-        conditions.push({ expr: 'REMOVE' }, { keys: remove.map((key) => String(key)), expr: remove.map(() => '$K').join(', ') });
+      if (isNotEmptyArray(props.remove)) {
+        const keys = props.remove.map((key) => String(key));
+
+        conditions.push(
+          { expr: 'REMOVE' },
+          {
+            keys,
+            expr: Array(keys.length).fill('$K').join(', '),
+          },
+        );
       }
 
       return conditions;
     }
 
-    public static buildPutConditionExpression<T extends typeof BaseEntity>(this: T, overwriteCondition?: Condition<T>, optionsCondition?: Condition<T>): BuildPutConditionExpression {
+    public static buildPutConditionExpression<T extends typeof Entity>(this: T, overwriteCondition?: Condition<T>, optionsCondition?: Condition<T>): BuildPutConditionExpression {
       const attributeNames: Record<string, string> = {};
       const attributeValues: AttributeMap = {};
-      let conditionExpression: string | undefined = undefined;
-
-      if (overwriteCondition && optionsCondition) {
-        conditionExpression = buildExpression(overwriteCondition.condition(optionsCondition).conditions, attributeNames, attributeValues);
-      } else if (overwriteCondition) {
-        conditionExpression = buildExpression(overwriteCondition.conditions, attributeNames, attributeValues);
-      } else if (optionsCondition) {
-        conditionExpression = buildExpression(optionsCondition.conditions, attributeNames, attributeValues);
-      }
+      const conditions = overwriteCondition ? overwriteCondition.condition(optionsCondition).conditions : optionsCondition?.conditions || [];
+      const conditionExpression = buildExpression(conditions, attributeNames, attributeValues);
 
       return {
-        ...(!isEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
-        ...(!isEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+        ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
+        ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
         ...(conditionExpression ? { ConditionExpression: conditionExpression } : {}),
       };
     }
 
-    public static buildDeleteConditionExpression<T extends typeof BaseEntity>(this: T, optionsCondition?: Condition<T>): BuildDeleteConditionExpression {
+    public static buildDeleteConditionExpression<T extends typeof Entity>(this: T, optionsCondition?: Condition<T>): BuildDeleteConditionExpression {
       const attributeNames: Record<string, string> = {};
       const attributeValues: AttributeMap = {};
       const conditionExpression = buildExpression(optionsCondition?.conditions || [], attributeNames, attributeValues);
 
       return {
-        ...(!isEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
-        ...(!isEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+        ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
+        ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
         ...(conditionExpression ? { ConditionExpression: conditionExpression } : {}),
       };
     }
-  };
+  }
+
+  column(String)(new Entity({}), 'dynamodeObject');
+  return Entity;
 }
