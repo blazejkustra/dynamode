@@ -10,6 +10,7 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [ ] flow to update Table from code
 * [ ] flow to create Index from code
 * [X] Possibility to add secondary indexes with custom name
+* [ ] Maybe create cli tool
 
 ### Entity:
 
@@ -70,9 +71,28 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [X] Improve how ddb and table is passed over
 * [X] Return whole request instead of mapped values in Entity
 * [X] Change license to MIT
-* [ ] Add SEPARATOR to global settings, add dependsOn to global settings to throw/warn when updating
+* [X] Add SEPARATOR to global settings
+* [ ] Add dependsOn to global settings to throw/warn when updating
 * [ ] Add logging possibility
 * [ ] Capture dynamoDB errors and make it easier to work with
 * [ ] Add dynamoDB streams support
 * [ ] Add tests XD gl
 * [ ] Add PartiQL support
+* [ ] Refactor some classes and use private properties/functions 
+* [ ] Improve export system for entire lib
+
+### Todo
+
+* [X] finish query's exec func
+* [X] Improve buildUpdateConditions function
+* [X] @entity() decorator - change class name to make sure it is unique
+* [X] Make a separate type for entity keys
+* [X] Add dynamodeObject to entity 
+* [X] Entity.put - fix overwriteCondition
+* [X] Make sure that utility methods on Entity are working as expected
+* [X] Add support for prefixes and suffixes
+* [X] Pass only decorated properties to dynamoDB
+* [ ] batchCreate in entity
+* [ ] ProjectionExpression always include dynamodeObject and set all other properties to undefined/null
+* [ ] Fix condition and query classes to accept all entity keys 
+* [ ] Make ReturnValues adjustable in Entity update method
