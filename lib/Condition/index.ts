@@ -1,21 +1,19 @@
-import { Class } from 'type-fest';
-
 import { AttributeType } from '@Condition/types';
 import { EntityKeys } from '@lib/Entity/types';
-import { ConditionExpression } from '@lib/utils';
+import { ConditionExpression, UnknownClass } from '@lib/utils';
 
-export class Condition<T extends Class<unknown>> {
+export class Condition<T extends UnknownClass> {
   public conditions: ConditionExpression[];
   private key: string;
   private orBetweenCondition: boolean;
 
-  constructor(entity: T, key: keyof EntityKeys<T>) {
+  constructor(entity: T, key: EntityKeys<T>) {
     this.conditions = [];
     this.orBetweenCondition = false;
     this.key = String(key);
   }
 
-  public attribute(key: keyof EntityKeys<T>): Condition<T> {
+  public attribute(key: EntityKeys<T>): Condition<T> {
     if (this.conditions.length > 0) {
       this.conditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
     }
