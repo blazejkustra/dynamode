@@ -52,6 +52,7 @@ export class Query<T extends Class<unknown> & { ddb: DynamoDB; tableName: string
       return {
         items: [], //items.map((item) => this.Class.parseFromDynamo(item)),
         count: result.Count || 0,
+        // cursor:
       };
     })();
   }
