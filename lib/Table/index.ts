@@ -5,14 +5,14 @@ interface TableProps {
 }
 
 export function Table<PrimaryKey extends Record<string, string | number>>({ ddb, tableName }: TableProps) {
-  return class BaseTable {
+  return class Table {
     public static primaryKey: PrimaryKey;
 
     public static ddb = ddb;
     public static tableName = tableName;
 
     constructor(...args: any[]) {
-      console.log('constructor', args);
+      console.log('table constructor', args);
     }
   };
 }
