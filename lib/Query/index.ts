@@ -1,23 +1,23 @@
-import { Class } from 'type-fest';
-
 import { DynamoDB, QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
 import { AttributeType } from '@lib/Condition/types';
 import { EntityKeys } from '@lib/Entity/types';
 import { BuildQueryConditionExpression, QueryExecOptions, QueryExecOutput } from '@lib/Query/types';
-import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, GenericObject, isEmpty, objectToDynamo } from '@lib/utils';
+import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, GenericObject, isNotEmpty, objectToDynamo, UnknownClass } from '@lib/utils';
 
-export class Query<T extends Class<unknown> & { ddb: DynamoDB; tableName: string }> {
+export class Query<T extends UnknownClass & { ddb: DynamoDB; tableName: string; parseFromDynamo: (item: AttributeMap) => InstanceType<T> }> {
   private ddb: DynamoDB;
+  private entity: T;
 
   private queryInput: QueryInput;
   private keyConditions: ConditionExpression[] = [];
   private filterConditions: ConditionExpression[] = [];
-  private keys: Array<keyof EntityKeys<T>> = [];
+  private keys: Array<EntityKeys<T>> = [];
   private orBetweenCondition = false;
 
-  constructor(entity: T, key: keyof EntityKeys<T>, value: string | number) {
+  constructor(entity: T, key: EntityKeys<T>, value: string | number) {
     this.ddb = entity.ddb;
+    this.entity = entity;
 
     this.keys.push(key);
     this._eq(this.keyConditions, String(key), value);
@@ -50,11 +50,16 @@ export class Query<T extends Class<unknown> & { ddb: DynamoDB; tableName: string
       const items = result.Items || [];
 
       return {
-        items: [], //items.map((item) => this.Class.parseFromDynamo(item)),
+        items: items.map((item) => this.entity.parseFromDynamo(item)),
         count: result.Count || 0,
-        // cursor:
+        scannedCount: result.ScannedCount || 0,
+        lastKey: result.LastEvaluatedKey,
       };
     })();
+  }
+
+  public all(): Promise<QueryExecOutput<T>> {
+    return {} as Promise<QueryExecOutput<T>>;
   }
 
   private buildQueryInput(queryInput?: Partial<QueryInput>) {
@@ -68,11 +73,11 @@ export class Query<T extends Class<unknown> & { ddb: DynamoDB; tableName: string
       this.queryInput.FilterExpression = conditionExpression;
     }
 
-    if (!isEmpty(attributeNames)) {
+    if (isNotEmpty(attributeNames)) {
       this.queryInput.ExpressionAttributeNames = attributeNames;
     }
 
-    if (!isEmpty(attributeValues)) {
+    if (isNotEmpty(attributeValues)) {
       this.queryInput.ExpressionAttributeValues = attributeValues;
     }
 
@@ -91,7 +96,7 @@ export class Query<T extends Class<unknown> & { ddb: DynamoDB; tableName: string
     console.log('validateQueryInput');
   }
 
-  public sortKey(key: keyof EntityKeys<T>) {
+  public sortKey(key: EntityKeys<T>) {
     this.keyConditions.push({ expr: 'AND' });
 
     return {
@@ -106,7 +111,7 @@ export class Query<T extends Class<unknown> & { ddb: DynamoDB; tableName: string
     };
   }
 
-  public filter(key: keyof EntityKeys<T>) {
+  public filter(key: EntityKeys<T>) {
     if (this.filterConditions.length > 0) {
       this.filterConditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
     }

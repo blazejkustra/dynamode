@@ -1,17 +1,17 @@
-import { Class } from 'type-fest';
-
 import { QueryInput } from '@aws-sdk/client-dynamodb';
 import { ReturnOption } from '@lib/Entity/types';
-import { AttributeMap } from '@lib/utils';
+import { AttributeMap, UnknownClass } from '@lib/utils';
 
 export interface QueryExecOptions {
   extraInput?: Partial<QueryInput>;
   return?: ReturnOption;
 }
 
-export interface QueryExecOutput<T extends Class<unknown>> {
+export interface QueryExecOutput<T extends UnknownClass> {
   items: Array<InstanceType<T>>;
   count: number;
+  lastKey?: AttributeMap;
+  scannedCount: number;
 }
 
 export interface BuildQueryConditionExpression {
