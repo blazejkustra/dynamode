@@ -1,4 +1,5 @@
-import { ColumnMetadata, ColumnType, EntitiesMetadata, EntityMetadata, IndexColumnType, TablesMetadata, TimestampColumnType } from '@lib/Storage/types';
+import { ColumnMetadata, ColumnType, EntityMetadata, IndexColumnType, TablesMetadata, TimestampColumnType } from '@lib/Storage/types';
+import { mergeObjects } from '@lib/utils';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -15,9 +16,12 @@ export function getDynamodeStorage(): DynamodeStorage {
 }
 
 class DynamodeStorage {
-  public tableMetadata: TablesMetadata = {};
-  public entityMetadata: EntitiesMetadata = {};
+  public tables: TablesMetadata = {};
   public separator = '#';
+
+  public setSeparator(separator: string) {
+    this.separator = separator;
+  }
 
   public addPrimaryPartitionKeyMetadata(tableName: string, value: ColumnMetadata<IndexColumnType>) {
     const table = this.getTableMetadata(tableName);
@@ -27,6 +31,16 @@ class DynamodeStorage {
   public addPrimarySortKeyMetadata(tableName: string, value: ColumnMetadata<IndexColumnType>) {
     const table = this.getTableMetadata(tableName);
     table.sortKey = value;
+  }
+
+  public addCreatedAtMetadata(tableName: string, value: ColumnMetadata<TimestampColumnType>) {
+    const table = this.getTableMetadata(tableName);
+    table.createdAt = value;
+  }
+
+  public addUpdatedAtMetadata(tableName: string, value: ColumnMetadata<TimestampColumnType>) {
+    const table = this.getTableMetadata(tableName);
+    table.updatedAt = value;
   }
 
   public addGsiPartitionKeyMetadata(tableName: string, indexName: string, value: ColumnMetadata<IndexColumnType>) {
@@ -44,31 +58,32 @@ class DynamodeStorage {
     localSecondaryIndexes.sortKey = value;
   }
 
-  public addCreatedAtMetadata(tableName: string, value: ColumnMetadata<TimestampColumnType>) {
-    const table = this.getTableMetadata(tableName);
-    table.createdAt = value;
+  public addEntityConstructor(tableName: string, entityName: string, value: EntityMetadata['Constructor']) {
+    const entityMetadata = this.getEntityMetadata(tableName, entityName);
+    entityMetadata.Constructor = entityMetadata.Constructor || value;
   }
 
-  public addUpdatedAtMetadata(tableName: string, value: ColumnMetadata<TimestampColumnType>) {
-    const table = this.getTableMetadata(tableName);
-    table.updatedAt = value;
-  }
-
-  public addEntityMetadata(entityName: string, value: EntityMetadata) {
-    const entityMetadata = this.getEntityMetadata(entityName);
-    entityMetadata.Entity = entityMetadata.Entity || value.Entity;
-    entityMetadata.tableName = entityMetadata.tableName || value.tableName;
-  }
-
-  public addEntityColumnMetadata(entityName: string, propertyName: string, value: ColumnMetadata<ColumnType>) {
-    const columnMetadata = this.getEntityColumnMetadata(entityName, propertyName);
-    columnMetadata.propertyName = columnMetadata.propertyName || value.propertyName;
-    columnMetadata.type = columnMetadata.type || value.type;
-    columnMetadata.prefix = columnMetadata.prefix || value.prefix;
-    columnMetadata.suffix = columnMetadata.suffix || value.suffix;
+  public addEntityColumnMetadata(tableName: string, entityName: string, propertyName: string, value: ColumnMetadata<ColumnType>) {
+    const columnMetadata = this.getEntityColumnMetadata(tableName, entityName, propertyName);
+    if (value.propertyName) columnMetadata.propertyName = value.propertyName;
+    if (value.type) columnMetadata.type = value.type;
+    if (value.prefix) columnMetadata.prefix = value.prefix;
+    if (value.suffix) columnMetadata.suffix = value.suffix;
+    if (value.indexName) columnMetadata.indexName = value.indexName;
   }
 
   // helpers
+
+  public getEntityColumns(tableName: string, entityName: string) {
+    const entitiesMetadata: EntityMetadata[] = [];
+    let constructor = this.getEntityMetadata(tableName, entityName).Constructor;
+    while (constructor) {
+      const entityMetadata = this.getEntityMetadata(tableName, constructor.name);
+      entitiesMetadata.push(entityMetadata);
+      constructor = Object.getPrototypeOf(constructor);
+    }
+    return mergeObjects(...entitiesMetadata.reverse()).columns || {};
+  }
 
   private getGsiMetadata(tableName: string, indexName: string) {
     const tableMetadata = this.getTableMetadata(tableName);
@@ -98,16 +113,16 @@ class DynamodeStorage {
     return tableMetadata.localSecondaryIndexes[indexName];
   }
 
-  private getTableMetadata(tableName: string) {
-    if (!this.tableMetadata[tableName]) {
-      this.tableMetadata[tableName] = {};
+  public getTableMetadata(tableName: string) {
+    if (!this.tables[tableName]) {
+      this.tables[tableName] = {};
     }
 
-    return this.tableMetadata[tableName];
+    return this.tables[tableName];
   }
 
-  private getEntityColumnMetadata(entityName: string, columnName: string) {
-    const entityMetadata = this.getEntityMetadata(entityName);
+  private getEntityColumnMetadata(tableName: string, entityName: string, columnName: string) {
+    const entityMetadata = this.getEntityMetadata(tableName, entityName);
 
     if (!entityMetadata.columns) {
       entityMetadata.columns = {};
@@ -120,11 +135,17 @@ class DynamodeStorage {
     return entityMetadata.columns[columnName];
   }
 
-  private getEntityMetadata(entityName: string) {
-    if (!this.entityMetadata[entityName]) {
-      this.entityMetadata[entityName] = {};
+  private getEntityMetadata(tableName: string, entityName: string) {
+    const table = this.getTableMetadata(tableName);
+
+    if (!table.entities) {
+      table.entities = {};
     }
 
-    return this.entityMetadata[entityName];
+    if (!table.entities[entityName]) {
+      table.entities[entityName] = {};
+    }
+
+    return table.entities[entityName];
   }
 }

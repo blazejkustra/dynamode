@@ -6,9 +6,10 @@ export type ColumnType = StringConstructor | NumberConstructor | BooleanConstruc
 
 export type ColumnMetadata<Type> = {
   propertyName?: string;
-  type?: Type;
+  indexName?: string;
   prefix?: string;
   suffix?: string;
+  type?: Type;
 };
 
 export type GsiMetadata = {
@@ -25,8 +26,7 @@ export type LsiMetadata = {
 };
 
 export type EntityMetadata = {
-  tableName?: string;
-  Entity?: Constructor<unknown>;
+  Constructor?: Constructor<unknown>;
   columns?: { [columnName: string]: ColumnMetadata<ColumnType> };
 };
 
@@ -44,5 +44,8 @@ export type TablesMetadata = {
 
     createdAt?: ColumnMetadata<TimestampColumnType>;
     updatedAt?: ColumnMetadata<TimestampColumnType>;
+
+    entities?: EntitiesMetadata;
+    tableColumns?: { [columnName: string]: ColumnMetadata<ColumnType> };
   };
 };
