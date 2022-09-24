@@ -99,7 +99,7 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       const commandInput: UpdateItemCommandInput = {
         TableName: this.tableName,
         Key: this.convertPrimaryKeyToDynamo(primaryKey),
-        ReturnValues: 'ALL_NEW', // TODO: Make adjustable
+        ReturnValues: 'ALL_NEW',
         ...this.buildUpdateConditionExpression(props),
         ...options?.extraInput,
       };

@@ -1,42 +1,42 @@
-import { AttributeType } from '@Condition/types';
+import { AttributeType, Operator } from '@Condition/types';
 import { EntityKeys } from '@lib/Entity/types';
 import { ConditionExpression, UnknownClass } from '@lib/utils';
 
 export class Condition<T extends UnknownClass> {
   public conditions: ConditionExpression[];
   private key: string;
-  private orBetweenCondition: boolean;
+  private operator = Operator.AND;
 
   constructor(entity: T, key: EntityKeys<T>) {
     this.conditions = [];
-    this.orBetweenCondition = false;
     this.key = String(key);
   }
 
   public attribute(key: EntityKeys<T>): Condition<T> {
     if (this.conditions.length > 0) {
-      this.conditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
+      this.conditions.push({ expr: this.operator });
     }
-    this.orBetweenCondition = false;
+    this.operator = Operator.AND;
     this.key = String(key);
     return this;
   }
 
   public get and(): Condition<T> {
+    this.operator = Operator.AND;
     return this;
   }
 
   public get or(): Condition<T> {
-    this.orBetweenCondition = true;
+    this.operator = Operator.OR;
     return this;
   }
 
   public parenthesis(condition?: Condition<T>): Condition<T> {
     if (condition) {
       if (this.conditions.length > 0) {
-        this.conditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
+        this.conditions.push({ expr: this.operator });
       }
-      this.orBetweenCondition = false; //TODO: change name and value
+      this.operator = Operator.AND;
       this.conditions.push(...[{ expr: '(' }, ...condition.conditions, { expr: ')' }]);
     }
     return this;
@@ -49,9 +49,9 @@ export class Condition<T extends UnknownClass> {
   public condition(condition?: Condition<T>): Condition<T> {
     if (condition) {
       if (this.conditions.length > 0) {
-        this.conditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
+        this.conditions.push({ expr: this.operator });
       }
-      this.orBetweenCondition = false;
+      this.operator = Operator.AND;
       this.conditions.push(...condition.conditions);
     }
     return this;

@@ -1,6 +1,6 @@
 import { DynamoDB, QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
-import { AttributeType } from '@lib/Condition/types';
+import { AttributeType, Operator } from '@lib/Condition/types';
 import { EntityKeys } from '@lib/Entity/types';
 import { BuildQueryConditionExpression, QueryExecOptions, QueryExecOutput } from '@lib/Query/types';
 import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, GenericObject, isNotEmpty, objectToDynamo, UnknownClass } from '@lib/utils';
@@ -13,7 +13,7 @@ export class Query<T extends UnknownClass & { ddb: DynamoDB; tableName: string; 
   private keyConditions: ConditionExpression[] = [];
   private filterConditions: ConditionExpression[] = [];
   private keys: Array<EntityKeys<T>> = [];
-  private orBetweenCondition = false;
+  private operator = Operator.AND;
 
   constructor(entity: T, key: EntityKeys<T>, value: string | number) {
     this.ddb = entity.ddb;
@@ -113,9 +113,9 @@ export class Query<T extends UnknownClass & { ddb: DynamoDB; tableName: string; 
 
   public filter(key: EntityKeys<T>) {
     if (this.filterConditions.length > 0) {
-      this.filterConditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
+      this.filterConditions.push({ expr: this.operator });
     }
-    this.orBetweenCondition = false;
+    this.operator = Operator.AND;
 
     return {
       eq: (value: string | number): Query<T> => this._eq(this.filterConditions, String(key), value),
@@ -196,20 +196,21 @@ export class Query<T extends UnknownClass & { ddb: DynamoDB; tableName: string; 
   }
 
   public get and() {
+    this.operator = Operator.AND;
     return this;
   }
 
   public get or() {
-    this.orBetweenCondition = true;
+    this.operator = Operator.OR;
     return this;
   }
 
   public parenthesis(condition?: Condition<T>) {
     if (condition) {
       if (this.filterConditions.length > 0) {
-        this.filterConditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
+        this.filterConditions.push({ expr: this.operator });
       }
-      this.orBetweenCondition = false;
+      this.operator = Operator.AND;
       this.filterConditions.push(...[{ expr: '(' }, ...condition.conditions, { expr: ')' }]);
     }
     return this;
@@ -222,9 +223,9 @@ export class Query<T extends UnknownClass & { ddb: DynamoDB; tableName: string; 
   public condition(condition?: Condition<T>) {
     if (condition) {
       if (this.filterConditions.length > 0) {
-        this.filterConditions.push({ expr: this.orBetweenCondition ? 'OR' : 'AND' });
+        this.filterConditions.push({ expr: this.operator });
       }
-      this.orBetweenCondition = false;
+      this.operator = Operator.AND;
       this.filterConditions.push(...condition.conditions);
     }
     return this;
