@@ -50,7 +50,7 @@ export class User extends UserTableEntity {
   constructor(props: UserProps) {
     super(props);
     // GSI_1_INDEX: Users sorted
-    this.GSI_1_PK = props.GSI_1_PK || props.PK;
+    this.GSI_1_PK = props.GSI_1_PK || props.SK;
     this.GSI_1_SK = props.GSI_1_SK || this.createdAt.getTime();
 
     this.string = props.string;
