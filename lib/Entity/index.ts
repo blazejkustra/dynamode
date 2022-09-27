@@ -26,9 +26,10 @@ import {
   EntityCreateOptions,
   EntityDeleteOptions,
   EntityGetOptions,
-  EntityKeys,
+  EntityKey,
   EntityPutOptions,
   EntityUpdateOptions,
+  EntityValue,
   UpdateProps,
 } from '@Entity/types';
 import { Condition } from '@lib/Condition';
@@ -37,8 +38,6 @@ import { Query } from '@lib/Query';
 import { getDynamodeStorage } from '@lib/Storage';
 import { Table as BaseTable } from '@lib/Table';
 import { AttributeMap, buildExpression, ConditionExpression, DefaultError, fromDynamo, GenericObject, isNotEmpty, isNotEmptyArray, NotFoundError, objectToDynamo, substituteAttributeName } from '@lib/utils';
-
-import { addPrefixSuffix, truncatePrefixSuffix } from './utils';
 
 export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: TableT) {
   class Entity extends Table {
@@ -49,12 +48,12 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       this.dynamodeObject = args[0]?.dynamodeObject || this.constructor.name;
     }
 
-    public static query<T extends typeof Entity>(this: T, key: EntityKeys<T>, value: string | number): InstanceType<typeof Query<T>> {
+    public static query<T extends typeof Entity, K extends EntityKey<T>>(this: T, key: K, value: EntityValue<T, K>): InstanceType<typeof Query<T, K>> {
       return new Query(this, key, value);
     }
 
-    public static condition<T extends typeof Entity>(this: T, key: EntityKeys<T>): Condition<T> {
-      return new Condition(this, key);
+    public static condition<T extends typeof Entity>(this: T): Condition<T> {
+      return new Condition(this);
     }
 
     public static get<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey']): Promise<InstanceType<T>>;
@@ -86,7 +85,7 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
           return result;
         }
 
-        return this.parseFromDynamo(result.Item || {});
+        return this.convertEntityFromDynamo(result.Item || {});
       })();
     }
 
@@ -115,7 +114,7 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
           return result;
         }
 
-        return this.parseFromDynamo(result.Attributes || {});
+        return this.convertEntityFromDynamo(result.Attributes || {});
       })();
     }
 
@@ -126,8 +125,8 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
     public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'input' }): PutItemCommandInput;
     public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityPutOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
       const overwrite = options?.overwrite ?? true;
-      const partitionKey = getDynamodeStorage().getTableMetadata(this.tableName).partitionKey?.propertyName as EntityKeys<T>;
-      const overwriteCondition = overwrite ? undefined : this.condition(partitionKey).not().exists();
+      const partitionKey = getDynamodeStorage().getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
+      const overwriteCondition = overwrite ? undefined : this.condition().attribute(partitionKey).not().exists();
 
       const commandInput: PutItemCommandInput = {
         TableName: this.tableName,
@@ -223,7 +222,7 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
         const items = result.Responses?.[this.tableName] || [];
         const unprocessedKeys = result.UnprocessedKeys?.[this.tableName]?.Keys?.map((key) => fromDynamo(key) as TableT['primaryKey']) || [];
 
-        return { items: items.map((item) => this.parseFromDynamo(item)), unprocessedKeys };
+        return { items: items.map((item) => this.convertEntityFromDynamo(item)), unprocessedKeys };
       })();
     }
 
@@ -259,7 +258,7 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
           result.UnprocessedItems?.[this.tableName]
             ?.map((request) => request.PutRequest?.Item)
             ?.filter((item): item is AttributeMap => !!item)
-            ?.map((item) => this.parseFromDynamo(item)) || [];
+            ?.map((item) => this.convertEntityFromDynamo(item)) || [];
 
         return { items, unprocessedItems };
       })();
@@ -307,27 +306,64 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       })();
     }
 
-    public static parseFromDynamo<T extends typeof Entity>(this: T, dynamoItem: AttributeMap): InstanceType<T> {
+    public static truncateValue<T extends typeof Entity>(this: T, key: EntityKey<T>, value: unknown): unknown {
+      if (typeof value === 'string') {
+        const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
+        const separator = getDynamodeStorage().separator;
+        const prefix = columns[String(key)].prefix || '';
+        const suffix = columns[String(key)].suffix || '';
+        return value.replace(`${prefix}${separator}`, '').replace(`${separator}${suffix}`, '');
+      } else {
+        return value;
+      }
+    }
+
+    public static prefixSuffixValue<T extends typeof Entity>(this: T, key: EntityKey<T>, value: unknown): unknown {
+      if (typeof value === 'string') {
+        const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
+        const separator = getDynamodeStorage().separator;
+        const prefix = columns[String(key)].prefix || '';
+        const suffix = columns[String(key)].suffix || '';
+        return [prefix, value, suffix].filter((p) => p).join(separator);
+      } else {
+        return value;
+      }
+    }
+
+    public static convertObjectFromDynamo<T extends typeof Entity>(this: T, dynamoItem: AttributeMap): GenericObject {
       const object = fromDynamo(dynamoItem);
       const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
       const { createdAt, updatedAt } = getDynamodeStorage().getTableMetadata(this.tableName);
 
-      if (createdAt?.propertyName) object[createdAt.propertyName] = new Date(object[createdAt.propertyName] as string | number);
-      if (updatedAt?.propertyName) object[updatedAt.propertyName] = new Date(object[updatedAt.propertyName] as string | number);
+      if (createdAt) object[createdAt] = new Date(object[createdAt] as string | number);
+      if (updatedAt) object[updatedAt] = new Date(object[updatedAt] as string | number);
 
       Object.entries(columns).forEach(([propertyName, metadata]) => {
         let value = object[propertyName];
 
-        if (metadata.type === Map && value && typeof value === 'object') {
+        if (value && typeof value === 'object' && metadata.type === Map) {
           value = new Map(Object.entries(value));
         }
 
-        const truncatedValue = typeof value === 'string' ? truncatePrefixSuffix(metadata.prefix || '', value, metadata.suffix || '') : value;
-        object[propertyName] = truncatedValue;
+        object[propertyName] = this.truncateValue(propertyName as EntityKey<T>, value);
       });
 
+      return object;
+    }
+
+    public static convertEntityFromDynamo<T extends typeof Entity>(this: T, dynamoItem: AttributeMap): InstanceType<T> {
+      const object = this.convertObjectFromDynamo(dynamoItem);
       const item = new this(object) as InstanceType<T>;
       return item;
+    }
+
+    public static convertPrimaryKeyFromDynamo<T extends typeof Entity>(this: T, dynamoItem: AttributeMap): TableT['primaryKey'] {
+      const object = fromDynamo(dynamoItem);
+      const { partitionKey, sortKey } = getDynamodeStorage().getTableMetadata(this.tableName);
+      if (partitionKey) object[partitionKey] = this.truncateValue(partitionKey as EntityKey<T>, object[partitionKey]);
+      if (sortKey) object[sortKey] = this.truncateValue(sortKey as EntityKey<T>, object[sortKey]);
+
+      return object as TableT['primaryKey'];
     }
 
     public static convertEntityToDynamo<T extends typeof Entity>(this: T, item: InstanceType<T>): AttributeMap {
@@ -335,19 +371,18 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
       const { createdAt, updatedAt } = getDynamodeStorage().getTableMetadata(this.tableName);
 
-      Object.entries(columns).forEach(([propertyName, metadata]) => {
+      Object.keys(columns).forEach((propertyName) => {
         let value: unknown = item[propertyName as keyof InstanceType<T>];
 
         if (value instanceof Date) {
-          if (createdAt?.propertyName === propertyName && createdAt?.type === String) value = value.toISOString();
-          else if (createdAt?.propertyName === propertyName && createdAt?.type === Number) value = value.getTime();
-          else if (updatedAt?.propertyName === propertyName && updatedAt?.type === String) value = value.toISOString();
-          else if (updatedAt?.propertyName === propertyName && updatedAt?.type === Number) value = value.getTime();
+          if (createdAt === propertyName && columns[createdAt]?.type === String) value = value.toISOString();
+          else if (createdAt === propertyName && columns[createdAt]?.type === Number) value = value.getTime();
+          else if (updatedAt === propertyName && columns[updatedAt]?.type === String) value = value.toISOString();
+          else if (updatedAt === propertyName && columns[updatedAt]?.type === Number) value = value.getTime();
           else throw new DefaultError();
         }
 
-        const prefixedSuffixedValue = typeof value === 'string' ? addPrefixSuffix(metadata.prefix || '', value, metadata.suffix || '') : value;
-        dynamoObject[propertyName] = prefixedSuffixedValue;
+        dynamoObject[propertyName] = this.prefixSuffixValue(propertyName as EntityKey<T>, value);
       });
 
       return objectToDynamo(dynamoObject);
@@ -355,18 +390,14 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
 
     public static convertPrimaryKeyToDynamo<T extends typeof Entity>(this: T, primaryKey: TableT['primaryKey']): AttributeMap {
       const dynamoObject: GenericObject = {};
-      const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
-
-      Object.entries(primaryKey).forEach(([propertyName, value]) => {
-        const metadata = columns[propertyName];
-        const prefixedSuffixedValue = typeof value === 'string' ? addPrefixSuffix(metadata.prefix || '', value, metadata.suffix || '') : value;
-        dynamoObject[propertyName] = prefixedSuffixedValue;
-      });
+      const { partitionKey, sortKey } = getDynamodeStorage().getTableMetadata(this.tableName);
+      if (partitionKey) dynamoObject[partitionKey] = this.prefixSuffixValue(partitionKey as EntityKey<T>, primaryKey[partitionKey]);
+      if (sortKey) dynamoObject[sortKey] = this.prefixSuffixValue(sortKey as EntityKey<T>, primaryKey[sortKey]);
 
       return objectToDynamo(dynamoObject);
     }
 
-    public static buildGetProjectionExpression<T extends typeof Entity>(this: T, attributes?: Array<EntityKeys<T>>): BuildGetProjectionExpression {
+    public static buildGetProjectionExpression<T extends typeof Entity>(this: T, attributes?: Array<EntityKey<T>>): BuildGetProjectionExpression {
       const attributeNames: Record<string, string> = {};
       const projectionExpression = attributes?.map((attribute) => substituteAttributeName(attributeNames, String(attribute))).join(', ');
 
