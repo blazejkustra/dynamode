@@ -3,6 +3,7 @@ import { Constructor } from 'type-fest';
 export type IndexColumnType = StringConstructor | NumberConstructor;
 export type TimestampColumnType = StringConstructor | NumberConstructor;
 export type ColumnType = StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor | DateConstructor | ArrayConstructor | SetConstructor | MapConstructor;
+export type ColumnRole = 'partitionKey' | 'sortKey' | 'gsiPartitionKey' | 'gsiSortKey' | 'lsiSortKey' | 'createdAt' | 'updatedAt' | 'column';
 
 export type ColumnMetadata<Type> = {
   propertyName?: string;
@@ -10,18 +11,19 @@ export type ColumnMetadata<Type> = {
   prefix?: string;
   suffix?: string;
   type?: Type;
+  role?: ColumnRole;
 };
 
 export type GsiMetadata = {
   [indexName: string]: {
-    partitionKey?: ColumnMetadata<IndexColumnType>;
-    sortKey?: ColumnMetadata<IndexColumnType>;
+    partitionKey?: string;
+    sortKey?: string;
   };
 };
 
 export type LsiMetadata = {
   [indexName: string]: {
-    sortKey?: ColumnMetadata<IndexColumnType>;
+    sortKey?: string;
   };
 };
 
@@ -36,14 +38,14 @@ export type EntitiesMetadata = {
 
 export type TablesMetadata = {
   [tableName: string]: {
-    partitionKey?: ColumnMetadata<IndexColumnType>;
-    sortKey?: ColumnMetadata<IndexColumnType>;
+    partitionKey?: string;
+    sortKey?: string;
 
     globalSecondaryIndexes?: GsiMetadata;
     localSecondaryIndexes?: LsiMetadata;
 
-    createdAt?: ColumnMetadata<TimestampColumnType>;
-    updatedAt?: ColumnMetadata<TimestampColumnType>;
+    createdAt?: string;
+    updatedAt?: string;
 
     entities?: EntitiesMetadata;
     tableColumns?: { [columnName: string]: ColumnMetadata<ColumnType> };

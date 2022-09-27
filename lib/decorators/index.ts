@@ -1,14 +1,20 @@
 import { ColumnDecoratorOptions, PrimarySortKeyDecoratorOptions } from '@lib/decorators/types';
 import { getDynamodeStorage } from '@lib/Storage';
-import { ColumnType, IndexColumnType, TimestampColumnType } from '@lib/Storage/types';
+import { ColumnMetadata, ColumnType, IndexColumnType, TimestampColumnType } from '@lib/Storage/types';
 
 import { CreatedAtDecoratorOptions, GsiPartitionKeyDecoratorOptions, GsiSortKeyDecoratorOptions, lsiSortKeyDecoratorOptions, PrimaryPartitionKeyDecoratorOptions, UpdatedAtDecoratorOptions } from './types';
+
+// export function dependsOn<T>(value: T) {
+//   return (Entity: T, propertyName: string) => {
+//     console.log('test', value);
+//   };
+// }
 
 export function column(type: ColumnType, options?: ColumnDecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const columnMetadata = { propertyName, type, ...options };
+    const columnMetadata: ColumnMetadata<ColumnType> = { propertyName, type, role: 'column', ...options };
 
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, columnMetadata);
     getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
@@ -19,7 +25,7 @@ export function prefix(value: string) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const metadata = { prefix: value, propertyName };
+    const metadata: ColumnMetadata<ColumnType> = { prefix: value, propertyName };
 
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
   };
@@ -29,7 +35,7 @@ export function suffix(value: string) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const metadata = { suffix: value, propertyName };
+    const metadata: ColumnMetadata<ColumnType> = { suffix: value, propertyName };
 
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
   };
@@ -39,9 +45,9 @@ export function primaryPartitionKey(type: IndexColumnType, options?: PrimaryPart
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const metadata = { type, propertyName, ...options };
+    const metadata: ColumnMetadata<IndexColumnType> = { type, propertyName, role: 'partitionKey', ...options };
 
-    getDynamodeStorage().addPrimaryPartitionKeyMetadata(tableName, metadata);
+    getDynamodeStorage().addPrimaryPartitionKeyMetadata(tableName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
   };
 }
@@ -50,9 +56,9 @@ export function primarySortKey(type: IndexColumnType, options?: PrimarySortKeyDe
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const metadata = { type, propertyName, ...options };
+    const metadata: ColumnMetadata<IndexColumnType> = { type, propertyName, role: 'sortKey', ...options };
 
-    getDynamodeStorage().addPrimarySortKeyMetadata(tableName, metadata);
+    getDynamodeStorage().addPrimarySortKeyMetadata(tableName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
   };
 }
@@ -61,9 +67,9 @@ export function gsiPartitionKey(type: IndexColumnType, indexName: string, option
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const metadata = { type, propertyName, indexName, ...options };
+    const metadata: ColumnMetadata<IndexColumnType> = { type, propertyName, indexName, role: 'gsiPartitionKey', ...options };
 
-    getDynamodeStorage().addGsiPartitionKeyMetadata(tableName, indexName, metadata);
+    getDynamodeStorage().addGsiPartitionKeyMetadata(tableName, indexName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
   };
 }
@@ -72,9 +78,9 @@ export function gsiSortKey(type: IndexColumnType, indexName: string, options?: G
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const metadata = { type, propertyName, indexName, ...options };
+    const metadata: ColumnMetadata<IndexColumnType> = { type, propertyName, indexName, role: 'gsiSortKey', ...options };
 
-    getDynamodeStorage().addGsiSortKeyMetadata(tableName, indexName, metadata);
+    getDynamodeStorage().addGsiSortKeyMetadata(tableName, indexName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
   };
 }
@@ -83,9 +89,9 @@ export function lsiSortKey(type: IndexColumnType, indexName: string, options?: l
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const metadata = { type, propertyName, indexName, ...options };
+    const metadata: ColumnMetadata<IndexColumnType> = { type, propertyName, indexName, role: 'lsiSortKey', ...options };
 
-    getDynamodeStorage().addLsiSortKeyMetadata(tableName, indexName, metadata);
+    getDynamodeStorage().addLsiSortKeyMetadata(tableName, indexName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
   };
 }
@@ -94,9 +100,9 @@ export function createdAt(type: TimestampColumnType, options?: CreatedAtDecorato
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const metadata = { type, propertyName, ...options };
+    const metadata: ColumnMetadata<TimestampColumnType> = { type, propertyName, role: 'createdAt', ...options };
 
-    getDynamodeStorage().addCreatedAtMetadata(tableName, metadata);
+    getDynamodeStorage().addCreatedAtMetadata(tableName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
   };
 }
@@ -105,9 +111,9 @@ export function updatedAt(type: TimestampColumnType, options?: UpdatedAtDecorato
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const metadata = { type, propertyName, ...options };
+    const metadata: ColumnMetadata<TimestampColumnType> = { type, propertyName, role: 'createdAt', ...options };
 
-    getDynamodeStorage().addUpdatedAtMetadata(tableName, metadata);
+    getDynamodeStorage().addUpdatedAtMetadata(tableName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
   };
 }

@@ -1,4 +1,4 @@
-import { ColumnMetadata, ColumnType, EntityMetadata, IndexColumnType, TablesMetadata, TimestampColumnType } from '@lib/Storage/types';
+import { ColumnMetadata, ColumnType, EntityMetadata, TablesMetadata } from '@lib/Storage/types';
 import { mergeObjects } from '@lib/utils';
 
 declare global {
@@ -23,39 +23,39 @@ class DynamodeStorage {
     this.separator = separator;
   }
 
-  public addPrimaryPartitionKeyMetadata(tableName: string, value: ColumnMetadata<IndexColumnType>) {
+  public addPrimaryPartitionKeyMetadata(tableName: string, propertyName: string) {
     const table = this.getTableMetadata(tableName);
-    table.partitionKey = value;
+    table.partitionKey = propertyName;
   }
 
-  public addPrimarySortKeyMetadata(tableName: string, value: ColumnMetadata<IndexColumnType>) {
+  public addPrimarySortKeyMetadata(tableName: string, propertyName: string) {
     const table = this.getTableMetadata(tableName);
-    table.sortKey = value;
+    table.sortKey = propertyName;
   }
 
-  public addCreatedAtMetadata(tableName: string, value: ColumnMetadata<TimestampColumnType>) {
+  public addCreatedAtMetadata(tableName: string, propertyName: string) {
     const table = this.getTableMetadata(tableName);
-    table.createdAt = value;
+    table.createdAt = propertyName;
   }
 
-  public addUpdatedAtMetadata(tableName: string, value: ColumnMetadata<TimestampColumnType>) {
+  public addUpdatedAtMetadata(tableName: string, propertyName: string) {
     const table = this.getTableMetadata(tableName);
-    table.updatedAt = value;
+    table.updatedAt = propertyName;
   }
 
-  public addGsiPartitionKeyMetadata(tableName: string, indexName: string, value: ColumnMetadata<IndexColumnType>) {
+  public addGsiPartitionKeyMetadata(tableName: string, indexName: string, propertyName: string) {
     const globalSecondaryIndexes = this.getGsiMetadata(tableName, indexName);
-    globalSecondaryIndexes.partitionKey = value;
+    globalSecondaryIndexes.partitionKey = propertyName;
   }
 
-  public addGsiSortKeyMetadata(tableName: string, indexName: string, value: ColumnMetadata<IndexColumnType>) {
+  public addGsiSortKeyMetadata(tableName: string, indexName: string, propertyName: string) {
     const globalSecondaryIndexes = this.getGsiMetadata(tableName, indexName);
-    globalSecondaryIndexes.sortKey = value;
+    globalSecondaryIndexes.sortKey = propertyName;
   }
 
-  public addLsiSortKeyMetadata(tableName: string, indexName: string, value: ColumnMetadata<IndexColumnType>) {
+  public addLsiSortKeyMetadata(tableName: string, indexName: string, propertyName: string) {
     const localSecondaryIndexes = this.getLsiMetadata(tableName, indexName);
-    localSecondaryIndexes.sortKey = value;
+    localSecondaryIndexes.sortKey = propertyName;
   }
 
   public addEntityConstructor(tableName: string, entityName: string, value: EntityMetadata['Constructor']) {
