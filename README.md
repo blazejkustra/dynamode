@@ -22,7 +22,7 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 
 ### Scan
 
-* [ ] implement it
+* [X] implement it
 
 ### Transaction
 
@@ -36,6 +36,7 @@ No documentation yet, reach out to me if you are interested -> https://github.co
 * [ ] Add tests XD gl
 * [ ] Improve export system for entire lib
 * [ ] Refactor some classes and use private properties/functions 
+* [ ] Merge together Query Scan and Condition classes to share some functions implementation
 
 ### less important todos
 
