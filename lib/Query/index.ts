@@ -51,10 +51,6 @@ export class Query<T extends EntityClass<T>> {
     })();
   }
 
-  public all(): Promise<QueryRunOutput<T>> {
-    return {} as Promise<QueryRunOutput<T>>;
-  }
-
   public partitionKey<K extends EntityKey<T>>(key: K, value: EntityValue<T, K>) {
     this._eq(this.keyConditions, key, value);
     const columns = getDynamodeStorage().getEntityColumns(this.entity.tableName, this.entity.name);
