@@ -29,12 +29,12 @@ import {
   EntityKey,
   EntityPutOptions,
   EntityUpdateOptions,
-  EntityValue,
   UpdateProps,
 } from '@Entity/types';
 import { Condition } from '@lib/Condition';
 import { column } from '@lib/decorators';
 import { Query } from '@lib/Query';
+import { Scan } from '@lib/Scan';
 import { getDynamodeStorage } from '@lib/Storage';
 import { Table as BaseTable } from '@lib/Table';
 import { AttributeMap, buildExpression, ConditionExpression, DefaultError, fromDynamo, GenericObject, isNotEmpty, isNotEmptyArray, NotFoundError, objectToDynamo, substituteAttributeName } from '@lib/utils';
@@ -48,8 +48,12 @@ export function Entity<TableT extends ReturnType<typeof BaseTable>>(Table: Table
       this.dynamodeObject = args[0]?.dynamodeObject || this.constructor.name;
     }
 
-    public static query<T extends typeof Entity, K extends EntityKey<T>>(this: T, key: K, value: EntityValue<T, K>): InstanceType<typeof Query<T, K>> {
-      return new Query(this, key, value);
+    public static query<T extends typeof Entity>(this: T): Query<T> {
+      return new Query(this);
+    }
+
+    public static scan<T extends typeof Entity>(this: T): Scan<T> {
+      return new Scan(this);
     }
 
     public static condition<T extends typeof Entity>(this: T): Condition<T> {
