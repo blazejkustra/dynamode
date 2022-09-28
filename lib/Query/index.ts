@@ -2,37 +2,30 @@ import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
 import { AttributeType, Operator } from '@lib/Condition/types';
 import { EntityClass, EntityKey, EntityValue } from '@lib/Entity/types';
-import { BuildQueryConditionExpression, QueryExecOptions, QueryExecOutput } from '@lib/Query/types';
+import { BuildQueryConditionExpression, QueryRunOptions, QueryRunOutput } from '@lib/Query/types';
 import { getDynamodeStorage } from '@lib/Storage';
 import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, isNotEmpty } from '@lib/utils';
 
-export class Query<T extends EntityClass<T>, K extends EntityKey<T>> {
+export class Query<T extends EntityClass<T>> {
   private entity: T;
   private queryInput: QueryInput;
   private keyConditions: ConditionExpression[] = [];
   private filterConditions: ConditionExpression[] = [];
   private operator = Operator.AND;
 
-  constructor(entity: T, key: K, value: EntityValue<T, K>) {
+  constructor(entity: T) {
     this.entity = entity;
-    this._eq(this.keyConditions, key, value);
     this.queryInput = {
       TableName: entity.tableName,
     };
-
-    const columns = getDynamodeStorage().getEntityColumns(this.entity.tableName, this.entity.name);
-    const indexName = columns[String(key)].indexName;
-    if (indexName) {
-      this.queryInput.IndexName = indexName;
-    }
   }
 
-  public exec(): Promise<QueryExecOutput<T>>;
-  public exec(options: Omit<QueryExecOptions, 'return'>): Promise<QueryExecOutput<T>>;
-  public exec(options: QueryExecOptions & { return: 'default' }): Promise<QueryExecOutput<T>>;
-  public exec(options: QueryExecOptions & { return: 'output' }): Promise<QueryCommandOutput>;
-  public exec(options: QueryExecOptions & { return: 'input' }): QueryInput;
-  public exec(options?: QueryExecOptions): Promise<QueryExecOutput<T> | QueryCommandOutput> | QueryInput {
+  public run(): Promise<QueryRunOutput<T>>;
+  public run(options: Omit<QueryRunOptions, 'return'>): Promise<QueryRunOutput<T>>;
+  public run(options: QueryRunOptions & { return: 'default' }): Promise<QueryRunOutput<T>>;
+  public run(options: QueryRunOptions & { return: 'output' }): Promise<QueryCommandOutput>;
+  public run(options: QueryRunOptions & { return: 'input' }): QueryInput;
+  public run(options?: QueryRunOptions): Promise<QueryRunOutput<T> | QueryCommandOutput> | QueryInput {
     this.buildQueryInput(options?.extraInput);
     this.validateQueryInput();
 
@@ -58,8 +51,16 @@ export class Query<T extends EntityClass<T>, K extends EntityKey<T>> {
     })();
   }
 
-  public all(): Promise<QueryExecOutput<T>> {
-    return {} as Promise<QueryExecOutput<T>>;
+  public all(): Promise<QueryRunOutput<T>> {
+    return {} as Promise<QueryRunOutput<T>>;
+  }
+
+  public partitionKey<K extends EntityKey<T>>(key: K, value: EntityValue<T, K>) {
+    this._eq(this.keyConditions, key, value);
+    const columns = getDynamodeStorage().getEntityColumns(this.entity.tableName, this.entity.name);
+    const indexName = columns[String(key)].indexName;
+    if (indexName) this.queryInput.IndexName = indexName;
+    return this;
   }
 
   public sortKey<K extends EntityKey<T>>(key: K) {
@@ -67,9 +68,7 @@ export class Query<T extends EntityClass<T>, K extends EntityKey<T>> {
 
     const columns = getDynamodeStorage().getEntityColumns(this.entity.tableName, this.entity.name);
     const indexName = columns[String(key)].indexName;
-    if (indexName) {
-      this.queryInput.IndexName = indexName;
-    }
+    if (indexName) this.queryInput.IndexName = indexName;
 
     return {
       eq: (value: EntityValue<T, K>) => this._eq(this.keyConditions, key, value),
@@ -90,65 +89,65 @@ export class Query<T extends EntityClass<T>, K extends EntityKey<T>> {
     this.operator = Operator.AND;
 
     return {
-      eq: (value: EntityValue<T, K>): Query<T, K> => this._eq(this.filterConditions, key, value),
-      ne: (value: EntityValue<T, K>): Query<T, K> => this._ne(this.filterConditions, key, value),
-      lt: (value: EntityValue<T, K>): Query<T, K> => this._lt(this.filterConditions, key, value),
-      le: (value: EntityValue<T, K>): Query<T, K> => this._le(this.filterConditions, key, value),
-      gt: (value: EntityValue<T, K>): Query<T, K> => this._gt(this.filterConditions, key, value),
-      ge: (value: EntityValue<T, K>): Query<T, K> => this._ge(this.filterConditions, key, value),
-      beginsWith: (value: EntityValue<T, K>): Query<T, K> => this._beginsWith(this.filterConditions, key, value),
-      between: (value1: EntityValue<T, K>, value2: EntityValue<T, K>): Query<T, K> => this._between(this.filterConditions, key, value1, value2),
-      contains: (value: EntityValue<T, K>): Query<T, K> => {
+      eq: (value: EntityValue<T, K>): Query<T> => this._eq(this.filterConditions, key, value),
+      ne: (value: EntityValue<T, K>): Query<T> => this._ne(this.filterConditions, key, value),
+      lt: (value: EntityValue<T, K>): Query<T> => this._lt(this.filterConditions, key, value),
+      le: (value: EntityValue<T, K>): Query<T> => this._le(this.filterConditions, key, value),
+      gt: (value: EntityValue<T, K>): Query<T> => this._gt(this.filterConditions, key, value),
+      ge: (value: EntityValue<T, K>): Query<T> => this._ge(this.filterConditions, key, value),
+      beginsWith: (value: EntityValue<T, K>): Query<T> => this._beginsWith(this.filterConditions, key, value),
+      between: (value1: EntityValue<T, K>, value2: EntityValue<T, K>): Query<T> => this._between(this.filterConditions, key, value1, value2),
+      contains: (value: EntityValue<T, K>): Query<T> => {
         this.filterConditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: `contains($K, $V)` });
         return this;
       },
-      in: (values: EntityValue<T, K>[]): Query<T, K> => {
+      in: (values: EntityValue<T, K>[]): Query<T> => {
         const processedValues = values.map((value) => this.entity.prefixSuffixValue(key, value));
         this.filterConditions.push({ keys: [String(key)], values: processedValues, expr: `$K IN ${Array(values.length).fill('$V').join(', ')}` });
         return this;
       },
-      type: (value: AttributeType): Query<T, K> => {
+      type: (value: AttributeType): Query<T> => {
         this.filterConditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'attribute_type($K, $V)' });
         return this;
       },
-      exists: (): Query<T, K> => {
+      exists: (): Query<T> => {
         this.filterConditions.push({ keys: [String(key)], expr: 'attribute_exists($K)' });
         return this;
       },
       size: () => ({
-        eq: (value: EntityValue<T, K>): Query<T, K> => {
+        eq: (value: EntityValue<T, K>): Query<T> => {
           this.filterConditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) = $V' });
           return this;
         },
-        ne: (value: EntityValue<T, K>): Query<T, K> => {
+        ne: (value: EntityValue<T, K>): Query<T> => {
           this.filterConditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) <> $V' });
           return this;
         },
-        lt: (value: EntityValue<T, K>): Query<T, K> => {
+        lt: (value: EntityValue<T, K>): Query<T> => {
           this.filterConditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) < $V' });
           return this;
         },
-        le: (value: EntityValue<T, K>): Query<T, K> => {
+        le: (value: EntityValue<T, K>): Query<T> => {
           this.filterConditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) <= $V' });
           return this;
         },
-        gt: (value: EntityValue<T, K>): Query<T, K> => {
+        gt: (value: EntityValue<T, K>): Query<T> => {
           this.filterConditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) > $V' });
           return this;
         },
-        ge: (value: EntityValue<T, K>): Query<T, K> => {
+        ge: (value: EntityValue<T, K>): Query<T> => {
           this.filterConditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) >= $V' });
           return this;
         },
       }),
       not: () => ({
-        eq: (value: EntityValue<T, K>): Query<T, K> => this._ne(this.filterConditions, key, value),
-        ne: (value: EntityValue<T, K>): Query<T, K> => this._eq(this.filterConditions, key, value),
-        lt: (value: EntityValue<T, K>): Query<T, K> => this._ge(this.filterConditions, key, value),
-        le: (value: EntityValue<T, K>): Query<T, K> => this._gt(this.filterConditions, key, value),
-        gt: (value: EntityValue<T, K>): Query<T, K> => this._le(this.filterConditions, key, value),
-        ge: (value: EntityValue<T, K>): Query<T, K> => this._lt(this.filterConditions, key, value),
-        contains: (value: EntityValue<T, K>): Query<T, K> => {
+        eq: (value: EntityValue<T, K>): Query<T> => this._ne(this.filterConditions, key, value),
+        ne: (value: EntityValue<T, K>): Query<T> => this._eq(this.filterConditions, key, value),
+        lt: (value: EntityValue<T, K>): Query<T> => this._ge(this.filterConditions, key, value),
+        le: (value: EntityValue<T, K>): Query<T> => this._gt(this.filterConditions, key, value),
+        gt: (value: EntityValue<T, K>): Query<T> => this._le(this.filterConditions, key, value),
+        ge: (value: EntityValue<T, K>): Query<T> => this._lt(this.filterConditions, key, value),
+        contains: (value: EntityValue<T, K>): Query<T> => {
           this.filterConditions.push({
             keys: [String(key)],
             values: [this.entity.prefixSuffixValue(key, value)],
@@ -156,12 +155,12 @@ export class Query<T extends EntityClass<T>, K extends EntityKey<T>> {
           });
           return this;
         },
-        in: (values: Array<EntityValue<T, K>>): Query<T, K> => {
+        in: (values: Array<EntityValue<T, K>>): Query<T> => {
           const processedValues = values.map((value) => this.entity.prefixSuffixValue(key, value));
           this.filterConditions.push({ keys: [String(key)], values: processedValues, expr: `NOT ($K IN ${Array(values.length).fill('$V').join(', ')})` });
           return this;
         },
-        exists: (): Query<T, K> => {
+        exists: (): Query<T> => {
           this.filterConditions.push({ keys: [String(key)], expr: 'attribute_not_exists($K)' });
           return this;
         },
@@ -239,42 +238,42 @@ export class Query<T extends EntityClass<T>, K extends EntityKey<T>> {
     return this;
   }
 
-  private _eq<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T, K> {
+  private _eq<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T> {
     conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: '$K = $V' });
     return this;
   }
 
-  private _ne<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T, K> {
+  private _ne<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T> {
     conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: '$K <> $V' });
     return this;
   }
 
-  private _lt<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T, K> {
+  private _lt<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T> {
     conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: '$K < $V' });
     return this;
   }
 
-  private _le<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T, K> {
+  private _le<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T> {
     conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: '$K <= $V' });
     return this;
   }
 
-  private _gt<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T, K> {
+  private _gt<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T> {
     conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: '$K > $V' });
     return this;
   }
 
-  private _ge<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T, K> {
+  private _ge<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T> {
     conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: '$K >= $V' });
     return this;
   }
 
-  private _beginsWith<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T, K> {
+  private _beginsWith<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Query<T> {
     conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'begins_with($K, $V)' });
     return this;
   }
 
-  private _between<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, v1: EntityValue<T, K>, v2: EntityValue<T, K>): Query<T, K> {
+  private _between<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, v1: EntityValue<T, K>, v2: EntityValue<T, K>): Query<T> {
     conditions.push({ keys: [String(key), String(key)], values: [this.entity.prefixSuffixValue(key, v1), this.entity.prefixSuffixValue(key, v2)], expr: '$K BETWEEN $V AND $V' });
     return this;
   }
