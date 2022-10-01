@@ -77,7 +77,7 @@ module.exports = {
   customFields: {
     shortTitle: 'Dynamode',
   },
-  url: 'https://github.com',
+  url: 'https://blazejkustra.github.io',
   organizationName: 'blazejkustra',
   projectName: 'dynamode',
   deploymentBranch: 'gh-pages',
