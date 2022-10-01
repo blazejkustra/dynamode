@@ -69,8 +69,7 @@ In swizzled components look for "SWM -" string to see our modifications
 
 module.exports = {
   title: 'Dynamode',
-  tagline: "Modeling tool for Amazon's DynamoDB",
-  baseUrl: '/dynamode/',
+  tagline: "Modeling tool for Amazon's DynamoDB - title",
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/fav_192x192.png',
@@ -78,6 +77,7 @@ module.exports = {
     shortTitle: 'Dynamode',
   },
   url: 'https://blazejkustra.github.io',
+  baseUrl: '/dynamode/',
   organizationName: 'blazejkustra',
   projectName: 'dynamode',
   deploymentBranch: 'gh-pages',
