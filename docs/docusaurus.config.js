@@ -69,7 +69,7 @@ In swizzled components look for "SWM -" string to see our modifications
 
 module.exports = {
   title: 'Dynamode',
-  tagline: "Modeling tool for Amazon's DynamoDB - title",
+  tagline: "Modeling tool for Amazon's DynamoDB",
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/fav_192x192.png',
@@ -93,10 +93,9 @@ module.exports = {
       disableSwitch: true,
     },
     navbar: {
-      title: 'Dynamode',
       logo: {
         alt: 'Logo',
-        src: 'img/fav_192x192.png',
+        src: 'img/dynamode-logo.png',
       },
       items: [
         {

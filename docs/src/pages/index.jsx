@@ -10,7 +10,7 @@ import styles from './styles.module.css';
 const heroImageUrl = 'img/dynamodb-logo.svg';
 const sectionImageUrl = 'img/engine_frame.svg';
 
-const bareDdbCode = `DynamoDB.getItem({
+const bareDdbCode = `DynamoDB.get({
   TableName: 'users',
   Key: {
     PK: { S: 'blazejkustra' },
