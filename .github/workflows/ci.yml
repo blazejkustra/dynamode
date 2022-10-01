@@ -1,8 +1,9 @@
-name: Publish to NPM
+name: CI
 
 on:
-  release:
-    types: [created]
+  push:
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
   build:
@@ -21,9 +22,7 @@ jobs:
         run: npm run build
       - name: Lint 🧹
         run: npm run lint
-      - name: Coverage 🧪
+      - name: Tests 🧪
+        run: npm run test
+      - name: Coverage 📝
         run: npm run coverage
-      - name: Publish package on NPM 📦
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

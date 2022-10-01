@@ -16,6 +16,7 @@
     "node": true
   },
   "rules": {
+    "@typescript-eslint/no-explicit-any": ["off"],
     "import/no-unresolved": "error",
     "simple-import-sort/imports": [
       "error",
