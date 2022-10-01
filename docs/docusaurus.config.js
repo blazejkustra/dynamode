@@ -70,16 +70,18 @@ In swizzled components look for "SWM -" string to see our modifications
 module.exports = {
   title: 'Dynamode',
   tagline: "Modeling tool for Amazon's DynamoDB",
-  url: 'https://swmansion.com',
   baseUrl: '/dynamode/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/fav_192x192.png',
-  organizationName: 'software-mansion',
   customFields: {
     shortTitle: 'Dynamode',
   },
+  url: 'https://github.com',
+  organizationName: 'blazejkustra',
   projectName: 'dynamode',
+  deploymentBranch: 'gh-pages',
+  trailingSlash: false,
   themeConfig: {
     algolia: {
       appId: 'CHLGM6BFRG',
