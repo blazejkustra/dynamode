@@ -1,8 +1,6 @@
-import { ColumnDecoratorOptions, PrimarySortKeyDecoratorOptions } from '@lib/decorators/types';
+import { DecoratorOptions } from '@lib/decorators/types';
 import { getDynamodeStorage } from '@lib/Storage';
 import { ColumnMetadata, ColumnType, IndexColumnType, TimestampColumnType } from '@lib/Storage/types';
-
-import { CreatedAtDecoratorOptions, GsiPartitionKeyDecoratorOptions, GsiSortKeyDecoratorOptions, lsiSortKeyDecoratorOptions, PrimaryPartitionKeyDecoratorOptions, UpdatedAtDecoratorOptions } from './types';
 
 // export function dependsOn<T>(value: T) {
 //   return (Entity: T, propertyName: string) => {
@@ -10,7 +8,29 @@ import { CreatedAtDecoratorOptions, GsiPartitionKeyDecoratorOptions, GsiSortKeyD
 //   };
 // }
 
-export function column(type: ColumnType, options?: ColumnDecoratorOptions) {
+export function prefix(value: string) {
+  return <T extends Record<K, string>, K extends string>(Entity: T, propertyName: K) => {
+    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
+    const entityName = Entity.constructor.name;
+    const metadata: ColumnMetadata<ColumnType> = { prefix: value, propertyName };
+
+    getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
+  };
+}
+
+export function suffix(value: string) {
+  return <T extends Record<K, string>, K extends string>(Entity: T, propertyName: K) => {
+    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
+    const entityName = Entity.constructor.name;
+    const metadata: ColumnMetadata<ColumnType> = { suffix: value, propertyName };
+
+    getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
+  };
+}
+
+export function column(type: StringConstructor, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
+export function column(type: Exclude<ColumnType, StringConstructor>): (Entity: any, propertyName: string) => void;
+export function column(type: ColumnType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
@@ -21,27 +41,9 @@ export function column(type: ColumnType, options?: ColumnDecoratorOptions) {
   };
 }
 
-export function prefix(value: string) {
-  return (Entity: any, propertyName: string) => {
-    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
-    const entityName = Entity.constructor.name;
-    const metadata: ColumnMetadata<ColumnType> = { prefix: value, propertyName };
-
-    getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
-  };
-}
-
-export function suffix(value: string) {
-  return (Entity: any, propertyName: string) => {
-    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
-    const entityName = Entity.constructor.name;
-    const metadata: ColumnMetadata<ColumnType> = { suffix: value, propertyName };
-
-    getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
-  };
-}
-
-export function primaryPartitionKey(type: IndexColumnType, options?: PrimaryPartitionKeyDecoratorOptions) {
+export function primaryPartitionKey(type: StringConstructor, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
+export function primaryPartitionKey(type: Exclude<IndexColumnType, StringConstructor>): (Entity: any, propertyName: string) => void;
+export function primaryPartitionKey(type: IndexColumnType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
@@ -52,7 +54,9 @@ export function primaryPartitionKey(type: IndexColumnType, options?: PrimaryPart
   };
 }
 
-export function primarySortKey(type: IndexColumnType, options?: PrimarySortKeyDecoratorOptions) {
+export function primarySortKey(type: StringConstructor, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
+export function primarySortKey(type: Exclude<IndexColumnType, StringConstructor>): (Entity: any, propertyName: string) => void;
+export function primarySortKey(type: IndexColumnType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
@@ -63,7 +67,9 @@ export function primarySortKey(type: IndexColumnType, options?: PrimarySortKeyDe
   };
 }
 
-export function gsiPartitionKey(type: IndexColumnType, indexName: string, options?: GsiPartitionKeyDecoratorOptions) {
+export function gsiPartitionKey(type: StringConstructor, indexName: string, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
+export function gsiPartitionKey(type: Exclude<IndexColumnType, StringConstructor>, indexName: string): (Entity: any, propertyName: string) => void;
+export function gsiPartitionKey(type: IndexColumnType, indexName: string, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
@@ -74,7 +80,9 @@ export function gsiPartitionKey(type: IndexColumnType, indexName: string, option
   };
 }
 
-export function gsiSortKey(type: IndexColumnType, indexName: string, options?: GsiSortKeyDecoratorOptions) {
+export function gsiSortKey(type: StringConstructor, indexName: string, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
+export function gsiSortKey(type: Exclude<IndexColumnType, StringConstructor>, indexName: string): (Entity: any, propertyName: string) => void;
+export function gsiSortKey(type: IndexColumnType, indexName: string, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
@@ -85,7 +93,9 @@ export function gsiSortKey(type: IndexColumnType, indexName: string, options?: G
   };
 }
 
-export function lsiSortKey(type: IndexColumnType, indexName: string, options?: lsiSortKeyDecoratorOptions) {
+export function lsiSortKey(type: StringConstructor, indexName: string, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
+export function lsiSortKey(type: Exclude<IndexColumnType, StringConstructor>, indexName: string): (Entity: any, propertyName: string) => void;
+export function lsiSortKey(type: IndexColumnType, indexName: string, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
@@ -96,7 +106,9 @@ export function lsiSortKey(type: IndexColumnType, indexName: string, options?: l
   };
 }
 
-export function createdAt(type: TimestampColumnType, options?: CreatedAtDecoratorOptions) {
+export function createdAt(type: StringConstructor, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
+export function createdAt(type: Exclude<TimestampColumnType, StringConstructor>): (Entity: any, propertyName: string) => void;
+export function createdAt(type: TimestampColumnType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
@@ -107,7 +119,9 @@ export function createdAt(type: TimestampColumnType, options?: CreatedAtDecorato
   };
 }
 
-export function updatedAt(type: TimestampColumnType, options?: UpdatedAtDecoratorOptions) {
+export function updatedAt(type: StringConstructor, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
+export function updatedAt(type: Exclude<TimestampColumnType, StringConstructor>): (Entity: any, propertyName: string) => void;
+export function updatedAt(type: TimestampColumnType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
