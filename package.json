@@ -14,8 +14,7 @@
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "lint": "eslint . --ext .ts,.js --max-warnings 0",
-    "lint:fix": "npm run lint -- --fix",
-    "prepare": "npm run build"
+    "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.131.0",
