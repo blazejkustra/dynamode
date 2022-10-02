@@ -1,7 +1,7 @@
 import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
 import { AttributeType, Operator } from '@lib/Condition/types';
-import { EntityClass, EntityKey, EntityValue } from '@lib/Entity/types';
+import { EntityClass, EntityKey, EntityPrimaryKey, EntityValue } from '@lib/Entity/types';
 import { BuildQueryConditionExpression, QueryRunOptions, QueryRunOutput } from '@lib/Query/types';
 import { getDynamodeStorage } from '@lib/Storage';
 import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, isNotEmpty } from '@lib/utils';
@@ -205,7 +205,7 @@ export class Query<T extends EntityClass<T>> {
     return this;
   }
 
-  public startAt(key?: T['primaryKey']) {
+  public startAt(key?: EntityPrimaryKey<T>) {
     if (key) this.queryInput.ExclusiveStartKey = this.entity.convertPrimaryKeyToDynamo(key);
     return this;
   }

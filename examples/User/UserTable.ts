@@ -5,7 +5,7 @@ import { Optional } from '../../dist/utils/types';
 
 import { ddb } from './setup';
 
-export type UserTablePrimaryKey = { PK: string; SK: string };
+export type UserTablePrimaryKey = 'PK' | 'SK';
 export type UserTableProps = Optional<UserTable, 'createdAt' | 'updatedAt'>;
 
 const tableName = 'users';

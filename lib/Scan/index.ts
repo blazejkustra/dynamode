@@ -1,7 +1,7 @@
 import { ScanCommandOutput, ScanInput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
 import { AttributeType, Operator } from '@lib/Condition/types';
-import { EntityClass, EntityKey, EntityValue } from '@lib/Entity/types';
+import { EntityClass, EntityKey, EntityPrimaryKey, EntityValue } from '@lib/Entity/types';
 import { BuildScanConditionExpression, ScanRunOptions, ScanRunOutput } from '@lib/Scan/types';
 import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, isNotEmpty } from '@lib/utils';
 
@@ -176,7 +176,7 @@ export class Scan<T extends EntityClass<T>> {
     return this;
   }
 
-  public startAt(key?: T['primaryKey']) {
+  public startAt(key?: EntityPrimaryKey<T>) {
     if (key) this.scanInput.ExclusiveStartKey = this.entity.convertPrimaryKeyToDynamo(key);
     return this;
   }

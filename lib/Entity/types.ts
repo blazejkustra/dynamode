@@ -13,13 +13,15 @@ export type EntityValue<T extends EntityClass<T>, K extends EntityKey<T>> = Enti
 export type EntityClass<T extends EntityClass<T>> = Class<unknown> & {
   ddb: DynamoDB;
   tableName: string;
-  primaryKey: Record<string, string | number>;
+  PrimaryKey: string;
   truncateValue: (key: EntityKey<T>, value: unknown) => unknown;
   prefixSuffixValue: (key: EntityKey<T>, value: unknown) => unknown;
   convertEntityFromDynamo: (item: AttributeMap) => InstanceType<T>;
-  convertPrimaryKeyFromDynamo: (item: AttributeMap) => T['primaryKey'];
-  convertPrimaryKeyToDynamo: (primaryKey: T['primaryKey']) => AttributeMap;
+  convertPrimaryKeyFromDynamo: (item: AttributeMap) => EntityPrimaryKey<T>;
+  convertPrimaryKeyToDynamo: (primaryKey: EntityPrimaryKey<T>) => AttributeMap;
 };
+
+export type EntityPrimaryKey<T extends EntityClass<T>> = Pick<InstanceType<T>, Extract<keyof InstanceType<T>, T['PrimaryKey']>>;
 
 // Entity.get
 

@@ -4,9 +4,9 @@ interface TableProps {
   tableName: string;
 }
 
-export function Table<PrimaryKey extends Record<string, string | number>>({ ddb, tableName }: TableProps) {
+export function Table<PrimaryKeyType extends string>({ ddb, tableName }: TableProps) {
   return class Table {
-    public static primaryKey: PrimaryKey;
+    public static PrimaryKey: PrimaryKeyType;
 
     public static ddb = ddb;
     public static tableName = tableName;
