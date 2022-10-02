@@ -50,10 +50,13 @@ export type UpdateProps<T extends EntityClass<T>> = RequireAtLeastOne<{
   remove?: Array<EntityKey<T>>;
 }>;
 
+export type ReturnValues = 'none' | 'allOld' | 'allNew' | 'updatedOld' | 'updatedNew';
+
 export interface EntityUpdateOptions<T extends EntityClass<T>> {
   extraInput?: Partial<UpdateItemCommandInput>;
   return?: ReturnOption;
   condition?: Condition<T>;
+  returnValues?: ReturnValues;
 }
 
 export interface BuildUpdateConditionExpression {
@@ -75,14 +78,6 @@ export interface BuildPutConditionExpression {
   ExpressionAttributeNames?: Record<string, string>;
   ExpressionAttributeValues?: AttributeMap;
   ConditionExpression?: string;
-}
-
-// Entity.create
-
-export interface EntityCreateOptions<T extends EntityClass<T>> {
-  extraInput?: Partial<PutItemCommandInput>;
-  return?: ReturnOption;
-  condition?: Condition<T>;
 }
 
 // Entity.delete

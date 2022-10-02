@@ -66,7 +66,6 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 ### Global Todo
 
-* [ ] Make ReturnValues adjustable in Entity update method
 * [ ] Capture dynamoDB errors and make it easier to work with
 * [ ] Add tests XD gl
 * [ ] Improve export system for entire lib
