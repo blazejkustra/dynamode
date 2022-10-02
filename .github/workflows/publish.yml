@@ -21,8 +21,10 @@ jobs:
         run: npm run build
       - name: Lint 🧹
         run: npm run lint
-      - name: Coverage 🧪
-        run: npm run coverage
+      # - name: Coverage 🧪
+      #   run: npm run coverage
+      - name: Tests 🧪
+        run: npm run test
       - name: Publish package on NPM 📦
         run: npm publish
         env:
