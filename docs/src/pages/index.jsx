@@ -18,7 +18,7 @@ const bareDdbCode = `DynamoDB.get({
   },
 });`
 
-const dynamodeCode = `const user = await User.get({ pk: 'blazejkustra', sk: 'nwjła7pa31e2' });`
+const dynamodeCode = `const user = await User.getItem({ pk: 'blazejkustra', sk: 'nwjła7pa31e2' });`
 
 const boxes = [
   {
