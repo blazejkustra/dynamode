@@ -1,8 +1,26 @@
-import { Class, RequireAtLeastOne } from 'type-fest';
+import { Class, RequireAtLeastOne, ValueOf } from 'type-fest';
 
 import { BatchGetItemCommandInput, BatchWriteItemCommandInput, DeleteItemCommandInput, DynamoDB, GetItemCommandInput, PutItemCommandInput, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
 import { AttributeMap, Flatten, PickByType } from '@lib/utils';
+
+export type EntityDynamoKeys = {
+  partitionKey: string;
+  sortKey?: string;
+  indexes: {
+    [key: string]:
+      | {
+          partitionKey: string;
+          sortKey: string;
+        }
+      | {
+          partitionKey: string;
+        }
+      | {
+          sortKey: string;
+        };
+  };
+};
 
 export type ReturnOption = 'default' | 'input' | 'output';
 export type ExcludeFromEntity = Date | Set<unknown> | Map<unknown, unknown>;
@@ -13,7 +31,7 @@ export type EntityValue<T extends EntityClass<T>, K extends EntityKey<T>> = Enti
 export type EntityClass<T extends EntityClass<T>> = Class<unknown> & {
   ddb: DynamoDB;
   tableName: string;
-  PrimaryKey: string;
+  _entityKeys: EntityDynamoKeys;
   truncateValue: (key: EntityKey<T>, value: unknown) => unknown;
   prefixSuffixValue: (key: EntityKey<T>, value: unknown) => unknown;
   convertEntityFromDynamo: (item: AttributeMap) => InstanceType<T>;
@@ -21,7 +39,7 @@ export type EntityClass<T extends EntityClass<T>> = Class<unknown> & {
   convertPrimaryKeyToDynamo: (primaryKey: EntityPrimaryKey<T>) => AttributeMap;
 };
 
-export type EntityPrimaryKey<T extends EntityClass<T>> = Pick<InstanceType<T>, Extract<keyof InstanceType<T>, T['PrimaryKey']>>;
+export type EntityPrimaryKey<T extends EntityClass<T>> = Pick<InstanceType<T>, Extract<keyof InstanceType<T>, ValueOf<T['_entityKeys'], 'partitionKey' | 'sortKey'>>>;
 
 // Entity.get
 

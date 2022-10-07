@@ -13,7 +13,6 @@ async function put() {
       number: 10,
       map: new Map<string, string>([['1', 'test']]),
       boolean: true,
-      username: 'username2',
     }),
   );
 

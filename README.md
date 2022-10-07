@@ -81,3 +81,4 @@ Dynamode is licensed under [The MIT License](LICENSE).
 * [ ] Add logging possibility
 * [ ] Add dynamoDB streams support
 * [ ] Add PartiQL support
+* [ ] Primary key might be a reserved word

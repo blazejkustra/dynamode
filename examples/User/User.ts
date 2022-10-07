@@ -1,8 +1,8 @@
 import { column, prefix } from '../../dist/decorators';
 
-import { UserTableEntity, UserTableEntityProps } from './UserTable';
+import { UserTable, UserTableProps } from './UserTable';
 
-export type UserProps = UserTableEntityProps & {
+export type UserProps = UserTableProps & {
   string: string;
   object: {
     optional?: string;
@@ -16,7 +16,7 @@ export type UserProps = UserTableEntityProps & {
 };
 
 const USER_OBJECT = 'user';
-export class User extends UserTableEntity {
+export class User extends UserTable {
   @prefix(USER_OBJECT)
   PK: string;
 
@@ -47,6 +47,8 @@ export class User extends UserTableEntity {
   @column(Boolean)
   boolean: boolean;
 
+  unsaved: string;
+
   constructor(props: UserProps) {
     super(props);
     // GSI_1_INDEX: Users sorted
@@ -60,5 +62,14 @@ export class User extends UserTableEntity {
     this.set = props.set;
     this.number = props.number;
     this.boolean = props.boolean;
+    this.unsaved = 'unsaved';
+  }
+
+  public method() {
+    console.log('method');
+  }
+
+  public staticMethod() {
+    console.log('staticMethod');
   }
 }

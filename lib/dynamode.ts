@@ -4,7 +4,6 @@ import { Entity } from '@lib/Entity';
 import { Query } from '@lib/Query';
 import { Scan } from '@lib/Scan';
 import { Settings } from '@lib/Settings';
-import { Table } from '@lib/Table';
 import { Transaction } from '@lib/Transaction';
 
 ///// --- https://github.com/aws/aws-sdk-js-v3/issues/2125 ---
@@ -45,9 +44,6 @@ export {
 
   //Settings
   settings,
-
-  //Table
-  Table,
 
   //Transaction
   Transaction,

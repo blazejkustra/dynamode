@@ -1,15 +1,37 @@
-import { column, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, primaryPartitionKey, primarySortKey, updatedAt } from '../../dist/decorators';
+import { createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, primaryPartitionKey, primarySortKey, updatedAt } from '../../dist/decorators';
 import { Entity } from '../../dist/Entity';
-import { Table } from '../../dist/Table';
-import { Optional } from '../../dist/utils/types';
 
 import { ddb } from './setup';
 
-export type UserTablePrimaryKey = 'PK' | 'SK';
-export type UserTableProps = Optional<UserTable, 'createdAt' | 'updatedAt'>;
+const USERS_TABLE = 'users';
+// @tableName(USERS_TABLE)
+// @dynamoInstance(ddb)
 
-const tableName = 'users';
-export class UserTable extends Table<UserTablePrimaryKey>({ ddb, tableName }) {
+type UserTableKeys = {
+  partitionKey: 'PK';
+  sortKey: 'SK';
+  indexes: {
+    GSI_1_NAME: {
+      partitionKey: 'GSI_1_PK';
+      sortKey: 'LSI_1_SK';
+    };
+    LSI_1_NAME: {
+      sortKey: 'LSI_1_SK';
+    };
+  };
+};
+
+export type UserTableProps = {
+  PK: string;
+  SK: string;
+  GSI_1_PK?: string;
+  GSI_1_SK?: number;
+  LSI_1_SK?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+export class UserTable extends Entity<UserTableKeys>({ ddb, tableName: USERS_TABLE }) {
   // Primary key
   @primaryPartitionKey(String)
   PK: string;
@@ -48,22 +70,5 @@ export class UserTable extends Table<UserTablePrimaryKey>({ ddb, tableName }) {
     // Timestamps
     this.createdAt = props.createdAt || new Date();
     this.updatedAt = props.updatedAt || new Date();
-  }
-}
-
-export type UserTableEntityProps = Optional<UserTableEntity, 'additional' | 'dynamodeObject' | 'createdAt' | 'updatedAt'>;
-
-export class UserTableEntity extends Entity(UserTable) {
-  @column(String)
-  username: string;
-
-  additional: string;
-
-  constructor(props: UserTableEntityProps) {
-    super(props);
-
-    // columns
-    this.username = props.username;
-    this.additional = "Some additional field that won't be saved in dynamoDB";
   }
 }

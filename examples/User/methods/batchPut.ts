@@ -12,7 +12,6 @@ async function batchPut() {
       number: 10,
       map: new Map<string, string>([['1', 'test']]),
       boolean: true,
-      username: 'true',
     }),
     new User({
       PK: 'pk2',
@@ -24,7 +23,6 @@ async function batchPut() {
       number: 10,
       map: new Map<string, string>([['1', 'test']]),
       boolean: true,
-      username: 'true',
     }),
   ]);
 
