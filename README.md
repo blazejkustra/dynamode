@@ -82,3 +82,4 @@ Dynamode is licensed under [The MIT License](LICENSE).
 * [ ] Add dynamoDB streams support
 * [ ] Add PartiQL support
 * [ ] Primary key might be a reserved word
+* [ ] Type entity return type better https://github.com/Polymer/polymer-decorators/issues/80

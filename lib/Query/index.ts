@@ -1,12 +1,12 @@
 import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
 import { AttributeType, Operator } from '@lib/Condition/types';
-import { EntityClass, EntityKey, EntityPrimaryKey, EntityValue } from '@lib/Entity/types';
+import { Entity, EntityKey, EntityPartitionKeys, EntityPrimaryKey, EntitySortKeys, EntityValue } from '@lib/Entity/types';
 import { BuildQueryConditionExpression, QueryRunOptions, QueryRunOutput } from '@lib/Query/types';
 import { getDynamodeStorage } from '@lib/Storage';
 import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, isNotEmpty } from '@lib/utils';
 
-export class Query<T extends EntityClass<T>> {
+export class Query<T extends Entity<T>> {
   private entity: T;
   private queryInput: QueryInput;
   private keyConditions: ConditionExpression[] = [];
@@ -51,20 +51,18 @@ export class Query<T extends EntityClass<T>> {
     })();
   }
 
-  public partitionKey<K extends EntityKey<T>>(key: K, value: EntityValue<T, K>) {
-    this._eq(this.keyConditions, key, value);
+  public partitionKey<K extends EntityKey<T>>(key: K & EntityPartitionKeys<T>) {
     const columns = getDynamodeStorage().getEntityColumns(this.entity.tableName, this.entity.name);
     const indexName = columns[String(key)].indexName;
     if (indexName) this.queryInput.IndexName = indexName;
-    return this;
+
+    return {
+      eq: (value: EntityValue<T, K>) => this._eq(this.keyConditions, key, value),
+    };
   }
 
-  public sortKey<K extends EntityKey<T>>(key: K) {
+  public sortKey<K extends EntityKey<T>>(key: K & EntitySortKeys<T>) {
     this.keyConditions.push({ expr: Operator.AND });
-
-    const columns = getDynamodeStorage().getEntityColumns(this.entity.tableName, this.entity.name);
-    const indexName = columns[String(key)].indexName;
-    if (indexName) this.queryInput.IndexName = indexName;
 
     return {
       eq: (value: EntityValue<T, K>) => this._eq(this.keyConditions, key, value),

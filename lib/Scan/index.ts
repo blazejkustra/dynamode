@@ -1,11 +1,11 @@
 import { ScanCommandOutput, ScanInput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
 import { AttributeType, Operator } from '@lib/Condition/types';
-import { EntityClass, EntityKey, EntityPrimaryKey, EntityValue } from '@lib/Entity/types';
+import { Entity, EntityIndexNames, EntityKey, EntityPrimaryKey, EntityValue } from '@lib/Entity/types';
 import { BuildScanConditionExpression, ScanRunOptions, ScanRunOutput } from '@lib/Scan/types';
 import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, isNotEmpty } from '@lib/utils';
 
-export class Scan<T extends EntityClass<T>> {
+export class Scan<T extends Entity<T>> {
   private entity: T;
   private scanInput: ScanInput;
   private filterConditions: ConditionExpression[] = [];
@@ -200,16 +200,19 @@ export class Scan<T extends EntityClass<T>> {
     return this;
   }
 
-  public indexName(name: string) {
-    this.scanInput.IndexName = name;
+  public indexName(name: EntityIndexNames<T>) {
+    this.scanInput.IndexName = String(name);
+    return this;
   }
 
   public segment(value: number) {
     this.scanInput.Segment = value;
+    return this;
   }
 
   public totalSegments(value: number) {
     this.scanInput.TotalSegments = value;
+    return this;
   }
 
   private _eq<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): Scan<T> {

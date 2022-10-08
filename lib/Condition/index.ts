@@ -1,8 +1,8 @@
 import { AttributeType, Operator } from '@Condition/types';
-import { EntityClass, EntityKey, EntityValue } from '@lib/Entity/types';
+import { Entity, EntityKey, EntityValue } from '@lib/Entity/types';
 import { ConditionExpression } from '@lib/utils';
 
-export class Condition<T extends EntityClass<T>> {
+export class Condition<T extends Entity<T>> {
   private entity: T;
   public conditions: ConditionExpression[];
   private operator = Operator.AND;

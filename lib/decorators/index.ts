@@ -51,6 +51,7 @@ export function primaryPartitionKey(type: IndexColumnType, options?: DecoratorOp
 
     getDynamodeStorage().addPrimaryPartitionKeyMetadata(tableName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
+    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
@@ -64,6 +65,7 @@ export function primarySortKey(type: IndexColumnType, options?: DecoratorOptions
 
     getDynamodeStorage().addPrimarySortKeyMetadata(tableName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
+    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
@@ -77,6 +79,7 @@ export function gsiPartitionKey(type: IndexColumnType, indexName: string, option
 
     getDynamodeStorage().addGsiPartitionKeyMetadata(tableName, indexName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
+    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
@@ -90,6 +93,7 @@ export function gsiSortKey(type: IndexColumnType, indexName: string, options?: D
 
     getDynamodeStorage().addGsiSortKeyMetadata(tableName, indexName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
+    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
@@ -103,6 +107,7 @@ export function lsiSortKey(type: IndexColumnType, indexName: string, options?: D
 
     getDynamodeStorage().addLsiSortKeyMetadata(tableName, indexName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
+    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
@@ -116,6 +121,7 @@ export function createdAt(type: TimestampColumnType, options?: DecoratorOptions)
 
     getDynamodeStorage().addCreatedAtMetadata(tableName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
+    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
@@ -129,5 +135,6 @@ export function updatedAt(type: TimestampColumnType, options?: DecoratorOptions)
 
     getDynamodeStorage().addUpdatedAtMetadata(tableName, propertyName);
     getDynamodeStorage().addEntityColumnMetadata(tableName, entityName, propertyName, metadata);
+    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }

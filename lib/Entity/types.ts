@@ -4,34 +4,27 @@ import { BatchGetItemCommandInput, BatchWriteItemCommandInput, DeleteItemCommand
 import { Condition } from '@lib/Condition';
 import { AttributeMap, Flatten, PickByType } from '@lib/utils';
 
-export type EntityDynamoKeys = {
+export type EntityMetadata = {
   partitionKey: string;
   sortKey?: string;
   indexes: {
-    [key: string]:
-      | {
-          partitionKey: string;
-          sortKey: string;
-        }
-      | {
-          partitionKey: string;
-        }
-      | {
-          sortKey: string;
-        };
+    [key: string]: {
+      partitionKey?: string;
+      sortKey?: string;
+    };
   };
 };
 
 export type ReturnOption = 'default' | 'input' | 'output';
 export type ExcludeFromEntity = Date | Set<unknown> | Map<unknown, unknown>;
-export type EntityProperties<T extends EntityClass<T>> = Partial<Flatten<InstanceType<T>, ExcludeFromEntity>>;
-export type EntityKey<T extends EntityClass<T>> = keyof EntityProperties<T>;
-export type EntityValue<T extends EntityClass<T>, K extends EntityKey<T>> = EntityProperties<T>[K];
+export type EntityProperties<T extends Entity<T>> = Partial<Flatten<InstanceType<T>, ExcludeFromEntity>>;
+export type EntityKey<T extends Entity<T>> = keyof EntityProperties<T>;
+export type EntityValue<T extends Entity<T>, K extends EntityKey<T>> = EntityProperties<T>[K];
 
-export type EntityClass<T extends EntityClass<T>> = Class<unknown> & {
+export type Entity<T extends Entity<T>> = Class<unknown> & {
   ddb: DynamoDB;
   tableName: string;
-  _entityKeys: EntityDynamoKeys;
+  metadata: EntityMetadata;
   truncateValue: (key: EntityKey<T>, value: unknown) => unknown;
   prefixSuffixValue: (key: EntityKey<T>, value: unknown) => unknown;
   convertEntityFromDynamo: (item: AttributeMap) => InstanceType<T>;
@@ -39,11 +32,18 @@ export type EntityClass<T extends EntityClass<T>> = Class<unknown> & {
   convertPrimaryKeyToDynamo: (primaryKey: EntityPrimaryKey<T>) => AttributeMap;
 };
 
-export type EntityPrimaryKey<T extends EntityClass<T>> = Pick<InstanceType<T>, Extract<keyof InstanceType<T>, ValueOf<T['_entityKeys'], 'partitionKey' | 'sortKey'>>>;
+export type EntityPrimaryKey<T extends Entity<T>> = Pick<InstanceType<T>, Extract<keyof InstanceType<T>, ValueOf<T['metadata'], 'partitionKey' | 'sortKey'>>>;
+export type EntityIndexNames<T extends Entity<T>> = keyof T['metadata']['indexes'];
+export type EntityPartitionKeys<T extends Entity<T>> =
+  | ValueOf<T['metadata'], 'partitionKey'>
+  | ValueOf<{ [K in keyof T['metadata']['indexes']]: T['metadata']['indexes'][K]['partitionKey'] extends string ? T['metadata']['indexes'][K]['partitionKey'] : never }>;
+export type EntitySortKeys<T extends Entity<T>> =
+  | ValueOf<T['metadata'], 'sortKey'>
+  | ValueOf<{ [K in keyof T['metadata']['indexes']]: T['metadata']['indexes'][K]['sortKey'] extends string ? T['metadata']['indexes'][K]['sortKey'] : never }>;
 
 // Entity.get
 
-export interface EntityGetOptions<T extends EntityClass<T>> {
+export interface EntityGetOptions<T extends Entity<T>> {
   extraInput?: Partial<GetItemCommandInput>;
   return?: ReturnOption;
   attributes?: Array<EntityKey<T>>;
@@ -57,7 +57,7 @@ export interface BuildGetProjectionExpression {
 
 // Entity.update
 
-export type UpdateProps<T extends EntityClass<T>> = RequireAtLeastOne<{
+export type UpdateProps<T extends Entity<T>> = RequireAtLeastOne<{
   add?: PickByType<EntityProperties<T>, number | Set<unknown>>;
   set?: EntityProperties<T>;
   setIfNotExists?: EntityProperties<T>;
@@ -70,7 +70,7 @@ export type UpdateProps<T extends EntityClass<T>> = RequireAtLeastOne<{
 
 export type ReturnValues = 'none' | 'allOld' | 'allNew' | 'updatedOld' | 'updatedNew';
 
-export interface EntityUpdateOptions<T extends EntityClass<T>> {
+export interface EntityUpdateOptions<T extends Entity<T>> {
   extraInput?: Partial<UpdateItemCommandInput>;
   return?: ReturnOption;
   condition?: Condition<T>;
@@ -85,7 +85,7 @@ export interface BuildUpdateConditionExpression {
 
 // Entity.put
 
-export interface EntityPutOptions<T extends EntityClass<T>> {
+export interface EntityPutOptions<T extends Entity<T>> {
   extraInput?: Partial<PutItemCommandInput>;
   return?: ReturnOption;
   overwrite?: boolean;
@@ -100,7 +100,7 @@ export interface BuildPutConditionExpression {
 
 // Entity.delete
 
-export interface EntityDeleteOptions<T extends EntityClass<T>> {
+export interface EntityDeleteOptions<T extends Entity<T>> {
   extraInput?: Partial<DeleteItemCommandInput>;
   return?: ReturnOption;
   condition?: Condition<T>;
@@ -114,7 +114,7 @@ export interface BuildDeleteConditionExpression {
 
 // Entity.batchGet
 
-export interface EntityBatchGetOptions<T extends EntityClass<T>> {
+export interface EntityBatchGetOptions<T extends Entity<T>> {
   extraInput?: Partial<BatchGetItemCommandInput>;
   return?: ReturnOption;
   attributes?: Array<EntityKey<T>>;
@@ -127,7 +127,7 @@ export interface EntityBatchDeleteOutput<PrimaryKey> {
 
 // Entity.batchGet
 
-export interface EntityBatchGetOutput<T extends EntityClass<T>, PrimaryKey> {
+export interface EntityBatchGetOutput<T extends Entity<T>, PrimaryKey> {
   items: Array<InstanceType<T>>;
   unprocessedKeys: Array<PrimaryKey>;
 }
@@ -139,7 +139,7 @@ export interface EntityBatchPutOptions {
   return?: ReturnOption;
 }
 
-export interface EntityBatchPutOutput<T extends EntityClass<T>> {
+export interface EntityBatchPutOutput<T extends Entity<T>> {
   items: Array<InstanceType<T>>;
   unprocessedItems: Array<InstanceType<T>>;
 }

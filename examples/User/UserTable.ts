@@ -13,7 +13,7 @@ type UserTableKeys = {
   indexes: {
     GSI_1_NAME: {
       partitionKey: 'GSI_1_PK';
-      sortKey: 'LSI_1_SK';
+      sortKey: 'GSI_1_SK';
     };
     LSI_1_NAME: {
       sortKey: 'LSI_1_SK';

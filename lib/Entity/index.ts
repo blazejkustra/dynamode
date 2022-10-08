@@ -26,9 +26,9 @@ import {
   EntityBatchPutOptions,
   EntityBatchPutOutput,
   EntityDeleteOptions,
-  EntityDynamoKeys,
   EntityGetOptions,
   EntityKey,
+  EntityMetadata,
   EntityPrimaryKey,
   EntityPutOptions,
   EntityUpdateOptions,
@@ -40,11 +40,13 @@ import { Scan } from '@lib/Scan';
 import { getDynamodeStorage } from '@lib/Storage';
 import { AttributeMap, buildExpression, ConditionExpression, DefaultError, fromDynamo, GenericObject, isNotEmpty, isNotEmptyArray, NotFoundError, objectToDynamo, substituteAttributeName } from '@lib/utils';
 
-export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: DynamoDB; tableName: string }) {
-  return class EntityClass {
+export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { ddb: DynamoDB; tableName: string }) {
+  getDynamodeStorage().addEntityColumnMetadata(tableName, 'Entity', 'dynamodeObject', { propertyName: 'dynamodeObject', type: String, role: 'dynamodeObject' });
+
+  return class Entity {
     public static ddb = ddb;
     public static tableName = tableName;
-    public static _entityKeys: EK;
+    public static metadata: Metadata;
 
     public dynamodeObject: string;
 
@@ -53,26 +55,26 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       this.dynamodeObject = this.constructor.name;
     }
 
-    public static query<T extends typeof EntityClass>(this: T): Query<T> {
+    public static query<T extends typeof Entity>(this: T): Query<T> {
       return new Query(this);
     }
 
-    public static scan<T extends typeof EntityClass>(this: T): Scan<T> {
+    public static scan<T extends typeof Entity>(this: T): Scan<T> {
       return new Scan(this);
     }
 
-    public static condition<T extends typeof EntityClass>(this: T): Condition<T> {
+    public static condition<T extends typeof Entity>(this: T): Condition<T> {
       return new Condition(this);
     }
 
-    public static get<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>): Promise<InstanceType<T>>;
-    public static get<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityGetOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static get<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityGetOptions<T> & { return: 'output' }): Promise<GetItemCommandOutput>;
-    public static get<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityGetOptions<T> & { return: 'input' }): GetItemCommandInput;
-    public static get<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityGetOptions<T>): Promise<InstanceType<T> | GetItemCommandOutput> | GetItemCommandInput {
+    public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): Promise<InstanceType<T>>;
+    public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityGetOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityGetOptions<T> & { return: 'output' }): Promise<GetItemCommandOutput>;
+    public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityGetOptions<T> & { return: 'input' }): GetItemCommandInput;
+    public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityGetOptions<T>): Promise<InstanceType<T> | GetItemCommandOutput> | GetItemCommandInput {
       const commandInput: GetItemCommandInput = {
         TableName: this.tableName,
-        Key: this.convertPrimaryKeyToDynamo(primaryKey as any), //TODO change
+        Key: this.convertPrimaryKeyToDynamo(primaryKey),
         ConsistentRead: options?.consistent || false,
         ...this.buildGetProjectionExpression(options?.attributes),
         ...options?.extraInput,
@@ -97,11 +99,11 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       })();
     }
 
-    public static update<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>): Promise<InstanceType<T>>;
-    public static update<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static update<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'output' }): Promise<UpdateItemCommandOutput>;
-    public static update<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'input' }): UpdateItemCommandInput;
-    public static update<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options?: EntityUpdateOptions<T>): Promise<InstanceType<T> | UpdateItemCommandOutput> | UpdateItemCommandInput {
+    public static update<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>): Promise<InstanceType<T>>;
+    public static update<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static update<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'output' }): Promise<UpdateItemCommandOutput>;
+    public static update<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'input' }): UpdateItemCommandInput;
+    public static update<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options?: EntityUpdateOptions<T>): Promise<InstanceType<T> | UpdateItemCommandOutput> | UpdateItemCommandInput {
       const commandInput: UpdateItemCommandInput = {
         TableName: this.tableName,
         Key: this.convertPrimaryKeyToDynamo(primaryKey),
@@ -125,11 +127,11 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       })();
     }
 
-    public static put<T extends typeof EntityClass>(this: T, item: InstanceType<T>): Promise<InstanceType<T>>;
-    public static put<T extends typeof EntityClass>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static put<T extends typeof EntityClass>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'output' }): Promise<PutItemCommandOutput>;
-    public static put<T extends typeof EntityClass>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'input' }): PutItemCommandInput;
-    public static put<T extends typeof EntityClass>(this: T, item: InstanceType<T>, options?: EntityPutOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
+    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>): Promise<InstanceType<T>>;
+    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'output' }): Promise<PutItemCommandOutput>;
+    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'input' }): PutItemCommandInput;
+    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityPutOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
       const overwrite = options?.overwrite ?? true;
       const partitionKey = getDynamodeStorage().getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
       const overwriteCondition = overwrite ? undefined : this.condition().attribute(partitionKey).not().exists();
@@ -156,19 +158,19 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       })();
     }
 
-    public static create<T extends typeof EntityClass>(this: T, item: InstanceType<T>): Promise<InstanceType<T>>;
-    public static create<T extends typeof EntityClass>(this: T, item: InstanceType<T>, options: Omit<EntityPutOptions<T>, 'overwrite'> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static create<T extends typeof EntityClass>(this: T, item: InstanceType<T>, options: Omit<EntityPutOptions<T>, 'overwrite'> & { return: 'output' }): Promise<PutItemCommandOutput>;
-    public static create<T extends typeof EntityClass>(this: T, item: InstanceType<T>, options: Omit<EntityPutOptions<T>, 'overwrite'> & { return: 'input' }): PutItemCommandInput;
-    public static create<T extends typeof EntityClass>(this: T, item: InstanceType<T>, options?: Omit<EntityPutOptions<T>, 'overwrite'>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>): Promise<InstanceType<T>>;
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: Omit<EntityPutOptions<T>, 'overwrite'> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: Omit<EntityPutOptions<T>, 'overwrite'> & { return: 'output' }): Promise<PutItemCommandOutput>;
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: Omit<EntityPutOptions<T>, 'overwrite'> & { return: 'input' }): PutItemCommandInput;
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: Omit<EntityPutOptions<T>, 'overwrite'>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
       return this.put(item, { ...options, overwrite: false } as any);
     }
 
-    public static delete<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>): Promise<void>;
-    public static delete<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'default' }): Promise<void>;
-    public static delete<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'output' }): Promise<DeleteItemCommandOutput>;
-    public static delete<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'input' }): DeleteItemCommandInput;
-    public static delete<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityDeleteOptions<T>): Promise<void | DeleteItemCommandOutput> | DeleteItemCommandInput {
+    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): Promise<void>;
+    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'default' }): Promise<void>;
+    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'output' }): Promise<DeleteItemCommandOutput>;
+    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'input' }): DeleteItemCommandInput;
+    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityDeleteOptions<T>): Promise<void | DeleteItemCommandOutput> | DeleteItemCommandInput {
       const commandInput: DeleteItemCommandInput = {
         TableName: this.tableName,
         Key: this.convertPrimaryKeyToDynamo(primaryKey),
@@ -191,11 +193,11 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       })();
     }
 
-    public static batchGet<T extends typeof EntityClass>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>): Promise<EntityBatchGetOutput<T, EntityPrimaryKey<T>>>;
-    public static batchGet<T extends typeof EntityClass>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchGetOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static batchGet<T extends typeof EntityClass>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchGetOptions<T> & { return: 'output' }): Promise<BatchGetItemCommandOutput>;
-    public static batchGet<T extends typeof EntityClass>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchGetOptions<T> & { return: 'input' }): BatchGetItemCommandInput;
-    public static batchGet<T extends typeof EntityClass>(
+    public static batchGet<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>): Promise<EntityBatchGetOutput<T, EntityPrimaryKey<T>>>;
+    public static batchGet<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchGetOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static batchGet<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchGetOptions<T> & { return: 'output' }): Promise<BatchGetItemCommandOutput>;
+    public static batchGet<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchGetOptions<T> & { return: 'input' }): BatchGetItemCommandInput;
+    public static batchGet<T extends typeof Entity>(
       this: T,
       primaryKeys: Array<EntityPrimaryKey<T>>,
       options?: EntityBatchGetOptions<T>,
@@ -229,11 +231,11 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       })();
     }
 
-    public static batchPut<T extends typeof EntityClass>(this: T, items: Array<InstanceType<T>>): Promise<EntityBatchPutOutput<T>>;
-    public static batchPut<T extends typeof EntityClass>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'default' }): Promise<EntityBatchPutOutput<T>>;
-    public static batchPut<T extends typeof EntityClass>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
-    public static batchPut<T extends typeof EntityClass>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'input' }): BatchWriteItemCommandInput;
-    public static batchPut<T extends typeof EntityClass>(this: T, items: Array<InstanceType<T>>, options?: EntityBatchPutOptions): Promise<EntityBatchPutOutput<T> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
+    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>): Promise<EntityBatchPutOutput<T>>;
+    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'default' }): Promise<EntityBatchPutOutput<T>>;
+    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
+    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'input' }): BatchWriteItemCommandInput;
+    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options?: EntityBatchPutOptions): Promise<EntityBatchPutOutput<T> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
       const commandInput: BatchWriteItemCommandInput = {
         RequestItems: {
           [this.tableName]: items.map((item) => ({
@@ -266,11 +268,11 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       })();
     }
 
-    public static batchDelete<T extends typeof EntityClass>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<T>>>;
-    public static batchDelete<T extends typeof EntityClass>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchDeleteOptions & { return: 'default' }): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<T>>>;
-    public static batchDelete<T extends typeof EntityClass>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchDeleteOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
-    public static batchDelete<T extends typeof EntityClass>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchDeleteOptions & { return: 'input' }): BatchWriteItemCommandInput;
-    public static batchDelete<T extends typeof EntityClass>(
+    public static batchDelete<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<T>>>;
+    public static batchDelete<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchDeleteOptions & { return: 'default' }): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<T>>>;
+    public static batchDelete<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchDeleteOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
+    public static batchDelete<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchDeleteOptions & { return: 'input' }): BatchWriteItemCommandInput;
+    public static batchDelete<T extends typeof Entity>(
       this: T,
       primaryKeys: Array<EntityPrimaryKey<T>>,
       options?: EntityBatchDeleteOptions,
@@ -307,7 +309,7 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       })();
     }
 
-    public static truncateValue<T extends typeof EntityClass>(this: T, key: EntityKey<T>, value: unknown): unknown {
+    public static truncateValue<T extends typeof Entity>(this: T, key: EntityKey<T>, value: unknown): unknown {
       if (typeof value === 'string') {
         const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
         const separator = getDynamodeStorage().separator;
@@ -319,7 +321,7 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       }
     }
 
-    public static prefixSuffixValue<T extends typeof EntityClass>(this: T, key: EntityKey<T>, value: unknown): unknown {
+    public static prefixSuffixValue<T extends typeof Entity>(this: T, key: EntityKey<T>, value: unknown): unknown {
       if (typeof value === 'string') {
         const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
         const separator = getDynamodeStorage().separator;
@@ -331,7 +333,7 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       }
     }
 
-    public static convertObjectFromDynamo<T extends typeof EntityClass>(this: T, dynamoItem: AttributeMap): GenericObject {
+    public static convertObjectFromDynamo<T extends typeof Entity>(this: T, dynamoItem: AttributeMap): GenericObject {
       const object = fromDynamo(dynamoItem);
       const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
       const { createdAt, updatedAt } = getDynamodeStorage().getTableMetadata(this.tableName);
@@ -352,13 +354,13 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       return object;
     }
 
-    public static convertEntityFromDynamo<T extends typeof EntityClass>(this: T, dynamoItem: AttributeMap): InstanceType<T> {
+    public static convertEntityFromDynamo<T extends typeof Entity>(this: T, dynamoItem: AttributeMap): InstanceType<T> {
       const object = this.convertObjectFromDynamo(dynamoItem);
       const item = new this(object) as InstanceType<T>;
       return item;
     }
 
-    public static convertPrimaryKeyFromDynamo<T extends typeof EntityClass>(this: T, dynamoItem: AttributeMap): EntityPrimaryKey<T> {
+    public static convertPrimaryKeyFromDynamo<T extends typeof Entity>(this: T, dynamoItem: AttributeMap): EntityPrimaryKey<T> {
       const object = fromDynamo(dynamoItem);
       const { partitionKey, sortKey } = getDynamodeStorage().getTableMetadata(this.tableName);
       if (partitionKey) object[partitionKey] = this.truncateValue(partitionKey as EntityKey<T>, object[partitionKey]);
@@ -367,7 +369,7 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       return object as EntityPrimaryKey<T>;
     }
 
-    public static convertEntityToDynamo<T extends typeof EntityClass>(this: T, item: InstanceType<T>): AttributeMap {
+    public static convertEntityToDynamo<T extends typeof Entity>(this: T, item: InstanceType<T>): AttributeMap {
       const dynamoObject: GenericObject = {};
       const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
       const { createdAt, updatedAt } = getDynamodeStorage().getTableMetadata(this.tableName);
@@ -389,7 +391,7 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       return objectToDynamo(dynamoObject);
     }
 
-    public static convertPrimaryKeyToDynamo<T extends typeof EntityClass>(this: T, primaryKey: EntityPrimaryKey<T>): AttributeMap {
+    public static convertPrimaryKeyToDynamo<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): AttributeMap {
       const dynamoObject: GenericObject = {};
       const { partitionKey, sortKey } = getDynamodeStorage().getTableMetadata(this.tableName);
       if (partitionKey) dynamoObject[partitionKey] = this.prefixSuffixValue(partitionKey as EntityKey<T>, (<any>primaryKey)[partitionKey]);
@@ -398,7 +400,7 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       return objectToDynamo(dynamoObject);
     }
 
-    public static buildGetProjectionExpression<T extends typeof EntityClass>(this: T, attributes?: Array<EntityKey<T>>): BuildGetProjectionExpression {
+    public static buildGetProjectionExpression<T extends typeof Entity>(this: T, attributes?: Array<EntityKey<T>>): BuildGetProjectionExpression {
       const attributeNames: Record<string, string> = {};
       const projectionExpression = attributes?.map((attribute) => substituteAttributeName(attributeNames, String(attribute))).join(', ');
 
@@ -408,7 +410,7 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       };
     }
 
-    public static buildUpdateConditionExpression<T extends typeof EntityClass>(this: T, props: UpdateProps<T>): BuildUpdateConditionExpression {
+    public static buildUpdateConditionExpression<T extends typeof Entity>(this: T, props: UpdateProps<T>): BuildUpdateConditionExpression {
       const attributeNames: Record<string, string> = {};
       const attributeValues: AttributeMap = {};
       const conditions = this.buildUpdateConditions(props);
@@ -421,7 +423,7 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       };
     }
 
-    public static buildUpdateConditions<T extends typeof EntityClass>(this: T, props: UpdateProps<T>): ConditionExpression[] {
+    public static buildUpdateConditions<T extends typeof Entity>(this: T, props: UpdateProps<T>): ConditionExpression[] {
       const conditions: ConditionExpression[] = [];
 
       if (isNotEmpty(props.set) || isNotEmpty(props.setIfNotExists) || isNotEmpty(props.listAppend) || isNotEmpty(props.increment) || isNotEmpty(props.decrement)) {
@@ -493,7 +495,7 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       return conditions;
     }
 
-    public static buildPutConditionExpression<T extends typeof EntityClass>(this: T, overwriteCondition?: Condition<T>, optionsCondition?: Condition<T>): BuildPutConditionExpression {
+    public static buildPutConditionExpression<T extends typeof Entity>(this: T, overwriteCondition?: Condition<T>, optionsCondition?: Condition<T>): BuildPutConditionExpression {
       const attributeNames: Record<string, string> = {};
       const attributeValues: AttributeMap = {};
       const conditions = overwriteCondition ? overwriteCondition.condition(optionsCondition).conditions : optionsCondition?.conditions || [];
@@ -506,7 +508,7 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
       };
     }
 
-    public static buildDeleteConditionExpression<T extends typeof EntityClass>(this: T, optionsCondition?: Condition<T>): BuildDeleteConditionExpression {
+    public static buildDeleteConditionExpression<T extends typeof Entity>(this: T, optionsCondition?: Condition<T>): BuildDeleteConditionExpression {
       const attributeNames: Record<string, string> = {};
       const attributeValues: AttributeMap = {};
       const conditionExpression = buildExpression(optionsCondition?.conditions || [], attributeNames, attributeValues);
@@ -519,5 +521,3 @@ export function Entity<EK extends EntityDynamoKeys>({ ddb, tableName }: { ddb: D
     }
   };
 }
-// column(String)(new Entity(), 'dynamodeObject');
-// return Entity; TODO

@@ -1,5 +1,5 @@
 import { ScanInput } from '@aws-sdk/client-dynamodb';
-import { EntityClass, ReturnOption } from '@lib/Entity/types';
+import { Entity, ReturnOption } from '@lib/Entity/types';
 import { AttributeMap, GenericObject } from '@lib/utils';
 
 export interface ScanRunOptions {
@@ -7,7 +7,7 @@ export interface ScanRunOptions {
   return?: ReturnOption;
 }
 
-export interface ScanRunOutput<T extends EntityClass<T>> {
+export interface ScanRunOutput<T extends Entity<T>> {
   items: Array<InstanceType<T>>;
   count: number;
   scannedCount: number;
