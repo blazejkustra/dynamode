@@ -2,6 +2,8 @@
   "extends": "../tsconfig.json",
   "compileOnSave": true,
   "compilerOptions": {
+    "target": "es2020",
+    "lib": ["es2020"],
     "rootDir": ".",
     "baseUrl": ".",
     "experimentalDecorators": true,
