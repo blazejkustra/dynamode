@@ -38,43 +38,23 @@ Find examples under the [`examples/`](https://github.com/blazejkustra/dynamode/b
 Dynamode is licensed under [The MIT License](LICENSE).
 
 
-# Road map / TODOs
-
-### Table:
-
-* [ ] flow to create Table from code
-* [ ] flow to update Table from code
-* [ ] flow to create Index from code
-* [ ] Maybe CLI tool for these?
-
-### Entity:
-
-* [ ] Fix issue with empty set when using Entity.update
-* [ ] Implement Entity.transaction
-
-### Query
-
-* [ ] .all() get all items even in multiple requests
-
-### Scan
-
-* [X] implement it
-
-### Transaction
-
-* [ ] Implement dynamode.Transaction
+# Road map
 
 ### Global Todo
 
+* [ ] Implement dynamode.Transaction
+* [ ] Implement Entity.transaction
+* [ ] Refactor some classes and use private properties/functions 
+* [ ] Improve export system for entire lib
+* [ ] Merge together Query Scan and Condition classes to share some functions implementation
+* [ ] Query .all() get all items even in multiple requests
 * [ ] Capture dynamoDB errors and make it easier to work with
 * [ ] Add tests XD gl
-* [ ] Improve export system for entire lib
-* [ ] Refactor some classes and use private properties/functions 
-* [ ] Merge together Query Scan and Condition classes to share some functions implementation
 
 ### less important todos
 
 * [ ] Ban overriding dynamodeObject
+* [ ] Fix issue with empty set when using Entity.update (add additional validation) - empty set and string are not allowed https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html
 * [ ] ProjectionExpression always include dynamodeObject and set all other properties to undefined/null
 * [ ] Make possible to query different types of entities
 * [ ] Add dependsOn to global settings to throw/warn when updating
@@ -83,3 +63,5 @@ Dynamode is licensed under [The MIT License](LICENSE).
 * [ ] Add PartiQL support
 * [ ] Primary key might be a reserved word
 * [ ] Type entity return type better https://github.com/Polymer/polymer-decorators/issues/80
+* [ ] CLI tool to create/update table/index
+* [ ] Support binary types https://github.com/aws/aws-sdk-js-v3/blob/06417909a3/packages/util-dynamodb/src/convertToAttr.ts#L166 & https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_dynamodb.html
