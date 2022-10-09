@@ -42,7 +42,6 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 ### Priority
 
-* [ ] Merge together Query Scan and Condition classes to share some functions implementation
 * [ ] Ban overriding dynamodeObject
 * [ ] ProjectionExpression always include dynamodeObject and set all other properties to undefined/null
 * [ ] Primary key might be a reserved word
