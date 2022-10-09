@@ -38,9 +38,9 @@ import {
 import Query from '@lib/query';
 import Scan from '@lib/scan';
 import { getDynamodeStorage } from '@lib/storage';
+import { GetTransaction } from '@lib/transactionGet/types';
+import { WriteTransaction } from '@lib/transactionWrite/types';
 import { AttributeMap, buildExpression, DefaultError, fromDynamo, GenericObject, isNotEmpty, NotFoundError, objectToDynamo } from '@lib/utils';
-import { GetTransaction } from '@transactionGet/types';
-import { WriteTransaction } from '@transactionWrite/types';
 
 export default function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { ddb: DynamoDB; tableName: string }) {
   getDynamodeStorage().addEntityColumnMetadata(tableName, 'Entity', 'dynamodeObject', { propertyName: 'dynamodeObject', type: String, role: 'dynamodeObject' });

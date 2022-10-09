@@ -1,5 +1,5 @@
-import { AttributeType, Operator } from '@condition/types';
-import { Entity, EntityKey, EntityValue } from '@entity/types';
+import { AttributeType, Operator } from '@lib/condition/types';
+import { Entity, EntityKey, EntityValue } from '@lib/entity/types';
 import { ConditionExpression } from '@lib/utils';
 
 export default class Condition<T extends Entity<T>> {

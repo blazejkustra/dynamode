@@ -1,4 +1,4 @@
-import { DecoratorOptions } from '@decorators/types';
+import { DecoratorOptions } from '@lib/decorators/types';
 import { getDynamodeStorage } from '@lib/storage';
 import { ColumnMetadata, ColumnType, IndexColumnType, TimestampColumnType } from '@lib/storage/types';
 
