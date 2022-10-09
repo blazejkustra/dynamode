@@ -44,7 +44,6 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 * [ ] Ban overriding dynamodeObject
 * [ ] ProjectionExpression always include dynamodeObject and set all other properties to undefined/null
-* [ ] Primary key might be a reserved word
 * [ ] Add documentation
 
 ### Must have & Hard

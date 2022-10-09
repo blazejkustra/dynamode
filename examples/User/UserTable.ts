@@ -1,7 +1,6 @@
 import { Entity } from '../../dist';
 import { createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, primaryPartitionKey, primarySortKey, updatedAt } from '../../dist/decorators';
-
-import { ddb } from './setup';
+import { ddb } from '../utils/setup';
 
 const USERS_TABLE = 'users';
 // @tableName(USERS_TABLE)
