@@ -29,7 +29,7 @@ export function transactionGet<T extends Entity<T>>(transactions: Array<GetTrans
       return result;
     }
 
-    const entities = items.map((item, idx) => getDynamodeStorage().convertEntityToDynamo(item, transactions[idx].Get.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
+    const entities = items.map((item, idx) => getDynamodeStorage().convertEntityToAttributeMap(item, transactions[idx].Get.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
     return {
       items: entities,
       count: entities.length,
@@ -55,7 +55,7 @@ export function transactionWrite<T extends Entity<T>>(transactions: Array<WriteT
       return result;
     }
 
-    const entities = transactions.map((transaction) => getDynamodeStorage().convertEntityToDynamo(transaction?.Put?.Item, transaction?.Put?.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
+    const entities = transactions.map((transaction) => getDynamodeStorage().convertEntityToAttributeMap(transaction?.Put?.Item, transaction?.Put?.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
     return {
       items: entities,
       count: entities.length,

@@ -27,9 +27,9 @@ export type Entity<T extends Entity<T>> = Class<unknown> & {
   metadata: EntityMetadata;
   truncateValue: (key: EntityKey<T>, value: unknown) => unknown;
   prefixSuffixValue: (key: EntityKey<T>, value: unknown) => unknown;
-  convertEntityFromDynamo: (item: AttributeMap) => InstanceType<T>;
-  convertPrimaryKeyFromDynamo: (item: AttributeMap) => EntityPrimaryKey<T>;
-  convertPrimaryKeyToDynamo: (primaryKey: EntityPrimaryKey<T>) => AttributeMap;
+  convertAttributeMapToEntity: (item: AttributeMap) => InstanceType<T>;
+  convertAttributeMapToPrimaryKey: (item: AttributeMap) => EntityPrimaryKey<T>;
+  convertPrimaryKeyToAttributeMap: (primaryKey: EntityPrimaryKey<T>) => AttributeMap;
 };
 
 export type EntityPrimaryKey<T extends Entity<T>> = Pick<InstanceType<T>, Extract<keyof InstanceType<T>, ValueOf<T['metadata'], 'partitionKey' | 'sortKey'>>>;

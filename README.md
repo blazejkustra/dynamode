@@ -42,8 +42,6 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 ### Global Todo
 
-* [ ] Implement dynamode.Transaction
-* [ ] Implement Entity.transaction
 * [ ] Refactor some classes and use private properties/functions 
 * [ ] Improve export system for entire lib
 * [ ] Merge together Query Scan and Condition classes to share some functions implementation

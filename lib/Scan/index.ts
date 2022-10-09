@@ -41,10 +41,10 @@ export class Scan<T extends Entity<T>> {
       const items = result.Items || [];
 
       return {
-        items: items.map((item) => this.entity.convertEntityFromDynamo(item)),
+        items: items.map((item) => this.entity.convertAttributeMapToEntity(item)),
         count: result.Count || 0,
         scannedCount: result.ScannedCount || 0,
-        lastKey: result.LastEvaluatedKey ? this.entity.convertPrimaryKeyFromDynamo(result.LastEvaluatedKey) : undefined,
+        lastKey: result.LastEvaluatedKey ? this.entity.convertAttributeMapToPrimaryKey(result.LastEvaluatedKey) : undefined,
       };
     })();
   }
@@ -177,7 +177,7 @@ export class Scan<T extends Entity<T>> {
   }
 
   public startAt(key?: EntityPrimaryKey<T>) {
-    if (key) this.scanInput.ExclusiveStartKey = this.entity.convertPrimaryKeyToDynamo(key);
+    if (key) this.scanInput.ExclusiveStartKey = this.entity.convertPrimaryKeyToAttributeMap(key);
     return this;
   }
 

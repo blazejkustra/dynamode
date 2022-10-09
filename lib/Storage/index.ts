@@ -30,7 +30,7 @@ class DynamodeStorage {
     this.ddb = ddb;
   }
 
-  public convertEntityToDynamo<T extends Entity<T>>(dynamoItem?: AttributeMap, tableName?: string): InstanceType<T> | undefined {
+  public convertEntityToAttributeMap<T extends Entity<T>>(dynamoItem?: AttributeMap, tableName?: string): InstanceType<T> | undefined {
     if (!dynamoItem || !tableName) {
       return undefined;
     }
@@ -47,7 +47,7 @@ class DynamodeStorage {
       throw new DefaultError();
     }
 
-    return Constructor.convertEntityFromDynamo(dynamoItem);
+    return Constructor.convertAttributeMapToEntity(dynamoItem);
   }
 
   public addPrimaryPartitionKeyMetadata(tableName: string, propertyName: string) {
