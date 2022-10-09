@@ -1,5 +1,5 @@
+import { Entity } from '../../dist';
 import { createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, primaryPartitionKey, primarySortKey, updatedAt } from '../../dist/decorators';
-import { Entity } from '../../dist/Entity';
 
 import { ddb } from './setup';
 
