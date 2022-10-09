@@ -1,5 +1,7 @@
+import { DynamoDB } from '@aws-sdk/client-dynamodb';
+import { Entity } from '@lib/Entity/types';
 import { ColumnMetadata, ColumnType, EntityMetadata, TablesMetadata } from '@lib/Storage/types';
-import { mergeObjects } from '@lib/utils';
+import { AttributeMap, DefaultError, mergeObjects, valueFromDynamo } from '@lib/utils';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -18,9 +20,34 @@ export function getDynamodeStorage(): DynamodeStorage {
 class DynamodeStorage {
   public tables: TablesMetadata = {};
   public separator = '#';
+  public ddb: DynamoDB;
 
   public setSeparator(separator: string) {
     this.separator = separator;
+  }
+
+  public setDynamoInstance(ddb: DynamoDB) {
+    this.ddb = ddb;
+  }
+
+  public convertEntityToDynamo<T extends Entity<T>>(dynamoItem?: AttributeMap, tableName?: string): InstanceType<T> | undefined {
+    if (!dynamoItem || !tableName) {
+      return undefined;
+    }
+
+    const entityName = valueFromDynamo(dynamoItem.dynamodeObject);
+
+    if (typeof entityName !== 'string') {
+      throw new DefaultError();
+    }
+
+    const { Constructor } = this.getEntityMetadata(tableName, entityName);
+
+    if (!Constructor) {
+      throw new DefaultError();
+    }
+
+    return Constructor.convertEntityFromDynamo(dynamoItem);
   }
 
   public addPrimaryPartitionKeyMetadata(tableName: string, propertyName: string) {

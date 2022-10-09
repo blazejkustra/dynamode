@@ -10,6 +10,10 @@ export function valueToDynamo(value: any): AttributeValue {
   return awsConverter().convertToAttr(value);
 }
 
+export function valueFromDynamo(value: AttributeValue): unknown {
+  return awsConverter().convertToNative(value);
+}
+
 export function fromDynamo(object: AttributeMap): GenericObject {
   return awsConverter().unmarshall(object);
 }

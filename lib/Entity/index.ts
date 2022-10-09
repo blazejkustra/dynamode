@@ -3,17 +3,22 @@ import {
   BatchGetItemCommandOutput,
   BatchWriteItemCommandInput,
   BatchWriteItemCommandOutput,
+  ConditionCheck,
+  Delete,
   DeleteItemCommandInput,
   DeleteItemCommandOutput,
   DynamoDB,
+  Get,
   GetItemCommandInput,
   GetItemCommandOutput,
+  Put,
   PutItemCommandInput,
   PutItemCommandOutput,
+  Update,
   UpdateItemCommandInput,
   UpdateItemCommandOutput,
 } from '@aws-sdk/client-dynamodb';
-import { mapReturnValues } from '@Entity/helpers';
+import { mapReturnValues, mapReturnValuesOnFailure } from '@Entity/helpers';
 import {
   BuildDeleteConditionExpression,
   BuildGetProjectionExpression,
@@ -31,6 +36,10 @@ import {
   EntityMetadata,
   EntityPrimaryKey,
   EntityPutOptions,
+  EntityTransactionDeleteOptions,
+  EntityTransactionGetOptions,
+  EntityTransactionPutOptions,
+  EntityTransactionUpdateOptions,
   EntityUpdateOptions,
   UpdateProps,
 } from '@Entity/types';
@@ -55,18 +64,6 @@ export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { dd
       this.dynamodeObject = this.constructor.name;
     }
 
-    public static query<T extends typeof Entity>(this: T): Query<T> {
-      return new Query(this);
-    }
-
-    public static scan<T extends typeof Entity>(this: T): Scan<T> {
-      return new Scan(this);
-    }
-
-    public static condition<T extends typeof Entity>(this: T): Condition<T> {
-      return new Condition(this);
-    }
-
     public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): Promise<InstanceType<T>>;
     public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityGetOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
     public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityGetOptions<T> & { return: 'output' }): Promise<GetItemCommandOutput>;
@@ -87,7 +84,7 @@ export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { dd
       return (async () => {
         const result = await this.ddb.getItem(commandInput);
 
-        if (!result || !result.Item) {
+        if (!result.Item) {
           throw new NotFoundError();
         }
 
@@ -95,7 +92,7 @@ export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { dd
           return result;
         }
 
-        return this.convertEntityFromDynamo(result.Item || {});
+        return this.convertEntityFromDynamo(result.Item);
       })();
     }
 
@@ -309,6 +306,88 @@ export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { dd
       })();
     }
 
+    public static query<T extends typeof Entity>(this: T): Query<T> {
+      return new Query(this);
+    }
+
+    public static scan<T extends typeof Entity>(this: T): Scan<T> {
+      return new Scan(this);
+    }
+
+    public static condition<T extends typeof Entity>(this: T): Condition<T> {
+      return new Condition(this);
+    }
+
+    public static transactionGet<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityTransactionGetOptions<T>): Get & T {
+      const commandInput: Get & T = {
+        ...this,
+        TableName: this.tableName,
+        Key: this.convertPrimaryKeyToDynamo(primaryKey),
+        ...this.buildGetProjectionExpression(options?.attributes),
+        ...options?.extraInput,
+      };
+
+      return commandInput;
+    }
+
+    public static transactionUpdate<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options?: EntityTransactionUpdateOptions<T>): Update {
+      const commandInput: Update = {
+        TableName: this.tableName,
+        Key: this.convertPrimaryKeyToDynamo(primaryKey),
+        ReturnValuesOnConditionCheckFailure: mapReturnValuesOnFailure(options?.returnValuesOnFailure),
+        ...this.buildUpdateConditionExpression(props),
+        ...options?.extraInput,
+      };
+
+      return commandInput;
+    }
+
+    public static transactionPut<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityTransactionPutOptions<T>): Put {
+      const overwrite = options?.overwrite ?? true;
+      const partitionKey = getDynamodeStorage().getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
+      const overwriteCondition = overwrite ? undefined : this.condition().attribute(partitionKey).not().exists();
+
+      const commandInput: Put = {
+        TableName: this.tableName,
+        Item: this.convertEntityToDynamo(item),
+        ReturnValuesOnConditionCheckFailure: mapReturnValuesOnFailure(options?.returnValuesOnFailure),
+        ...this.buildPutConditionExpression(overwriteCondition, options?.condition),
+        ...options?.extraInput,
+      };
+
+      return commandInput;
+    }
+
+    public static transactionCreate<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: Omit<EntityTransactionPutOptions<T>, 'overwrite'>): Put {
+      return this.transactionCreate(item, { ...options, overwrite: false } as any);
+    }
+
+    public static transactionDelete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityTransactionDeleteOptions<T>): Delete {
+      const commandInput: Delete = {
+        TableName: this.tableName,
+        Key: this.convertPrimaryKeyToDynamo(primaryKey),
+        ...this.buildDeleteConditionExpression(options?.condition),
+        ...options?.extraInput,
+      };
+
+      return commandInput;
+    }
+
+    public static transactionCondition<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, conditionInstance: Condition<T>): ConditionCheck {
+      const attributeNames: Record<string, string> = {};
+      const attributeValues: AttributeMap = {};
+      const conditionExpression = buildExpression(conditionInstance.conditions, attributeNames, attributeValues);
+      const commandInput: ConditionCheck = {
+        TableName: this.tableName,
+        Key: this.convertPrimaryKeyToDynamo(primaryKey),
+        ConditionExpression: conditionExpression,
+        ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
+        ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+      };
+
+      return commandInput;
+    }
+
     public static truncateValue<T extends typeof Entity>(this: T, key: EntityKey<T>, value: unknown): unknown {
       if (typeof value === 'string') {
         const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
@@ -419,7 +498,7 @@ export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { dd
       return {
         ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
         ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
-        ...(updateExpression ? { UpdateExpression: updateExpression } : {}),
+        UpdateExpression: updateExpression,
       };
     }
 

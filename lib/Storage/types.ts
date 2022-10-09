@@ -1,4 +1,4 @@
-import { Constructor } from 'type-fest';
+import { Entity } from '@lib/Entity/types';
 
 export type IndexColumnType = StringConstructor | NumberConstructor;
 export type TimestampColumnType = StringConstructor | NumberConstructor;
@@ -28,7 +28,7 @@ export type LsiMetadata = {
 };
 
 export type EntityMetadata = {
-  Constructor?: Constructor<unknown>;
+  Constructor?: Entity<any>;
   columns?: { [columnName: string]: ColumnMetadata<ColumnType> };
 };
 

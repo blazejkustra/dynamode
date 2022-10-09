@@ -4,7 +4,10 @@ import { Entity } from '@lib/Entity';
 import { Query } from '@lib/Query';
 import { Scan } from '@lib/Scan';
 import { Settings } from '@lib/Settings';
-import { Transaction } from '@lib/Transaction';
+import {
+  transactionGet,
+  // transactionWrite
+} from '@lib/Transaction';
 
 ///// --- https://github.com/aws/aws-sdk-js-v3/issues/2125 ---
 // some @aws-sdk clients references these DOM lib interfaces,
@@ -45,6 +48,7 @@ export {
   //Settings
   settings,
 
-  //Transaction
-  Transaction,
+  //transactions
+  transactionGet,
+  // transactionWrite,
 };

@@ -1,6 +1,6 @@
 import { Class, RequireAtLeastOne, ValueOf } from 'type-fest';
 
-import { BatchGetItemCommandInput, BatchWriteItemCommandInput, DeleteItemCommandInput, DynamoDB, GetItemCommandInput, PutItemCommandInput, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
+import { BatchGetItemCommandInput, BatchWriteItemCommandInput, ConditionCheck, Delete, DeleteItemCommandInput, DynamoDB, Get, GetItemCommandInput, Put, PutItemCommandInput, Update, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { Condition } from '@lib/Condition';
 import { AttributeMap, Flatten, PickByType } from '@lib/utils';
 
@@ -41,6 +41,9 @@ export type EntitySortKeys<T extends Entity<T>> =
   | ValueOf<T['metadata'], 'sortKey'>
   | ValueOf<{ [K in keyof T['metadata']['indexes']]: T['metadata']['indexes'][K]['sortKey'] extends string ? T['metadata']['indexes'][K]['sortKey'] : never }>;
 
+export type ReturnValues = 'none' | 'allOld' | 'allNew' | 'updatedOld' | 'updatedNew';
+export type ReturnValuesOnFailure = 'none' | 'allOld';
+
 // Entity.get
 
 export interface EntityGetOptions<T extends Entity<T>> {
@@ -68,8 +71,6 @@ export type UpdateProps<T extends Entity<T>> = RequireAtLeastOne<{
   remove?: Array<EntityKey<T>>;
 }>;
 
-export type ReturnValues = 'none' | 'allOld' | 'allNew' | 'updatedOld' | 'updatedNew';
-
 export interface EntityUpdateOptions<T extends Entity<T>> {
   extraInput?: Partial<UpdateItemCommandInput>;
   return?: ReturnOption;
@@ -80,7 +81,7 @@ export interface EntityUpdateOptions<T extends Entity<T>> {
 export interface BuildUpdateConditionExpression {
   ExpressionAttributeNames?: Record<string, string>;
   ExpressionAttributeValues?: AttributeMap;
-  UpdateExpression?: string;
+  UpdateExpression: string;
 }
 
 // Entity.put
@@ -149,4 +150,45 @@ export interface EntityBatchPutOutput<T extends Entity<T>> {
 export interface EntityBatchDeleteOptions {
   extraInput?: Partial<BatchWriteItemCommandInput>;
   return?: ReturnOption;
+}
+
+export type EntityTransactionInput<T extends Entity<T>, Command extends Get | Update | Put | Delete | ConditionCheck> = Command & { entity: T };
+
+// Entity.transactionGet
+
+export interface EntityTransactionGetOptions<T extends Entity<T>> {
+  extraInput?: Partial<Get>;
+  attributes?: Array<EntityKey<T>>;
+}
+
+// Entity.transactionUpdate
+
+export interface EntityTransactionUpdateOptions<T extends Entity<T>> {
+  extraInput?: Partial<Update>;
+  condition?: Condition<T>;
+  returnValuesOnFailure?: ReturnValuesOnFailure;
+}
+
+// Entity.transactionPut
+
+export interface EntityTransactionPutOptions<T extends Entity<T>> {
+  extraInput?: Partial<Put>;
+  attributes?: Array<EntityKey<T>>;
+  overwrite?: boolean;
+  condition?: Condition<T>;
+  returnValuesOnFailure?: ReturnValuesOnFailure;
+}
+
+// Entity.transactionDelete
+
+export interface EntityTransactionDeleteOptions<T extends Entity<T>> {
+  extraInput?: Partial<Delete>;
+  condition?: Condition<T>;
+}
+
+// Entity.transactionCondition
+
+export interface EntityTransactionConditionOptions<T extends Entity<T>> {
+  extraInput?: Partial<ConditionCheck>;
+  attributes?: Array<EntityKey<T>>;
 }

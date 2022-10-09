@@ -1,4 +1,5 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
+import { getDynamodeStorage } from '@lib/Storage';
 
 export interface DDBInterface {
   (): DynamoDB;
@@ -8,7 +9,10 @@ export interface DDBInterface {
 
 export default function (): DDBInterface {
   let ddb = new DynamoDB({});
-  const func = () => ddb;
+  const func = () => {
+    getDynamodeStorage().setDynamoInstance(ddb);
+    return ddb;
+  };
 
   func.set = (customDdb: DynamoDB): void => {
     ddb = customDdb;
