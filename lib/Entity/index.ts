@@ -105,7 +105,7 @@ export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { dd
         TableName: this.tableName,
         Key: this.convertPrimaryKeyToDynamo(primaryKey),
         ReturnValues: mapReturnValues(options?.returnValues),
-        ...this.buildUpdateConditionExpression(props),
+        ...this.buildUpdateConditionExpression(props, options?.condition),
         ...options?.extraInput,
       };
 
@@ -491,15 +491,17 @@ export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { dd
       };
     }
 
-    public static buildUpdateConditionExpression<T extends typeof Entity>(this: T, props: UpdateProps<T>): BuildUpdateConditionExpression {
+    public static buildUpdateConditionExpression<T extends typeof Entity>(this: T, props: UpdateProps<T>, optionsCondition: Condition<T> | undefined): BuildUpdateConditionExpression {
       const attributeNames: Record<string, string> = {};
       const attributeValues: AttributeMap = {};
       const conditions = this.buildUpdateConditions(props);
       const updateExpression = buildExpression(conditions, attributeNames, attributeValues);
+      const conditionExpression = optionsCondition ? buildExpression(optionsCondition.conditions, attributeNames, attributeValues) : undefined;
 
       return {
         ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
         ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+        ...(conditionExpression ? { ConditionExpression: conditionExpression } : {}),
         UpdateExpression: updateExpression,
       };
     }

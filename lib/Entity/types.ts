@@ -81,6 +81,7 @@ export interface EntityUpdateOptions<T extends Entity<T>> {
 export interface BuildUpdateConditionExpression {
   ExpressionAttributeNames?: Record<string, string>;
   ExpressionAttributeValues?: AttributeMap;
+  ConditionExpression?: string;
   UpdateExpression: string;
 }
 
