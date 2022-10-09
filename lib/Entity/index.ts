@@ -3,18 +3,13 @@ import {
   BatchGetItemCommandOutput,
   BatchWriteItemCommandInput,
   BatchWriteItemCommandOutput,
-  ConditionCheck,
-  Delete,
   DeleteItemCommandInput,
   DeleteItemCommandOutput,
   DynamoDB,
-  Get,
   GetItemCommandInput,
   GetItemCommandOutput,
-  Put,
   PutItemCommandInput,
   PutItemCommandOutput,
-  Update,
   UpdateItemCommandInput,
   UpdateItemCommandOutput,
 } from '@aws-sdk/client-dynamodb';
@@ -48,6 +43,7 @@ import { Query } from '@lib/Query';
 import { Scan } from '@lib/Scan';
 import { getDynamodeStorage } from '@lib/Storage';
 import { AttributeMap, buildExpression, ConditionExpression, DefaultError, fromDynamo, GenericObject, isNotEmpty, isNotEmptyArray, NotFoundError, objectToDynamo, substituteAttributeName } from '@lib/utils';
+import { GetTransaction, WriteTransaction } from '@Transaction/types';
 
 export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { ddb: DynamoDB; tableName: string }) {
   getDynamodeStorage().addEntityColumnMetadata(tableName, 'Entity', 'dynamodeObject', { propertyName: 'dynamodeObject', type: String, role: 'dynamodeObject' });
@@ -320,71 +316,85 @@ export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { dd
       return new Condition(this);
     }
 
-    public static transactionGet<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityTransactionGetOptions<T>): Get & T {
-      const commandInput: Get & T = {
+    public static transactionGet<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityTransactionGetOptions<T>): GetTransaction<T> {
+      const commandInput: GetTransaction<T> = {
         ...this,
-        TableName: this.tableName,
-        Key: this.convertPrimaryKeyToDynamo(primaryKey),
-        ...this.buildGetProjectionExpression(options?.attributes),
-        ...options?.extraInput,
+        Get: {
+          TableName: this.tableName,
+          Key: this.convertPrimaryKeyToDynamo(primaryKey),
+          ...this.buildGetProjectionExpression(options?.attributes),
+          ...options?.extraInput,
+        },
       };
 
       return commandInput;
     }
 
-    public static transactionUpdate<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options?: EntityTransactionUpdateOptions<T>): Update {
-      const commandInput: Update = {
-        TableName: this.tableName,
-        Key: this.convertPrimaryKeyToDynamo(primaryKey),
-        ReturnValuesOnConditionCheckFailure: mapReturnValuesOnFailure(options?.returnValuesOnFailure),
-        ...this.buildUpdateConditionExpression(props),
-        ...options?.extraInput,
+    public static transactionUpdate<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options?: EntityTransactionUpdateOptions<T>): WriteTransaction<T> {
+      const commandInput: WriteTransaction<T> = {
+        ...this,
+        Update: {
+          TableName: this.tableName,
+          Key: this.convertPrimaryKeyToDynamo(primaryKey),
+          ReturnValuesOnConditionCheckFailure: mapReturnValuesOnFailure(options?.returnValuesOnFailure),
+          ...this.buildUpdateConditionExpression(props, options?.condition),
+          ...options?.extraInput,
+        },
       };
 
       return commandInput;
     }
 
-    public static transactionPut<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityTransactionPutOptions<T>): Put {
+    public static transactionPut<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityTransactionPutOptions<T>): WriteTransaction<T> {
       const overwrite = options?.overwrite ?? true;
       const partitionKey = getDynamodeStorage().getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
       const overwriteCondition = overwrite ? undefined : this.condition().attribute(partitionKey).not().exists();
 
-      const commandInput: Put = {
-        TableName: this.tableName,
-        Item: this.convertEntityToDynamo(item),
-        ReturnValuesOnConditionCheckFailure: mapReturnValuesOnFailure(options?.returnValuesOnFailure),
-        ...this.buildPutConditionExpression(overwriteCondition, options?.condition),
-        ...options?.extraInput,
+      const commandInput: WriteTransaction<T> = {
+        ...this,
+        Put: {
+          TableName: this.tableName,
+          Item: this.convertEntityToDynamo(item),
+          ReturnValuesOnConditionCheckFailure: mapReturnValuesOnFailure(options?.returnValuesOnFailure),
+          ...this.buildPutConditionExpression(overwriteCondition, options?.condition),
+          ...options?.extraInput,
+        },
       };
 
       return commandInput;
     }
 
-    public static transactionCreate<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: Omit<EntityTransactionPutOptions<T>, 'overwrite'>): Put {
-      return this.transactionCreate(item, { ...options, overwrite: false } as any);
+    public static transactionCreate<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: Omit<EntityTransactionPutOptions<T>, 'overwrite'>): WriteTransaction<T> {
+      return this.transactionPut(item, { ...options, overwrite: false });
     }
 
-    public static transactionDelete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityTransactionDeleteOptions<T>): Delete {
-      const commandInput: Delete = {
-        TableName: this.tableName,
-        Key: this.convertPrimaryKeyToDynamo(primaryKey),
-        ...this.buildDeleteConditionExpression(options?.condition),
-        ...options?.extraInput,
+    public static transactionDelete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityTransactionDeleteOptions<T>): WriteTransaction<T> {
+      const commandInput: WriteTransaction<T> = {
+        ...this,
+        Delete: {
+          TableName: this.tableName,
+          Key: this.convertPrimaryKeyToDynamo(primaryKey),
+          ...this.buildDeleteConditionExpression(options?.condition),
+          ...options?.extraInput,
+        },
       };
 
       return commandInput;
     }
 
-    public static transactionCondition<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, conditionInstance: Condition<T>): ConditionCheck {
+    public static transactionCondition<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, conditionInstance: Condition<T>): WriteTransaction<T> {
       const attributeNames: Record<string, string> = {};
       const attributeValues: AttributeMap = {};
       const conditionExpression = buildExpression(conditionInstance.conditions, attributeNames, attributeValues);
-      const commandInput: ConditionCheck = {
-        TableName: this.tableName,
-        Key: this.convertPrimaryKeyToDynamo(primaryKey),
-        ConditionExpression: conditionExpression,
-        ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
-        ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+      const commandInput: WriteTransaction<T> = {
+        ...this,
+        ConditionCheck: {
+          TableName: this.tableName,
+          Key: this.convertPrimaryKeyToDynamo(primaryKey),
+          ConditionExpression: conditionExpression,
+          ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
+          ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+        },
       };
 
       return commandInput;
