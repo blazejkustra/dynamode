@@ -40,3 +40,9 @@ export function mergeObjects<T extends Record<string, unknown>>(...objects: T[])
     return prev;
   }, {} as T);
 }
+
+export async function timeout(ms: number): Promise<void> {
+  if (ms > 0) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+}

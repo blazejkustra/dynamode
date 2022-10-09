@@ -5,6 +5,9 @@ import { AttributeMap, GenericObject } from '@lib/utils';
 export interface QueryRunOptions {
   extraInput?: Partial<QueryInput>;
   return?: ReturnOption;
+  all?: boolean;
+  delay?: number;
+  max?: number;
 }
 
 export interface QueryRunOutput<T extends Entity<T>> {

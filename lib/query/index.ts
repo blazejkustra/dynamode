@@ -4,7 +4,7 @@ import { AttributeType, Operator } from '@lib/condition/types';
 import { Entity, EntityKey, EntityPartitionKeys, EntityPrimaryKey, EntitySortKeys, EntityValue } from '@lib/entity/types';
 import { BuildQueryConditionExpression, QueryRunOptions, QueryRunOutput } from '@lib/query/types';
 import { getDynamodeStorage } from '@lib/storage';
-import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, isNotEmpty } from '@lib/utils';
+import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, isNotEmpty, timeout } from '@lib/utils';
 
 export default class Query<T extends Entity<T>> {
   private entity: T;
@@ -34,19 +34,37 @@ export default class Query<T extends Entity<T>> {
     }
 
     return (async () => {
-      const result = await this.entity.ddb.query(this.queryInput);
-
       if (options?.return === 'output') {
+        const result = await this.entity.ddb.query(this.queryInput);
         return result;
       }
 
-      const items = result.Items || [];
+      const all = options?.all ?? false;
+      const delay = options?.delay ?? 0;
+      const max = options?.max ?? Infinity;
+      const items: AttributeMap[] = [];
+
+      let count = 0;
+      let scannedCount = 0;
+      let lastKey: AttributeMap | undefined = undefined;
+
+      do {
+        const result = await this.entity.ddb.query(this.queryInput);
+        await timeout(delay);
+        items.push(...(result.Items || []));
+
+        lastKey = result.LastEvaluatedKey;
+        this.queryInput.ExclusiveStartKey = lastKey;
+
+        count += result.Count || 0;
+        scannedCount += result.ScannedCount || 0;
+      } while (all && !!lastKey && count < max);
 
       return {
         items: items.map((item) => this.entity.convertAttributeMapToEntity(item)),
-        count: result.Count || 0,
-        scannedCount: result.ScannedCount || 0,
-        lastKey: result.LastEvaluatedKey ? this.entity.convertAttributeMapToPrimaryKey(result.LastEvaluatedKey) : undefined,
+        count,
+        scannedCount,
+        lastKey: lastKey && this.entity.convertAttributeMapToPrimaryKey(lastKey),
       };
     })();
   }
