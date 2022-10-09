@@ -132,10 +132,11 @@ export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { dd
       const overwrite = options?.overwrite ?? true;
       const partitionKey = getDynamodeStorage().getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
       const overwriteCondition = overwrite ? undefined : this.condition().attribute(partitionKey).not().exists();
+      const dynamoItem = this.convertEntityToDynamo(item);
 
       const commandInput: PutItemCommandInput = {
         TableName: this.tableName,
-        Item: this.convertEntityToDynamo(item),
+        Item: dynamoItem,
         ...this.buildPutConditionExpression(overwriteCondition, options?.condition),
         ...options?.extraInput,
       };
@@ -151,7 +152,7 @@ export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { dd
           return result;
         }
 
-        return item;
+        return this.convertEntityFromDynamo(dynamoItem);
       })();
     }
 
@@ -233,11 +234,12 @@ export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { dd
     public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
     public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'input' }): BatchWriteItemCommandInput;
     public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options?: EntityBatchPutOptions): Promise<EntityBatchPutOutput<T> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
+      const dynamoItems = items.map((item) => this.convertEntityToDynamo(item));
       const commandInput: BatchWriteItemCommandInput = {
         RequestItems: {
-          [this.tableName]: items.map((item) => ({
+          [this.tableName]: dynamoItems.map((dynamoItem) => ({
             PutRequest: {
-              Item: this.convertEntityToDynamo(item),
+              Item: dynamoItem,
             },
           })),
         },
@@ -261,7 +263,7 @@ export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { dd
             ?.filter((item): item is AttributeMap => !!item)
             ?.map((item) => this.convertEntityFromDynamo(item)) || [];
 
-        return { items, unprocessedItems };
+        return { items: dynamoItems.map((dynamoItem) => this.convertEntityFromDynamo(dynamoItem)), unprocessedItems };
       })();
     }
 
