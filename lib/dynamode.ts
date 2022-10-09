@@ -1,10 +1,11 @@
-import { Condition } from '@lib/condition';
+import Condition from '@lib/condition';
 import { column, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, suffix, updatedAt } from '@lib/decorators';
-import { Entity } from '@lib/entity';
-import { Query } from '@lib/query';
-import { Scan } from '@lib/scan';
-import { Settings } from '@lib/settings';
-import { transactionGet, transactionWrite } from '@lib/transaction';
+import Entity from '@lib/entity';
+import Query from '@lib/query';
+import Scan from '@lib/scan';
+import Settings from '@lib/settings';
+import transactionGet from '@lib/transactionGet';
+import transactionWrite from '@lib/transactionWrite';
 
 ///// --- https://github.com/aws/aws-sdk-js-v3/issues/2125 ---
 // some @aws-sdk clients references these DOM lib interfaces,
@@ -16,22 +17,14 @@ declare global {
 }
 
 const settings = Settings.default;
+const decorators = { column, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, suffix, updatedAt };
 
 export {
   //Condition
   Condition,
 
   //decorators
-  column,
-  prefix,
-  suffix,
-  primaryPartitionKey,
-  primarySortKey,
-  gsiPartitionKey,
-  gsiSortKey,
-  lsiSortKey,
-  createdAt,
-  updatedAt,
+  decorators,
 
   //Entity
   Entity,

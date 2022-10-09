@@ -2,7 +2,7 @@ import { AttributeType, Operator } from '@condition/types';
 import { Entity, EntityKey, EntityValue } from '@entity/types';
 import { ConditionExpression } from '@lib/utils';
 
-export class Condition<T extends Entity<T>> {
+export default class Condition<T extends Entity<T>> {
   private entity: T;
   public conditions: ConditionExpression[];
   private operator = Operator.AND;

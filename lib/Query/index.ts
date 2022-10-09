@@ -1,12 +1,12 @@
 import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
-import { Condition } from '@lib/condition';
+import Condition from '@lib/condition';
 import { AttributeType, Operator } from '@lib/condition/types';
 import { Entity, EntityKey, EntityPartitionKeys, EntityPrimaryKey, EntitySortKeys, EntityValue } from '@lib/entity/types';
 import { BuildQueryConditionExpression, QueryRunOptions, QueryRunOutput } from '@lib/query/types';
 import { getDynamodeStorage } from '@lib/storage';
 import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, isNotEmpty } from '@lib/utils';
 
-export class Query<T extends Entity<T>> {
+export default class Query<T extends Entity<T>> {
   private entity: T;
   private queryInput: QueryInput;
   private keyConditions: ConditionExpression[] = [];

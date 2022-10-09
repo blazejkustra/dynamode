@@ -3,7 +3,7 @@ import DDB, { DDBInterface } from '@lib/settings/aws/ddb';
 import { getDynamodeStorage } from '@lib/storage';
 import { DefaultError } from '@lib/utils';
 
-export class Settings {
+export default class Settings {
   static default: Settings = new Settings();
 
   public converter: typeof Converter;

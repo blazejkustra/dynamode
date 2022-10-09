@@ -13,7 +13,7 @@ import {
   UpdateItemCommandInput,
   UpdateItemCommandOutput,
 } from '@aws-sdk/client-dynamodb';
-import { Condition } from '@lib/condition';
+import Condition from '@lib/condition';
 import { buildDeleteConditionExpression, buildGetProjectionExpression, buildPutConditionExpression, buildUpdateConditionExpression, mapReturnValues, mapReturnValuesOnFailure } from '@lib/entity/helpers';
 import {
   EntityBatchDeleteOptions,
@@ -35,13 +35,14 @@ import {
   EntityUpdateOptions,
   UpdateProps,
 } from '@lib/entity/types';
-import { Query } from '@lib/query';
-import { Scan } from '@lib/scan';
+import Query from '@lib/query';
+import Scan from '@lib/scan';
 import { getDynamodeStorage } from '@lib/storage';
-import { GetTransaction, WriteTransaction } from '@lib/transaction/types';
 import { AttributeMap, buildExpression, DefaultError, fromDynamo, GenericObject, isNotEmpty, NotFoundError, objectToDynamo } from '@lib/utils';
+import { GetTransaction } from '@transactionGet/types';
+import { WriteTransaction } from '@transactionWrite/types';
 
-export function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { ddb: DynamoDB; tableName: string }) {
+export default function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { ddb: DynamoDB; tableName: string }) {
   getDynamodeStorage().addEntityColumnMetadata(tableName, 'Entity', 'dynamodeObject', { propertyName: 'dynamodeObject', type: String, role: 'dynamodeObject' });
 
   return class Entity {
