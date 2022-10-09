@@ -1,6 +1,6 @@
-import { DecoratorOptions } from '@lib/decorators/types';
-import { getDynamodeStorage } from '@lib/Storage';
-import { ColumnMetadata, ColumnType, IndexColumnType, TimestampColumnType } from '@lib/Storage/types';
+import { DecoratorOptions } from '@decorators/types';
+import { getDynamodeStorage } from '@lib/storage';
+import { ColumnMetadata, ColumnType, IndexColumnType, TimestampColumnType } from '@lib/storage/types';
 
 // export function dependsOn<T>(value: T) {
 //   return (Entity: T, propertyName: string) => {

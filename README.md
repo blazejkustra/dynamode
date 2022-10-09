@@ -42,8 +42,6 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 ### Global Todo
 
-* [ ] Refactor some classes and use private properties/functions 
-* [ ] Improve export system for entire lib
 * [ ] Merge together Query Scan and Condition classes to share some functions implementation
 * [ ] Query .all() get all items even in multiple requests
 * [ ] Capture dynamoDB errors and make it easier to work with

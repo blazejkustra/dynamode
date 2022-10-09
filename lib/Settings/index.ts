@@ -1,7 +1,7 @@
-import { getDynamodeStorage } from '@lib/Storage';
+import Converter from '@lib/settings/aws/converter';
+import DDB, { DDBInterface } from '@lib/settings/aws/ddb';
+import { getDynamodeStorage } from '@lib/storage';
 import { DefaultError } from '@lib/utils';
-import Converter from '@Settings/aws/converter';
-import DDB, { DDBInterface } from '@Settings/aws/ddb';
 
 export class Settings {
   static default: Settings = new Settings();

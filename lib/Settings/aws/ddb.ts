@@ -1,5 +1,5 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
-import { getDynamodeStorage } from '@lib/Storage';
+import { getDynamodeStorage } from '@lib/storage';
 
 export interface DDBInterface {
   (): DynamoDB;

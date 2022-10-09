@@ -1,8 +1,8 @@
 import { TransactGetItemsCommandInput, TransactGetItemsOutput, TransactWriteItemsCommandInput, TransactWriteItemsOutput } from '@aws-sdk/client-dynamodb';
-import { Entity } from '@Entity/types';
-import { getDynamodeStorage } from '@lib/Storage';
+import { Entity } from '@lib/entity/types';
+import { getDynamodeStorage } from '@lib/storage';
+import { GetTransaction, TransactionGetOptions, TransactionGetOutput, TransactionWriteOptions, TransactionWriteOutput, WriteTransaction } from '@lib/transaction/types';
 import { NotFoundError } from '@lib/utils';
-import { GetTransaction, TransactionGetOptions, TransactionGetOutput, TransactionWriteOptions, TransactionWriteOutput, WriteTransaction } from '@Transaction/types';
 
 export function transactionGet<T extends Entity<T>>(transactions: Array<GetTransaction<T>>): Promise<TransactionGetOutput<T>>;
 export function transactionGet<T extends Entity<T>>(transactions: Array<GetTransaction<T>>, options: TransactionGetOptions & { return: 'default' }): Promise<TransactionGetOutput<T>>;

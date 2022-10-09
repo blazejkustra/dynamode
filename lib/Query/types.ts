@@ -1,5 +1,5 @@
 import { QueryInput } from '@aws-sdk/client-dynamodb';
-import { Entity, ReturnOption } from '@lib/Entity/types';
+import { Entity, ReturnOption } from '@lib/entity/types';
 import { AttributeMap, GenericObject } from '@lib/utils';
 
 export interface QueryRunOptions {

@@ -1,7 +1,7 @@
 import { Class, RequireAtLeastOne, ValueOf } from 'type-fest';
 
 import { BatchGetItemCommandInput, BatchWriteItemCommandInput, ConditionCheck, Delete, DeleteItemCommandInput, DynamoDB, Get, GetItemCommandInput, Put, PutItemCommandInput, Update, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
-import { Condition } from '@lib/Condition';
+import { Condition } from '@lib/condition';
 import { AttributeMap, Flatten, PickByType } from '@lib/utils';
 
 export type EntityMetadata = {

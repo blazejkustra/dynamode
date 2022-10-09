@@ -1,4 +1,4 @@
-import { Entity } from '@lib/Entity/types';
+import { Entity } from '@lib/entity/types';
 
 export type IndexColumnType = StringConstructor | NumberConstructor;
 export type TimestampColumnType = StringConstructor | NumberConstructor;

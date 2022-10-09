@@ -1,6 +1,6 @@
 import { ReturnValue as DynamoReturnValue, ReturnValuesOnConditionCheckFailure as DynamoReturnValueOnFailure } from '@aws-sdk/client-dynamodb';
-import { BuildDeleteConditionExpression, BuildGetProjectionExpression, BuildPutConditionExpression, BuildUpdateConditionExpression, Entity, EntityKey, ReturnValues, ReturnValuesOnFailure, UpdateProps } from '@Entity/types';
-import { Condition } from '@lib/Condition';
+import { BuildDeleteConditionExpression, BuildGetProjectionExpression, BuildPutConditionExpression, BuildUpdateConditionExpression, Entity, EntityKey, ReturnValues, ReturnValuesOnFailure, UpdateProps } from '@lib/entity/types';
+import { Condition } from '@lib/condition';
 import { AttributeMap, buildExpression, ConditionExpression, isNotEmpty, isNotEmptyArray, substituteAttributeName } from '@lib/utils';
 
 export function buildGetProjectionExpression<T extends Entity<T>>(attributes?: Array<EntityKey<T>>): BuildGetProjectionExpression {

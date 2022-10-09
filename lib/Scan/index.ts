@@ -1,8 +1,8 @@
 import { ScanCommandOutput, ScanInput } from '@aws-sdk/client-dynamodb';
-import { Condition } from '@lib/Condition';
-import { AttributeType, Operator } from '@lib/Condition/types';
-import { Entity, EntityIndexNames, EntityKey, EntityPrimaryKey, EntityValue } from '@lib/Entity/types';
-import { BuildScanConditionExpression, ScanRunOptions, ScanRunOutput } from '@lib/Scan/types';
+import { Condition } from '@lib/condition';
+import { AttributeType, Operator } from '@lib/condition/types';
+import { Entity, EntityIndexNames, EntityKey, EntityPrimaryKey, EntityValue } from '@lib/entity/types';
+import { BuildScanConditionExpression, ScanRunOptions, ScanRunOutput } from '@lib/scan/types';
 import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, isNotEmpty } from '@lib/utils';
 
 export class Scan<T extends Entity<T>> {

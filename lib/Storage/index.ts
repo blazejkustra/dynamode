@@ -1,6 +1,6 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
-import { Entity } from '@lib/Entity/types';
-import { ColumnMetadata, ColumnType, EntityMetadata, TablesMetadata } from '@lib/Storage/types';
+import { Entity } from '@lib/entity/types';
+import { ColumnMetadata, ColumnType, EntityMetadata, TablesMetadata } from '@lib/storage/types';
 import { AttributeMap, DefaultError, mergeObjects, valueFromDynamo } from '@lib/utils';
 
 declare global {
