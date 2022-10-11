@@ -35,7 +35,7 @@ class DynamodeStorage {
       return undefined;
     }
 
-    const entityName = valueFromDynamo(dynamoItem.dynamodeObject);
+    const entityName = valueFromDynamo(dynamoItem.dynamodeEntity);
 
     if (typeof entityName !== 'string') {
       throw new DefaultError();

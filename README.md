@@ -42,8 +42,8 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 ### Priority
 
-* [ ] Ban overriding dynamodeObject
-* [ ] ProjectionExpression always include dynamodeObject and set all other properties to undefined/null
+* [ ] Ban overriding dynamodeEntity
+* [ ] ProjectionExpression always include dynamodeEntity and set all other properties to undefined/null
 * [ ] Add documentation
 
 ### Must have & Hard

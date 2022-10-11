@@ -3,7 +3,7 @@ import { Entity } from '@lib/entity/types';
 export type IndexColumnType = StringConstructor | NumberConstructor;
 export type TimestampColumnType = StringConstructor | NumberConstructor;
 export type ColumnType = StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor | DateConstructor | ArrayConstructor | SetConstructor | MapConstructor;
-export type ColumnRole = 'partitionKey' | 'sortKey' | 'gsiPartitionKey' | 'gsiSortKey' | 'lsiSortKey' | 'createdAt' | 'updatedAt' | 'column' | 'dynamodeObject';
+export type ColumnRole = 'partitionKey' | 'sortKey' | 'gsiPartitionKey' | 'gsiSortKey' | 'lsiSortKey' | 'createdAt' | 'updatedAt' | 'column' | 'dynamodeEntity';
 
 export type ColumnMetadata<Type> = {
   propertyName?: string;

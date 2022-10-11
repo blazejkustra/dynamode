@@ -43,18 +43,18 @@ import { WriteTransaction } from '@lib/transactionWrite/types';
 import { AttributeMap, buildExpression, DefaultError, fromDynamo, GenericObject, isNotEmpty, NotFoundError, objectToDynamo } from '@lib/utils';
 
 export default function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { ddb: DynamoDB; tableName: string }) {
-  getDynamodeStorage().addEntityColumnMetadata(tableName, 'Entity', 'dynamodeObject', { propertyName: 'dynamodeObject', type: String, role: 'dynamodeObject' });
+  getDynamodeStorage().addEntityColumnMetadata(tableName, 'Entity', 'dynamodeEntity', { propertyName: 'dynamodeEntity', type: String, role: 'dynamodeEntity' });
 
   return class Entity {
     public static ddb = ddb;
     public static tableName = tableName;
     public static metadata: Metadata;
 
-    public dynamodeObject: string;
+    public readonly dynamodeEntity: string;
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     constructor(..._args: any[]) {
-      this.dynamodeObject = this.constructor.name;
+      this.dynamodeEntity = this.constructor.name;
     }
 
     public static query<T extends typeof Entity>(this: T): Query<T> {
