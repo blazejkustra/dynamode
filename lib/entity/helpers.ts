@@ -8,7 +8,7 @@ export function buildProjectionExpression<T extends Entity<T>>(attributes: Array
     throw new DefaultError();
   }
 
-  return attributes.map((attribute) => substituteAttributeName(attributeNames, String(attribute))).join(', ');
+  return [...new Set([...attributes, 'dynamodeEntity'])].map((attribute) => substituteAttributeName(attributeNames, String(attribute))).join(', ');
 }
 
 export function buildGetProjectionExpression<T extends Entity<T>>(attributes?: Array<EntityKey<T>>): BuildGetProjectionExpression {

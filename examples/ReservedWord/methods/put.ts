@@ -3,8 +3,8 @@ import { EntityReservedWord } from '../EntityReservedWord';
 async function put() {
   const entityReservedWord = await EntityReservedWord.put(
     new EntityReservedWord({
-      COLUMN: 'pk1',
-      OBJECT: 'sk1',
+      COLUMN: 'pk3',
+      OBJECT: 'sk3',
       COPY: 'copy',
       DEFAULT: 105,
       old: 105,
