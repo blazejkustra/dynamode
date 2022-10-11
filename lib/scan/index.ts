@@ -1,8 +1,8 @@
 import { ScanCommandOutput, ScanInput } from '@aws-sdk/client-dynamodb';
 import { Entity, EntityIndexNames } from '@lib/entity/types';
 import RetrieverBase from '@lib/retriever';
-import { BuildScanConditionExpression, ScanRunOptions, ScanRunOutput } from '@lib/scan/types';
-import { AttributeMap, buildExpression, isNotEmpty } from '@lib/utils';
+import { ScanRunOptions, ScanRunOutput } from '@lib/scan/types';
+import { buildExpression, isNotEmpty, isNotEmptyString } from '@lib/utils';
 
 export default class Scan<T extends Entity<T>> extends RetrieverBase<T> {
   protected input: ScanInput;
@@ -58,36 +58,16 @@ export default class Scan<T extends Entity<T>> extends RetrieverBase<T> {
   }
 
   private buildScanInput(input?: Partial<ScanInput>) {
-    const { conditionExpression, attributeNames, attributeValues } = this.buildScanConditionExpression();
+    const conditionExpression = buildExpression(this.conditions, this.attributeNames, this.attributeValues);
 
-    if (conditionExpression) {
-      this.input.FilterExpression = conditionExpression;
-    }
-
-    if (isNotEmpty(attributeNames)) {
-      this.input.ExpressionAttributeNames = attributeNames;
-    }
-
-    if (isNotEmpty(attributeValues)) {
-      this.input.ExpressionAttributeValues = attributeValues;
-    }
-
+    this.input.FilterExpression = isNotEmptyString(conditionExpression) ? conditionExpression : undefined;
+    this.input.ExpressionAttributeNames = isNotEmpty(this.attributeNames) ? this.attributeNames : undefined;
+    this.input.ExpressionAttributeValues = isNotEmpty(this.attributeValues) ? this.attributeValues : undefined;
     this.input = { ...this.input, ...input };
   }
 
   //TODO: Implement validation
   private validateScanInput() {
     console.log('validateScanInput');
-  }
-
-  private buildScanConditionExpression(): BuildScanConditionExpression {
-    const attributeNames: Record<string, string> = {};
-    const attributeValues: AttributeMap = {};
-
-    return {
-      attributeNames,
-      attributeValues,
-      conditionExpression: buildExpression(this.conditions, attributeNames, attributeValues),
-    };
   }
 }

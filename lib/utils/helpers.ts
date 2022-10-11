@@ -11,6 +11,11 @@ export function isNotEmpty(obj?: object): obj is object {
   return !isEmpty(obj);
 }
 
+export function isNotEmptyString(str: string) {
+  if (str === '') return false;
+  return true;
+}
+
 export function isNotEmptyArray<T>(array?: Array<T>): array is Array<T> {
   return !!array && array.length > 0;
 }

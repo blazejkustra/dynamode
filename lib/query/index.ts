@@ -1,10 +1,10 @@
 import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import { Operator } from '@lib/condition/types';
 import { Entity, EntityKey, EntityPartitionKeys, EntitySortKeys, EntityValue } from '@lib/entity/types';
-import { BuildQueryConditionExpression, QueryRunOptions, QueryRunOutput } from '@lib/query/types';
+import { QueryRunOptions, QueryRunOutput } from '@lib/query/types';
 import RetrieverBase from '@lib/retriever';
 import { getDynamodeStorage } from '@lib/storage';
-import { AttributeMap, buildExpression, ConditionExpression, isNotEmpty, timeout } from '@lib/utils';
+import { AttributeMap, buildExpression, ConditionExpression, isNotEmpty, isNotEmptyString, timeout } from '@lib/utils';
 
 export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
   protected input: QueryInput;
@@ -93,26 +93,15 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
     })();
   }
 
-  private buildQueryInput(input?: Partial<QueryInput>): void {
-    const { conditionExpression, keyConditionExpression, attributeNames, attributeValues } = this.buildQueryConditionExpression();
+  private buildQueryInput(extraInput?: Partial<QueryInput>): void {
+    const keyConditionExpression = buildExpression(this.keyConditions, this.attributeNames, this.attributeValues);
+    const conditionExpression = buildExpression(this.conditions, this.attributeNames, this.attributeValues);
 
-    if (keyConditionExpression) {
-      this.input.KeyConditionExpression = keyConditionExpression;
-    }
-
-    if (conditionExpression) {
-      this.input.FilterExpression = conditionExpression;
-    }
-
-    if (isNotEmpty(attributeNames)) {
-      this.input.ExpressionAttributeNames = attributeNames;
-    }
-
-    if (isNotEmpty(attributeValues)) {
-      this.input.ExpressionAttributeValues = attributeValues;
-    }
-
-    this.input = { ...this.input, ...input };
+    this.input.KeyConditionExpression = isNotEmptyString(keyConditionExpression) ? keyConditionExpression : undefined;
+    this.input.FilterExpression = isNotEmptyString(conditionExpression) ? conditionExpression : undefined;
+    this.input.ExpressionAttributeNames = isNotEmpty(this.attributeNames) ? this.attributeNames : undefined;
+    this.input.ExpressionAttributeValues = isNotEmpty(this.attributeValues) ? this.attributeValues : undefined;
+    this.input = { ...this.input, ...extraInput };
   }
 
   //TODO: Implement validation
@@ -120,17 +109,5 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
     // ValidationException: Invalid FilterExpression: The BETWEEN operator requires upper bound to be greater than or equal to lower bound; lower bound operand: AttributeValue: {S:5}, upper bound operand: AttributeValue: {S:100}
     // Index validation
     console.log('validateQueryInput');
-  }
-
-  private buildQueryConditionExpression(): BuildQueryConditionExpression {
-    const attributeNames: Record<string, string> = {};
-    const attributeValues: AttributeMap = {};
-
-    return {
-      attributeNames,
-      attributeValues,
-      conditionExpression: buildExpression(this.conditions, attributeNames, attributeValues),
-      keyConditionExpression: buildExpression(this.keyConditions, attributeNames, attributeValues),
-    };
   }
 }

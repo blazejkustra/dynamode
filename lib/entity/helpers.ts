@@ -1,15 +1,27 @@
 import { ReturnValue as DynamoReturnValue, ReturnValuesOnConditionCheckFailure as DynamoReturnValueOnFailure } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import { BuildDeleteConditionExpression, BuildGetProjectionExpression, BuildPutConditionExpression, BuildUpdateConditionExpression, Entity, EntityKey, ReturnValues, ReturnValuesOnFailure, UpdateProps } from '@lib/entity/types';
-import { AttributeMap, buildExpression, ConditionExpression, isNotEmpty, isNotEmptyArray, substituteAttributeName } from '@lib/utils';
+import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, isNotEmpty, isNotEmptyArray, isNotEmptyString, substituteAttributeName } from '@lib/utils';
+
+export function buildProjectionExpression<T extends Entity<T>>(attributes: Array<EntityKey<T>>, attributeNames: Record<string, string>): string {
+  if (checkDuplicatesInArray(attributes)) {
+    throw new DefaultError();
+  }
+
+  return attributes.map((attribute) => substituteAttributeName(attributeNames, String(attribute))).join(', ');
+}
 
 export function buildGetProjectionExpression<T extends Entity<T>>(attributes?: Array<EntityKey<T>>): BuildGetProjectionExpression {
+  if (!attributes) {
+    return {};
+  }
+
   const attributeNames: Record<string, string> = {};
-  const projectionExpression = attributes?.map((attribute) => substituteAttributeName(attributeNames, String(attribute))).join(', ');
+  const projectionExpression = buildProjectionExpression(attributes, attributeNames);
 
   return {
     ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
-    ...(projectionExpression ? { ProjectionExpression: projectionExpression } : {}),
+    ProjectionExpression: projectionExpression,
   };
 }
 
@@ -109,7 +121,7 @@ export function buildPutConditionExpression<T extends Entity<T>>(overwriteCondit
   return {
     ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
     ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
-    ...(conditionExpression ? { ConditionExpression: conditionExpression } : {}),
+    ...(isNotEmptyString(conditionExpression) ? { ConditionExpression: conditionExpression } : {}),
   };
 }
 
@@ -121,7 +133,7 @@ export function buildDeleteConditionExpression<T extends Entity<T>>(optionsCondi
   return {
     ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
     ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
-    ...(conditionExpression ? { ConditionExpression: conditionExpression } : {}),
+    ...(isNotEmptyString(conditionExpression) ? { ConditionExpression: conditionExpression } : {}),
   };
 }
 
