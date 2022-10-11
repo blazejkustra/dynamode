@@ -40,13 +40,9 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 # Road map
 
-### Priority
+### Must have & Priority
 
-* [ ] ProjectionExpression always include dynamodeEntity and set all other properties to undefined/null
 * [ ] Add documentation
-
-### Must have & Hard
-
 * [ ] Capture dynamoDB errors and make it easier to work with
 * [ ] Add tests (XD) good luck with that
 * [ ] Add logging possibility
@@ -59,6 +55,8 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 ### Consider
 
+* [ ] Allow passing empty objects to Entity.update
+* [ ] Fix that you can't pass options object without { return: 'default' }
 * [ ] Make possible to query different types of entities
 * [ ] Add dependsOn to global settings to throw/warn when updating
 * [ ] Add dynamoDB streams support
