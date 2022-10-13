@@ -16,7 +16,6 @@ declare global {
   interface File {}
 }
 
-const settings = Settings.default;
 const decorators = { column, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, suffix, updatedAt };
 
 export {
@@ -36,7 +35,7 @@ export {
   Scan,
 
   //Settings
-  settings,
+  Settings,
 
   //transactions
   transactionGet,

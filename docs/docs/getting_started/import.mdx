@@ -4,6 +4,49 @@ description: Import
 sidebar_label: Import
 hide_title: true
 ---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Import
 
-lorem ipsum
+In order to use **Dynamode** you need to either use `import` or `require`
+
+<Tabs>
+<TabItem value="es-module" label="ES module" default>
+
+```ts
+import dynamode from 'dynamode';
+```
+
+</TabItem>
+<TabItem value="common-js" label="CommonJS">
+
+```ts
+const dynamode = require("dynamoose");
+```
+
+</TabItem>
+</Tabs>
+
+## Import the whole Dynamode library
+
+```ts
+import dynamode from 'dynamode';
+const { Entity, decorators, Settings } = dynamode;
+```
+
+## Import specific classes/methods inside of curly brackets
+
+```ts
+import { Entity, decorators, Settings } from 'dynamode';
+```
+
+## Import specific classes/methods individually
+
+```ts
+import Entity from 'dynamode/entity';
+import decorators from 'dynamode/decorators';
+import Settings from 'dynamode/settings';
+```
+
