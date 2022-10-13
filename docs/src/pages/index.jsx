@@ -10,34 +10,44 @@ import styles from './styles.module.css';
 const heroImageUrl = 'img/dynamodb-logo.svg';
 const sectionImageUrl = 'img/engine_frame.svg';
 
-const bareDdbCode = `DynamoDB.get({
+const bareDdbCode = `const response = await DynamoDB.getItem({
   TableName: 'users',
   Key: {
-    PK: { S: 'blazejkustra' },
-    SK: { S: 'nwjła7pa31e2' }
+    PK: { S: 'blazej' },
+    SK: { S: 'nwjła7pa31e2' },
   },
-});`
+  ProjectionExpression: 'username, #object'
+  ExpressionAttributeNames: { '#object': 'object' },
+});
+const user = response?.Item; // can be undefined
+`;
 
-const dynamodeCode = `const user = await User.getItem({ pk: 'blazejkustra', sk: 'nwjła7pa31e2' });`
+const dynamodeCode = `const user = await User.get({ 
+  PK: 'blazej', 
+  SK: 'nwjła7pa31e2', 
+}, { attributes: ['object', 'username'] });
+`;
 
 const boxes = [
   {
-    title: <React.Fragment>Use DynamoDB with more ease than ever before</React.Fragment>,
+    title: <React.Fragment>DynamoDB easier than ever before</React.Fragment>,
     description: (
       <React.Fragment>
-        Complexity reduced from tens to just a few classes and methods. Try it out today: Check out our{' '}
-        <a href="docs/getting_started/introduction">Documentation</a>.
+        Complexity reduced from tens to just a few classes and methods. Check out the <a href="docs/getting_started/introduction">Documentation</a> and try it out today.
       </React.Fragment>
     ),
   },
   {
-    title: <React.Fragment>Lorem ipsum dolor sit amet consectetur, adipisicing elit. </React.Fragment>,
-    description: (
-      <React.Fragment>
-        Lorem, ipsum dolor sit amet consectetur adipisicing elit. Ea nostrum inventore nihil expedita fugiat dignissimos
-        itaque nobis, officiis aliquid ex provident deserunt laborum quos.
-      </React.Fragment>
-    ),
+    title: <React.Fragment>It is all about Typescript</React.Fragment>,
+    description: <React.Fragment>Designed with typescript in mind from the beginning. It includes strongly typed classes and methods, query and scan builders, and much more.</React.Fragment>,
+  },
+  {
+    title: <React.Fragment>Object-oriented solution</React.Fragment>,
+    description: <React.Fragment>Dynamode's goal is to provide a better development experience while using DynamoDB. That's why we choose class-based approach to model your application data.</React.Fragment>,
+  },
+  {
+    title: <React.Fragment>Understandable overlay over DynamoDB</React.Fragment>,
+    description: <React.Fragment>Dynamode isn't a black box. It overlays all crucial DynamoDB functions and gives it a little touch that makes using Dynamode more pleasant.</React.Fragment>,
   },
 ];
 
@@ -61,24 +71,16 @@ function Hero() {
     <header className={classnames('hero hero--secondary', styles.heroBanner)}>
       <div className="container">
         <div className={`row row-hero ${classnames('row', styles.row)}`}>
-          <div className="col col--8 hero-content">
+          <div
+            className="col col--12 hero-content"
+            style={{ backgroundImage: `url(${heroImageUrl})` }}
+          >
             <h1 className="hero__title">{siteConfig.title}</h1>
             <p className="hero__p">{siteConfig.tagline}</p>
-            <div className={classnames('hero-buttons', styles.buttons)}>
-              <Link
-                className={classnames('button button--primary button--lg', styles.getStarted)}
-                to={useBaseUrl('docs/getting_started/introduction')}
-              >
-                View Docs
-              </Link>
-            </div>
+            <Link className={classnames('button button--primary button--lg', styles.getStarted)} to={useBaseUrl('docs/getting_started/introduction')}>
+            View Docs
+            </Link>
           </div>
-          <div
-            className="col col--4 hero-image"
-            style={{
-              backgroundImage: `url(${heroImageUrl})`,
-            }}
-          ></div>
         </div>
       </div>
     </header>
@@ -111,13 +113,9 @@ function SectionInfo() {
 }
 
 function Home() {
-  const context = useDocusaurusContext();
-  const { siteConfig = {} } = context;
-
   return (
-    <Layout title={`Hello from ${siteConfig.title}`} description="Description will go into a meta tag in <head />">
+    <Layout title="DynamoDB ODM" description="Modeling tool for Amazon's DynamoDB">
       <Hero />
-
       <main>
         <section>
           <div className="container">
@@ -132,33 +130,12 @@ function Home() {
               <div className="col col--7 text--center col--bottom-section">
                 <h2>Easier. Better. Faster.</h2>
                 <p>
-                  Check out the documentation and learn how to quickly get up and running with Dynamode. Go to{' '}
-                  <a href="docs/getting_started/introduction">Getting started page</a> to see how you can run it locally
-                  along with local DynamoDB instance.
+                  Learn how to quickly get up and running with Dynamode. Go to <a href="docs/getting_started/introduction">Getting started page</a> to see how you can run it locally along with local DynamoDB instance.
                 </p>
                 <h3>Bare DynamoDB</h3>
                 <CodeBlock className={`language-ts ${classnames('codeBlock', styles.codeBlock)}`}>{bareDdbCode}</CodeBlock>
                 <h3>with Dynamode</h3>
                 <CodeBlock className={`language-ts ${classnames('codeBlock', styles.codeBlock)}`}>{dynamodeCode}</CodeBlock>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section>
-          <div className="container">
-            <div className={`row row--center ${classnames('row', styles.row)}`}>
-              <div className="col col--7 text--center col--bottom-section">
-                <h2>Sponsors</h2>
-                <p>
-                  We really appreciate our sponsors! Thanks to them we can develop our library and make the working with
-                  DynamoDB much easier. Special thanks for:
-                </p>
-                <div className={`row row--center ${classnames('row', styles.row)}`}>
-                  <a href="https://www.swmansion.com">
-                    <img className="imageHolder-sponsor" src="img/swm-logo-small.svg" />
-                    <h5>Software Mansion</h5>
-                  </a>
-                </div>
               </div>
             </div>
           </div>

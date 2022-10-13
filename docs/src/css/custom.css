@@ -250,6 +250,11 @@ section > .container {
   padding: 3rem 1rem !important;
   flex-direction: column;
   justify-content: center;
+
+  min-height: 20rem;
+  background-size: contain;
+  background-position: center right;
+  background-repeat: no-repeat;
 }
 
 .hero__title {
@@ -263,20 +268,10 @@ section > .container {
 
 .button--primary {
   border-radius: 0;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-  margin-right: 1rem;
-  margin-bottom: 1rem;
   min-width: 15rem;
   font-weight: 300;
-}
-
-.hero-image {
-  min-height: 25rem;
-  background-size: contain;
-  background-position: right bottom;
-  background-repeat: no-repeat;
-}
+  float: left;
+}  
 
 section {
   display: flex;
@@ -492,11 +487,6 @@ section > .contaner > .row {
     max-width: 100%;
   }
 
-  .hero-image {
-    background-position: center center;
-    margin-bottom: 1rem;
-  }
-
   .row--box-section {
     flex-direction: row-reverse;
   }
@@ -511,14 +501,22 @@ section > .contaner > .row {
   .menu {
     background-color: var(--swm-color-base);
   }
+
+  .hero-content {
+    margin: 1rem 0;
+    min-height: 16rem;
+  }
 }
 
 @media screen and (max-width: 600px) {
   .button--primary {
-    margin-right: 0;
-    margin-left: 0;
-    min-width: 20rem;
+    min-width: 100%;
   }
+
+  .hero-content {
+    background-size: 0px;
+  }
+
   .navbar__brand {
     margin-right: 0;
   }
@@ -571,11 +569,6 @@ section > .contaner > .row {
   .badge--info {
     border-radius: 2px;
     font-size: 10px;
-  }
-
-  .button--primary {
-    min-width: 18rem;
-    margin: initial 0;
   }
 
   .col--bottom-section {

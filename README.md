@@ -20,14 +20,17 @@
 
 ---
 
+Dynamode is a modeling tool for Amazon's DynamoDB. Its goal is to ease the use of DynamoDB without its quirks and emphasize DynamoDB advantages over other databases. Dynamode provides a straightforward, object-oriented class-based solution to model your data. It includes strongly typed classes and methods, query and scan builders, and much more.
+
+Dynamode is highly influenced by other ORMs/ODMs, such as [TypeORM](https://github.com/typeorm/typeorm), [Dynamoose](https://github.com/dynamoose/dynamoose) and [Mongoose](https://github.com/Automattic/mongoose).
 
 ## Documentation
 
-No documentation yet, reach out if you are interested -> https://github.com/blazejkustra / blazej.kustra@swmansion.com
+Check out our dedicated documentation page for info about the library, guide and more: https://blazejkustra.github.io/dynamode/docs/getting_started/introduction
 
 ## Installation
 
-~~Check out the [installation]() section of our docs for the detailed installation instructions.~~
+Check out the [installation](https://blazejkustra.github.io/dynamode/docs/getting_started/install) section of our docs for the detailed installation instructions.
 
 ## Examples
 
@@ -37,10 +40,11 @@ Find examples under the [`examples/`](https://github.com/blazejkustra/dynamode/b
 
 Dynamode is licensed under [The MIT License](LICENSE).
 
+---
 
-# Road map
+## Road map
 
-### Must have & Priority
+### Must have & priority
 
 * [ ] Add documentation
 * [ ] Capture dynamoDB errors and make it easier to work with

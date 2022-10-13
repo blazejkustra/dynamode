@@ -6,23 +6,27 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  build:
+  test_build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12, 14, 16, 18]
+    name: Node ${{ matrix.node }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: ${{ matrix.node }}
           registry-url: 'https://registry.npmjs.org'
       - name: Install dependencies ⏳
         run: npm ci
-      - name: Build 🔧
-        run: npm run build
       - name: Lint 🧹
         run: npm run lint
       - name: Tests 🧪
         run: npm run test
       # - name: Coverage 📝
       #   run: npm run coverage
+      - name: Build 🔧
+        run: npm run build

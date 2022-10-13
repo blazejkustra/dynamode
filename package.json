@@ -2,13 +2,11 @@
   "name": "dynamode",
   "version": "0.1.1",
   "description": "Dynamode is a modeling tool for Amazon's DynamoDB",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "build": "tsc && tsc-alias",
+    "postbuild": "cp package.json dist && cp README.md dist && cp LICENSE dist",
     "build:watch": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -66,7 +64,8 @@
     "data",
     "datastore",
     "nosql",
-    "db"
+    "db",
+    "odm"
   ],
   "engines": {
     "node": ">=16.0.0",

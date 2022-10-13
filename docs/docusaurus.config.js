@@ -101,7 +101,7 @@ module.exports = {
         {
           type: 'doc',
           position: 'right',
-          docId: 'getting_started/Introduction',
+          docId: 'getting_started/introduction',
           label: 'Docs',
         },
         {
@@ -120,9 +120,9 @@ module.exports = {
     },
     footer: {
       logo: {
-        alt: 'Software Mansion',
-        src: 'img/swm-logo.svg',
-        href: 'https://swmansion.com/',
+        alt: 'Dynamode',
+        src: 'img/dynamode.svg',
+        href: 'https://github.com/blazejkustra/dynamode',
       },
     },
     prism: {
