@@ -136,7 +136,7 @@ module.exports = {
         docs: {
           path: 'docs',
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: undefined, // hides edit button
+          editUrl: 'https://github.com/blazejkustra/dynamode/tree/master/docs', 
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
