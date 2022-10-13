@@ -1,4 +1,9 @@
-import dynamode from '../../dist';
+import { DynamoDB } from '@aws-sdk/client-dynamodb';
 
-dynamode.settings.ddb.local();
-export const ddb = dynamode.settings.ddb();
+import { Settings } from '../../dist';
+
+const x = new DynamoDB({});
+
+Settings.ddb.local();
+
+export const ddb = Settings.ddb();

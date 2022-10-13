@@ -21,7 +21,7 @@ module.exports = {
 				"guide/scan",
 				"guide/transactionGet",
 				"guide/transactionWrite",
-				"guide/dynamode",
+				"guide/settings",
 			]
 		},
 		{
