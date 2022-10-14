@@ -2,9 +2,9 @@ import { User } from '../User';
 
 async function query() {
   const userQuery = await User.query()
-    .partitionKey('PK')
+    .partitionKey('partitionKey')
     .eq('pk1')
-    .condition(User.condition().attribute('number').le(2).or.parenthesis(User.condition().attribute('GSI_1_PK').not().eq('user').and.attribute('string').beginsWith('kustra.blazej')))
+    .condition(User.condition().attribute('age').ge(18).or.parenthesis(User.condition().attribute('partitionKey').not().eq('user').and.attribute('age').between(18, 23)))
     .run();
 
   console.log();

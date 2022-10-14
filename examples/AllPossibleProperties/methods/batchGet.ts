@@ -1,14 +1,14 @@
-import { User } from '../User';
+import { AllPossibleProperties } from '../model';
 
 async function batchGet() {
-  const userBatchGet = await User.batchGet([
+  const modelBatchGet = await AllPossibleProperties.batchGet([
     { partitionKey: 'pk1', sortKey: 'sk1' },
     { partitionKey: 'pk2', sortKey: 'sk2' },
   ]);
 
   console.log();
   console.log('OUTPUT:');
-  console.log(userBatchGet);
+  console.log(modelBatchGet);
 }
 
 batchGet();

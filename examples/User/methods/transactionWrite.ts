@@ -1,53 +1,46 @@
 import { transactionWrite } from '../../../dist';
 import { User } from '../User';
 
-import { UserConfig } from './../UserConfig';
-
 async function transaction() {
-  const transactions = await transactionWrite(
-    [
-      User.transactionUpdate(
-        { PK: 'pk1', SK: 'sk1' },
-        {
-          add: {
-            set: new Set(['5']),
-          },
+  const transactions = await transactionWrite([
+    User.transactionUpdate(
+      { partitionKey: 'pk1', sortKey: 'sk1' },
+      {
+        set: {
+          age: 18,
         },
-        { condition: User.condition().attribute('PK').eq('pk1') },
-      ),
-      User.transactionPut(
-        new User({
-          PK: 'pk2',
-          SK: 'sk2',
-          string: 'kustra.blazej@gmail.com',
-          LSI_1_SK: 105,
-          object: { optional: 'test', required: 2 },
-          set: new Set('123'),
-          array: ['1'],
-          number: 10,
-          map: new Map<string, string>([['1', 'test']]),
-          boolean: true,
-        }),
-      ),
-      User.transactionCreate(
-        new User({
-          PK: 'pk3',
-          SK: 'sk3',
-          string: 'kustra.blazej@gmail.com',
-          LSI_1_SK: 105,
-          object: { optional: 'test', required: 2 },
-          set: new Set('123'),
-          array: ['1'],
-          number: 10,
-          map: new Map<string, string>([['1', 'test']]),
-          boolean: true,
-        }),
-      ),
-      UserConfig.transactionDelete({ PK: 'pk2', SK: 'sk2' }),
-      UserConfig.transactionCondition({ PK: 'pk1', SK: 'sk1' }, UserConfig.condition().attribute('PK').eq('pk1')),
-    ],
-    { return: 'default' },
-  );
+      },
+      { condition: User.condition().attribute('partitionKey').eq('pk1') },
+    ),
+    User.transactionPut(
+      new User({
+        partitionKey: 'pk2',
+        sortKey: 'sk2',
+        username: 'blazej',
+        email: 'blazej@gmail.com',
+        age: 18,
+        friends: ['tomas', 'david'],
+        config: {
+          isAdmin: true,
+        },
+      }),
+    ),
+    User.transactionCreate(
+      new User({
+        partitionKey: 'pk3',
+        sortKey: 'sk3',
+        username: 'blazej',
+        email: 'blazej@gmail.com',
+        age: 18,
+        friends: ['tomas', 'david'],
+        config: {
+          isAdmin: true,
+        },
+      }),
+    ),
+    User.transactionDelete({ partitionKey: 'pk4', sortKey: 'sk4' }),
+    User.transactionCondition({ partitionKey: 'pk5', sortKey: 'sk5' }, User.condition().attribute('partitionKey').eq('pk5')),
+  ]);
 
   console.log();
   console.log('OUTPUT:');

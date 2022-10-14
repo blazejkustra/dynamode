@@ -172,3 +172,5 @@ export default class Condition<T extends Entity<T>> {
     this.operator = Operator.AND;
   }
 }
+
+export { AttributeType };

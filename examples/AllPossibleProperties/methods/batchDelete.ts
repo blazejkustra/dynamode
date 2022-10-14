@@ -1,7 +1,7 @@
-import { User } from '../User';
+import { AllPossibleProperties } from '../model';
 
 async function batchDelete() {
-  const userBatchDelete = await User.batchDelete(
+  const modelBatchDelete = await AllPossibleProperties.batchDelete(
     [
       { partitionKey: 'pk1', sortKey: 'sk1' },
       { partitionKey: 'pk2', sortKey: 'sk2' },
@@ -11,7 +11,7 @@ async function batchDelete() {
 
   console.log();
   console.log('OUTPUT:');
-  console.log(userBatchDelete);
+  console.log(modelBatchDelete);
 }
 
 batchDelete();

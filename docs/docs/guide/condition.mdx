@@ -4,6 +4,237 @@ description: Condition
 sidebar_label: Condition
 hide_title: true
 ---
+
 # Condition
 
-lorem ipsum
+Condition class represents a conditional that you can pass to [Entity methods](/docs/guide/entity/methods) and also to build more complex conditions in [Query](/docs/guide/query) and [Scan](/docs/guide/scan) classes.
+
+Condition is also a base class for [Query](/docs/guide/query) and [Scan](/docs/guide/scan), meaning that all methods listed here are also available in [Query](/docs/guide/query) and [Scan](/docs/guide/scan) classes.
+
+## `new Condition(Entity)` or `Entity.condition()`
+
+Every condition has to be initialized with [Entity](/docs/guide/entity/methods) to infer its underlying properties. You can achieve this in two ways:
+
+```ts
+// Below definitions are equivalent
+new Condition(User);
+User.condition();
+```
+
+[User](/docs/guide/entity/modeling) is an example class that extends [Entity](/docs/guide/entity/methods).
+
+## `Condition.attribute(key)`
+
+This method prepares a new conditional expression. The `key` parameter is a string, narrowed down to flattened entity properties.
+
+:::info
+These properties are allowed for the User entity
+:::
+
+```ts
+User.condition().attribute('username');
+User.condition().attribute('partitionKey');
+User.condition().attribute('sortKey');
+User.condition().attribute('email');
+User.condition().attribute('friends.1');
+User.condition().attribute('friends.10');
+User.condition().attribute('config.isAdmin');
+```
+
+:::caution
+Typescript error: Argument of type '"unknownProperty"' is not assignable to parameter of type: `"username" | "partitionKey" | "sortKey" | "email" | "config" | "config.isAdmin" | friends.${number}`
+:::
+
+```ts
+User.condition().attribute('unknownProperty');
+```
+
+To complete the conditional you need to use one of undermentioned functions.
+
+```ts
+User.condition().attribute('username'); // This condition has no impact on the final conditional
+User.condition().attribute('username').eq('blazej'); // Adding comparison function (eq) after `attribute` method will complete the conditional. Resulting in: `username = blazej`
+```
+
+### `.eq(value)`
+
+This comparison function will check if the given key is equal to the value that is passed in as a parameter.
+
+```ts
+User.condition().attribute('username').eq('blazej'); // Resulting in: `username = blazej`
+```
+
+### `.ne(value)`
+
+This comparison function will check if the given key is not equal to the value that is passed in as a parameter.
+
+```ts
+User.condition().attribute('username').ne('blazej'); // Resulting in: `username <> blazej`
+```
+
+### `.lt(value)`
+
+This comparison function will check if the given key is less than the value that is passed in as a parameter.
+
+```ts
+User.condition().attribute('username').lt('blazej'); // Resulting in: `username < blazej`
+```
+
+### `.le(value)`
+
+This comparison function will check if the given key is less than or equal to the value that is passed in as a parameter.
+
+```ts
+User.condition().attribute('username').le('blazej'); // Resulting in: `username <= blazej`
+```
+
+### `.gt(value)`
+
+This comparison function will check if the given key is greater than the value that is passed in as a parameter.
+
+```ts
+User.condition().attribute('username').gt('blazej'); // Resulting in: `username > blazej`
+```
+
+### `.ge(value)`
+
+This comparison function will check if the given key is greater than or equal to the value that is passed in as a parameter.
+
+```ts
+User.condition().attribute('username').ge('blazej'); // Resulting in: `username >= blazej`
+```
+
+### `.beginsWith(value)`
+
+This comparison function will check if the given key is begins with the value that is passed in as a parameter.
+
+```ts
+User.condition().attribute('username').beginsWith('bla'); // Resulting in: `begins_with(username, bla)`
+```
+
+### `.between(value1, value2)`
+
+This comparison function will check if the given key is between the values that were passed in as parameters.
+
+```ts
+User.condition().attribute('username').between('blazej', 'clazej'); // Resulting in: `username BETWEEN blazej AND clazej`
+```
+
+### `.contains(values)`
+
+This comparison function will check if the given key contains the value that is passed in as a parameter.
+
+```ts
+User.condition().attribute('username').contains('blazej'); // Resulting in: `contains(username, blazej)`
+```
+
+### `.in(values)`
+
+This comparison function will check if the given key equals to any of the items that are passed in as parameters.
+
+```ts
+User.condition().attribute('username').in(['blazej', 'david']); // Resulting in: `username IN blazej, david`
+```
+
+### `.type(value)`
+
+This comparison function will check if the given key is of a given type that is passed in as a parameter.
+
+```ts
+import { AttributeType } from 'dynamode/condition';
+
+User.condition().attribute('username').type(AttributeType.String); // Resulting in: `attribute_type(username, 'S')`
+```
+
+### `.exists()`
+
+This comparison function will check if the given key exists in the item.
+
+```ts
+User.condition().attribute('username').exists(); // Resulting in: `attribute_exists(username)`
+```
+
+### `.size()`
+This function will compare the size of property under the given key. List of possible functions:
+
+| Function     | Result                 |
+| ------------ | ---------------------- |
+| `.eq(value)` | `'size(key) = value'`  |
+| `.ne(value)` | `'size(key) <> value'` |
+| `.lt(value)` | `'size(key) < value'`  |
+| `.le(value)` | `'size(key) <= value'` |
+| `.gt(value)` | `'size(key) > value'`  |
+| `.ge(value)` | `'size(key) >= value'` |
+
+### `.not()`
+
+This function use the opposite comparison for a given condition. List of possible functions:
+
+| Function           | What is used | Result                          |
+| ------------------ | ------------ | ------------------------------- |
+| `.eq(value)`       | `.ne(value)` | `'key <> value'`                |
+| `.ne(value)`       | `.eq(value)` | `'key = value'`                 |
+| `.lt(value)`       | `.ge(value)` | `'key >= value'`                |
+| `.le(value)`       | `.gt(value)` | `'key > value'`                 |
+| `.gt(value)`       | `.le(value)` | `'key <= value'`                |
+| `.ge(value)`       | `.lt(value)` | `'key < value'`                 |
+| `.contains(value)` | N/A          | `'NOT contains(key, value)'`    |
+| `.in(values)`      | N/A          | `'NOT (key IN value1, value2)'` |
+| `.exists()`        | N/A          | `'attribute_not_exists(key)'`   |
+
+```ts
+User.condition().attribute('username').not().contains('blazej'); // Resulting in: `NOT contains(username, blazej)`
+User.condition().attribute('username').not().eq('blazej'); // Resulting in: `username <> blazej`
+```
+
+## Condition.parenthesis(condition)
+
+This method takes initialized `Condition` as a parameter and groups the inner condition with a parenthesis.
+
+```ts
+User.condition().attribute('username').eq('blazej').and.parenthesis(
+  User.condition()
+    .attribute('email').eq('blazej@gmail.com')
+    .attribute('email').eq('blazej@icloud.com')
+); // username = blazej AND ( email = blazej@gmail.com OR email = blazej@icloud.com )
+```
+
+## `Condition.group(condition)`
+
+This method is identical to `Condition.parenthesis(condition)` and is used as an alias.
+
+## `Condition.condition(condition)`
+
+This method takes initialized `Condition` as a parameter and merges both conditions together without parenthesis.
+
+```ts
+User.condition().attribute('username').eq('blazej').and.condition(
+  User.condition()
+    .attribute('email').eq('blazej@gmail.com')
+    .attribute('email').eq('blazej@icloud.com')
+); // username = blazej AND email = blazej@gmail.com OR email = blazej@icloud.com 
+
+User.condition().attribute('username').eq('blazej').or.condition(
+  User.condition()
+    .attribute('email').eq('blazej@gmail.com')
+    .attribute('email').eq('blazej@icloud.com')
+); // username = blazej OR email = blazej@gmail.com OR email = blazej@icloud.com 
+```
+
+## `Condition.and`
+
+This method specifies an `AND` operator between two conditions, condition will return true only when both conditions are met. This function can be omitted as `AND` operator is set as default
+
+```ts
+// conditions below are identical
+User.condition().attribute('username').eq('blazej').and.attribute('email').eq('blazej@gmail.com'); // username = blazej AND email = blazej@gmail.com
+User.condition().attribute('username').eq('blazej').attribute('email').eq('blazej@gmail.com'); // username = blazej AND email = blazej@gmail.com
+```
+
+## `Condition.or`
+
+This method specifies an `OR` operator between two conditions, condition will return true if either of two conditions are met.
+
+```ts
+User.condition().attribute('username').eq('blazej').or.attribute('email').eq('blazej@gmail.com'); // username = blazej OR email = blazej@gmail.com
+```

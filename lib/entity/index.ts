@@ -42,11 +42,11 @@ import { GetTransaction } from '@lib/transactionGet/types';
 import { WriteTransaction } from '@lib/transactionWrite/types';
 import { AttributeMap, buildExpression, DefaultError, fromDynamo, GenericObject, isNotEmpty, NotFoundError, objectToDynamo } from '@lib/utils';
 
-export default function Entity<Metadata extends EntityMetadata>({ ddb, tableName }: { ddb: DynamoDB; tableName: string }) {
+export default function Entity<Metadata extends EntityMetadata>(tableName: string) {
   getDynamodeStorage().addEntityColumnMetadata(tableName, 'Entity', 'dynamodeEntity', { propertyName: 'dynamodeEntity', type: String, role: 'dynamodeEntity' });
 
   return class Entity {
-    public static ddb = ddb;
+    public static ddb: DynamoDB;
     public static tableName = tableName;
     public static metadata: Metadata;
 
@@ -57,16 +57,16 @@ export default function Entity<Metadata extends EntityMetadata>({ ddb, tableName
       this.dynamodeEntity = this.constructor.name;
     }
 
+    public static condition<T extends typeof Entity>(this: T): Condition<T> {
+      return new Condition(this);
+    }
+
     public static query<T extends typeof Entity>(this: T): Query<T> {
       return new Query(this);
     }
 
     public static scan<T extends typeof Entity>(this: T): Scan<T> {
       return new Scan(this);
-    }
-
-    public static condition<T extends typeof Entity>(this: T): Condition<T> {
-      return new Condition(this);
     }
 
     public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): Promise<InstanceType<T>>;

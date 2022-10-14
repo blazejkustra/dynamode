@@ -14,8 +14,22 @@ module.exports = {
 			"type": "category",
 			"label": "Guide",
 			"items": [
-				"guide/entity",
-				"guide/decorators",
+				{ 
+					"Entity": [
+						{
+							"type": "doc",
+							"id": 'guide/entity/methods'
+						},
+						{
+							"type": "doc",
+							"id": 'guide/entity/decorators'
+						},
+						{
+							"type": "doc",
+							"id": 'guide/entity/modeling'
+						}
+					] 
+				},
 				"guide/condition",
 				"guide/query",
 				"guide/scan",

@@ -1,7 +1,7 @@
 import { User } from '../User';
 
 async function deleteFn() {
-  const userDelete = await User.delete({ PK: 'pk1', SK: 'sk1' });
+  const userDelete = await User.delete({ partitionKey: 'pk1', sortKey: 'sk1' });
 
   console.log();
   console.log('OUTPUT:');

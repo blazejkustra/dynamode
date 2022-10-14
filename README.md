@@ -59,6 +59,7 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 ### Consider
 
+* [ ] Consider change AttributeType to String, Number, null etc
 * [ ] Allow passing empty objects to Entity.update
 * [ ] Fix that you can't pass options object without { return: 'default' }
 * [ ] Make possible to query different types of entities
