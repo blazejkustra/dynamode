@@ -1,4 +1,4 @@
-import { User } from '../User';
+import { User } from '../model';
 
 async function batchDelete() {
   const userBatchDelete = await User.batchDelete(

@@ -1,5 +1,5 @@
 import { transactionWrite } from '../../../dist';
-import { User } from '../User';
+import { User } from '../model';
 
 async function transaction() {
   const transactions = await transactionWrite([

@@ -1,4 +1,4 @@
-import { User } from '../User';
+import { User } from '../model';
 
 async function scan() {
   const userScan = await User.scan().attribute('age').eq(18).run();

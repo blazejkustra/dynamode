@@ -1,13 +1,13 @@
-import { User } from '../model';
+import { KeyValue } from '../model';
 
 async function update() {
-  const userUpdate = await User.update(
-    { partitionKey: 'pk1', sortKey: 'sk1' },
+  const userUpdate = await KeyValue.update(
+    { key: 'key1' },
     {
       set: {
-        age: 18,
+        'value.lol': 2,
       },
-      add: {},
+      remove: [],
     },
   );
 

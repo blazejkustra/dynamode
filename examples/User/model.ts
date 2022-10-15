@@ -1,5 +1,7 @@
 import { Entity } from '../../dist';
-import { column, primaryPartitionKey, primarySortKey } from '../../dist/decorators';
+import { column, primaryPartitionKey, primarySortKey, register } from '../../dist/decorators';
+
+import { ddb } from './setup';
 
 type UserKeys = {
   partitionKey: 'partitionKey';

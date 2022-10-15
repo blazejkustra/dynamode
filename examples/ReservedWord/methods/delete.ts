@@ -1,4 +1,4 @@
-import { EntityReservedWord } from '../EntityReservedWord';
+import { EntityReservedWord } from '../model';
 
 async function deleteFn() {
   const entityReservedWordDelete = await EntityReservedWord.delete({ COLUMN: 'pk1', OBJECT: 'sk1' });

@@ -1,5 +1,5 @@
 import { transactionWrite } from '../../../dist';
-import { EntityReservedWord } from '../EntityReservedWord';
+import { EntityReservedWord } from '../model';
 
 async function transaction() {
   const transactions = await transactionWrite(

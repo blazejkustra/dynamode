@@ -1,5 +1,5 @@
 import { transactionGet } from '../../../dist';
-import { User } from '../User';
+import { User } from '../model';
 
 async function transaction() {
   const transactions = await transactionGet([User.transactionGet({ partitionKey: 'pk1', sortKey: 'sk1' }), User.transactionGet({ partitionKey: 'pk1', sortKey: 'sk1' })]);

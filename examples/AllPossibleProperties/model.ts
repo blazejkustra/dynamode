@@ -1,6 +1,7 @@
 import { Entity } from '../../dist';
-import { column, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, updatedAt } from '../../dist/decorators';
-import { ddb } from '../utils/setup';
+import { column, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, register, updatedAt } from '../../dist/decorators';
+
+import { ddb } from './setup';
 
 type AllPossiblePropertiesKeys = {
   partitionKey: 'partitionKey';
@@ -39,7 +40,9 @@ type AllPossiblePropertiesProps = {
 
 const TABLE_NAME = 'all-possible-properties';
 const PREFIX = 'prefix';
-export class AllPossibleProperties extends Entity<AllPossiblePropertiesKeys>({ ddb, tableName: TABLE_NAME }) {
+
+@register(ddb)
+export class AllPossibleProperties extends Entity<AllPossiblePropertiesKeys>(TABLE_NAME) {
   // Primary key
   @prefix(PREFIX)
   @primaryPartitionKey(String)

@@ -1,4 +1,4 @@
-import { User } from '../User';
+import { User } from '../model';
 
 async function deleteFn() {
   const userDelete = await User.delete({ partitionKey: 'pk1', sortKey: 'sk1' });

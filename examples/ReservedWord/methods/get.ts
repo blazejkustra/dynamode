@@ -1,4 +1,4 @@
-import { EntityReservedWord } from '../EntityReservedWord';
+import { EntityReservedWord } from '../model';
 
 async function get() {
   const userGet = await EntityReservedWord.get({ COLUMN: 'pk1', OBJECT: 'sk1' });

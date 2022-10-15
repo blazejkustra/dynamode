@@ -1,5 +1,5 @@
 import { transactionGet } from '../../../dist';
-import { EntityReservedWord } from '../EntityReservedWord';
+import { EntityReservedWord } from '../model';
 
 async function transaction() {
   const transactions = await transactionGet([EntityReservedWord.transactionGet({ COLUMN: 'pk1', OBJECT: 'sk1' }), EntityReservedWord.transactionGet({ COLUMN: 'pk2', OBJECT: 'sk2' })]);

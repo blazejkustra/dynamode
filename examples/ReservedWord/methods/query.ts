@@ -1,4 +1,4 @@
-import { EntityReservedWord } from '../EntityReservedWord';
+import { EntityReservedWord } from '../model';
 
 async function query() {
   const entityReservedWordQuery = await EntityReservedWord.query().partitionKey('COLUMN').eq('pk1').attributes(['old']).run({ return: 'input' });

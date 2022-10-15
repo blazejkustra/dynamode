@@ -1,4 +1,4 @@
-import { EntityReservedWord } from '../EntityReservedWord';
+import { EntityReservedWord } from '../model';
 
 async function update() {
   const entityReservedWordUpdate = await EntityReservedWord.update(

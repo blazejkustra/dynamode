@@ -1,4 +1,4 @@
-import { User } from '../User';
+import { User } from '../model';
 
 async function batchGet() {
   const userBatchGet = await User.batchGet([

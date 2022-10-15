@@ -1,4 +1,4 @@
-import { User } from '../User';
+import { User } from '../model';
 
 async function batchPut() {
   const userBatchPut = await User.batchPut([

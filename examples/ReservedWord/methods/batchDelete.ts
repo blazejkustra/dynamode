@@ -1,4 +1,4 @@
-import { EntityReservedWord } from '../EntityReservedWord';
+import { EntityReservedWord } from '../model';
 
 async function batchDelete() {
   const entityReservedWordBatchDelete = await EntityReservedWord.batchDelete([
