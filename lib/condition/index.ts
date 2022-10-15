@@ -161,7 +161,7 @@ export default class Condition<T extends Entity<T>> {
   }
 
   protected between<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, v1: EntityValue<T, K>, v2: EntityValue<T, K>): this {
-    conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, v1), this.entity.prefixSuffixValue(key, v2)], expr: '$K BETWEEN $V AND $V' });
+    conditions.push({ keys: [String(key), String(key)], values: [this.entity.prefixSuffixValue(key, v1), this.entity.prefixSuffixValue(key, v2)], expr: '$K BETWEEN $V AND $V' });
     return this;
   }
 
