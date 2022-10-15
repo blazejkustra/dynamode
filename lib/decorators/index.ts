@@ -1,4 +1,6 @@
+import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { DecoratorOptions } from '@lib/decorators/types';
+import { Entity } from '@lib/entity/types';
 import { getDynamodeStorage } from '@lib/storage';
 import { ColumnMetadata, ColumnType, IndexColumnType, TimestampColumnType } from '@lib/storage/types';
 
@@ -7,6 +9,13 @@ import { ColumnMetadata, ColumnType, IndexColumnType, TimestampColumnType } from
 //     console.log('test', value);
 //   };
 // }
+
+export function register(value: DynamoDB) {
+  return <T extends Entity<T>>(Class: T) => {
+    Class.ddb = value;
+    return Class;
+  };
+}
 
 export function prefix(value: string) {
   return <T extends Record<K, string>, K extends string>(Entity: T, propertyName: K) => {
