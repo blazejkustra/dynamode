@@ -1,9 +1,17 @@
 import type { AttributeValue } from '@aws-sdk/client-dynamodb';
 
+// Common
+
 export type AttributeMap = Record<string, AttributeValue>;
 export type GenericObject = Record<string, unknown>;
 
+// Flatten entity
+
+export type Flatten<T, O> = Collapse<Explode<T, O>>;
+
 type Entry = { key: string; value: unknown };
+
+type Collapse<T extends Entry> = { [E in T as E['key']]: E['value'] } extends infer V ? { [K in keyof V]: V[K] } : never;
 
 type Explode<T, O = never> = _Explode<
   T extends readonly unknown[]
@@ -14,7 +22,7 @@ type Explode<T, O = never> = _Explode<
   O
 >;
 
-type _Explode<T, O = never> = Writable<T, O> extends infer U
+type _Explode<T, O = never> = T extends infer U
   ? U extends O
     ? { key: ''; value: U }
     : U extends object
@@ -37,22 +45,3 @@ type _Explode<T, O = never> = Writable<T, O> extends infer U
       }[keyof U]
     : { key: ''; value: U }
   : never;
-
-type Collapse<T extends Entry> = { [E in T as E['key']]: E['value'] } extends infer V ? { [K in keyof V]: V[K] } : never;
-
-type Writable<T, O> = T extends O
-  ? T
-  : {
-      [P in keyof T as IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P>]: T[P];
-    };
-
-type IfEquals<X, Y, A = X> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : never;
-
-export type Flatten<T, O> = Collapse<Explode<T, O>>;
-
-export type PickByType<T, Value> = {
-  [P in keyof T as T[P] extends Value | undefined ? P : never]: T[P];
-};
-
-type Diff<T, U> = T extends U ? never : T;
-export type Optional<T, K extends keyof T> = Pick<T, Diff<keyof T, K>> & Partial<T>;

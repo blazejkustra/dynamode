@@ -2,24 +2,26 @@ import { Class, RequireAtLeastOne, ValueOf } from 'type-fest';
 
 import { BatchGetItemCommandInput, BatchWriteItemCommandInput, ConditionCheck, Delete, DeleteItemCommandInput, DynamoDB, Get, GetItemCommandInput, Put, PutItemCommandInput, Update, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
-import { AttributeMap, Flatten, PickByType } from '@lib/utils';
+import { AttributeMap, Flatten } from '@lib/utils';
+
+type EntityIndexesMetadata = {
+  [key: string]: {
+    partitionKey?: string;
+    sortKey?: string;
+  };
+};
 
 export type EntityMetadata = {
   partitionKey: string;
   sortKey?: string;
-  indexes: {
-    [key: string]: {
-      partitionKey?: string;
-      sortKey?: string;
-    };
-  };
+  indexes?: EntityIndexesMetadata;
 };
 
 export type ReturnOption = 'default' | 'input' | 'output';
 export type ExcludeFromEntity = Date | Set<unknown> | Map<unknown, unknown>;
 export type EntityProperties<T extends Entity<T>> = Partial<Flatten<InstanceType<T>, ExcludeFromEntity>>;
 export type EntityKey<T extends Entity<T>> = keyof EntityProperties<T>;
-export type EntityValue<T extends Entity<T>, K extends EntityKey<T>> = EntityProperties<T>[K];
+export type EntityValue<T extends Entity<T>, K extends EntityKey<T>> = Flatten<InstanceType<T>, ExcludeFromEntity>[K];
 
 export type Entity<T extends Entity<T>> = Class<unknown> & {
   ddb: DynamoDB;
@@ -32,14 +34,14 @@ export type Entity<T extends Entity<T>> = Class<unknown> & {
   convertPrimaryKeyToAttributeMap: (primaryKey: EntityPrimaryKey<T>) => AttributeMap;
 };
 
-export type EntityPrimaryKey<T extends Entity<T>> = Pick<InstanceType<T>, Extract<keyof InstanceType<T>, ValueOf<T['metadata'], 'partitionKey' | 'sortKey'>>>;
+export type EntityPrimaryKey<T extends Entity<T>> = Pick<InstanceType<T>, Extract<keyof InstanceType<T>, T['metadata']['sortKey'] extends string ? T['metadata']['partitionKey'] | T['metadata']['sortKey'] : T['metadata']['partitionKey']>>;
 export type EntityIndexNames<T extends Entity<T>> = keyof T['metadata']['indexes'];
 export type EntityPartitionKeys<T extends Entity<T>> =
-  | ValueOf<T['metadata'], 'partitionKey'>
-  | ValueOf<{ [K in keyof T['metadata']['indexes']]: T['metadata']['indexes'][K]['partitionKey'] extends string ? T['metadata']['indexes'][K]['partitionKey'] : never }>;
+  | T['metadata']['partitionKey']
+  | ValueOf<{ [K in keyof T['metadata']['indexes']]: T['metadata']['indexes'] extends EntityIndexesMetadata ? (T['metadata']['indexes'][K]['partitionKey'] extends string ? T['metadata']['indexes'][K]['partitionKey'] : never) : never }>;
 export type EntitySortKeys<T extends Entity<T>> =
-  | ValueOf<T['metadata'], 'sortKey'>
-  | ValueOf<{ [K in keyof T['metadata']['indexes']]: T['metadata']['indexes'][K]['sortKey'] extends string ? T['metadata']['indexes'][K]['sortKey'] : never }>;
+  | T['metadata']['sortKey']
+  | ValueOf<{ [K in keyof T['metadata']['indexes']]: T['metadata']['indexes'] extends EntityIndexesMetadata ? (T['metadata']['indexes'][K]['sortKey'] extends string ? T['metadata']['indexes'][K]['sortKey'] : never) : never }>;
 
 export type ReturnValues = 'none' | 'allOld' | 'allNew' | 'updatedOld' | 'updatedNew';
 export type ReturnValuesOnFailure = 'none' | 'allOld';
@@ -59,6 +61,17 @@ export interface BuildGetProjectionExpression {
 }
 
 // Entity.update
+
+export type PickByType<T, Value> = Omit<
+  {
+    [P in keyof T as T[P] extends Value | undefined ? P : never]: T[P];
+  },
+  'dynamodeEntity'
+> extends infer U
+  ? U extends Record<string, never>
+    ? Record<string, never>
+    : U | Record<string, never>
+  : never;
 
 export type UpdateProps<T extends Entity<T>> = RequireAtLeastOne<{
   add?: PickByType<EntityProperties<T>, number | Set<unknown>>;

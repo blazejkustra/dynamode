@@ -14,7 +14,7 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
     super(entity);
   }
 
-  public partitionKey<Q extends Query<T>, K extends EntityKey<T>>(this: Q, key: K & EntityPartitionKeys<T>) {
+  public partitionKey<Q extends Query<T>, K extends EntityKey<T> & EntityPartitionKeys<T>>(this: Q, key: K) {
     const columns = getDynamodeStorage().getEntityColumns(this.entity.tableName, this.entity.name);
     const indexName = columns[String(key)].indexName;
     if (indexName) this.input.IndexName = indexName;
@@ -24,7 +24,7 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
     };
   }
 
-  public sortKey<Q extends Query<T>, K extends EntityKey<T>>(this: Q, key: K & EntitySortKeys<T>) {
+  public sortKey<Q extends Query<T>, K extends EntityKey<T> & EntitySortKeys<T>>(this: Q, key: K) {
     this.keyConditions.push({ expr: Operator.AND });
 
     return {

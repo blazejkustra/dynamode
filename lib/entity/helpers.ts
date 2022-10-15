@@ -43,7 +43,13 @@ export function buildUpdateConditionExpression<T extends Entity<T>>(props: Updat
 export function buildUpdateConditions<T extends Entity<T>>(props: UpdateProps<T>): ConditionExpression[] {
   const conditions: ConditionExpression[] = [];
 
-  if (isNotEmpty(props.set) || isNotEmpty(props.setIfNotExists) || isNotEmpty(props.listAppend) || isNotEmpty(props.increment) || isNotEmpty(props.decrement)) {
+  if (
+    (props.set && isNotEmpty(props.set)) ||
+    (props.setIfNotExists && isNotEmpty(props.setIfNotExists)) ||
+    (props.listAppend && isNotEmpty(props.listAppend)) ||
+    (props.increment && isNotEmpty(props.increment)) ||
+    (props.decrement && isNotEmpty(props.decrement))
+  ) {
     const setKeys: string[] = [];
     const setValues: unknown[] = [];
     const setExprs: string[] = [];
@@ -56,7 +62,7 @@ export function buildUpdateConditions<T extends Entity<T>>(props: UpdateProps<T>
     ];
 
     setProps.forEach(({ ops, expr, twoKeys }) => {
-      if (isNotEmpty(ops)) {
+      if (ops && isNotEmpty(ops)) {
         const keys = Object.keys(ops);
         const values = Object.values(ops);
 
@@ -69,7 +75,7 @@ export function buildUpdateConditions<T extends Entity<T>>(props: UpdateProps<T>
     conditions.push({ expr: 'SET' }, { keys: setKeys, values: setValues, expr: setExprs.join(', ') });
   }
 
-  if (isNotEmpty(props.add)) {
+  if (props.add && isNotEmpty(props.add)) {
     const keys = Object.keys(props.add);
     const values = Object.values(props.add);
 
@@ -83,7 +89,7 @@ export function buildUpdateConditions<T extends Entity<T>>(props: UpdateProps<T>
     );
   }
 
-  if (isNotEmpty(props.delete)) {
+  if (props.delete && isNotEmpty(props.delete)) {
     const keys = Object.keys(props.delete);
     const values = Object.values(props.delete);
 
