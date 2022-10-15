@@ -56,6 +56,7 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 * [ ] Fix issue with empty set when using Entity.update (add additional validation) - empty set and string are not allowed https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html
 * [ ] Add validation to query/scan classes
+* [ ] Add validation to make sure that entities are registered have partitionKey and other stuff
 
 ### Consider
 
@@ -70,15 +71,14 @@ Dynamode is licensed under [The MIT License](LICENSE).
 * [ ] Type entity return type better https://github.com/Polymer/polymer-decorators/issues/80
 
 ### Other
- * [ ] Add register(ddb) decorator
- * [ ] Fix EntityMetadata type
+ * [X] Add register(ddb) decorator
+ * [X] Fix EntityMetadata type
+ * [X] Add other example entities and make sure they work as expected
+ * [X] Check why Condition attribute.* functions can take undefined as value
+ * [X] Make sure that entities work without sortKey
  * [ ] Fix Condition, Query and Scan methods to work only on specific properties (between, contains etc shouldn't work for array as an example)
- * [ ] Check why Condition attribute.* functions can take undefined as value
  * [ ] Check attribute.* functions and their inputs
  * [ ] Make sure that Condition documentation is up to date
- * [ ] Make sure that entities work without sortKey
- * [ ] Add validation to make sure that entities are registered have partitionKey and other stuff
  * [ ] prefix() decorator can't decor optional properties
- * [ ] Set type can work only with numbers and strings (make sure how map works for dynamoDB)
  * [ ] limit the fields that can be decorated with column() and other decorators
- * [ ] Add other example entities and make sure they work as expected
+ * [ ] Set type in DynamoDB can work only with numbers and strings (make sure how map works for dynamoDB)
