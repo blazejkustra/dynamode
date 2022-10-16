@@ -18,7 +18,7 @@ export function register(value: DynamoDB) {
 }
 
 export function prefix(value: string) {
-  return <T extends Record<K, string>, K extends string>(Entity: T, propertyName: K) => {
+  return <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
     const metadata: ColumnMetadata<ColumnType> = { prefix: value, propertyName };
@@ -28,7 +28,7 @@ export function prefix(value: string) {
 }
 
 export function suffix(value: string) {
-  return <T extends Record<K, string>, K extends string>(Entity: T, propertyName: K) => {
+  return <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
     const metadata: ColumnMetadata<ColumnType> = { suffix: value, propertyName };
@@ -37,8 +37,14 @@ export function suffix(value: string) {
   };
 }
 
-export function column(type: StringConstructor, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
-export function column(type: Exclude<ColumnType, StringConstructor>): (Entity: any, propertyName: string) => void;
+export function column(type: StringConstructor, options?: DecoratorOptions): <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => void;
+export function column(type: NumberConstructor): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void;
+export function column(type: BooleanConstructor): <T extends Partial<Record<K, boolean>>, K extends string>(Entity: T, propertyName: K) => void;
+export function column(type: ObjectConstructor): <T extends Partial<Record<K, Record<string, unknown>>>, K extends string>(Entity: T, propertyName: K) => void;
+export function column(type: DateConstructor): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void;
+export function column(type: ArrayConstructor): <T extends Partial<Record<K, Array<unknown>>>, K extends string>(Entity: T, propertyName: K) => void;
+export function column(type: SetConstructor): <T extends Partial<Record<K, Set<string | number>>>, K extends string>(Entity: T, propertyName: K) => void;
+export function column(type: MapConstructor): <T extends Partial<Record<K, Map<unknown, unknown>>>, K extends string>(Entity: T, propertyName: K) => void;
 export function column(type: ColumnType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
