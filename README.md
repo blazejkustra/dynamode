@@ -60,7 +60,6 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 ### Consider
 
-* [ ] Change AttributeType to String, Number, null etc
 * [ ] Allow passing empty objects to Entity.update
 * [ ] Fix that you can't pass options object without { return: 'default' }
 * [ ] Make possible to query different types of entities
@@ -69,6 +68,7 @@ Dynamode is licensed under [The MIT License](LICENSE).
 * [ ] Add PartiQL support
 * [ ] CLI tool to create/update table/index
 * [ ] Type entity return type better https://github.com/Polymer/polymer-decorators/issues/80
+ * [ ] Fix Condition, Query and Scan methods to work only on specific properties (between, contains etc shouldn't work for array as an example)
 
 ### Other
  * [X] Add register(ddb) decorator
@@ -76,8 +76,7 @@ Dynamode is licensed under [The MIT License](LICENSE).
  * [X] Add other example entities and make sure they work as expected
  * [X] Check why Condition attribute.* functions can take undefined as value
  * [X] Make sure that entities work without sortKey
- * [ ] Fix Condition, Query and Scan methods to work only on specific properties (between, contains etc shouldn't work for array as an example)
- * [ ] Check attribute.* functions and their inputs
+ * [X] Check attribute.* functions and their inputs
  * [ ] Make sure that Condition documentation is up to date
  * [ ] prefix() decorator can't decor optional properties
  * [ ] limit the fields that can be decorated with column() and other decorators

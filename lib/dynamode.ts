@@ -1,4 +1,4 @@
-import Condition from '@lib/condition';
+import Condition, { AttributeType } from '@lib/condition';
 import { column, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, register, suffix, updatedAt } from '@lib/decorators';
 import Entity from '@lib/entity';
 import Query from '@lib/query';
@@ -21,6 +21,7 @@ const decorators = { column, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey,
 export {
   //Condition
   Condition,
+  AttributeType,
 
   //decorators
   decorators,

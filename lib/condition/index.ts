@@ -1,6 +1,6 @@
 import { AttributeType, Operator } from '@lib/condition/types';
 import { Entity, EntityKey, EntityValue } from '@lib/entity/types';
-import { ConditionExpression } from '@lib/utils';
+import { ConditionExpression, DefaultError } from '@lib/utils';
 
 export default class Condition<T extends Entity<T>> {
   protected entity: T;
@@ -25,7 +25,16 @@ export default class Condition<T extends Entity<T>> {
       beginsWith: (value: EntityValue<T, K>): C => this.beginsWith(this.conditions, key, value),
       between: (value1: EntityValue<T, K>, value2: EntityValue<T, K>): C => this.between(this.conditions, key, value1, value2),
       contains: (value: EntityValue<T, K>): C => {
-        this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: `contains($K, $V)` });
+        let processedValue = value;
+
+        if (value instanceof Set) {
+          if (value.size > 1) {
+            throw new DefaultError();
+          }
+          processedValue = Array.from(value)[0];
+        }
+
+        this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, processedValue)], expr: `contains($K, $V)` });
         return this;
       },
       in: (values: Array<EntityValue<T, K>>): C => {
@@ -42,27 +51,27 @@ export default class Condition<T extends Entity<T>> {
         return this;
       },
       size: () => ({
-        eq: (value: EntityValue<T, K>): C => {
+        eq: (value: number): C => {
           this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) = $V' });
           return this;
         },
-        ne: (value: EntityValue<T, K>): C => {
+        ne: (value: number): C => {
           this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) <> $V' });
           return this;
         },
-        lt: (value: EntityValue<T, K>): C => {
+        lt: (value: number): C => {
           this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) < $V' });
           return this;
         },
-        le: (value: EntityValue<T, K>): C => {
+        le: (value: number): C => {
           this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) <= $V' });
           return this;
         },
-        gt: (value: EntityValue<T, K>): C => {
+        gt: (value: number): C => {
           this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) > $V' });
           return this;
         },
-        ge: (value: EntityValue<T, K>): C => {
+        ge: (value: number): C => {
           this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) >= $V' });
           return this;
         },
@@ -75,9 +84,18 @@ export default class Condition<T extends Entity<T>> {
         gt: (value: EntityValue<T, K>): C => this.le(this.conditions, key, value),
         ge: (value: EntityValue<T, K>): C => this.lt(this.conditions, key, value),
         contains: (value: EntityValue<T, K>): C => {
+          let processedValue = value;
+
+          if (value instanceof Set) {
+            if (value.size > 1) {
+              throw new DefaultError();
+            }
+            processedValue = Array.from(value)[0];
+          }
+
           this.conditions.push({
             keys: [String(key)],
-            values: [this.entity.prefixSuffixValue(key, value)],
+            values: [this.entity.prefixSuffixValue(key, processedValue)],
             expr: `NOT contains($K, $V)`,
           });
           return this;

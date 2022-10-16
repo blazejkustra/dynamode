@@ -4,7 +4,7 @@ import { ddb } from './setup';
 
 async function createAllPossiblePropertiesTable() {
   const input: CreateTableCommandInput = {
-    TableName: 'users',
+    TableName: 'all-possible-properties',
     KeySchema: [
       {
         AttributeName: 'partitionKey',
