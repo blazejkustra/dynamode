@@ -43,7 +43,7 @@ import { WriteTransaction } from '@lib/transactionWrite/types';
 import { AttributeMap, buildExpression, DefaultError, fromDynamo, GenericObject, isNotEmpty, NotFoundError, objectToDynamo } from '@lib/utils';
 
 export default function Entity<Metadata extends EntityMetadata>(tableName: string) {
-  getDynamodeStorage().addEntityColumnMetadata(tableName, 'Entity', 'dynamodeEntity', { propertyName: 'dynamodeEntity', type: String, role: 'dynamodeEntity' });
+  getDynamodeStorage().addEntityAttributeMetadata(tableName, 'Entity', 'dynamodeEntity', { propertyName: 'dynamodeEntity', type: String, role: 'dynamodeEntity' });
 
   return class Entity {
     public static ddb: DynamoDB;
@@ -399,13 +399,13 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
 
     public static convertAttributeMapToEntity<T extends typeof Entity>(this: T, dynamoItem: AttributeMap): InstanceType<T> {
       const object = fromDynamo(dynamoItem);
-      const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
+      const attributes = getDynamodeStorage().getEntityAttributes(this.tableName, this.name);
       const { createdAt, updatedAt } = getDynamodeStorage().getTableMetadata(this.tableName);
 
       if (createdAt) object[createdAt] = new Date(object[createdAt] as string | number);
       if (updatedAt) object[updatedAt] = new Date(object[updatedAt] as string | number);
 
-      Object.entries(columns).forEach(([propertyName, metadata]) => {
+      Object.entries(attributes).forEach(([propertyName, metadata]) => {
         let value = object[propertyName];
 
         if (value && typeof value === 'object' && metadata.type === Map) {
@@ -420,17 +420,17 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
 
     public static convertEntityToAttributeMap<T extends typeof Entity>(this: T, item: InstanceType<T>): AttributeMap {
       const dynamoObject: GenericObject = {};
-      const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
+      const attributes = getDynamodeStorage().getEntityAttributes(this.tableName, this.name);
       const { createdAt, updatedAt } = getDynamodeStorage().getTableMetadata(this.tableName);
 
-      Object.keys(columns).forEach((propertyName) => {
+      Object.keys(attributes).forEach((propertyName) => {
         let value: unknown = item[propertyName as keyof InstanceType<T>];
 
         if (value instanceof Date) {
-          if (createdAt === propertyName && columns[createdAt]?.type === String) value = value.toISOString();
-          else if (createdAt === propertyName && columns[createdAt]?.type === Number) value = value.getTime();
-          else if (updatedAt === propertyName && columns[updatedAt]?.type === String) value = value.toISOString();
-          else if (updatedAt === propertyName && columns[updatedAt]?.type === Number) value = value.getTime();
+          if (createdAt === propertyName && attributes[createdAt]?.type === String) value = value.toISOString();
+          else if (createdAt === propertyName && attributes[createdAt]?.type === Number) value = value.getTime();
+          else if (updatedAt === propertyName && attributes[updatedAt]?.type === String) value = value.toISOString();
+          else if (updatedAt === propertyName && attributes[updatedAt]?.type === Number) value = value.getTime();
           else throw new DefaultError();
         }
 
@@ -460,10 +460,10 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
 
     public static truncateValue<T extends typeof Entity>(this: T, key: EntityKey<T>, value: unknown): unknown {
       if (typeof value === 'string') {
-        const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
+        const attributes = getDynamodeStorage().getEntityAttributes(this.tableName, this.name);
         const separator = getDynamodeStorage().separator;
-        const prefix = columns[String(key)].prefix || '';
-        const suffix = columns[String(key)].suffix || '';
+        const prefix = attributes[String(key)].prefix || '';
+        const suffix = attributes[String(key)].suffix || '';
         return value.replace(`${prefix}${separator}`, '').replace(`${separator}${suffix}`, '');
       } else {
         return value;
@@ -472,10 +472,10 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
 
     public static prefixSuffixValue<T extends typeof Entity>(this: T, key: EntityKey<T>, value: unknown): unknown {
       if (typeof value === 'string') {
-        const columns = getDynamodeStorage().getEntityColumns(this.tableName, this.name);
+        const attributes = getDynamodeStorage().getEntityAttributes(this.tableName, this.name);
         const separator = getDynamodeStorage().separator;
-        const prefix = columns[String(key)].prefix || '';
-        const suffix = columns[String(key)].suffix || '';
+        const prefix = attributes[String(key)].prefix || '';
+        const suffix = attributes[String(key)].suffix || '';
         return [prefix, value, suffix].filter((p) => p).join(separator);
       } else {
         return value;

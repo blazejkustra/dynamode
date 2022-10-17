@@ -15,8 +15,8 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
   }
 
   public partitionKey<Q extends Query<T>, K extends EntityKey<T> & EntityPartitionKeys<T>>(this: Q, key: K) {
-    const columns = getDynamodeStorage().getEntityColumns(this.entity.tableName, this.entity.name);
-    const indexName = columns[String(key)].indexName;
+    const attributes = getDynamodeStorage().getEntityAttributes(this.entity.tableName, this.entity.name);
+    const indexName = attributes[String(key)].indexName;
     if (indexName) this.input.IndexName = indexName;
 
     return {

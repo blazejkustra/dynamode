@@ -1,5 +1,5 @@
 import { Entity } from '../../dist';
-import { column, primaryPartitionKey, primarySortKey, register } from '../../dist/decorators';
+import { attribute, primaryPartitionKey, primarySortKey, register } from '../../dist/decorators';
 
 import { ddb } from './setup';
 
@@ -30,19 +30,19 @@ export class User extends Entity<UserKeys>(USERS_TABLE) {
   @primarySortKey(String)
   sortKey: string;
 
-  @column(String)
+  @attribute(String)
   username: string;
 
-  @column(String)
+  @attribute(String)
   email: string;
 
-  @column(Number)
+  @attribute(Number)
   age: number;
 
-  @column(Array)
+  @attribute(Array)
   friends: string[];
 
-  @column(Object)
+  @attribute(Object)
   config: {
     isAdmin: boolean;
   };

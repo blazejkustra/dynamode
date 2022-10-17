@@ -1,6 +1,6 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { Entity } from '@lib/entity/types';
-import { ColumnMetadata, ColumnType, EntityMetadata, TablesMetadata } from '@lib/storage/types';
+import { AttributeMetadata, AttributeType, EntityMetadata, TablesMetadata } from '@lib/storage/types';
 import { AttributeMap, DefaultError, mergeObjects, valueFromDynamo } from '@lib/utils';
 
 declare global {
@@ -90,18 +90,18 @@ class DynamodeStorage {
     entityMetadata.Constructor = entityMetadata.Constructor || value;
   }
 
-  public addEntityColumnMetadata(tableName: string, entityName: string, propertyName: string, value: ColumnMetadata<ColumnType>) {
-    const columnMetadata = this.getEntityColumnMetadata(tableName, entityName, propertyName);
-    if (value.propertyName) columnMetadata.propertyName = value.propertyName;
-    if (value.type) columnMetadata.type = value.type;
-    if (value.prefix) columnMetadata.prefix = value.prefix;
-    if (value.suffix) columnMetadata.suffix = value.suffix;
-    if (value.indexName) columnMetadata.indexName = value.indexName;
+  public addEntityAttributeMetadata(tableName: string, entityName: string, propertyName: string, value: AttributeMetadata<AttributeType>) {
+    const attributeMetadata = this.getEntityAttributeMetadata(tableName, entityName, propertyName);
+    if (value.propertyName) attributeMetadata.propertyName = value.propertyName;
+    if (value.type) attributeMetadata.type = value.type;
+    if (value.prefix) attributeMetadata.prefix = value.prefix;
+    if (value.suffix) attributeMetadata.suffix = value.suffix;
+    if (value.indexName) attributeMetadata.indexName = value.indexName;
   }
 
   // helpers
 
-  public getEntityColumns(tableName: string, entityName: string) {
+  public getEntityAttributes(tableName: string, entityName: string) {
     const entitiesMetadata: EntityMetadata[] = [];
     let constructor = this.getEntityMetadata(tableName, entityName).Constructor;
     while (constructor) {
@@ -109,7 +109,7 @@ class DynamodeStorage {
       entitiesMetadata.push(entityMetadata);
       constructor = Object.getPrototypeOf(constructor);
     }
-    return mergeObjects(...entitiesMetadata.reverse()).columns || {};
+    return mergeObjects(...entitiesMetadata.reverse()).attributes || {};
   }
 
   private getGsiMetadata(tableName: string, indexName: string) {
@@ -148,18 +148,18 @@ class DynamodeStorage {
     return this.tables[tableName];
   }
 
-  private getEntityColumnMetadata(tableName: string, entityName: string, columnName: string) {
+  private getEntityAttributeMetadata(tableName: string, entityName: string, attributeName: string) {
     const entityMetadata = this.getEntityMetadata(tableName, entityName);
 
-    if (!entityMetadata.columns) {
-      entityMetadata.columns = {};
+    if (!entityMetadata.attributes) {
+      entityMetadata.attributes = {};
     }
 
-    if (!entityMetadata.columns[columnName]) {
-      entityMetadata.columns[columnName] = {};
+    if (!entityMetadata.attributes[attributeName]) {
+      entityMetadata.attributes[attributeName] = {};
     }
 
-    return entityMetadata.columns[columnName];
+    return entityMetadata.attributes[attributeName];
   }
 
   private getEntityMetadata(tableName: string, entityName: string) {

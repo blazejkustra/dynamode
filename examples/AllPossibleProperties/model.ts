@@ -1,5 +1,5 @@
 import { Entity } from '../../dist';
-import { column, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, register, updatedAt } from '../../dist/decorators';
+import { attribute, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, register, updatedAt } from '../../dist/decorators';
 
 import { ddb } from './setup';
 
@@ -68,28 +68,28 @@ export class AllPossibleProperties extends Entity<AllPossiblePropertiesKeys>(TAB
   @updatedAt(Number)
   updatedAt: Date;
 
-  @column(String)
+  @attribute(String)
   string: string;
 
-  @column(Object)
+  @attribute(Object)
   object: {
     optional?: string;
     required: number;
   };
 
-  @column(Array)
+  @attribute(Array)
   array?: string[];
 
-  @column(Map)
+  @attribute(Map)
   map: Map<string, string>;
 
-  @column(Set)
+  @attribute(Set)
   set: Set<string>;
 
-  @column(Number)
+  @attribute(Number)
   number?: number;
 
-  @column(Boolean)
+  @attribute(Boolean)
   boolean: boolean;
 
   unsaved: string;
@@ -124,7 +124,7 @@ export class AllPossibleProperties extends Entity<AllPossiblePropertiesKeys>(TAB
     console.log('method');
   }
 
-  public staticMethod() {
+  public static staticMethod() {
     console.log('staticMethod');
   }
 }

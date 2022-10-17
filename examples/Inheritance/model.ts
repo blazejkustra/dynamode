@@ -1,5 +1,5 @@
 import { Entity } from '../../dist';
-import { column, lsiSortKey, primaryPartitionKey, primarySortKey, register } from '../../dist/decorators';
+import { attribute, lsiSortKey, primaryPartitionKey, primarySortKey, register } from '../../dist/decorators';
 
 import { ddb } from './setup';
 
@@ -46,7 +46,7 @@ type EntityOneProps = TableProps & {
 };
 
 export class EntityOne extends BaseTable {
-  @column(Object)
+  @attribute(Object)
   one: { [k: string]: number };
 
   constructor(props: EntityOneProps) {
@@ -61,7 +61,7 @@ type EntityTwoProps = EntityOneProps & {
 };
 
 export class EntityTwo extends EntityOne {
-  @column(Object)
+  @attribute(Object)
   two: { [k: string]: string };
 
   constructor(props: EntityTwoProps) {
@@ -76,7 +76,7 @@ type EntityThreeProps = TableProps & {
 };
 
 export class EntityThree extends BaseTable {
-  @column(Object)
+  @attribute(Object)
   otherProperty: { [k: string]: number };
 
   constructor(props: EntityThreeProps) {

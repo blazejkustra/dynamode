@@ -1,5 +1,5 @@
 import { Entity } from '../../dist';
-import { column, primaryPartitionKey, register } from '../../dist/decorators';
+import { attribute, primaryPartitionKey, register } from '../../dist/decorators';
 
 import { ddb } from './setup';
 
@@ -12,14 +12,14 @@ type KeyValueProps = {
   value: Record<string, unknown>;
 };
 
-const TABLE = 'key-value';
+const TABLE_NAME = 'key-value';
 
 @register(ddb)
-export class KeyValue extends Entity<KeyValueKeys>(TABLE) {
+export class KeyValue extends Entity<KeyValueKeys>(TABLE_NAME) {
   @primaryPartitionKey(String)
   key: string;
 
-  @column(Object)
+  @attribute(Object)
   value: Record<string, unknown>;
 
   constructor(props: KeyValueProps) {

@@ -5,7 +5,7 @@ import Condition from '@lib/condition';
 import { AttributeMap, Flatten } from '@lib/utils';
 
 type EntityIndexesMetadata = {
-  [key: string]: {
+  [indexName: string]: {
     partitionKey?: string;
     sortKey?: string;
   };

@@ -1,17 +1,17 @@
 import { Entity } from '@lib/entity/types';
 
-export type IndexColumnType = StringConstructor | NumberConstructor;
-export type TimestampColumnType = StringConstructor | NumberConstructor;
-export type ColumnType = StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor | DateConstructor | ArrayConstructor | SetConstructor | MapConstructor;
-export type ColumnRole = 'partitionKey' | 'sortKey' | 'gsiPartitionKey' | 'gsiSortKey' | 'lsiSortKey' | 'createdAt' | 'updatedAt' | 'column' | 'dynamodeEntity';
+export type IndexAttributeType = StringConstructor | NumberConstructor;
+export type TimestampAttributeType = StringConstructor | NumberConstructor;
+export type AttributeType = StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor | ArrayConstructor | SetConstructor | MapConstructor;
+export type AttributeRole = 'partitionKey' | 'sortKey' | 'gsiPartitionKey' | 'gsiSortKey' | 'lsiSortKey' | 'createdAt' | 'updatedAt' | 'attribute' | 'dynamodeEntity';
 
-export type ColumnMetadata<Type> = {
+export type AttributeMetadata<Type> = {
   propertyName?: string;
   indexName?: string;
   prefix?: string;
   suffix?: string;
   type?: Type;
-  role?: ColumnRole;
+  role?: AttributeRole;
 };
 
 export type GsiMetadata = {
@@ -29,7 +29,7 @@ export type LsiMetadata = {
 
 export type EntityMetadata = {
   Constructor?: Entity<any>;
-  columns?: { [columnName: string]: ColumnMetadata<ColumnType> };
+  attributes?: { [attributeName: string]: AttributeMetadata<AttributeType> };
 };
 
 export type EntitiesMetadata = {
@@ -48,6 +48,6 @@ export type TablesMetadata = {
     updatedAt?: string;
 
     entities?: EntitiesMetadata;
-    tableColumns?: { [columnName: string]: ColumnMetadata<ColumnType> };
+    tableAttributes?: { [attributeName: string]: AttributeMetadata<AttributeType> };
   };
 };
