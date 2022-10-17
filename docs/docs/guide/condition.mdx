@@ -21,7 +21,7 @@ new Condition(User);
 User.condition();
 ```
 
-[User](/docs/guide/entity/modeling) is an example class that extends [Entity](/docs/guide/entity/methods).
+[User](/docs/guide/entity/modeling#user) is an example class that extends [Entity](/docs/guide/entity/methods).
 
 ## `Condition.attribute(key)`
 
@@ -32,22 +32,24 @@ These properties are allowed for the User entity
 :::
 
 ```ts
-User.condition().attribute('username');
 User.condition().attribute('partitionKey');
 User.condition().attribute('sortKey');
-User.condition().attribute('email');
+User.condition().attribute('username');
+User.condition().attribute('age');
+User.condition().attribute('friends');
+User.condition().attribute('config');
+User.condition().attribute('config.isAdmin');
 User.condition().attribute('friends.1');
 User.condition().attribute('friends.10');
-User.condition().attribute('config.isAdmin');
 ```
 
 :::caution
-Typescript error: Argument of type '"unknownProperty"' is not assignable to parameter of type: `"username" | "partitionKey" | "sortKey" | "email" | "config" | "config.isAdmin" | friends.${number}`
-:::
-
+Typescript error: Argument of type '"unknownProperty"' is not assignable to parameter of type: `"username" | "partitionKey" | "sortKey" | "age" | "config" | "config.isAdmin" | friends | friends.${number}`
 ```ts
 User.condition().attribute('unknownProperty');
 ```
+:::
+
 
 To complete the conditional you need to use one of undermentioned functions.
 
@@ -117,7 +119,7 @@ User.condition().attribute('username').beginsWith('bla'); // Resulting in: `begi
 This comparison function will check if the given key is between the values that were passed in as parameters.
 
 ```ts
-User.condition().attribute('username').between('blazej', 'clazej'); // Resulting in: `username BETWEEN blazej AND clazej`
+User.condition().attribute('age').between(21, 37); // Resulting in: `age BETWEEN 21 AND 37`
 ```
 
 ### `.contains(values)`
@@ -194,9 +196,9 @@ This method takes initialized `Condition` as a parameter and groups the inner co
 ```ts
 User.condition().attribute('username').eq('blazej').and.parenthesis(
   User.condition()
-    .attribute('email').eq('blazej@gmail.com')
-    .attribute('email').eq('blazej@icloud.com')
-); // username = blazej AND ( email = blazej@gmail.com OR email = blazej@icloud.com )
+    .attribute('age').eq(21)
+    .attribute('age').eq(37)
+); // username = blazej AND ( age = 21 OR age = 37 )
 ```
 
 ## `Condition.group(condition)`
@@ -210,15 +212,15 @@ This method takes initialized `Condition` as a parameter and merges both conditi
 ```ts
 User.condition().attribute('username').eq('blazej').and.condition(
   User.condition()
-    .attribute('email').eq('blazej@gmail.com')
-    .attribute('email').eq('blazej@icloud.com')
-); // username = blazej AND email = blazej@gmail.com OR email = blazej@icloud.com 
+    .attribute('age').eq(21).or
+    .attribute('age').eq(37)
+); // username = blazej AND age = 21 OR age = 37 
 
 User.condition().attribute('username').eq('blazej').or.condition(
   User.condition()
-    .attribute('email').eq('blazej@gmail.com')
-    .attribute('email').eq('blazej@icloud.com')
-); // username = blazej OR email = blazej@gmail.com OR email = blazej@icloud.com 
+    .attribute('age').eq(21).or
+    .attribute('age').eq(37)
+); // username = blazej OR age = 21 OR age = 37 
 ```
 
 ## `Condition.and`
@@ -227,8 +229,8 @@ This method specifies an `AND` operator between two conditions, condition will r
 
 ```ts
 // conditions below are identical
-User.condition().attribute('username').eq('blazej').and.attribute('email').eq('blazej@gmail.com'); // username = blazej AND email = blazej@gmail.com
-User.condition().attribute('username').eq('blazej').attribute('email').eq('blazej@gmail.com'); // username = blazej AND email = blazej@gmail.com
+User.condition().attribute('username').eq('blazej').and.attribute('age').eq(21); // username = blazej AND age = 21
+User.condition().attribute('username').eq('blazej').attribute('age').eq(21); // username = blazej AND age = 21
 ```
 
 ## `Condition.or`
@@ -236,5 +238,5 @@ User.condition().attribute('username').eq('blazej').attribute('email').eq('blaze
 This method specifies an `OR` operator between two conditions, condition will return true if either of two conditions are met.
 
 ```ts
-User.condition().attribute('username').eq('blazej').or.attribute('email').eq('blazej@gmail.com'); // username = blazej OR email = blazej@gmail.com
+User.condition().attribute('username').eq('blazej').or.attribute('age').eq(21); // username = blazej OR age = 21
 ```

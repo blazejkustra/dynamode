@@ -7,4 +7,519 @@ hide_title: true
 
 # Modeling
 
-lorem ipsum
+Before modeling it is recommended that you read how DynamoDB works. Here are some helpful documents:
+- [Core components of Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html)
+- [DynamoDB Guide](https://www.dynamodbguide.com/what-is-dynamo-db)
+- [The DynamoDB Book - Alex DeBrie](https://www.dynamodbbook.com/)
+- [DynamoDB Tutorials - Everything You Need To Master It](https://dynobase.dev/dynamodb-tutorials/)
+
+## Possible values
+
+DynamoDB limits possible data types that can be saved in the database. To learn more: [Supported data types and naming rules in Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html).
+
+Supported DynamoDB data types and its Dynamode equivalents:
+
+| DynamoDB type | Dynamode Typescript equivalent                                                                | Notes                                                                                                                                    |
+| ------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| No value      | `undefined`                                                                                   | DynamoDB non existent values are mapped to `undefined`                                                                                   |
+| `Null`        | `null`                                                                                        | Null represents an attribute with an unknown or `undefined` state                                                                        |
+| `String`      | `string`                                                                                      |                                                                                                                                          |
+| `Number`      | `number`                                                                                      | DynamoDB does not support `Infinite` and `NaN` values                                                                                    |
+| `Binary`      | `N/A`                                                                                         | Not yet supported by Dynamode                                                                                                            |
+| `Boolean`     | `boolean`                                                                                     | `true` or `false`                                                                                                                        |
+| `List`        | `Array<any>`                                                                                  | There are no restrictions on the data types that can be stored in an `Array`. Elements in an array do not have to be of the same type    |
+| `Map`         | `Map<string, any>` / `Record<string, any>` / `{ [key: string]: any }` / `{ [key]: any, ... }` | There are no restrictions on the data types that can be stored in a `Map`/`object`. Elements in a map do not have to be of the same type |
+| `Set`         | `Set<string>` / `Set<number>`                                                                 | Set can only represent sets of `numbers` or `strings`. All the elements within a set must be of the same type                            |
+| N/A           | `Date`                                                                                        | DynamoDB does not natively support a `Date` data type. To store a `Date` use Unix epoch (`number`) or Iso 8601 format (`string`)         |
+
+## Modeling with Typescript
+
+In order to start modeling you need to create a class that inherits `Entity`.
+
+
+```ts
+import Entity from 'dynamode/entity';
+import { register } from 'dynamode/decorators';
+
+@register(ddb: DynamoDB)
+class YourModel extends Entity<Keys>(tableName: string) { 
+  ...
+}
+```
+
+:::info
+Each time `Entity` class is being inherited register it with `register(ddb: DynamoDB)` decorator and pass DynamoDB instance as a function argument.
+:::
+
+`Entity` takes one argument `tableName: string` which defines the table in which the model will be saved.
+
+`Entity` also takes one generic type which describes primary key and secondary index keys. Dynamode uses this type in all underlying methods so be cautious when setting it up. 
+
+```ts
+type Keys = {
+  partitionKey: 'keyPk';
+  sortKey?: 'keySk';
+  indexes?: {
+    [indexName: string]: {
+      partitionKey?: 'indexKeyPk';
+      sortKey?: 'indexKeySk';
+    };
+  }
+};
+```
+
+### Decorators
+
+**Only decorated properties will be saved in the database.** Thanks to this you can add undecorated properties to your entity that won't be saved but can be useful for your application logic.
+
+```ts
+class YourModel extends Entity<Keys>(tableName: string) {
+  // Will be saved (property decorated)
+  @primaryPartitionKey(...)
+  key: any;
+
+  @primarySortKey(...)
+  key: any;
+
+  @gsiSortKey(...)
+  key: any;
+
+  @lsiSortKey(...)
+  key: any;
+
+  @createdAt(...)
+  key: any;
+
+  @createdAt(...)
+  key: any;
+
+  @attribute(...)
+  key: any;
+
+  // Won't be saved (not decorated)
+  key: any;
+
+  ...
+}
+```
+
+### Additional methods
+
+You can add non-static and static methods to your entities that you can call later.
+
+:::danger
+Do not override existing `Entity` methods, unless you know what you are doing.
+:::
+
+```ts
+class YourModel extends Entity<Keys>(tableName: string) {
+  ...
+  
+  constructor(props: Props) {
+    super();
+    ... 
+  }
+
+  public method() {
+    ...
+  }
+
+  public static staticMethod() {
+    ...
+  }
+}
+```
+
+### Generic example
+
+There are no limits to the number of attributes that you can add, but keep in mind the [DynamoDB size limits](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html).
+
+Basic setup of a `YourModel` class:
+
+```ts
+import Entity from 'dynamode/entity';
+import { attribute, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, register, updatedAt } from 'dynamode/decorators';
+
+type Keys = {
+  partitionKey: string;
+  sortKey?: string;
+  indexes?: {
+    [indexName: string]: {
+      partitionKey?: string;
+      sortKey?: string;
+    };
+  }
+};
+
+type Props = {
+  [key]: string;
+  ...
+};
+
+@register(ddb: DynamoDB)
+class YourModel extends Entity<Keys>(tableName: string) {
+  // required
+  @primaryPartitionKey(...)
+  [key]: string;
+
+  // optional
+  @prefix(...)
+  @suffix(...)
+  @attribute(...)
+  @primarySortKey(...)
+  @gsiPartitionKey(...)
+  @gsiSortKey(...)
+  @lsiSortKey(...)
+  @createdAt(...)
+  @createdAt(...)
+  name: any;
+
+  otherName: any;
+
+  constructor(props: Props) {
+    super();
+
+    this.key = props.key;
+    // other initiations
+    ... 
+  }
+
+  public method() {
+    ...
+  }
+
+  public static staticMethod() {
+    ...
+  }
+}
+```
+
+## Examples
+
+Here are some example models that shows how flexible Dynamode modeling is. Note that the entities in every example operate on a different table, primary keys and indexes. So you can model your entities based on your needs.
+
+### Key value
+
+The simplest example with only key and value attributes. There is no sort key for the table, meaning it uses a *simple primary key*. 
+
+```ts
+type KeyValueKeys = {
+  partitionKey: 'key';
+};
+
+type KeyValueProps = {
+  key: string;
+  value: Record<string, unknown>;
+};
+
+const TABLE_NAME = 'key-value';
+
+@register(ddb)
+class KeyValue extends Entity<KeyValueKeys>(TABLE_NAME) {
+  @primaryPartitionKey(String)
+  key: string;
+
+  @attribute(Object)
+  value: Record<string, unknown>;
+
+  constructor(props: KeyValueProps) {
+    super();
+
+    this.key = props.key;
+    this.value = props.value;
+  }
+}
+```
+
+### User
+
+Another model without indexes but this time with a *composite primary key* (with partition and sort keys).
+
+```ts
+type UserKeys = {
+  partitionKey: 'partitionKey';
+  sortKey: 'sortKey';
+};
+
+type UserProps = {
+  partitionKey: string;
+  sortKey: string;
+  username: string;
+  email: string;
+  age: number;
+  friends: string[];
+  config: {
+    isAdmin: boolean;
+  };
+};
+
+const USERS_TABLE = 'users';
+
+@register(ddb)
+class User extends Entity<UserKeys>(USERS_TABLE) {
+  @primaryPartitionKey(String)
+  partitionKey: string;
+
+  @primarySortKey(String)
+  sortKey: string;
+
+  @attribute(String)
+  username: string;
+
+  @attribute(String)
+  email: string;
+
+  @attribute(Number)
+  age: number;
+
+  @attribute(Array)
+  friends: string[];
+
+  @attribute(Object)
+  config: {
+    isAdmin: boolean;
+  };
+
+  constructor(props: UserProps) {
+    super();
+
+    // Primary key
+    this.partitionKey = props.partitionKey;
+    this.sortKey = props.sortKey;
+
+    // Other
+    this.username = props.username;
+    this.email = props.email;
+    this.age = props.age;
+    this.friends = props.friends;
+    this.config = props.config;
+  }
+}
+```
+
+### All possible properties
+
+A model with all possible properties that are supported in Dynamode. This model has a *composite primary key* and two indexes that are defined in `AllPossiblePropertiesKeys` type, `AllPossiblePropertiesProps` type and in `AllPossibleProperties` class.
+
+This model also has two properties decorated with `createdAt(type: String | Number)` and `updatedAt(type: String | Number)` decorators. They represent the timestamps of when the model was created or last updated.
+
+```ts
+type AllPossiblePropertiesKeys = {
+  partitionKey: 'partitionKey';
+  sortKey: 'sortKey';
+  indexes: {
+    GSI_1_NAME: {
+      partitionKey: 'GSI_1_PK';
+      sortKey: 'GSI_1_SK';
+    };
+    LSI_1_NAME: {
+      sortKey: 'LSI_1_SK';
+    };
+  };
+};
+
+type AllPossiblePropertiesProps = {
+  partitionKey: string;
+  sortKey: string;
+  GSI_1_PK?: string;
+  GSI_1_SK?: number;
+  LSI_1_SK?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+
+  string: string;
+  object: {
+    optional?: string;
+    required: number;
+  };
+  array: string[];
+  map: Map<string, string>;
+  set: Set<string>;
+  number?: number;
+  boolean: boolean;
+};
+
+const TABLE_NAME = 'all-possible-properties';
+const PREFIX = 'prefix';
+
+@register(ddb)
+class AllPossibleProperties extends Entity<AllPossiblePropertiesKeys>(TABLE_NAME) {
+  // Primary key
+  @prefix(PREFIX)
+  @primaryPartitionKey(String)
+  partitionKey: string;
+
+  @primarySortKey(String)
+  sortKey: string;
+
+  // Indexes
+  @gsiPartitionKey(String, 'GSI_1_NAME')
+  GSI_1_PK?: string;
+
+  @gsiSortKey(Number, 'GSI_1_NAME')
+  GSI_1_SK?: number;
+
+  @lsiSortKey(Number, 'LSI_1_NAME')
+  LSI_1_SK?: number;
+
+  // Timestamps
+  @createdAt(String)
+  createdAt: Date;
+
+  @updatedAt(Number)
+  updatedAt: Date;
+
+  @attribute(String)
+  string: string;
+
+  @attribute(Object)
+  object: {
+    optional?: string;
+    required: number;
+  };
+
+  @attribute(Array)
+  array?: string[];
+
+  @attribute(Map)
+  map: Map<string, string>;
+
+  @attribute(Set)
+  set: Set<string>;
+
+  @attribute(Number)
+  number?: number;
+
+  @attribute(Boolean)
+  boolean: boolean;
+
+  unsaved: string;
+
+  constructor(props: AllPossiblePropertiesProps) {
+    super();
+
+    // Primary key
+    this.partitionKey = props.partitionKey;
+    this.sortKey = props.sortKey;
+
+    // Indexes
+    this.GSI_1_PK = props.GSI_1_PK;
+    this.GSI_1_SK = props.GSI_1_SK;
+    this.LSI_1_SK = props.LSI_1_SK;
+
+    // Timestamps
+    this.createdAt = props.createdAt || new Date();
+    this.updatedAt = props.updatedAt || new Date();
+
+    this.string = props.string;
+    this.object = props.object;
+    this.array = props.array;
+    this.map = props.map;
+    this.set = props.set;
+    this.number = props.number;
+    this.boolean = props.boolean;
+    this.unsaved = 'unsaved';
+  }
+
+  public method() {
+    ...
+  }
+
+  public static staticMethod() {
+    ...
+  }
+}
+```
+
+### Inheritance
+
+An important feature of Dynamode is the possibility to inherit multiple times. That means that models can share attributes, primary keys and indexes between each other = less boilerplate.
+
+Notice that Entity is only inherited once as all these models are bound to the same DynamoDB table. The idea is to have one base class that represent DynamoDB table (`BaseTable`). The rest of the models (`EntityOne`, `EntityTwo` and `EntityThree`) are representing individual entities.
+```ts
+
+type TableKeys = {
+  partitionKey: 'propPk';
+  sortKey: 'propSk';
+  indexes: {
+    LSI_NAME: {
+      sortKey: 'index';
+    };
+  };
+};
+
+type TableProps = {
+  propPk: string;
+  propSk: number;
+  index: string;
+};
+
+const TABLE_NAME = 'inheritance';
+
+@register(ddb)
+class BaseTable extends Entity<TableKeys>(TABLE_NAME) {
+  @primaryPartitionKey(String)
+  propPk: string;
+
+  @primarySortKey(Number)
+  propSk: number;
+
+  @lsiSortKey(String, 'LSI_NAME')
+  index: string;
+
+  constructor(props: TableProps) {
+    super();
+
+    this.propPk = props.propPk;
+    this.propSk = props.propSk;
+    this.index = props.index;
+  }
+}
+
+type EntityOneProps = TableProps & {
+  one: { [k: string]: number };
+};
+
+class EntityOne extends BaseTable {
+  @attribute(Object)
+  one: { [k: string]: number };
+
+  constructor(props: EntityOneProps) {
+    super(props);
+
+    this.one = props.one;
+  }
+}
+
+type EntityTwoProps = EntityOneProps & {
+  two: { [k: string]: string };
+};
+
+class EntityTwo extends EntityOne {
+  @attribute(Object)
+  two: { [k: string]: string };
+
+  constructor(props: EntityTwoProps) {
+    super(props);
+
+    this.two = props.two;
+  }
+}
+
+type EntityThreeProps = TableProps & {
+  otherProperty: any;
+};
+
+class EntityThree extends BaseTable {
+  @attribute(Object)
+  otherProperty: { [k: string]: number };
+
+  constructor(props: EntityThreeProps) {
+    super(props);
+
+    this.otherProperty = props.otherProperty;
+  }
+}
+```
+
+
