@@ -55,8 +55,8 @@ export function attribute(type: AttributeType, options?: DecoratorOptions) {
   };
 }
 
-export function primaryPartitionKey(type: StringConstructor, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
-export function primaryPartitionKey(type: Exclude<IndexAttributeType, StringConstructor>): (Entity: any, propertyName: string) => void;
+export function primaryPartitionKey(type: StringConstructor, options?: DecoratorOptions): <T extends Record<K, string>, K extends string>(Entity: T, propertyName: K) => void;
+export function primaryPartitionKey(type: NumberConstructor): <T extends Record<K, number>, K extends string>(Entity: T, propertyName: K) => void;
 export function primaryPartitionKey(type: IndexAttributeType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
@@ -69,8 +69,8 @@ export function primaryPartitionKey(type: IndexAttributeType, options?: Decorato
   };
 }
 
-export function primarySortKey(type: StringConstructor, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
-export function primarySortKey(type: Exclude<IndexAttributeType, StringConstructor>): (Entity: any, propertyName: string) => void;
+export function primarySortKey(type: StringConstructor, options?: DecoratorOptions): <T extends Record<K, string>, K extends string>(Entity: T, propertyName: K) => void;
+export function primarySortKey(type: NumberConstructor): <T extends Record<K, number>, K extends string>(Entity: T, propertyName: K) => void;
 export function primarySortKey(type: IndexAttributeType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
@@ -83,8 +83,8 @@ export function primarySortKey(type: IndexAttributeType, options?: DecoratorOpti
   };
 }
 
-export function gsiPartitionKey(type: StringConstructor, indexName: string, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
-export function gsiPartitionKey(type: Exclude<IndexAttributeType, StringConstructor>, indexName: string): (Entity: any, propertyName: string) => void;
+export function gsiPartitionKey(type: StringConstructor, indexName: string, options?: DecoratorOptions): <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => void;
+export function gsiPartitionKey(type: NumberConstructor, indexName: string): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void;
 export function gsiPartitionKey(type: IndexAttributeType, indexName: string, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
@@ -97,8 +97,8 @@ export function gsiPartitionKey(type: IndexAttributeType, indexName: string, opt
   };
 }
 
-export function gsiSortKey(type: StringConstructor, indexName: string, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
-export function gsiSortKey(type: Exclude<IndexAttributeType, StringConstructor>, indexName: string): (Entity: any, propertyName: string) => void;
+export function gsiSortKey(type: StringConstructor, indexName: string, options?: DecoratorOptions): <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => void;
+export function gsiSortKey(type: NumberConstructor, indexName: string): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void;
 export function gsiSortKey(type: IndexAttributeType, indexName: string, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
@@ -111,8 +111,8 @@ export function gsiSortKey(type: IndexAttributeType, indexName: string, options?
   };
 }
 
-export function lsiSortKey(type: StringConstructor, indexName: string, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
-export function lsiSortKey(type: Exclude<IndexAttributeType, StringConstructor>, indexName: string): (Entity: any, propertyName: string) => void;
+export function lsiSortKey(type: StringConstructor, indexName: string, options?: DecoratorOptions): <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => void;
+export function lsiSortKey(type: NumberConstructor, indexName: string): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void;
 export function lsiSortKey(type: IndexAttributeType, indexName: string, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
@@ -125,8 +125,8 @@ export function lsiSortKey(type: IndexAttributeType, indexName: string, options?
   };
 }
 
-export function createdAt(type: StringConstructor, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
-export function createdAt(type: Exclude<TimestampAttributeType, StringConstructor>): (Entity: any, propertyName: string) => void;
+export function createdAt(type: StringConstructor, options?: DecoratorOptions): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void;
+export function createdAt(type: NumberConstructor): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void;
 export function createdAt(type: TimestampAttributeType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
@@ -139,8 +139,8 @@ export function createdAt(type: TimestampAttributeType, options?: DecoratorOptio
   };
 }
 
-export function updatedAt(type: StringConstructor, options?: DecoratorOptions): (Entity: any, propertyName: string) => void;
-export function updatedAt(type: Exclude<TimestampAttributeType, StringConstructor>): (Entity: any, propertyName: string) => void;
+export function updatedAt(type: StringConstructor, options?: DecoratorOptions): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void;
+export function updatedAt(type: NumberConstructor): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void;
 export function updatedAt(type: TimestampAttributeType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
     const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
