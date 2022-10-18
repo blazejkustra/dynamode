@@ -7,7 +7,7 @@ hide_title: true
 
 # Modeling
 
-Before modeling it is recommended that you read how DynamoDB works. Here are some helpful documents:
+To better understand how to model with Dynamode it is recommended that you first read about DynamoDB. In comparison to relational databases, DynamoDB requires a different approach when it comes to modeling. Here are some helpful documents:
 - [Core components of Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html)
 - [DynamoDB Guide](https://www.dynamodbguide.com/what-is-dynamo-db)
 - [The DynamoDB Book - Alex DeBrie](https://www.dynamodbbook.com/)
@@ -48,7 +48,7 @@ class YourModel extends Entity<Keys>(tableName: string) {
 ```
 
 :::info
-Each time `Entity` class is being inherited register it with `register(ddb: DynamoDB)` decorator and pass DynamoDB instance as a function argument.
+Each time `Entity` class is being inherited, register it with `register(ddb: DynamoDB)` decorator and pass DynamoDB instance as a function argument.
 :::
 
 `Entity` takes one argument `tableName: string` which defines the table in which the model will be saved.

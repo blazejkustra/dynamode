@@ -71,4 +71,5 @@ Dynamode is licensed under [The MIT License](LICENSE).
 * [ ] Fix Condition, Query and Scan methods to work only on specific properties (between, contains etc shouldn't work for array as an example)
 
 ### Other
- * [ ] 
+ * [ ] You can only add local secondary indexes on tables with composite primary keys
+ * [ ] Add possibility to have more than one suffix/prefix
