@@ -9,7 +9,23 @@ hide_title: true
 
 Decorators are crucial for modelling  entities. Dynamode uses them to bind model attributes with DynamoDB tables.
 
-To see example usage check out [modeling](/docs/guide/entity/modeling) page.
+:::info
+Decorators are a language feature which hasn’t yet been fully ratified into the JavaScript specification - [source](https://www.typescriptlang.org/tsconfig#experimentalDecorators). 
+
+Add following lines in `tsconfig.json` in order to use decorators with Typescript:
+
+```ts
+{
+  "compilerOptions": {
+    ...
+    "experimentalDecorators": true,
+    ...
+  }
+}
+```
+:::
+
+To see real examples of decorators in use - check out [modeling](/docs/guide/entity/modeling) page.
 
 ## `register(value)`
 
@@ -17,13 +33,15 @@ To see example usage check out [modeling](/docs/guide/entity/modeling) page.
 `register(value)` is required in every entity.
 :::
 
-Each time `Entity` class is being inherited, register it with this decorator.
+Every model that inherits `Entity` has to be registered with this decorator. It is used to tag the entity for Dynamode internal use.
 
 <!-- TODO: add link to Settings -->
 `value: DynamoDB` - DynamoDB instance that you can set up with Dynamode `Settings` class 
 
 ```ts
-@register(ddb: DynamoDB)
+const ddb = Settings.ddb();
+
+@register(ddb)
 class YourModel extends Entity<Keys>(tableName: string) { 
   ...
 }
