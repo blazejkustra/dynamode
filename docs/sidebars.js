@@ -33,18 +33,7 @@ module.exports = {
 				"guide/condition",
 				"guide/query",
 				"guide/scan",
-				{ 
-					"Transaction": [
-						{
-							"type": "doc",
-							"id": 'guide/transaction/transactionGet'
-						},
-						{
-							"type": "doc",
-							"id": 'guide/transaction/transactionWrite'
-						},
-					] 
-				},
+				"guide/transactions",
 				"guide/settings",
 			]
 		},

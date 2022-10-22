@@ -17,6 +17,7 @@ Every class that inherits `Entity` has static methods that you can use to read, 
 To read more about modeling entities check out [Decorators](/docs/guide/entity/decorators) and [Modeling](/docs/guide/entity/modeling) pages. 
 
 ## `new Entity(props)`
+
 ### Description
 
 Entity constructor is used to initialize an item for a given model. When you construct an item using `new Entity(props)` the item is only created locally, meaning that it is not yet saved in DynamoDB. If you want to save it to the table use for example [`Entity.put(item, options?)`](/docs/guide/entity/methods#entityputitem-options) method.
@@ -473,7 +474,7 @@ const deletedUser = await User.delete({ partitionKey: '1', sortKey: 'blazej' }, 
 <TabItem value="input" label="return: 'input'">
 
 ```ts
-const input = await User.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'input' });
+const input = User.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'input' });
 // OUTPUT:
 // {
 //   TableName: 'users',
@@ -590,7 +591,7 @@ const input = await User.batchGet(
 <TabItem value="input" label="return: 'input'">
 
 ```ts
-const input = await User.batchGet(
+const input = User.batchGet(
   [
     { partitionKey: '1', sortKey: 'blazej' },
     { partitionKey: '2', sortKey: 'blazej' },
@@ -742,7 +743,7 @@ const users = [
   }),
 ];
 
-const input = await User.batchPut(users, {
+const input = User.batchPut(users, {
   return: 'input',
 });
 // OUTPUT:
@@ -841,7 +842,7 @@ const result = await User.batchDelete(
 <TabItem value="input" label="return: 'input'">
 
 ```ts
-const input = await User.batchDelete(
+const input = User.batchDelete(
   [
     { partitionKey: '1', sortKey: 'blazej' },
     { partitionKey: '2', sortKey: 'blazej' },
