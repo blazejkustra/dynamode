@@ -14,7 +14,7 @@ import {
   UpdateItemCommandOutput,
 } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
-import { buildDeleteConditionExpression, buildGetProjectionExpression, buildPutConditionExpression, buildUpdateConditionExpression, mapReturnValues, mapReturnValuesOnFailure } from '@lib/entity/helpers';
+import { buildDeleteConditionExpression, buildGetProjectionExpression, buildPutConditionExpression, buildUpdateConditionExpression, mapReturnValues, mapReturnValuesLimited } from '@lib/entity/helpers';
 import {
   EntityBatchDeleteOptions,
   EntityBatchDeleteOutput,
@@ -162,22 +162,28 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
     }
 
     public static create<T extends typeof Entity>(this: T, item: InstanceType<T>): Promise<InstanceType<T>>;
-    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: Omit<EntityPutOptions<T>, 'overwrite'> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: Omit<EntityPutOptions<T>, 'overwrite'> & { return: 'output' }): Promise<PutItemCommandOutput>;
-    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: Omit<EntityPutOptions<T>, 'overwrite'> & { return: 'input' }): PutItemCommandInput;
-    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: Omit<EntityPutOptions<T>, 'overwrite'>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
-      return this.put(item, { ...options, overwrite: false } as any);
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'output' }): Promise<PutItemCommandOutput>;
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'input' }): PutItemCommandInput;
+    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityPutOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
+      const overwrite = options?.overwrite ?? false;
+      return this.put(item, { ...options, overwrite } as any);
     }
 
-    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): Promise<void>;
-    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'default' }): Promise<void>;
+    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): Promise<InstanceType<T> | null>;
+    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'default' }): Promise<InstanceType<T> | null>;
     public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'output' }): Promise<DeleteItemCommandOutput>;
     public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'input' }): DeleteItemCommandInput;
-    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityDeleteOptions<T>): Promise<void | DeleteItemCommandOutput> | DeleteItemCommandInput {
+    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityDeleteOptions<T>): Promise<InstanceType<T> | null | DeleteItemCommandOutput> | DeleteItemCommandInput {
+      const throwErrorIfNotExists = options?.throwErrorIfNotExists ?? false;
+      const partitionKey = getDynamodeStorage().getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
+      const notExistsCondition = throwErrorIfNotExists ? this.condition().attribute(partitionKey).exists() : undefined;
+
       const commandInput: DeleteItemCommandInput = {
         TableName: this.tableName,
         Key: this.convertPrimaryKeyToAttributeMap(primaryKey),
-        ...buildDeleteConditionExpression(options?.condition),
+        ReturnValues: mapReturnValuesLimited(options?.returnValues),
+        ...buildDeleteConditionExpression(notExistsCondition, options?.condition),
         ...options?.extraInput,
       };
 
@@ -192,7 +198,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
           return result;
         }
 
-        return;
+        return result.Attributes ? this.convertAttributeMapToEntity(result.Attributes) : null;
       })();
     }
 
@@ -333,7 +339,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
         Update: {
           TableName: this.tableName,
           Key: this.convertPrimaryKeyToAttributeMap(primaryKey),
-          ReturnValuesOnConditionCheckFailure: mapReturnValuesOnFailure(options?.returnValuesOnFailure),
+          ReturnValuesOnConditionCheckFailure: mapReturnValuesLimited(options?.returnValuesOnFailure),
           ...buildUpdateConditionExpression(props, options?.condition),
           ...options?.extraInput,
         },
@@ -352,7 +358,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
         Put: {
           TableName: this.tableName,
           Item: this.convertEntityToAttributeMap(item),
-          ReturnValuesOnConditionCheckFailure: mapReturnValuesOnFailure(options?.returnValuesOnFailure),
+          ReturnValuesOnConditionCheckFailure: mapReturnValuesLimited(options?.returnValuesOnFailure),
           ...buildPutConditionExpression(overwriteCondition, options?.condition),
           ...options?.extraInput,
         },

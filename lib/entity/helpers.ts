@@ -1,6 +1,6 @@
 import { ReturnValue as DynamoReturnValue, ReturnValuesOnConditionCheckFailure as DynamoReturnValueOnFailure } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
-import { BuildDeleteConditionExpression, BuildGetProjectionExpression, BuildPutConditionExpression, BuildUpdateConditionExpression, Entity, EntityKey, ReturnValues, ReturnValuesOnFailure, UpdateProps } from '@lib/entity/types';
+import { BuildDeleteConditionExpression, BuildGetProjectionExpression, BuildPutConditionExpression, BuildUpdateConditionExpression, Entity, EntityKey, ReturnValues, ReturnValuesLimited, UpdateProps } from '@lib/entity/types';
 import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, isNotEmpty, isNotEmptyArray, isNotEmptyString, substituteAttributeName } from '@lib/utils';
 
 export function buildProjectionExpression<T extends Entity<T>>(attributes: Array<EntityKey<T>>, attributeNames: Record<string, string>): string {
@@ -131,10 +131,11 @@ export function buildPutConditionExpression<T extends Entity<T>>(overwriteCondit
   };
 }
 
-export function buildDeleteConditionExpression<T extends Entity<T>>(optionsCondition?: Condition<T>): BuildDeleteConditionExpression {
+export function buildDeleteConditionExpression<T extends Entity<T>>(notExistsCondition?: Condition<T>, optionsCondition?: Condition<T>): BuildDeleteConditionExpression {
   const attributeNames: Record<string, string> = {};
   const attributeValues: AttributeMap = {};
-  const conditionExpression = buildExpression(optionsCondition?.conditions || [], attributeNames, attributeValues);
+  const conditions = notExistsCondition ? notExistsCondition.condition(optionsCondition).conditions : optionsCondition?.conditions || [];
+  const conditionExpression = buildExpression(conditions, attributeNames, attributeValues);
 
   return {
     ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
@@ -159,7 +160,7 @@ export function mapReturnValues(returnValues?: ReturnValues): DynamoReturnValue 
   )[returnValues];
 }
 
-export function mapReturnValuesOnFailure(returnValues?: ReturnValuesOnFailure): DynamoReturnValueOnFailure {
+export function mapReturnValuesLimited(returnValues?: ReturnValuesLimited): DynamoReturnValueOnFailure {
   if (!returnValues) {
     return 'ALL_OLD';
   }

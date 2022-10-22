@@ -44,7 +44,7 @@ export type EntitySortKeys<T extends Entity<T>> =
   | ValueOf<{ [K in keyof T['metadata']['indexes']]: T['metadata']['indexes'] extends EntityIndexesMetadata ? (T['metadata']['indexes'][K]['sortKey'] extends string ? T['metadata']['indexes'][K]['sortKey'] : never) : never }>;
 
 export type ReturnValues = 'none' | 'allOld' | 'allNew' | 'updatedOld' | 'updatedNew';
-export type ReturnValuesOnFailure = 'none' | 'allOld';
+export type ReturnValuesLimited = 'none' | 'allOld';
 
 // Entity.get
 
@@ -119,6 +119,8 @@ export interface EntityDeleteOptions<T extends Entity<T>> {
   extraInput?: Partial<DeleteItemCommandInput>;
   return?: ReturnOption;
   condition?: Condition<T>;
+  throwErrorIfNotExists?: boolean;
+  returnValues?: ReturnValuesLimited;
 }
 
 export interface BuildDeleteConditionExpression {
@@ -180,7 +182,7 @@ export interface EntityTransactionGetOptions<T extends Entity<T>> {
 export interface EntityTransactionUpdateOptions<T extends Entity<T>> {
   extraInput?: Partial<Update>;
   condition?: Condition<T>;
-  returnValuesOnFailure?: ReturnValuesOnFailure;
+  returnValuesOnFailure?: ReturnValuesLimited;
 }
 
 // Entity.transactionPut
@@ -190,7 +192,7 @@ export interface EntityTransactionPutOptions<T extends Entity<T>> {
   attributes?: Array<EntityKey<T>>;
   overwrite?: boolean;
   condition?: Condition<T>;
-  returnValuesOnFailure?: ReturnValuesOnFailure;
+  returnValuesOnFailure?: ReturnValuesLimited;
 }
 
 // Entity.transactionDelete
