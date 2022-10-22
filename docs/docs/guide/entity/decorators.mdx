@@ -29,14 +29,19 @@ To see real examples of decorators in use - check out [modeling](/docs/guide/ent
 
 ## `register(value)`
 
-:::info
-`register(value)` is required in every entity.
-:::
+### Description
 
 Every model that inherits `Entity` has to be registered with this decorator. It is used to tag the entity for Dynamode internal use.
 
+:::info
+`register(value)` is required for every entity.
+:::
+### Arguments
+
 <!-- TODO: add link to Settings -->
 `value: DynamoDB` - DynamoDB instance that you can set up with Dynamode `Settings` class 
+
+### Examples
 
 ```ts
 const ddb = Settings.ddb();
@@ -48,12 +53,15 @@ class YourModel extends Entity<Keys>(tableName: string) {
 ```
 
 ## `primaryPartitionKey(type, options?)`
+### Description
+
+This decorator is used to tag the partition key attribute.
 
 :::info
 `primaryPartitionKey(type, options?)` is required in every entity.
 :::
 
-This decorator is used to tag the partition key attribute.
+### Arguments
 
 `type: String | Number` - Data type of the attribute.
 
@@ -63,6 +71,8 @@ In case `type: String` is passed, you can add optional `options` parameter that 
 | -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
 | `prefix` | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
 | `suffix` | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
+
+### Examples
 
 ```ts
 class YourModel extends Entity<Keys>(tableName: string) { 
@@ -75,11 +85,15 @@ class YourModel extends Entity<Keys>(tableName: string) {
 
 ## `primarySortKey(type, options?)`
 
+### Description
+
+This decorator is used to tag the sort key attribute.
+
 :::info
 `primarySortKey(type, options?)` is required in entities that belongs to table with composite primary key.
 :::
 
-This decorator is used to tag the sort key attribute.
+### Arguments
 
 `type: String | Number` - Data type of the attribute.
 
@@ -89,6 +103,8 @@ In case `type: String` is passed, you can add optional `options` parameter that 
 | -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
 | `prefix` | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
 | `suffix` | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
+
+### Examples
 
 ```ts
 class YourModel extends Entity<Keys>(tableName: string) { 
@@ -101,7 +117,11 @@ class YourModel extends Entity<Keys>(tableName: string) {
 
 ## `gsiPartitionKey(type, indexName, options?)`
 
+### Description
+
 This decorator is used to tag a global secondary index partition key attribute.
+
+### Arguments
 
 `type: String | Number` - Data type of the attribute.
 
@@ -114,6 +134,8 @@ In case `type: String` is passed, you can add optional `options` parameter that 
 | `prefix` | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
 | `suffix` | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
 
+### Examples
+
 ```ts
 class YourModel extends Entity<Keys>(tableName: string) { 
   ...
@@ -125,7 +147,11 @@ class YourModel extends Entity<Keys>(tableName: string) {
 
 ## `gsiSortKey(type, indexName, options?)`
 
+### Description
+
 This decorator is used to tag a global secondary index sort key attribute.
+
+### Arguments
 
 `type: String | Number` - Data type of the attribute.
 
@@ -137,6 +163,8 @@ In case `type: String` is passed, you can add optional `options` parameter that 
 | -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
 | `prefix` | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
 | `suffix` | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
+
+### Examples
 
 ```ts
 class YourModel extends Entity<Keys>(tableName: string) { 
@@ -149,7 +177,11 @@ class YourModel extends Entity<Keys>(tableName: string) {
 
 ## `lsiSortKey(type, indexName, options?)`
 
+### Description
+
 This decorator is used to tag a local secondary index sort key attribute.
+
+### Arguments
 
 `type: String | Number` - Data type of the attribute.
 
@@ -162,6 +194,8 @@ In case `type: String` is passed, you can add optional `options` parameter that 
 | `prefix` | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
 | `suffix` | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
 
+### Examples
+
 ```ts
 class YourModel extends Entity<Keys>(tableName: string) { 
   ...
@@ -173,7 +207,11 @@ class YourModel extends Entity<Keys>(tableName: string) {
 
 ## `attribute(type, options?)`
 
+### Description
+
 This decorator is used to tag a non partition/sort key attribute.
+
+### Arguments
 
 `type: String | Number | Boolean | Object | Array | Set | Map` - Data type of the attribute.
 
@@ -183,6 +221,8 @@ In case `type: String` is passed, you can add optional `options` parameter that 
 | -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
 | `prefix` | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
 | `suffix` | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
+
+### Examples
 
 ```ts
 class YourModel extends Entity<Keys>(tableName: string) { 
@@ -201,6 +241,10 @@ class YourModel extends Entity<Keys>(tableName: string) {
 
 ## `createdAt(type, options?)`
 
+### Description
+
+This decorator is used to tag an attribute that holds a `createdAt` timestamp (moment when item is inserted to the table).
+
 :::warning
 `createdAt(type, options?)` can be used once for a single entity. 
 :::
@@ -209,7 +253,8 @@ class YourModel extends Entity<Keys>(tableName: string) {
 `createdAt(type, options?)` has to decorate attribute of [`Date`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) type.
 :::
 
-This decorator is used to tag an attribute that holds a `createdAt` timestamp (moment when item is inserted to the table).
+
+### Arguments
 
 `type: String | Number` - Data type of the attribute. Decorated `Date` is saved to DynamoDB in [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time) format for `type: Number` and [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format for `type: String`.
 
@@ -219,6 +264,8 @@ In case `type: String` is passed, you can add optional `options` parameter that 
 | -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
 | `prefix` | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
 | `suffix` | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
+
+### Examples
 
 ```ts
 class YourModel extends Entity<Keys>(tableName: string) { 
@@ -231,6 +278,8 @@ class YourModel extends Entity<Keys>(tableName: string) {
 
 ## `updatedAt(type, options?)`
 
+### Description
+
 :::warning
 `updatedAt(type, options?)` can be used once for a single entity. 
 :::
@@ -241,6 +290,8 @@ class YourModel extends Entity<Keys>(tableName: string) {
 
 This decorator is used to tag an attribute that holds a `updatedAt` timestamp (moment when item was last updated).
 
+### Arguments
+
 `type: String | Number` - Data type of the attribute. Decorated `Date` is saved to DynamoDB in [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time) format for `type: Number` and [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format for `type: String`.
 
 In case `type: String` is passed, you can add optional `options` parameter that is an object. The table below represents options that you can pass in:
@@ -249,6 +300,8 @@ In case `type: String` is passed, you can add optional `options` parameter that 
 | -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
 | `prefix` | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
 | `suffix` | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
+
+### Examples
 
 ```ts
 class YourModel extends Entity<Keys>(tableName: string) { 
@@ -261,12 +314,23 @@ class YourModel extends Entity<Keys>(tableName: string) {
 
 ## `prefix(value)`
 
+### Description
+
 <!-- TODO: add link to Settings -->
 This decorator is used to add a static prefix to the value (only for attributes of `string` type). You can customize a separator that is added between prefix and actual value in `Settings`.
 
+:::info
+Prefix is added whenever you interact with a attribute.
+- All Entity static methods (e.g. `Entity.get()`, `Entity.update()`)
+- Condition, Query and Scan builders
+- transactionGet and transactionWrite
+:::
+
+### Arguments
 
 `value: string` - String that will be prepended to the value
 
+### Examples
 
 ```ts
 class YourModel extends Entity<Keys>(tableName: string) { 
@@ -278,19 +342,24 @@ class YourModel extends Entity<Keys>(tableName: string) {
 }
 ```
 
+## `suffix(value)`
+
+### Description
+
+<!-- TODO: add link to Settings -->
+This decorator is used to add a static suffix to the value (only for attributes of `string` type). You can customize a separator that is added between actual value and suffix in `Settings`.
+
 :::info
-Prefix is added whenever you interact with a attribute.
+Suffix is added whenever you interact with a attribute.
 - All Entity static methods (e.g. `Entity.get()`, `Entity.update()`)
 - Condition, Query and Scan builders
 - transactionGet and transactionWrite
 :::
 
-## `suffix(value)`
-
-<!-- TODO: add link to Settings -->
-This decorator is used to add a static suffix to the value (only for attributes of `string` type). You can customize a separator that is added between actual value and suffix in `Settings`.
+### Arguments
 
 `value: string` - String that will be appended to the value
+### Examples
 
 ```ts
 class YourModel extends Entity<Keys>(tableName: string) { 
@@ -301,10 +370,3 @@ class YourModel extends Entity<Keys>(tableName: string) {
   ...
 }
 ```
-
-:::info
-Suffix is added whenever you interact with a attribute.
-- All Entity static methods (e.g. `Entity.get()`, `Entity.update()`)
-- Condition, Query and Scan builders
-- transactionGet and transactionWrite
-:::

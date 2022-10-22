@@ -10,7 +10,52 @@ import TabItem from '@theme/TabItem';
 
 # Methods
 
-## new Entity(props)
+The Entity class represents a model for your application. Instance of a class represents an item for a given model in DynamoDB. It can be created locally (meaning that is not yet saved in DynamoDB) with [entity constructor](/docs/guide/entity/methods#new-entityprops), or can be already stored in DynamoDB (e.g. [`Entity.get(primaryKey, options?)`](/docs/guide/entity/methods#entitygetprimarykey-options) or [`Entity.put(item, options?)`](/docs/guide/entity/methods#entityputitem-options)).
+
+Every class that inherits `Entity` has static methods that you can use to read, insert, update, delete items in DynamoDB. This page describes in detail all available methods.
+
+To read more about modeling entities check out [Decorators](/docs/guide/entity/decorators) and [Modeling](/docs/guide/entity/modeling) pages. 
+
+## `new Entity(props)`
+### Description
+
+Entity constructor is used to initialize an item for a given model. When you construct an item using `new Entity(props)` the item is only created locally, meaning that it is not yet saved in DynamoDB. If you want to save it to the table use for example [`Entity.put(item, options?)`](/docs/guide/entity/methods#entityputitem-options) method.
+
+### Arguments
+
+**`props`** - Props are defined based on your needs when you define the model. 
+
+### Examples
+
+User model is defined [here](/docs/guide/entity/modeling#user). to initialize it, simply use a constructor.
+
+```ts
+const user = new User({
+  partitionKey: '1',
+  sortKey: 'blazej',
+  username: 'blazej',
+  email: 'blazej@gmail.com',
+  age: 18,
+  friends: ['tomas', 'david'],
+  config: {
+    isAdmin: true,
+  },
+}); // Item is not saved in DynamoDB at this point 
+```
+
+## `Entity.condition()`
+
+You can construct a conditional by using the `Entity.condition()` method. This initializes `Condition` class that acts as a condition builder to construct your conditional that you can pass to entity methods, Query and Scan classes. To learn more check out [`Condition`](/docs/guide/condition) page.
+
+
+## `Entity.query()`
+
+You can query items by using the `Entity.query()` method. This initializes `Query` class that acts as a builder to construct your DynamoDB query with the appropriate filters. To learn more check out [`Query`](/docs/guide/query) page.
+
+
+## `Entity.scan()`
+
+You can scan items by using the `Entity.scan()` method. This initializes `Scan` class that acts as a builder to construct your DynamoDB scan with the appropriate filters. To learn more check out [`Scan`](/docs/guide/scan) page.
 
 ## `Entity.get(primaryKey, options?)`
 
@@ -233,16 +278,16 @@ This method is used to update an item in DynamoDB. It uses the [UpdateItem Dynam
 
 **`props`**: `UpdateProps` - An object with DynamoDB update operations. For every operation you can pass properties that you want to update.
 
-| Name           | Acceptable property types                  | Description                                                   |
-| -------------- | ------------------------------------------ | ------------------------------------------------------------- |
-| add            | `number` \| `Set<number>` \| `Set<string>` | Adds a value to sets or increments/decrements number property |
-| set            | All                                        | Sets a value on property name                                 |
-| setIfNotExists | All                                        | Sets a value on property name (unless it exists on the item)  |
-| listAppend     | `Array<any>`                               | Appends a value to an array                                   |
-| increment      | `number`                                   | Increments property with passed value                         |
-| decrement      | `number`                                   | Decrements property with passed value                         |
-| delete         | `Set<number>` \| `Set<string>`             | Removes value from a set                                      |
-| remove         | All                                        | Removes property from the item                                |
+| Name           | Acceptable property types                  | Description                                                    |
+| -------------- | ------------------------------------------ | -------------------------------------------------------------- |
+| add            | `number` \| `Set<number>` \| `Set<string>` | Adds a value to sets or increments/decrements number property. |
+| set            | All                                        | Sets a value on property name.                                 |
+| setIfNotExists | All                                        | Sets a value on property name (unless it exists on the item).  |
+| listAppend     | `Array<any>`                               | Appends a value to an array.                                   |
+| increment      | `number`                                   | Increments property with passed value.                         |
+| decrement      | `number`                                   | Decrements property with passed value.                         |
+| delete         | `Set<number>` \| `Set<string>`             | Removes value from a set.                                      |
+| remove         | All                                        | Removes property from the item.                                |
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
@@ -1029,30 +1074,3 @@ const output = await User.batchDelete(
 
 </TabItem>
 </Tabs>
-
-## `Entity.condition()`
-
-### Description
-
-### Arguments
-
-### Examples
-
-
-## `Entity.query()`
-
-### Description
-
-### Arguments
-
-### Examples
-
-
-## `Entity.scan()`
-
-### Description
-
-### Arguments
-
-### Examples
-
