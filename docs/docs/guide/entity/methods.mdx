@@ -5,40 +5,1054 @@ sidebar_label: Methods
 hide_title: true
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Methods
 
 ## new Entity(props)
 
-## Entity.get()
+## `Entity.get(primaryKey, options?)`
 
-## Entity.put()
+### Description
 
-## Entity.create()
+This method is used to retrieve an item from DynamoDB. It uses the [GetItem DynamoDB operation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_GetItem.html).
 
-## Entity.update()
+### Arguments
 
-## Entity.delete()
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
 
-## Entity.batchGet()
+<!-- TODO: ADd more info about inferring -->
+<!-- TODO: Add info that this function is async and returns a promise -->
 
-## Entity.batchPut()
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
-## Entity.batchDelete()
+| Name         | Description                                                                                                                                                                                                                                                                                                       | Type                                                                                                                                        | Default     |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `return`     | What the method should return. For `'default'` method returns initialized class with retrieved data. For `'input'` method returns prepared DynamoDB input command and no request is made to DynamoDB (method no longer returns a promise). For `'output'` method returns the bare output from DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                                                                                      | `'default'` |
+| `attributes` | What item attributes should be retrieved and returned. This uses DynamoDB's `ProjectionExpression`. If this value is `undefined`, then all attributes will be returned.                                                                                                                                           | `string[]`                                                                                                                                  | `undefined` |
+| `consistent` | Whether to perform a strongly consistent read or not.                                                                                                                                                                                                                                                             | `boolean`                                                                                                                                   | `false`     |
+| `extraInput` | Extra input that is passed to GetItem DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                                              | [`GetItemCommandInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/getitemcommandinput.html) | `undefined` |
 
-## Entity.transactionGet()
+### Examples
 
-## Entity.transactionPut()
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
 
-## Entity.transactionCreate()
+```ts
+const user = await User.get({ partitionKey: '1', sortKey: 'blazej' });
+const user = await User.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 'default' }); // the same
+// OUTPUT:
+// User {
+//   dynamodeEntity: 'User',
+//   partitionKey: '1',
+//   sortKey: 'blazej',
+//   username: 'blazej',
+//   email: 'blazej@gmail.com',
+//   age: 18,
+//   friends: [ 'tomas', 'david' ],
+//   config: { isAdmin: true }
+// }
+```
 
-## Entity.transactionUpdate()
+</TabItem>
+<TabItem value="input" label="return: 'input'">
 
-## Entity.transactionDelete()
+```ts
+const input = User.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 'input' });
+// OUTPUT:
+// {
+//   TableName: 'users',
+//   Key: { partitionKey: { S: '1' }, sortKey: { S: 'blazej' } },
+//   ConsistentRead: false
+// }
+```
 
-## Entity.transactionCondition()
+</TabItem>
+<TabItem value="output" label="return: 'output'">
 
-## Entity.condition()
+```ts
+const output = await User.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 'output' });
+// OUTPUT:
+// {
+//   '$metadata': {
+//     ...
+//   },
+//   ConsumedCapacity: undefined,
+//   Item: {
+//     dynamodeEntity: { S: 'User' },
+//     sortKey: { S: 'blazej' },
+//     partitionKey: { S: '1' },
+//     config: { M: [Object] },
+//     email: { S: 'blazej@gmail.com' },
+//     age: { N: '18' },
+//     friends: { L: [Array] },
+//     username: { S: 'blazej' }
+//   }
+// }
+```
 
-## Entity.query()
+</TabItem>
+</Tabs>
 
-## Entity.scan()
+## `Entity.put(item, options?)`
+
+### Description
+
+This method is used to insert an item to DynamoDB. It uses the [PutItem DynamoDB operation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_PutItem.html).
+
+### Arguments
+
+**`item`**: `Entity` - Instance of entity that you want to insert.
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name         | Description                                                                                                                                                                                                                                                                                   | Type                                                                                                                                        | Default     |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `return`     | What the method should return. For `'default'` method returns initialized class. For `'input'` method returns prepared DynamoDB input command and no request is made to DynamoDB (method no longer returns a promise). For `'output'` method returns the bare output from DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                                                                                      | `'default'` |
+| `overwrite`  | PutItem DynamoDB operation overwrites items on insertion by default. If you want to prevent overwrites use `Entity.create(item, options?)` instead, or set `overwrite` prop to `false`.                                                                                                       | `boolean`                                                                                                                                   | `true`      |
+| `condition`  | This is an optional instance of a `Condition` for the save. Item won't be inserted in case condition fails.                                                                                                                                                                                   | `Condition`                                                                                                                                 | `undefined` |
+| `extraInput` | Extra input that is passed to PutItem DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                          | [`PutItemCommandInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/putitemcommandinput.html) | `undefined` |
+
+### Examples
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+const userInstance = new User({
+  partitionKey: '1',
+  sortKey: 'blazej',
+  username: 'blazej',
+  email: 'blazej@gmail.com',
+  age: 18,
+  friends: ['tomas', 'david'],
+  config: {
+    isAdmin: true,
+  },
+});
+
+const user = await User.put(userInstance);
+// OR
+const user = await User.put(userInstance, { return: 'default' });
+// OUTPUT:
+// User {
+//   dynamodeEntity: 'User',
+//   partitionKey: '1',
+//   sortKey: 'blazej',
+//   username: 'blazej',
+//   email: 'blazej@gmail.com',
+//   age: 18,
+//   friends: [ 'tomas', 'david' ],
+//   config: { isAdmin: true }
+// }
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+const userInstance = new User({
+  partitionKey: '1',
+  sortKey: 'blazej',
+  username: 'blazej',
+  email: 'blazej@gmail.com',
+  age: 18,
+  friends: ['tomas', 'david'],
+  config: {
+    isAdmin: true,
+  },
+});
+
+const input = User.put(userInstance, { return: 'input' });
+// OUTPUT:
+// {
+//   TableName: 'users',
+//   Item: {
+//     dynamodeEntity: { S: 'User' },
+//     partitionKey: { S: '1' },
+//     sortKey: { S: 'blazej' },
+//     username: { S: 'blazej' },
+//     email: { S: 'blazej@gmail.com' },
+//     age: { N: '18' },
+//     friends: { L: [Array] },
+//     config: { M: [Object] }
+//   }
+// }
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+const userInstance = new User({
+  partitionKey: '1',
+  sortKey: 'blazej',
+  username: 'blazej',
+  email: 'blazej@gmail.com',
+  age: 18,
+  friends: ['tomas', 'david'],
+  config: {
+    isAdmin: true,
+  },
+});
+
+const output = await User.put(userInstance, { return: 'output' });
+// OUTPUT:
+// {
+//   '$metadata': {
+//     ...
+//   },
+//   Attributes: undefined,
+//   ConsumedCapacity: undefined,
+//   ItemCollectionMetrics: undefined
+// }
+```
+
+</TabItem>
+</Tabs>
+
+## `Entity.create(item, options?)`
+
+### Description
+
+This method is almost identical to [`Entity.put(item, options?)`](/docs/guide/entity/methods#entityputitem-options). The only difference being that `Entity.create(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
+
+## `Entity.update(primaryKey, props, options?)`
+
+### Description
+
+This method is used to update an item in DynamoDB. It uses the [UpdateItem DynamoDB operation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_UpdateItem.html).
+
+### Arguments
+
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to update. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+
+<!-- TODO: ADd more info about inferring -->
+
+
+**`props`**: `UpdateProps` - An object with DynamoDB update operations. For every operation you can pass properties that you want to update.
+
+| Name           | Acceptable property types                  | Description                                                   |
+| -------------- | ------------------------------------------ | ------------------------------------------------------------- |
+| add            | `number` \| `Set<number>` \| `Set<string>` | Adds a value to sets or increments/decrements number property |
+| set            | All                                        | Sets a value on property name                                 |
+| setIfNotExists | All                                        | Sets a value on property name (unless it exists on the item)  |
+| listAppend     | `Array<any>`                               | Appends a value to an array                                   |
+| increment      | `number`                                   | Increments property with passed value                         |
+| decrement      | `number`                                   | Decrements property with passed value                         |
+| delete         | `Set<number>` \| `Set<string>`             | Removes value from a set                                      |
+| remove         | All                                        | Removes property from the item                                |
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name           | Description                                                                                                                                                                                                                                                                                                       | Type                                                                     | Default     |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------- |
+| `return`       | What the method should return. For `'default'` method returns initialized class with retrieved data. For `'input'` method returns prepared DynamoDB input command and no request is made to DynamoDB (method no longer returns a promise). For `'output'` method returns the bare output from DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                   | `'default'` |
+| `returnValues` | In which state to return the item after update. You can get the item attributes as they appear before or after update. This uses DynamoDB's `ReturnValues`.                                                                                                                                                       | `'none'` \| `'allOld'` \| `'allNew'` \| `'updatedOld'` \| `'updatedNew'` | `'allNew'`  |
+| `condition`    | This is an optional instance of a `Condition` for the save. Item won't be updated in case condition fails.                                                                                                                                                                                                        | `Condition`                                                              | `undefined` |
+| `extraInput`   | Extra input that is passed to UpdateItem DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                                           | `UpdateItemCommandInput`                                                 | `undefined` |
+
+### Examples
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+const item = await AllPossibleProperties.update(
+  { partitionKey: 'pk1', sortKey: 'sk1' },
+  {
+    add: {
+      set: new Set(['5']),
+    },
+    set: {
+      string: 'string',
+    },
+    setIfNotExists: {
+      'object.optional': 'optional',
+    },
+  },
+);
+// OR
+const item = await AllPossibleProperties.update(
+  { partitionKey: 'pk1', sortKey: 'sk1' },
+  {
+    add: {
+      set: new Set(['5']),
+    },
+    set: {
+      string: 'string',
+    },
+    setIfNotExists: {
+      'object.optional': 'optional',
+    },
+  },
+  { return: 'default' }
+);
+// OUTPUT:
+// AllPossibleProperties {
+//   dynamodeEntity: 'AllPossibleProperties',
+//   partitionKey: 'pk1',
+//   sortKey: 'sk1',
+//   GSI_1_PK: undefined,
+//   GSI_1_SK: undefined,
+//   LSI_1_SK: undefined,
+//   createdAt: 2022-10-16T07:08:21.168Z,
+//   updatedAt: 2022-10-16T07:08:21.168Z,
+//   string: 'string',
+//   object: { optional: 'test', required: 2 },
+//   array: [ '1' ],
+//   map: Map(1) { '1' => 'test' },
+//   set: Set(4) { '1', '2', '3', '5' },
+//   number: 10,
+//   boolean: true,
+//   unsaved: 'unsaved'
+// }
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+const input = AllPossibleProperties.update(
+  { partitionKey: 'pk1', sortKey: 'sk1' },
+  {
+    listAppend: {
+      array: ['value'],
+    },
+    increment: {
+      number: 10,
+    },
+  },
+  { return: 'input' }
+);
+// OUTPUT:
+// {
+//   TableName: 'all-possible-properties',
+//   Key: { partitionKey: { S: 'prefix#pk1' }, sortKey: { S: 'sk1' } },
+//   ReturnValues: 'ALL_NEW',
+//   ExpressionAttributeNames: { '#array': 'array', '#number': 'number' },
+//   ExpressionAttributeValues: { ':array': { L: [Array] }, ':array__1': { N: '10' } },
+//   UpdateExpression: 'SET #array = list_append(#array, :array), #number = #number + :array__1'
+// }
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+const output = await AllPossibleProperties.update(
+  { partitionKey: 'pk1', sortKey: 'sk1' },
+  {
+    decrement: {
+      'object.required': 2,
+    },
+    delete: {
+      set: new Set(['2', '5']),
+    },
+    remove: ['number'],
+  },
+  { return: 'output' }
+);
+// OUTPUT:
+// {
+//   '$metadata': {
+//     ...
+//   },
+//   Attributes: {
+//     createdAt: { S: '2022-10-16T07:08:21.168Z' },
+//     dynamodeEntity: { S: 'AllPossibleProperties' },
+//     boolean: { BOOL: true },
+//     set: { SS: [Array] },
+//     sortKey: { S: 'sk1' },
+//     partitionKey: { S: 'prefix#pk1' },
+//     string: { S: 'string' },
+//     array: { L: [Array] },
+//     map: { M: [Object] },
+//     object: { M: [Object] },
+//     updatedAt: { N: '1665904101168' }
+//   },
+//   ConsumedCapacity: undefined,
+//   ItemCollectionMetrics: undefined
+// }
+```
+
+</TabItem>
+</Tabs>
+
+## `Entity.delete(primaryKey, options?)`
+
+### Description
+
+This method is used to delete an item from DynamoDB. It uses the DeleteItem DynamoDB operation.
+
+### Arguments
+
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+
+<!-- TODO: ADd more info about inferring -->
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name                    | Description                                                                                                                                                                                                                                                                         | Type                                                                                                                                              | Default     |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `return`                | What the method should return. For `'default'` method returns nothing. For `'input'` method returns prepared DynamoDB input command and no request is made to DynamoDB (method no longer returns a promise). For `'output'` method returns the bare output from DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                                                                                            | `'default'` |
+| `condition`             | Instance of Condition class with conditionals that has to pass to delete the item.                                                                                                                                                                                                  | `Condition`                                                                                                                                       | `undefined` |
+| `throwErrorIfNotExists` | DeleteItem DynamoDB operation does not throw an error when deleting an item that doesn't exist. If you want to prevent deleting non existent item set `throwErrorIfNotExists` prop to `true`.                                                                                       | `boolean`                                                                                                                                         | `false`     |
+| `returnValues`          | Whether or not to return the item after deletion. You can get the item attributes as they appear before deletion or none at all. This uses DynamoDB's `ReturnValues`.                                                                                                               | `'none'` \| `'allOld'`                                                                                                                            | `'allOld'`  |
+| `extraInput`            | Extra input that is passed to DeleteItem DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                             | [`DeleteItemCommandInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/deleteitemcommandinput.html) | `undefined` |
+
+### Examples
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+const deletedUser = await User.delete({ partitionKey: '1', sortKey: 'blazej' });
+// OR
+const deletedUser = await User.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'default' });
+// OUTPUT:
+// User {
+//   dynamodeEntity: 'User',
+//   partitionKey: '1',
+//   sortKey: 'blazej',
+//   username: 'blazej',
+//   email: 'blazej@gmail.com',
+//   age: 18,
+//   friends: [ 'tomas', 'david' ],
+//   config: { isAdmin: true }
+// }
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+const input = await User.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'input' });
+// OUTPUT:
+// {
+//   TableName: 'users',
+//   Key: { partitionKey: { S: '1' }, sortKey: { S: 'blazej' } }
+// }
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+const output = await User.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'output' });
+// OUTPUT:
+// {
+//   '$metadata': {
+//     ...
+//   },
+//   Attributes: {
+//     dynamodeEntity: { S: 'User' },
+//     sortKey: { S: 'blazej' },
+//     partitionKey: { S: '1' },
+//     config: { M: [Object] },
+//     email: { S: 'blazej@gmail.com' },
+//     age: { N: '18' },
+//     friends: { L: [Array] },
+//     username: { S: 'blazej' }
+//   },
+//   ConsumedCapacity: {
+//     CapacityUnits: 1,
+//     GlobalSecondaryIndexes: undefined,
+//     LocalSecondaryIndexes: undefined,
+//     ReadCapacityUnits: undefined,
+//     Table: undefined,
+//     TableName: 'users',
+//     WriteCapacityUnits: undefined
+//   },
+//   ItemCollectionMetrics: undefined
+// }
+```
+
+</TabItem>
+</Tabs>
+
+## `Entity.batchGet(primaryKeys, options?)`
+
+### Description
+
+This method is used to retrieve multiple items from DynamoDB. It uses the [BatchGetItem DynamoDB operation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchGetItem.html).
+
+### Arguments
+
+**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+
+<!-- TODO: ADd more info about inferring -->
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name         | Description                                                                                                                                                                                                                                                                                                                  | Type                                                                                                                                                  | Default     |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `return`     | What the method should return. For `'default'` method returns array of initialized classes with retrieved data. For `'input'` method returns prepared DynamoDB input command and no request is made to DynamoDB (method no longer returns a promise). For `'output'` method returns the bare output from DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                                                                                                | `'default'` |
+| `attributes` | What items attributes should be retrieved and returned. This uses DynamoDB's `ProjectionExpression`. If this value is `undefined`, then all attributes will be returned.                                                                                                                                                     | `string[]`                                                                                                                                            | `undefined` |
+| `consistent` | Whether to perform a strongly consistent reads or not.                                                                                                                                                                                                                                                                       | `boolean`                                                                                                                                             | `false`     |
+| `extraInput` | Extra input that is passed to BatchGetItem DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                                                    | [`BatchGetItemCommandInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/batchgetitemcommandinput.html) | `undefined` |
+
+### Examples
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+const input = await User.batchGet([
+    { partitionKey: '1', sortKey: 'blazej' },
+    { partitionKey: '2', sortKey: 'blazej' },
+]);
+// OR
+const input = await User.batchGet(
+  [
+    { partitionKey: '1', sortKey: 'blazej' },
+    { partitionKey: '2', sortKey: 'blazej' },
+  ],
+  {
+    return: 'default',
+  },
+);
+// OUTPUT:
+// {
+//   items: [
+//     User {
+//       dynamodeEntity: 'User',
+//       partitionKey: '2',
+//       sortKey: 'blazej',
+//       username: 'blazej',
+//       email: 'blazej@gmail.com',
+//       age: 18,
+//       friends: [Array],
+//       config: [Object]
+//     },
+//     User {
+//       dynamodeEntity: 'User',
+//       partitionKey: '1',
+//       sortKey: 'blazej',
+//       username: 'blazej',
+//       email: 'blazej@gmail.com',
+//       age: 18,
+//       friends: [Array],
+//       config: [Object]
+//     }
+//   ],
+//   unprocessedKeys: []
+// }
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+const input = await User.batchGet(
+  [
+    { partitionKey: '1', sortKey: 'blazej' },
+    { partitionKey: '2', sortKey: 'blazej' },
+  ],
+  {
+    return: 'input',
+  },
+);
+// OUTPUT:
+// { RequestItems: { users: { Keys: [Array], ConsistentRead: false } } }
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+const output = await User.batchGet(
+  [
+    { partitionKey: '1', sortKey: 'blazej' },
+    { partitionKey: '2', sortKey: 'blazej' },
+  ],
+  {
+    return: 'output',
+  },
+);
+// OUTPUT:
+// {
+//   '$metadata': {
+//     ...
+//   },
+//   ConsumedCapacity: undefined,
+//   Responses: { users: [ [Object], [Object] ] },
+//   UnprocessedKeys: {}
+// }
+```
+
+</TabItem>
+</Tabs>
+
+## `Entity.batchPut(items, options?)`
+
+### Description
+
+This method is used to insert multiple items to DynamoDB. It uses the [BatchWriteItem DynamoDB operation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html).
+
+This method is overwriting, so it will overwrite the data you currently have in place for the existing key in your table.
+
+### Arguments
+
+**`items`**: `Array<Entity>` - Instances of entity that you want to insert.
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name         | Description                                                                                                                                                                                                                                                                                     | Type                                                                                                                                        | Default     |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `return`     | What the method should return. For `'default'` method returns initialized classes. For `'input'` method returns prepared DynamoDB input command and no request is made to DynamoDB (method no longer returns a promise). For `'output'` method returns the bare output from DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                                                                                      | `'default'` |
+| `extraInput` | Extra input that is passed to BatchWriteItem DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                     | [`BatchWriteItemInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/batchwriteiteminput.html) | `undefined` |
+
+### Examples
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+const users = [
+  new User({
+    partitionKey: '1',
+    sortKey: 'blazej',
+    username: 'blazej',
+    email: 'blazej@gmail.com',
+    age: 18,
+    friends: ['tomas', 'david'],
+    config: {
+      isAdmin: true,
+    },
+  }),
+  new User({
+    partitionKey: '2',
+    sortKey: 'blazej',
+    username: 'blazej',
+    email: 'blazej@gmail.com',
+    age: 18,
+    friends: ['tomas', 'david'],
+    config: {
+      isAdmin: true,
+    },
+  }),
+];
+
+const result = await User.batchPut(users);
+// OR
+const result = await User.batchPut(users, {
+  return: 'default',
+});
+// OUTPUT:
+// {
+//   items: [
+//     User {
+//       dynamodeEntity: 'User',
+//       partitionKey: '1',
+//       sortKey: 'blazej',
+//       username: 'blazej',
+//       email: 'blazej@gmail.com',
+//       age: 18,
+//       friends: [Array],
+//       config: [Object]
+//     },
+//     User {
+//       dynamodeEntity: 'User',
+//       partitionKey: '2',
+//       sortKey: 'blazej',
+//       username: 'blazej',
+//       email: 'blazej@gmail.com',
+//       age: 18,
+//       friends: [Array],
+//       config: [Object]
+//     }
+//   ],
+//   unprocessedItems: []
+// }
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+const users = [
+  new User({
+    partitionKey: '1',
+    sortKey: 'blazej',
+    username: 'blazej',
+    email: 'blazej@gmail.com',
+    age: 18,
+    friends: ['tomas', 'david'],
+    config: {
+      isAdmin: true,
+    },
+  }),
+  new User({
+    partitionKey: '2',
+    sortKey: 'blazej',
+    username: 'blazej',
+    email: 'blazej@gmail.com',
+    age: 18,
+    friends: ['tomas', 'david'],
+    config: {
+      isAdmin: true,
+    },
+  }),
+];
+
+const input = await User.batchPut(users, {
+  return: 'input',
+});
+// OUTPUT:
+// { RequestItems: { users: [ [Object], [Object] ] } }
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+const users = [
+  new User({
+    partitionKey: '1',
+    sortKey: 'blazej',
+    username: 'blazej',
+    email: 'blazej@gmail.com',
+    age: 18,
+    friends: ['tomas', 'david'],
+    config: {
+      isAdmin: true,
+    },
+  }),
+  new User({
+    partitionKey: '2',
+    sortKey: 'blazej',
+    username: 'blazej',
+    email: 'blazej@gmail.com',
+    age: 18,
+    friends: ['tomas', 'david'],
+    config: {
+      isAdmin: true,
+    },
+  }),
+];
+
+const output = await User.batchPut(users, {
+  return: 'output',
+});
+// OUTPUT:
+// {
+//   '$metadata': {
+//     ...
+//   },
+//   ConsumedCapacity: undefined,
+//   ItemCollectionMetrics: undefined,
+//   UnprocessedItems: {}
+// }
+```
+
+</TabItem>
+</Tabs>
+
+## `Entity.batchDelete(primaryKeys, options?)`
+
+### Description
+
+This method is used to delete multiple items from DynamoDB. It uses the [BatchWriteItem DynamoDB operation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html).
+
+### Arguments
+
+**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name         | Description                                                                                                                                                                                                                                                                                                  | Type                                                                                                                                        | Default     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `return`     | What the method should return. For `'default'` method returns an object with `unprocessedKeys`. For `'input'` method returns prepared DynamoDB input command and no request is made to DynamoDB (method no longer returns a promise). For `'output'` method returns the bare output from DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                                                                                      | `'default'` |
+| `extraInput` | Extra input that is passed to BatchWriteItem DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                                  | [`BatchWriteItemInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/batchwriteiteminput.html) | `undefined` |
+
+### Examples
+
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+const result = await User.batchDelete(
+  [
+    { partitionKey: '1', sortKey: 'blazej' },
+    { partitionKey: '2', sortKey: 'blazej' },
+  ],
+);
+// OR
+const result = await User.batchDelete(
+  [
+    { partitionKey: '1', sortKey: 'blazej' },
+    { partitionKey: '2', sortKey: 'blazej' },
+  ],
+  { return: 'default' },
+);
+// OUTPUT:
+// { unprocessedItems: [] }
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+const input = await User.batchDelete(
+  [
+    { partitionKey: '1', sortKey: 'blazej' },
+    { partitionKey: '2', sortKey: 'blazej' },
+  ],
+  { return: 'input' },
+);
+// OUTPUT:
+// { RequestItems: { users: [ [Object], [Object] ] } }
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+const output = await User.batchDelete(
+  [
+    { partitionKey: '1', sortKey: 'blazej' },
+    { partitionKey: '2', sortKey: 'blazej' },
+  ],
+  { return: 'output' },
+);
+// OUTPUT:
+// {
+//   '$metadata': {
+//     ...
+//   },
+//   ConsumedCapacity: undefined,
+//   ItemCollectionMetrics: undefined,
+//   UnprocessedItems: {}
+// }
+```
+
+</TabItem>
+</Tabs>
+
+## `Entity.transactionGet(primaryKey, options?)`
+
+### Description
+
+### Arguments
+
+### Examples
+
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+
+```
+
+</TabItem>
+</Tabs>
+
+## `Entity.transactionPut(item, options?)`
+
+### Description
+
+### Arguments
+
+### Examples
+
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+
+```
+
+</TabItem>
+</Tabs>
+
+## `Entity.transactionCreate(item, options?)`
+
+### Description
+
+### Arguments
+
+### Examples
+
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+
+```
+
+</TabItem>
+</Tabs>
+
+## `Entity.transactionUpdate(primaryKey, props, options?)`
+
+### Description
+
+### Arguments
+
+### Examples
+
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+
+```
+
+</TabItem>
+</Tabs>
+
+## `Entity.transactionDelete(primaryKey, options?)`
+
+### Description
+
+### Arguments
+
+### Examples
+
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+
+```
+
+</TabItem>
+</Tabs>
+
+## `Entity.transactionCondition(primaryKey, conditionInstance)`
+
+### Description
+
+### Arguments
+
+### Examples
+
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+
+```
+
+</TabItem>
+</Tabs>
+
+## `Entity.condition()`
+
+### Description
+
+### Arguments
+
+### Examples
+
+
+## `Entity.query()`
+
+### Description
+
+### Arguments
+
+### Examples
+
+
+## `Entity.scan()`
+
+### Description
+
+### Arguments
+
+### Examples
+
