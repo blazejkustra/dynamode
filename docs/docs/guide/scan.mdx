@@ -7,20 +7,57 @@ hide_title: true
 
 # Scan
 
-## Scan.indexName()
+## `Scan.indexName(name)`
 
-## Scan.segment()
+## `Scan.segment(value)`
 
-## Scan.totalSegments()
+## `Scan.totalSegments(value)`
 
-## Scan.limit()
+## `Scan.limit(count)`
 
-## Scan.startAt()
+This method will limit the number of items that DynamoDB scan in one request. It uses DynamoDB's `Limit`.
 
-## Scan.consistent()
+:::caution
+Unlike most SQL databases **this does not guarantee the response will contain 5 items**. DynamoDB will only scan a maximum of 5 items and check if they match and should be returned.
+:::
 
-## Scan.count()
+The `count` argument should be a `number` representing how many items you wish DynamoDB to scan.
 
-## Scan.attributes()
+```ts
+const response = await User.scan().partitionKey('partitionKey').eq('1').limit(10).run(); // Resulting in: `Limit: 10`
+```
 
-## Scan.run()
+## `Scan.startAt(key)`
+
+In case there are more items to retrieve in a previous scan response, Dynamode will return `lastKey` property with primary key of last evaluated item. You can pass this property to further scan your items. It uses DynamoDB's `LastEvaluatedKey`.
+
+```ts
+const response1 = await User.scan().partitionKey('partitionKey').eq('1').run(); 
+const response2 = await User.scan().partitionKey('partitionKey').eq('1').startAt(response1.lastKey).run(); // Resulting in: `LastEvaluatedKey: response1.lastKey`
+```
+
+## `Scan.consistent()`
+
+This will cause the scan to run a consistent read. By default read is eventually consistent. It uses DynamoDB's `ConsistentRead`.
+
+```ts
+const response = await User.scan().partitionKey('partitionKey').eq('1').consistent().run(); // Resulting in: `ConsistentRead: true`
+```
+
+## `Scan.count()`
+
+Instead of returning an array of items, this method will make the scan operation to return an object with count information. This option saves bandwidth by using DynamoDB's `Select`.
+
+```ts
+const response = await User.scan().partitionKey('partitionKey').eq('1').count().run(); // Resulting in: `Select: 'COUNT'`
+```
+
+## `Scan.attributes(attributes)`
+
+This method is used to tag what item attributes should be retrieved and returned. This uses DynamoDB's `ProjectionExpression`. If this value is undefined, then all attributes will be returned. `attributes` argument should be an array of strings representing the property names to return.
+
+```ts
+const response = await User.scan().partitionKey('partitionKey').eq('1').attributes(['username', 'age']).run(); // Resulting in: `ProjectionExpression: 'username, age'`
+```
+
+## `Scan.run(options?)`

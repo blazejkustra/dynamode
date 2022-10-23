@@ -1,11 +1,11 @@
 import { User } from '../model';
 
 async function query() {
-  const userQuery = await User.query().partitionKey('partitionKey').eq('pk1').sortKey('sortKey').between('2', '2').run();
+  const result = await User.query().partitionKey('partitionKey').eq('1').sortKey('sortKey').beginsWith('bla').limit(1).sort('descending').run({ return: 'output' });
 
   console.log();
   console.log('OUTPUT:');
-  console.log(userQuery);
+  console.log(result);
 }
 
 query();

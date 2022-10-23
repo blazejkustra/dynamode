@@ -5,22 +5,325 @@ sidebar_label: Query
 hide_title: true
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Query
 
-## Query.partitionKey()
+Dynamode provides the ability to query your items. Query class allows you to retrieve multiple items that have the same partition key but different sort keys.
 
-## Query.sortKey()
+Query class acts as a build to construct your query with appropriate filters, to run it use [`Query.run(options?)`](/docs/guide/query#queryrunoptions) method.
 
-## Query.sort()
+## Condition
 
-## Query.limit()
+Query is a child of [Condition](/docs/guide/condition) class, meaning that all methods listed on [Condition](/docs/guide/condition) page are also available in Query class. As example you can use `Query.attribute(key)` method to filter out retrieved items.
 
-## Query.startAt()
+## `new Query(Entity)` or `Entity.query()`
 
-## Query.consistent()
+Every query has to be initialized with [Entity](/docs/guide/entity/methods) to infer its underlying properties. You can achieve this in two ways:
 
-## Query.count()
+```ts
+// Below definitions are equivalent
+new Query(AllPossibleProperties);
+AllPossibleProperties.query();
+```
 
-## Query.attributes()
+[AllPossibleProperties](/docs/guide/entity/modeling#all-possible-properties) is an example class that extends [Entity](/docs/guide/entity/methods).
 
-## Query.run()
+## `Query.partitionKey(key)`
+
+This method prepares a partition key conditional expression. The `key` parameter is a string, narrowed down to entity partition keys.
+
+:::info
+These properties are allowed for the `AllPossibleProperties` model
+
+```ts
+AllPossibleProperties.query().partitionKey('partitionKey');
+AllPossibleProperties.query().partitionKey('GSI_1_PK');
+```
+:::
+
+:::caution
+Typescript error: Argument of type '"unknownProperty"' is not assignable to parameter of type: `"partitionKey" | "GSI_1_PK"`
+```ts
+AllPossibleProperties.query().partitionKey('unknownProperty');
+```
+:::
+
+To complete partition key conditional you need to use `.eq(value)` function.
+
+### `.eq(value)`
+
+This comparison function will check if the given key is equal to the value that is passed in as a parameter.
+
+```ts
+User.query().partitionKey('partitionKey').eq('1'); // Resulting in: `partitionKey = 1`
+```
+
+## `Query.sortKey(key)`
+
+This method prepares a sort key conditional expression. The `key` parameter is a string, narrowed down to entity sort keys.
+
+:::info
+These properties are allowed for the `AllPossibleProperties` model
+:::
+
+```ts
+AllPossibleProperties.query().sortKey('sortKey');
+AllPossibleProperties.query().sortKey('GSI_1_SK');
+AllPossibleProperties.query().sortKey('LSI_1_SK');
+```
+
+:::caution
+Typescript error: Argument of type '"unknownProperty"' is not assignable to parameter of type: `"sortKey" | "GSI_1_SK" | "LSI_1_SK"`
+```ts
+AllPossibleProperties.query().sortKey('unknownProperty');
+```
+:::
+
+To complete sort key conditional you need to use one of undermentioned functions.
+
+```ts
+User.query().sortKey('sortKey'); // This condition has no impact on the final conditional
+User.query().sortKey('sortKey').eq('blazej'); // Adding comparison function (eq) after `sortKey(key)` method will complete the conditional. Resulting in: `sortKey = blazej`
+```
+
+### `.eq(value)`
+
+This comparison function will check if the given key is equal to the value that is passed in as a parameter.
+
+```ts
+User.query().sortKey('sortKey').eq('blazej'); // Resulting in: `sortKey = blazej`
+```
+
+### `.ne(value)`
+
+This comparison function will check if the given key is not equal to the value that is passed in as a parameter.
+
+```ts
+User.query().sortKey('sortKey').ne('blazej'); // Resulting in: `sortKey <> blazej`
+```
+
+### `.lt(value)`
+
+This comparison function will check if the given key is less than the value that is passed in as a parameter.
+
+```ts
+User.query().sortKey('sortKey').lt('blazej'); // Resulting in: `sortKey < blazej`
+```
+
+### `.le(value)`
+
+This comparison function will check if the given key is less than or equal to the value that is passed in as a parameter.
+
+```ts
+User.query().sortKey('sortKey').le('blazej'); // Resulting in: `sortKey <= blazej`
+```
+
+### `.gt(value)`
+
+This comparison function will check if the given key is greater than the value that is passed in as a parameter.
+
+```ts
+User.query().sortKey('sortKey').gt('blazej'); // Resulting in: `sortKey > blazej`
+```
+
+### `.ge(value)`
+
+This comparison function will check if the given key is greater than or equal to the value that is passed in as a parameter.
+
+```ts
+User.query().sortKey('sortKey').ge('blazej'); // Resulting in: `sortKey >= blazej`
+```
+
+### `.beginsWith(value)`
+
+This comparison function will check if the given key is begins with the value that is passed in as a parameter.
+
+```ts
+User.query().sortKey('sortKey').beginsWith('bla'); // Resulting in: `begins_with(sortKey, bla)`
+```
+
+### `.between(value1, value2)`
+
+This comparison function will check if the given key is between the values that were passed in as parameters.
+
+```ts
+User.query().sortKey('sortKey').between('bla', 'cla'); // Resulting in: `sortKey BETWEEN 'bla' AND 'cla'`
+```
+
+## `Query.sort(order)`
+
+This method sorts the items you receive by using sort key. It uses DynamoDB's `ScanIndexForward`.
+
+The `order` parameter must be a string, either `'ascending'` or `'descending'`. Query will return items in ascending order by default.
+
+```ts
+User.query().partitionKey('partitionKey').eq('1').sort('descending'); // Resulting in: `ScanIndexForward: false`
+```
+
+## `Query.limit(count)`
+
+This method will limit the number of items that DynamoDB query in one request. It uses DynamoDB's `Limit`.
+
+:::caution
+Unlike most SQL databases **this does not guarantee the response will contain 5 items**. DynamoDB will only query a maximum of 5 items and check if they match and should be returned.
+:::
+
+The `count` argument should be a `number` representing how many items you wish DynamoDB to query.
+
+```ts
+User.query().partitionKey('partitionKey').eq('1').limit(10); // Resulting in: `Limit: 10`
+```
+
+## `Query.startAt(key)`
+
+In case there are more items to retrieve in a previous query response, Dynamode will return `lastKey` property with primary key of last evaluated item. You can pass this property to further query your items. It uses DynamoDB's `LastEvaluatedKey`.
+
+```ts
+const response1 = await User.query().partitionKey('partitionKey').eq('1').run(); 
+const response2 = await User.query().partitionKey('partitionKey').eq('1').startAt(response1.lastKey).run(); // Resulting in: `LastEvaluatedKey: response1.lastKey`
+```
+
+## `Query.consistent()`
+
+This will cause the query to run a consistent read. By default read is eventually consistent. It uses DynamoDB's `ConsistentRead`.
+
+```ts
+User.query().partitionKey('partitionKey').eq('1').consistent(); // Resulting in: `ConsistentRead: true`
+```
+
+## `Query.count()`
+
+Instead of returning an array of items, this method will make the query operation to return an object with count information. This option saves bandwidth by using DynamoDB's `Select`.
+
+```ts
+User.query().partitionKey('partitionKey').eq('1').count(); // Resulting in: `Select: 'COUNT'`
+```
+
+## `Query.attributes(attributes)`
+
+This method is used to tag what item attributes should be retrieved and returned. This uses DynamoDB's `ProjectionExpression`. 
+
+If this value is `undefined`, then all attributes will be returned. `attributes` argument should be an array of strings representing the property names to return.
+
+```ts
+User.query().partitionKey('partitionKey').eq('1').attributes(['username', 'age']); // Resulting in: `ProjectionExpression: 'username, age'`
+```
+
+## `Query.run(options?)`
+
+### Description
+
+This method is used to execute constructed query and retrieve multiple items from DynamoDB. It uses the [Query DynamoDB operation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Query.html).
+
+By default it makes one DynamoDB API call, but you can change it by passing `all` option described below. With `all` set to `true` this function will send continuous query requests until all items are retrieved. 
+
+### Arguments
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name         | Description                                                                                                                                                                                                                                                                                                              | Type                                                                                                                      | Default     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `return`     | What the method should return. For `'default'` method returns initialized classes with retrieved data. For `'input'` method returns prepared DynamoDB input command and no request is made to DynamoDB (method no longer returns a promise). For `'output'` method returns the bare output from DynamoDB operation.      | `'default'` \| `'input'` \| `'output'`                                                                                    | `'default'` |
+| `all`        | In case it is set to `true` this method will send continuous query requests until all items are retrieved (it checks `lastKey` property from previous responses). This can be useful for getting all items autonomously in case you don't want to check `lastKey` property manually and send multiple requests yourself. | `boolean`                                                                                                                 | `false`     |
+| `max`        | **Use only if `all` option is set to `true`**. The maximum number of items that should be retrieved, regardless if the `lastKey` property still exists in the response. As default an unlimited number of items will be retrieved to the point that `lastKey` property no longer exists.                                 | `number`                                                                                                                  | `Infinity`  |
+| `delay`      | **Use only if `all` option is set to `true`**. Number of milliseconds to delay between receiving a response to the next query request.                                                                                                                                                                                   | `number`                                                                                                                  | `0`         |
+| `extraInput` | Extra input that is passed to QueryInput DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                                                  | [`QueryInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/queryinput.html) | `undefined` |
+
+If `all` option is set to `true` all of the requests will be merged into a single array. `count` and `scannedCount` properties will be summed in the response. If you pass `max` option and there is still a `lastKey` in the response it will be returned to you.
+
+### Examples
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+const result = await User.query()
+  .partitionKey('partitionKey').eq('1')
+  .sortKey('sortKey').beginsWith('bla')
+  .limit(1).sort('descending')
+  .run();
+// OR
+const result = await User.query()
+  .partitionKey('partitionKey').eq('1')
+  .sortKey('sortKey').beginsWith('bla')
+  .limit(1).sort('descending')
+  .run({ return: 'default' });
+// OUTPUT:
+// {
+//   items: [
+//     User {
+//       dynamodeEntity: 'User',
+//       partitionKey: '1',
+//       sortKey: 'blazej3',
+//       username: 'blazej',
+//       email: 'blazej@gmail.com',
+//       age: 18,
+//       friends: [Array],
+//       config: [Object]
+//     }
+//   ],
+//   count: 1,
+//   scannedCount: 1,
+//   lastKey: { partitionKey: '1', sortKey: 'blazej3' }
+// }
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+const input = User.query()
+  .partitionKey('partitionKey').eq('1')
+  .sortKey('sortKey').beginsWith('bla')
+  .limit(1).sort('descending')
+  .run({ return: 'input' });
+// OUTPUT:
+// {
+//   TableName: 'users',
+//   Limit: 1,
+//   ScanIndexForward: false,
+//   KeyConditionExpression: 'partitionKey = :partitionKey AND begins_with(sortKey, :sortKey)',
+//   FilterExpression: undefined,
+//   ExpressionAttributeNames: undefined,
+//   ExpressionAttributeValues: { ':partitionKey': { S: '1' }, ':sortKey': { S: 'bla' } }
+// }
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+const output = await User.query()
+  .partitionKey('partitionKey').eq('1')
+  .sortKey('sortKey').beginsWith('bla')
+  .limit(1).sort('descending')
+  .run({ return: 'output' });
+// OUTPUT:
+// {
+//   '$metadata': {
+//     ...
+//   },
+//   ConsumedCapacity: undefined,
+//   Count: 1,
+//   Items: [
+//     {
+//       dynamodeEntity: [Object],
+//       sortKey: [Object],
+//       partitionKey: [Object],
+//       config: [Object],
+//       email: [Object],
+//       age: [Object],
+//       friends: [Object],
+//       username: [Object]
+//     }
+//   ],
+//   LastEvaluatedKey: { partitionKey: { S: '1' }, sortKey: { S: 'blazej3' } },
+//   ScannedCount: 1
+// }
+```
+
+</TabItem>
+</Tabs>
+

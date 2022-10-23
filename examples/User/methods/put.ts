@@ -3,8 +3,8 @@ import { User } from '../model';
 async function put() {
   const user = await User.put(
     new User({
-      partitionKey: 'pk1',
-      sortKey: 'sk1',
+      partitionKey: '1',
+      sortKey: 'blazej',
       username: 'blazej',
       email: 'blazej@gmail.com',
       age: 18,

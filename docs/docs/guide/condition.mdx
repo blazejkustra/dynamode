@@ -29,7 +29,6 @@ This method prepares a new conditional expression. The `key` parameter is a stri
 
 :::info
 These properties are allowed for the User entity
-:::
 
 ```ts
 User.condition().attribute('partitionKey');
@@ -42,6 +41,7 @@ User.condition().attribute('config.isAdmin');
 User.condition().attribute('friends.1');
 User.condition().attribute('friends.10');
 ```
+:::
 
 :::caution
 Typescript error: Argument of type '"unknownProperty"' is not assignable to parameter of type: `"username" | "partitionKey" | "sortKey" | "age" | "config" | "config.isAdmin" | friends | friends.${number}`
@@ -49,7 +49,6 @@ Typescript error: Argument of type '"unknownProperty"' is not assignable to para
 User.condition().attribute('unknownProperty');
 ```
 :::
-
 
 To complete the conditional you need to use one of undermentioned functions.
 
