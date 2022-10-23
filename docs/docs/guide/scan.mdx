@@ -5,13 +5,60 @@ sidebar_label: Scan
 hide_title: true
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Scan
+
+:::caution
+[*Never use the Scan operation unless you know what you are doing.*](https://www.dynamodbguide.com/scans)
+:::
+
+Dynamode provides the ability to scan your items. Scan class allows you to retrieve multiple items without any limitations however they come at cost as scans are expensive, slow, and against [best practices](https://dynobase.dev/dynamodb-best-practices/).
+
+Scan class acts as a build to construct your scan with appropriate filters, to run it use [`Scan.run(options?)`](/docs/guide/scan#scanrunoptions) method.
+
+## Condition
+
+Scan is a child of [Condition](/docs/guide/condition) class, meaning that all methods listed on [Condition](/docs/guide/condition) page are also available in Scan class. As example you can use `Scan.attribute(key)` method to filter out retrieved items.
+
+## `new Scan(Entity)` or `Entity.scan()`
+
+Every scan has to be initialized with [Entity](/docs/guide/entity/methods) to infer its underlying properties. You can achieve this in two ways:
+
+```ts
+// Below definitions are equivalent
+new Scan(AllPossibleProperties);
+AllPossibleProperties.scan();
+```
+
+[AllPossibleProperties](/docs/guide/entity/modeling#all-possible-properties) is an example class that extends [Entity](/docs/guide/entity/methods).
 
 ## `Scan.indexName(name)`
 
+The name of a secondary index to scan. This index can be any local secondary index or global secondary index. The `name` parameter is a string, narrowed down to entity index names. It uses DynamoDB's `IndexName`.
+
+```ts  
+AllPossibleProperties.scan().attribute('LSI_1_SK').beginsWith('s').indexName('LSI_1_NAME'); // Resulting in: `IndexName: LSI_1_NAME`
+```
+
 ## `Scan.segment(value)`
 
+For a parallel Scan request, segment identifies an individual segment to be scanned by an application worker. The `value` argument must be greater than or equal to 0, and less than the value provided for `Scan.totalSegments(value)`. If you use `Scan.segment(value)`, you must also use `Scan.totalSegments(value)`. It uses DynamoDB's `Segment`.
+
+```ts
+User.scan().attribute('username').eq('blazej').totalSegments(10).segment(0); // Resulting in: `Segment: 0`
+```
+
 ## `Scan.totalSegments(value)`
+
+For a parallel Scan request, total segments represents the total number of segments into which the Scan operation will be divided. The value of TotalSegments corresponds to the number of application workers that will perform the parallel scan. If you use `Scan.totalSegments(value)`, you must also use `Scan.segment(value)`. It uses DynamoDB's `TotalSegments`.
+
+The `value` argument is a number between 1 and 1000000.
+
+```ts
+User.scan().attribute('username').eq('blazej').totalSegments(10).segment(0); // Resulting in: `TotalSegments: 10`
+```
 
 ## `Scan.limit(count)`
 
@@ -24,7 +71,7 @@ Unlike most SQL databases **this does not guarantee the response will contain 5 
 The `count` argument should be a `number` representing how many items you wish DynamoDB to scan.
 
 ```ts
-const response = await User.scan().partitionKey('partitionKey').eq('1').limit(10).run(); // Resulting in: `Limit: 10`
+User.scan().attribute('username').eq('blazej').limit(10); // Resulting in: `Limit: 10`
 ```
 
 ## `Scan.startAt(key)`
@@ -32,8 +79,8 @@ const response = await User.scan().partitionKey('partitionKey').eq('1').limit(10
 In case there are more items to retrieve in a previous scan response, Dynamode will return `lastKey` property with primary key of last evaluated item. You can pass this property to further scan your items. It uses DynamoDB's `LastEvaluatedKey`.
 
 ```ts
-const response1 = await User.scan().partitionKey('partitionKey').eq('1').run(); 
-const response2 = await User.scan().partitionKey('partitionKey').eq('1').startAt(response1.lastKey).run(); // Resulting in: `LastEvaluatedKey: response1.lastKey`
+const response1 = await User.scan().attribute('username').eq('blazej').run(); 
+const response2 = await User.scan().attribute('username').eq('blazej').startAt(response1.lastKey).run(); // Resulting in: `LastEvaluatedKey: response1.lastKey`
 ```
 
 ## `Scan.consistent()`
@@ -41,7 +88,7 @@ const response2 = await User.scan().partitionKey('partitionKey').eq('1').startAt
 This will cause the scan to run a consistent read. By default read is eventually consistent. It uses DynamoDB's `ConsistentRead`.
 
 ```ts
-const response = await User.scan().partitionKey('partitionKey').eq('1').consistent().run(); // Resulting in: `ConsistentRead: true`
+User.scan().attribute('username').eq('blazej').consistent(); // Resulting in: `ConsistentRead: true`
 ```
 
 ## `Scan.count()`
@@ -49,15 +96,122 @@ const response = await User.scan().partitionKey('partitionKey').eq('1').consiste
 Instead of returning an array of items, this method will make the scan operation to return an object with count information. This option saves bandwidth by using DynamoDB's `Select`.
 
 ```ts
-const response = await User.scan().partitionKey('partitionKey').eq('1').count().run(); // Resulting in: `Select: 'COUNT'`
+User.scan().attribute('username').eq('blazej').count(); // Resulting in: `Select: 'COUNT'`
 ```
 
 ## `Scan.attributes(attributes)`
 
-This method is used to tag what item attributes should be retrieved and returned. This uses DynamoDB's `ProjectionExpression`. If this value is undefined, then all attributes will be returned. `attributes` argument should be an array of strings representing the property names to return.
+This method is used to tag what item attributes should be retrieved and returned. This uses DynamoDB's `ProjectionExpression`. 
+
+If this value is `undefined`, then all attributes will be returned. `attributes` argument should be an array of strings representing the property names to return.
 
 ```ts
-const response = await User.scan().partitionKey('partitionKey').eq('1').attributes(['username', 'age']).run(); // Resulting in: `ProjectionExpression: 'username, age'`
+User.scan().attribute('username').eq('blazej').attributes(['username', 'age']); // Resulting in: `ProjectionExpression: 'username, age'`
 ```
 
 ## `Scan.run(options?)`
+
+### Description
+
+This method is used to execute constructed scan and retrieve multiple items from DynamoDB. It uses the [Scan DynamoDB operation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Scan.html).
+
+### Arguments
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name         | Description                                                                                                                                                                                                                                                                                                         | Type                                                                                                                    | Default     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `return`     | What the method should return. For `'default'` method returns initialized classes with retrieved data. For `'input'` method returns prepared DynamoDB input command and no request is made to DynamoDB (method no longer returns a promise). For `'output'` method returns the bare output from DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                                                                  | `'default'` |
+| `extraInput` | Extra input that is passed to ScanInput DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                                              | [`ScanInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/scaninput.html) | `undefined` |
+
+### Examples
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+const result = await User.scan()
+  .attribute('age').eq(18)
+  .attribute('partitionKey').beginsWith('1')
+  .limit(3)
+  .run();
+// OR
+const result = await User.scan()
+  .attribute('age').eq(18)
+  .attribute('partitionKey').beginsWith('1')
+  .limit(3)
+  .run({ return: 'default' });
+// OUTPUT:
+// {
+//   items: [
+//     User {
+//       dynamodeEntity: 'User',
+//       partitionKey: '1',
+//       sortKey: 'blazej',
+//       username: 'blazej',
+//       email: 'blazej@gmail.com',
+//       age: 18,
+//       friends: [Array],
+//       config: [Object]
+//     }
+//   ],
+//   count: 1,
+//   scannedCount: 3,
+//   lastKey: { partitionKey: '1', sortKey: 'blazej' }
+// }
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+const input = await User.scan()
+  .attribute('age').eq(18)
+  .attribute('partitionKey').beginsWith('1')
+  .limit(3)
+  .run({ return: 'input' });
+// OUTPUT:
+// {
+//   TableName: 'users',
+//   Limit: 3,
+//   FilterExpression: 'age = :age AND begins_with(partitionKey, :partitionKey)',
+//   ExpressionAttributeValues: { ':age': { N: '18' }, ':partitionKey': { S: '1' } }
+// }
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+const output = await User.scan()
+  .attribute('age').eq(18)
+  .attribute('partitionKey').beginsWith('1')
+  .limit(3)
+  .run({ return: 'output' });
+// OUTPUT:
+// {
+//   '$metadata': {
+//     ...
+//   },
+//   ConsumedCapacity: undefined,
+//   Count: 1,
+//   Items: [
+//     {
+//       dynamodeEntity: [Object],
+//       sortKey: [Object],
+//       partitionKey: [Object],
+//       config: [Object],
+//       age: [Object],
+//       email: [Object],
+//       friends: [Object],
+//       username: [Object]
+//     }
+//   ],
+//   LastEvaluatedKey: { partitionKey: { S: '1' }, sortKey: { S: 'blazej' } },
+//   ScannedCount: 3
+// }
+```
+
+</TabItem>
+</Tabs>
+

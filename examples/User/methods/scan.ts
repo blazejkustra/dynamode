@@ -1,11 +1,11 @@
 import { User } from '../model';
 
 async function scan() {
-  const userScan = await User.scan().attribute('age').eq(18).run();
+  const result = await User.scan().attribute('age').eq(18).attribute('partitionKey').beginsWith('1').limit(3).run({ return: 'output' });
 
   console.log();
   console.log('OUTPUT:');
-  console.log(userScan);
+  console.log(result);
 }
 
 scan();
