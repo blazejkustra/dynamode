@@ -189,7 +189,6 @@ export interface EntityTransactionUpdateOptions<T extends Entity<T>> {
 
 export interface EntityTransactionPutOptions<T extends Entity<T>> {
   extraInput?: Partial<Put>;
-  attributes?: Array<EntityKey<T>>;
   overwrite?: boolean;
   condition?: Condition<T>;
   returnValuesOnFailure?: ReturnValuesLimited;
@@ -200,11 +199,4 @@ export interface EntityTransactionPutOptions<T extends Entity<T>> {
 export interface EntityTransactionDeleteOptions<T extends Entity<T>> {
   extraInput?: Partial<Delete>;
   condition?: Condition<T>;
-}
-
-// Entity.transactionCondition
-
-export interface EntityTransactionConditionOptions<T extends Entity<T>> {
-  extraInput?: Partial<ConditionCheck>;
-  attributes?: Array<EntityKey<T>>;
 }

@@ -367,8 +367,9 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
       return commandInput;
     }
 
-    public static transactionCreate<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: Omit<EntityTransactionPutOptions<T>, 'overwrite'>): WriteTransaction<T> {
-      return this.transactionPut(item, { ...options, overwrite: false });
+    public static transactionCreate<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityTransactionPutOptions<T>): WriteTransaction<T> {
+      const overwrite = options?.overwrite ?? false;
+      return this.transactionPut(item, { ...options, overwrite });
     }
 
     public static transactionDelete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityTransactionDeleteOptions<T>): WriteTransaction<T> {

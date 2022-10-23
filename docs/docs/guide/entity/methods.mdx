@@ -296,7 +296,7 @@ You can add optional **`options`** parameter that is an object. The table below 
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------- |
 | `return`       | What the method should return. For `'default'` method returns initialized class with retrieved data. For `'input'` method returns prepared DynamoDB input command and no request is made to DynamoDB (method no longer returns a promise). For `'output'` method returns the bare output from DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                   | `'default'` |
 | `returnValues` | In which state to return the item after update. You can get the item attributes as they appear before or after update. This uses DynamoDB's `ReturnValues`.                                                                                                                                                       | `'none'` \| `'allOld'` \| `'allNew'` \| `'updatedOld'` \| `'updatedNew'` | `'allNew'`  |
-| `condition`    | This is an optional instance of a `Condition` for the save. Item won't be updated in case condition fails.                                                                                                                                                                                                        | `Condition`                                                              | `undefined` |
+| `condition`    | This is an optional instance of a `Condition` for the update. Item won't be updated in case condition fails.                                                                                                                                                                                                      | `Condition`                                                              | `undefined` |
 | `extraInput`   | Extra input that is passed to UpdateItem DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                                           | `UpdateItemCommandInput`                                                 | `undefined` |
 
 ### Examples
@@ -882,196 +882,131 @@ const output = await User.batchDelete(
 
 ### Description
 
+This method is used to build a retrieve item operation. `Entity.transactionGet(primaryKey, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionGet(transactions, options?)`](/docs/guide/transactions#transactiongettransactions-options) function. This allows to retrieve multiple items in a single transaction.
+
 ### Arguments
+
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+
+<!-- TODO: ADd more info about inferring -->
+<!-- TODO: Add info that this function is async and returns a promise -->
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name         | Description                                                                                                                                                                        | Type                                                                                                                        | Default     |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `attributes` | What item attributes should be retrieved and returned. This uses DynamoDB's `ProjectionExpression`. If this value is undefined, then all attributes will be returned.              | `string[]`                                                                                                                  | `undefined` |
+| `extraInput` | Extra input that is passed to `Get` DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation. | [`Get`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/transactgetitem.html#get) | `undefined` |
+
 
 ### Examples
 
-
-<Tabs>
-<TabItem value="default" label="return: 'default'" default>
-
-```ts
-
-```
-
-</TabItem>
-<TabItem value="input" label="return: 'input'">
-
-```ts
-
-```
-
-</TabItem>
-<TabItem value="output" label="return: 'output'">
-
-```ts
-
-```
-
-</TabItem>
-</Tabs>
+Check out [`transactionGet(transactions, options?)`](/docs/guide/transactions#transactiongettransactions-options) function to see example usage.
 
 ## `Entity.transactionPut(item, options?)`
 
 ### Description
 
+This method is used to build an insert item operation. `Entity.transactionPut(item, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to insert multiple items in a single transaction
+
 ### Arguments
+
+**`item`**: `Entity` - Instance of entity that you want to insert.
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name                    | Description                                                                                                                                                                                                                                                                  | Type                                                                                                                                                        | Default     |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `overwrite`             | `TransactItems.Put` DynamoDB operation overwrites items on insertion by default. If you want to prevent overwrites use [`Entity.transactionCreate(item, options?)`](/docs/guide/entity/methods#entitytransactioncreateitem-options) instead, or set overwrite prop to false. | `boolean`                                                                                                                                                   | `true`      |
+| `condition`             | This is an optional instance of a `Condition` for the save. Item won't be inserted in case condition fails.                                                                                                                                                                  | `Condition`                                                                                                                                                 | `undefined` |
+| `returnValuesOnFailure` | Whether or not to return the item if the `Put` condition fails. You can get the item attributes as they appear before insertion or none at all. This uses DynamoDB's `ReturnValuesOnConditionCheckFailure`.                                                                  | `'none'` \| `'allOld'`                                                                                                                                      | `'allOld'`  |
+| `extraInput`            | Extra input that is passed to `Put` DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                           | [`TransactItems.Put`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/transactwriteitemsinput.html#transactitems) | `undefined` |
+
 
 ### Examples
 
-
-<Tabs>
-<TabItem value="default" label="return: 'default'" default>
-
-```ts
-
-```
-
-</TabItem>
-<TabItem value="input" label="return: 'input'">
-
-```ts
-
-```
-
-</TabItem>
-<TabItem value="output" label="return: 'output'">
-
-```ts
-
-```
-
-</TabItem>
-</Tabs>
+Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function to see example usage.
 
 ## `Entity.transactionCreate(item, options?)`
 
 ### Description
 
-### Arguments
-
-### Examples
-
-
-<Tabs>
-<TabItem value="default" label="return: 'default'" default>
-
-```ts
-
-```
-
-</TabItem>
-<TabItem value="input" label="return: 'input'">
-
-```ts
-
-```
-
-</TabItem>
-<TabItem value="output" label="return: 'output'">
-
-```ts
-
-```
-
-</TabItem>
-</Tabs>
+This method is almost identical to [`Entity.transactionPut(item, options?)`](/docs/guide/entity/methods#entitytransactionputitem-options). The only difference being that `Entity.transactionCreate(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
 
 ## `Entity.transactionUpdate(primaryKey, props, options?)`
 
 ### Description
 
+This method is used to build an update item operation. `Entity.transactionUpdate(primaryKey, props, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to update multiple items in a single transaction.
+
 ### Arguments
+
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to update. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+
+<!-- TODO: ADd more info about inferring -->
+
+**`props`**: `UpdateProps` - An object with DynamoDB update operations. For every operation you can pass properties that you want to update.
+
+| Name           | Acceptable property types                  | Description                                                    |
+| -------------- | ------------------------------------------ | -------------------------------------------------------------- |
+| add            | `number` \| `Set<number>` \| `Set<string>` | Adds a value to sets or increments/decrements number property. |
+| set            | All                                        | Sets a value on property name.                                 |
+| setIfNotExists | All                                        | Sets a value on property name (unless it exists on the item).  |
+| listAppend     | `Array<any>`                               | Appends a value to an array.                                   |
+| increment      | `number`                                   | Increments property with passed value.                         |
+| decrement      | `number`                                   | Decrements property with passed value.                         |
+| delete         | `Set<number>` \| `Set<string>`             | Removes value from a set.                                      |
+| remove         | All                                        | Removes property from the item.                                |
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name                    | Description                                                                                                                                                                                           | Type                                                                                                                                                           | Default     |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `condition`             | This is an optional instance of a `Condition` for the update. Item won't be updated in case condition fails.                                                                                          | `Condition`                                                                                                                                                    | `undefined` |
+| `returnValuesOnFailure` | In which state to return the item if the `Update` condition fails. You can get the item attributes as they appear before or after update. This uses DynamoDB's `ReturnValuesOnConditionCheckFailure`. | `'none'` \| `'allOld'` \| `'allNew'` \| `'updatedOld'` \| `'updatedNew'`                                                                                       | `'allNew'`  | `'allOld'` |
+| `extraInput`            | Extra input that is passed to `Update` DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                 | [`TransactItems.Update`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/transactwriteitemsinput.html#transactitems) | `undefined` |
 
 ### Examples
 
-
-<Tabs>
-<TabItem value="default" label="return: 'default'" default>
-
-```ts
-
-```
-
-</TabItem>
-<TabItem value="input" label="return: 'input'">
-
-```ts
-
-```
-
-</TabItem>
-<TabItem value="output" label="return: 'output'">
-
-```ts
-
-```
-
-</TabItem>
-</Tabs>
+Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function to see example usage.
 
 ## `Entity.transactionDelete(primaryKey, options?)`
 
 ### Description
 
+This method is used to build a delete item operation. `Entity.transactionDelete(primaryKey, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to delete multiple items in a single transaction.
+
 ### Arguments
+
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+
+<!-- TODO: ADd more info about inferring -->
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name         | Description                                                                                                                                                                           | Type                                                                                                                                                           | Default     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `condition`  | Instance of Condition class with conditionals that has to pass to delete the item.                                                                                                    | `Condition`                                                                                                                                                    | `undefined` |
+| `extraInput` | Extra input that is passed to `Delete` DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation. | [`TransactItems.Delete`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/transactwriteitemsinput.html#transactitems) | `undefined` |
 
 ### Examples
 
-
-<Tabs>
-<TabItem value="default" label="return: 'default'" default>
-
-```ts
-
-```
-
-</TabItem>
-<TabItem value="input" label="return: 'input'">
-
-```ts
-
-```
-
-</TabItem>
-<TabItem value="output" label="return: 'output'">
-
-```ts
-
-```
-
-</TabItem>
-</Tabs>
+Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function to see example usage.
 
 ## `Entity.transactionCondition(primaryKey, conditionInstance)`
 
 ### Description
 
+This method is used to build a `conditionCheck` when running a transaction. `Entity.transactionCondition(primaryKey, conditionInstance)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows add multiple condition to a single transaction.
+
 ### Arguments
+
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+
+<!-- TODO: ADd more info about inferring -->
+
+**`conditionInstance`**: `Condition` - Instance of [`Condition`](/docs/guide/condition) class with conditionals that has to pass in order for transaction to succeed.
 
 ### Examples
 
-
-<Tabs>
-<TabItem value="default" label="return: 'default'" default>
-
-```ts
-
-```
-
-</TabItem>
-<TabItem value="input" label="return: 'input'">
-
-```ts
-
-```
-
-</TabItem>
-<TabItem value="output" label="return: 'output'">
-
-```ts
-
-```
-
-</TabItem>
-</Tabs>
+Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function to see example usage.
