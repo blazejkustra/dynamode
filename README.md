@@ -16,6 +16,9 @@
   <a href="https://github.com/blazejkustra/dynamode" style="text-decoration: none;">
 		<img src="https://img.shields.io/github/stars/blazejkustra/dynamode?style=flat-square&color=38ACDD" alt="stars">
 	</a>
+	<a href='https://coveralls.io/github/blazejkustra/dynamode/master' style="text-decoration: none;">
+		<img src='https://img.shields.io/coveralls/github/blazejkustra/dynamode?style=flat-square&color=38ACDD' >
+	</a>
 </p>
 
 ---

@@ -26,7 +26,13 @@ jobs:
         run: npm run lint
       - name: Tests 🧪
         run: npm run test
-      # - name: Coverage 📝
-      #   run: npm run coverage
+      - name: Coverage 📝
+        run: npm run coverage
+      - name: Coveralls
+        uses: coverallsapp/github-action@1.1.3
+        continue-on-error: true
+        with:
+          path-to-lcov: ./coverage/lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build 🔧
         run: npm run build

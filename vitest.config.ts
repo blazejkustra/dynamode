@@ -4,13 +4,13 @@ export default defineConfig({
   test: {
     include: ['tests/**'],
     coverage: {
-      reporter: ['text', 'html'],
+      reporter: ['text', 'html', 'lcovonly'],
       include: ['lib/**'],
       all: true,
-      lines: 80,
-      functions: 80,
-      branches: 80,
-      statements: 80,
+      lines: 0,
+      functions: 0,
+      branches: 0,
+      statements: 0,
     },
   },
 });
