@@ -4,16 +4,16 @@
 </p>
 
 <p align="center">
-	<a href="https://www.npmjs.com/package/dynamode">
+	<a href="https://www.npmjs.com/package/dynamode" style="text-decoration: none;">
 		<img src="https://img.shields.io/npm/v/dynamode?style=flat-square&color=001A72" alt="npm">
 	</a>
-  <a href="https://github.com/blazejkustra/dynamode/blob/master/LICENSE">
+  <a href="https://github.com/blazejkustra/dynamode/blob/master/LICENSE" style="text-decoration: none;">
 		<img src="https://img.shields.io/github/license/blazejkustra/dynamode?style=flat-square&color=33488E" alt="License">
 	</a>
-	<a href="https://www.npmjs.com/package/dynamode">
+	<a href="https://www.npmjs.com/package/dynamode" style="text-decoration: none;">
 		<img src="https://img.shields.io/npm/dw/dynamode?style=flat-square&color=6676AA" alt="npm Downloads">
 	</a>
-  <a href="https://github.com/blazejkustra/dynamode">
+  <a href="https://github.com/blazejkustra/dynamode" style="text-decoration: none;">
 		<img src="https://img.shields.io/github/stars/blazejkustra/dynamode?style=flat-square&color=38ACDD" alt="stars">
 	</a>
 </p>
