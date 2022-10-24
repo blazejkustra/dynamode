@@ -1,27 +1,26 @@
-import * as DDBUtils from '@aws-sdk/util-dynamodb';
+import { convertToAttr, convertToNative, marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 
 type ConverterType = {
-  marshall: typeof DDBUtils.marshall;
-  unmarshall: typeof DDBUtils.unmarshall;
-  convertToAttr: typeof DDBUtils.convertToAttr;
-  convertToNative: typeof DDBUtils.convertToNative;
+  marshall: typeof marshall;
+  unmarshall: typeof unmarshall;
+  convertToAttr: typeof convertToAttr;
+  convertToNative: typeof convertToNative;
+};
+
+const defaultConverter: ConverterType = {
+  marshall,
+  unmarshall,
+  convertToAttr,
+  convertToNative,
 };
 
 let customConverter: ConverterType | undefined;
-const defaultConverter: ConverterType = {
-  marshall: DDBUtils.marshall,
-  unmarshall: DDBUtils.unmarshall,
-  convertToAttr: DDBUtils.convertToAttr,
-  convertToNative: DDBUtils.convertToNative,
-};
-
-const Converter = (): ConverterType => customConverter || defaultConverter;
-
-Converter.set = (converter: ConverterType): void => {
+const get = (): ConverterType => customConverter || defaultConverter;
+const set = (converter: ConverterType | undefined): void => {
   customConverter = converter;
 };
-Converter.revert = (): void => {
-  customConverter = undefined;
-};
 
-export default Converter;
+export default {
+  get,
+  set,
+};

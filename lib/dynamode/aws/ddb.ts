@@ -9,16 +9,16 @@ export interface DDBType {
 }
 
 export default function (): DDBType {
-  let ddb = new DynamoDB({});
+  let ddbInstance = new DynamoDB({});
 
   const get = () => {
-    getDynamodeStorage().setDynamoInstance(ddb);
-    return ddb;
+    getDynamodeStorage().setDynamoInstance(ddbInstance);
+    return ddbInstance;
   };
 
-  const set = (customDdb: DynamoDB): void => {
-    ddb = customDdb;
+  const set = (ddb: DynamoDB): void => {
     getDynamodeStorage().setDynamoInstance(ddb);
+    ddbInstance = ddb;
   };
 
   const local = (endpoint = 'http://localhost:8000'): DynamoDB => {
@@ -37,11 +37,3 @@ export default function (): DDBType {
     DynamoDB,
   };
 }
-
-new DynamoDB({
-  credentials: {
-    accessKeyId: 'key-id',
-    secretAccessKey: 'secret',
-  },
-  region: 'region',
-});
