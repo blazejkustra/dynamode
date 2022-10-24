@@ -16,8 +16,8 @@
   <a href="https://github.com/blazejkustra/dynamode" style="text-decoration: none;">
 		<img src="https://img.shields.io/github/stars/blazejkustra/dynamode?style=flat-square&color=38ACDD" alt="stars">
 	</a>
-	<a href='https://coveralls.io/github/blazejkustra/dynamode/master' style="text-decoration: none;">
-		<img src='https://img.shields.io/coveralls/github/blazejkustra/dynamode?style=flat-square&color=38ACDD' >
+	<a href='https://coveralls.io/github/blazejkustra/dynamode' style="text-decoration: none;">
+		<img src='https://img.shields.io/coveralls/github/blazejkustra/dynamode?style=flat-square' >
 	</a>
 </p>
 
@@ -49,9 +49,9 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 ### Must have & priority
 
-* [ ] Capture dynamoDB errors and make it easier to work with
-* [ ] Add tests (XD) good luck with that
+* [ ] Add tests and coverage
 * [ ] Add logging possibility
+* [ ] Capture dynamoDB errors and make it easier to work with
 * [ ] Support binary types https://github.com/aws/aws-sdk-js-v3/blob/06417909a3/packages/util-dynamodb/src/convertToAttr.ts#L166 and https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_dynamodb.html
 
 ### Additional validation
