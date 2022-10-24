@@ -1,13 +1,13 @@
-import Converter from '@lib/settings/aws/converter';
-import DDB, { DDBInterface } from '@lib/settings/aws/ddb';
+import Converter from '@lib/dynamode/aws/converter';
+import DDB, { DDBType } from '@lib/dynamode/aws/ddb';
 import { getDynamodeStorage } from '@lib/storage';
 import { DefaultError } from '@lib/utils';
 
-class Settings {
-  static default: Settings = new Settings();
+class Dynamode {
+  static default: Dynamode = new Dynamode();
 
   public converter: typeof Converter;
-  public ddb: DDBInterface;
+  public ddb: DDBType;
 
   constructor() {
     this.ddb = DDB();
@@ -20,4 +20,4 @@ class Settings {
   }
 }
 
-export default Settings.default;
+export default Dynamode.default;

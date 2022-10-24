@@ -1,5 +1,5 @@
-import { Settings } from '../../dist';
+import { Dynamode } from '../../dist';
 
-Settings.ddb.local();
+Dynamode.ddb.local();
 
-export const ddb = Settings.ddb();
+export const ddb = Dynamode.ddb.get();

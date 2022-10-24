@@ -33,13 +33,13 @@ const dynamode = require('dynamode');
 
 ```ts
 import dynamode from 'dynamode';
-const { Entity, decorators, Settings } = dynamode;
+const { Entity, decorators, Dynamode } = dynamode;
 ```
 
 ## Import specific classes/methods inside of curly brackets
 
 ```ts
-import { Entity, decorators, Settings } from 'dynamode';
+import { Entity, decorators, Dynamode } from 'dynamode';
 ```
 
 ## Import specific classes/methods individually
@@ -51,5 +51,5 @@ This is recommended way of importing Dynamode.
 ```ts
 import Entity from 'dynamode/entity';
 import decorators from 'dynamode/decorators';
-import Settings from 'dynamode/settings';
+import { Dynamode } from 'dynamode';
 ```

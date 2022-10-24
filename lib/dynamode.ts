@@ -1,9 +1,9 @@
 import Condition, { AttributeType } from '@lib/condition';
 import { attribute, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, register, suffix, updatedAt } from '@lib/decorators';
+import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import Query from '@lib/query';
 import Scan from '@lib/scan';
-import Settings from '@lib/settings';
 import transactionGet from '@lib/transactionGet';
 import transactionWrite from '@lib/transactionWrite';
 
@@ -35,8 +35,8 @@ export {
   //Scan
   Scan,
 
-  //Settings
-  Settings,
+  //Dynamode
+  Dynamode,
 
   //transactions
   transactionGet,

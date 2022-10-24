@@ -18,28 +18,43 @@ Authenticate as early in the application life cycle as possible to prevent error
 You can use environment variables to authenticate.
 
 ```bash
-export AWS_ACCESS_KEY_ID = "key-id"
-export AWS_SECRET_ACCESS_KEY = "secret"
-export AWS_REGION = "region"
+AWS_ACCESS_KEY_ID = "key-id"
+AWS_SECRET_ACCESS_KEY = "secret"
+AWS_REGION = "region"
+```
+
+```ts
+// Access DynamoDB instance
+const ddb = Dynamode.ddb.get();
 ```
 
 ## Authenticate programmatically
 
-You can also instantiate DynamoDB programmatically, pass the instance to Settings in order to use it in Dynamode.
+You can also instantiate DynamoDB programmatically, pass the instance to Dynamode in order to use it.
 
 ```ts
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
-import Settings from 'dynamode/settings';
+import { Dynamode } from 'dynamode';
 
 // Instantiate DynamoDB
 const ddb = new DynamoDB({
-  accessKeyId: 'key-id',
-  secretAccessKey: 'secret',
+  credentials: {
+    accessKeyId: 'key-id',
+    secretAccessKey: 'secret',
+  },
+  region: 'region',
+});
+// OR
+const ddb = new Dynamode.ddb.DynamoDB({
+  credentials: {
+    accessKeyId: 'key-id',
+    secretAccessKey: 'secret',
+  },
   region: 'region',
 });
 
 // Pass DynamoDB instance to Dynamode
-Settings.ddb.set(ddb);
+Dynamode.ddb.set(ddb);
 ```
 
 ## Authenticate locally
@@ -49,18 +64,18 @@ It is possible to setup [DynamoDB](https://docs.aws.amazon.com/amazondynamodb/la
 Once DynamoDB local server is running on `http://localhost:8000` you can use the following command.
 
 ```ts
-import Settings from 'dynamode/settings';
+import { Dynamode } from 'dynamode';
 
-Settings.ddb.local();
+Dynamode.ddb.local();
 
 // Local DynamoDB instance
-const ddb = Settings.ddb();
+const ddb = Dynamode.ddb.get();
 ```
 
 In case your local DynamoDB server is running at a different url you can pass that in as an argument.
 
 ```ts
-Settings.ddb.local('http://localhost:2137');
+Dynamode.ddb.local('http://localhost:2137');
 ```
 
-Read more about `Settings` methods [here](/docs/guide/settings).
+Read more about `Dynamode` class [here](/docs/guide/dynamode).
