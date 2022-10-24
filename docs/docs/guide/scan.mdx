@@ -141,24 +141,28 @@ const result = await User.scan()
   .attribute('partitionKey').beginsWith('1')
   .limit(3)
   .run({ return: 'default' });
-// OUTPUT:
-// {
-//   items: [
-//     User {
-//       dynamodeEntity: 'User',
-//       partitionKey: '1',
-//       sortKey: 'blazej',
-//       username: 'blazej',
-//       email: 'blazej@gmail.com',
-//       age: 18,
-//       friends: [Array],
-//       config: [Object]
-//     }
-//   ],
-//   count: 1,
-//   scannedCount: 3,
-//   lastKey: { partitionKey: '1', sortKey: 'blazej' }
-// }
+```
+
+Output:
+
+```ts
+{
+  items: [
+    User {
+      dynamodeEntity: 'User',
+      partitionKey: '1',
+      sortKey: 'blazej',
+      username: 'blazej',
+      email: 'blazej@gmail.com',
+      age: 18,
+      friends: [Array],
+      config: [Object]
+    }
+  ],
+  count: 1,
+  scannedCount: 3,
+  lastKey: { partitionKey: '1', sortKey: 'blazej' }
+}
 ```
 
 </TabItem>
@@ -170,13 +174,17 @@ const input = await User.scan()
   .attribute('partitionKey').beginsWith('1')
   .limit(3)
   .run({ return: 'input' });
-// OUTPUT:
-// {
-//   TableName: 'users',
-//   Limit: 3,
-//   FilterExpression: 'age = :age AND begins_with(partitionKey, :partitionKey)',
-//   ExpressionAttributeValues: { ':age': { N: '18' }, ':partitionKey': { S: '1' } }
-// }
+```
+
+Output:
+
+```ts
+{
+  TableName: 'users',
+  Limit: 3,
+  FilterExpression: 'age = :age AND begins_with(partitionKey, :partitionKey)',
+  ExpressionAttributeValues: { ':age': { N: '18' }, ':partitionKey': { S: '1' } }
+}
 ```
 
 </TabItem>
@@ -188,28 +196,32 @@ const output = await User.scan()
   .attribute('partitionKey').beginsWith('1')
   .limit(3)
   .run({ return: 'output' });
-// OUTPUT:
-// {
-//   '$metadata': {
-//     ...
-//   },
-//   ConsumedCapacity: undefined,
-//   Count: 1,
-//   Items: [
-//     {
-//       dynamodeEntity: [Object],
-//       sortKey: [Object],
-//       partitionKey: [Object],
-//       config: [Object],
-//       age: [Object],
-//       email: [Object],
-//       friends: [Object],
-//       username: [Object]
-//     }
-//   ],
-//   LastEvaluatedKey: { partitionKey: { S: '1' }, sortKey: { S: 'blazej' } },
-//   ScannedCount: 3
-// }
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  ConsumedCapacity: undefined,
+  Count: 1,
+  Items: [
+    {
+      dynamodeEntity: [Object],
+      sortKey: [Object],
+      partitionKey: [Object],
+      config: [Object],
+      age: [Object],
+      email: [Object],
+      friends: [Object],
+      username: [Object]
+    }
+  ],
+  LastEvaluatedKey: { partitionKey: { S: '1' }, sortKey: { S: 'blazej' } },
+  ScannedCount: 3
+}
 ```
 
 </TabItem>

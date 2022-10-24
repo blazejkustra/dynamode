@@ -46,7 +46,6 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 ### Must have & priority
 
-* [ ] Add documentation
 * [ ] Capture dynamoDB errors and make it easier to work with
 * [ ] Add tests (XD) good luck with that
 * [ ] Add logging possibility

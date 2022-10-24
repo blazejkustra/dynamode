@@ -250,24 +250,28 @@ const result = await User.query()
   .sortKey('sortKey').beginsWith('bla')
   .limit(1).sort('descending')
   .run({ return: 'default' });
-// OUTPUT:
-// {
-//   items: [
-//     User {
-//       dynamodeEntity: 'User',
-//       partitionKey: '1',
-//       sortKey: 'blazej3',
-//       username: 'blazej',
-//       email: 'blazej@gmail.com',
-//       age: 18,
-//       friends: [Array],
-//       config: [Object]
-//     }
-//   ],
-//   count: 1,
-//   scannedCount: 1,
-//   lastKey: { partitionKey: '1', sortKey: 'blazej3' }
-// }
+```
+
+Output:
+
+```ts
+{
+  items: [
+    User {
+      dynamodeEntity: 'User',
+      partitionKey: '1',
+      sortKey: 'blazej3',
+      username: 'blazej',
+      email: 'blazej@gmail.com',
+      age: 18,
+      friends: [Array],
+      config: [Object]
+    }
+  ],
+  count: 1,
+  scannedCount: 1,
+  lastKey: { partitionKey: '1', sortKey: 'blazej3' }
+}
 ```
 
 </TabItem>
@@ -279,16 +283,20 @@ const input = User.query()
   .sortKey('sortKey').beginsWith('bla')
   .limit(1).sort('descending')
   .run({ return: 'input' });
-// OUTPUT:
-// {
-//   TableName: 'users',
-//   Limit: 1,
-//   ScanIndexForward: false,
-//   KeyConditionExpression: 'partitionKey = :partitionKey AND begins_with(sortKey, :sortKey)',
-//   FilterExpression: undefined,
-//   ExpressionAttributeNames: undefined,
-//   ExpressionAttributeValues: { ':partitionKey': { S: '1' }, ':sortKey': { S: 'bla' } }
-// }
+```
+
+Output:
+
+```ts
+{
+  TableName: 'users',
+  Limit: 1,
+  ScanIndexForward: false,
+  KeyConditionExpression: 'partitionKey = :partitionKey AND begins_with(sortKey, :sortKey)',
+  FilterExpression: undefined,
+  ExpressionAttributeNames: undefined,
+  ExpressionAttributeValues: { ':partitionKey': { S: '1' }, ':sortKey': { S: 'bla' } }
+}
 ```
 
 </TabItem>
@@ -300,28 +308,32 @@ const output = await User.query()
   .sortKey('sortKey').beginsWith('bla')
   .limit(1).sort('descending')
   .run({ return: 'output' });
-// OUTPUT:
-// {
-//   '$metadata': {
-//     ...
-//   },
-//   ConsumedCapacity: undefined,
-//   Count: 1,
-//   Items: [
-//     {
-//       dynamodeEntity: [Object],
-//       sortKey: [Object],
-//       partitionKey: [Object],
-//       config: [Object],
-//       email: [Object],
-//       age: [Object],
-//       friends: [Object],
-//       username: [Object]
-//     }
-//   ],
-//   LastEvaluatedKey: { partitionKey: { S: '1' }, sortKey: { S: 'blazej3' } },
-//   ScannedCount: 1
-// }
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  ConsumedCapacity: undefined,
+  Count: 1,
+  Items: [
+    {
+      dynamodeEntity: [Object],
+      sortKey: [Object],
+      partitionKey: [Object],
+      config: [Object],
+      email: [Object],
+      age: [Object],
+      friends: [Object],
+      username: [Object]
+    }
+  ],
+  LastEvaluatedKey: { partitionKey: { S: '1' }, sortKey: { S: 'blazej3' } },
+  ScannedCount: 1
+}
 ```
 
 </TabItem>

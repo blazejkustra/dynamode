@@ -53,27 +53,31 @@ const transactions = await transactionGet(
     return: 'default'
   }
 );
-// OUTPUT:
-// {
-//   items: [
-//     KeyValue {
-//       dynamodeEntity: 'KeyValue',
-//       key: 'key1',
-//       value: [Object]
-//     },
-//     User {
-//       dynamodeEntity: 'User',
-//       partitionKey: '1',
-//       sortKey: 'blazej',
-//       username: 'blazej',
-//       email: 'blazej@gmail.com',
-//       age: 18,
-//       friends: [Array],
-//       config: [Object]
-//     }
-//   ],
-//   count: 2
-// }
+```
+
+Output:
+
+```ts
+{
+  items: [
+    KeyValue {
+      dynamodeEntity: 'KeyValue',
+      key: 'key1',
+      value: [Object]
+    },
+    User {
+      dynamodeEntity: 'User',
+      partitionKey: '1',
+      sortKey: 'blazej',
+      username: 'blazej',
+      email: 'blazej@gmail.com',
+      age: 18,
+      friends: [Array],
+      config: [Object]
+    }
+  ],
+  count: 2
+}
 ```
 
 </TabItem>
@@ -89,14 +93,19 @@ const input = transactionGet(
     return: 'input'
   },
 );
-// OUTPUT:
-// {
-//   TransactItems: [
-//     { Get: [Object] },
-//     { Get: [Object] }
-//   ]
-// }
 ```
+
+Output:
+
+```ts
+{
+  TransactItems: [
+    { Get: [Object] },
+    { Get: [Object] }
+  ]
+}
+```
+
 
 </TabItem>
 <TabItem value="output" label="return: 'output'">
@@ -111,14 +120,18 @@ const output = await transactionGet(
     return: 'output'
   },
 );
-// OUTPUT:
-// {
-//   '$metadata': {
-//     ...
-//   },
-//   ConsumedCapacity: undefined,
-//   Responses: [ { Item: [Object] }, { Item: [Object] } ]
-// }
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  ConsumedCapacity: undefined,
+  Responses: [ { Item: [Object] }, { Item: [Object] } ]
+}
 ```
 
 </TabItem>
@@ -210,22 +223,26 @@ const transactions = await transactionWrite(
   ],
   { return: 'default' },
 );
-// OUTPUT:
-// {
-//   items: [
-//     KeyValue {
-//       dynamodeEntity: 'KeyValue',
-//       key: 'key2',
-//       value: [Object]
-//     },
-//     KeyValue {
-//       dynamodeEntity: 'KeyValue',
-//       key: 'key3',
-//       value: [Object]
-//     }
-//   ],
-//   count: 2
-// }
+```
+
+Output:
+
+```ts
+{
+  items: [
+    KeyValue {
+      dynamodeEntity: 'KeyValue',
+      key: 'key2',
+      value: [Object]
+    },
+    KeyValue {
+      dynamodeEntity: 'KeyValue',
+      key: 'key3',
+      value: [Object]
+    }
+  ],
+  count: 2
+}
 ```
 
 </TabItem>
@@ -259,17 +276,21 @@ const input = transactionWrite(
   ],
   { return: 'input' },
 );
-// OUTPUT:
-// {
-//   TransactItems: [
-//     { Update: [Object] },
-//     { Put: [Object] },
-//     { Put: [Object] },
-//     { Delete: [Object] },
-//     { ConditionCheck: [Object] }
-//   ],
-//   ClientRequestToken: undefined
-// }
+```
+
+Output:
+
+```ts
+{
+  TransactItems: [
+    { Update: [Object] },
+    { Put: [Object] },
+    { Put: [Object] },
+    { Delete: [Object] },
+    { ConditionCheck: [Object] }
+  ],
+  ClientRequestToken: undefined
+}
 ```
 
 </TabItem>
@@ -303,14 +324,18 @@ const output = await transactionWrite(
   ],
   { return: 'output' },
 );
-// OUTPUT:
-// {
-//   '$metadata': {
-//     ...
-//   },
-//   ConsumedCapacity: undefined,
-//   ItemCollectionMetrics: undefined
-// }
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  ConsumedCapacity: undefined,
+  ItemCollectionMetrics: undefined
+}
 ```
 
 </TabItem>

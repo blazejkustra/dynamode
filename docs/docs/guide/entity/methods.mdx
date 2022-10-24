@@ -88,17 +88,21 @@ You can add optional **`options`** parameter that is an object. The table below 
 ```ts
 const user = await User.get({ partitionKey: '1', sortKey: 'blazej' });
 const user = await User.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 'default' }); // the same
-// OUTPUT:
-// User {
-//   dynamodeEntity: 'User',
-//   partitionKey: '1',
-//   sortKey: 'blazej',
-//   username: 'blazej',
-//   email: 'blazej@gmail.com',
-//   age: 18,
-//   friends: [ 'tomas', 'david' ],
-//   config: { isAdmin: true }
-// }
+```
+
+Output:
+
+```ts
+User {
+  dynamodeEntity: 'User',
+  partitionKey: '1',
+  sortKey: 'blazej',
+  username: 'blazej',
+  email: 'blazej@gmail.com',
+  age: 18,
+  friends: [ 'tomas', 'david' ],
+  config: { isAdmin: true }
+}
 ```
 
 </TabItem>
@@ -106,12 +110,16 @@ const user = await User.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 
 
 ```ts
 const input = User.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 'input' });
-// OUTPUT:
-// {
-//   TableName: 'users',
-//   Key: { partitionKey: { S: '1' }, sortKey: { S: 'blazej' } },
-//   ConsistentRead: false
-// }
+```
+
+Output:
+
+```ts
+{
+  TableName: 'users',
+  Key: { partitionKey: { S: '1' }, sortKey: { S: 'blazej' } },
+  ConsistentRead: false
+}
 ```
 
 </TabItem>
@@ -119,23 +127,27 @@ const input = User.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 'inpu
 
 ```ts
 const output = await User.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 'output' });
-// OUTPUT:
-// {
-//   '$metadata': {
-//     ...
-//   },
-//   ConsumedCapacity: undefined,
-//   Item: {
-//     dynamodeEntity: { S: 'User' },
-//     sortKey: { S: 'blazej' },
-//     partitionKey: { S: '1' },
-//     config: { M: [Object] },
-//     email: { S: 'blazej@gmail.com' },
-//     age: { N: '18' },
-//     friends: { L: [Array] },
-//     username: { S: 'blazej' }
-//   }
-// }
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  ConsumedCapacity: undefined,
+  Item: {
+    dynamodeEntity: { S: 'User' },
+    sortKey: { S: 'blazej' },
+    partitionKey: { S: '1' },
+    config: { M: [Object] },
+    email: { S: 'blazej@gmail.com' },
+    age: { N: '18' },
+    friends: { L: [Array] },
+    username: { S: 'blazej' }
+  }
+}
 ```
 
 </TabItem>
@@ -181,17 +193,21 @@ const userInstance = new User({
 const user = await User.put(userInstance);
 // OR
 const user = await User.put(userInstance, { return: 'default' });
-// OUTPUT:
-// User {
-//   dynamodeEntity: 'User',
-//   partitionKey: '1',
-//   sortKey: 'blazej',
-//   username: 'blazej',
-//   email: 'blazej@gmail.com',
-//   age: 18,
-//   friends: [ 'tomas', 'david' ],
-//   config: { isAdmin: true }
-// }
+```
+
+Output:
+
+```ts
+User {
+  dynamodeEntity: 'User',
+  partitionKey: '1',
+  sortKey: 'blazej',
+  username: 'blazej',
+  email: 'blazej@gmail.com',
+  age: 18,
+  friends: [ 'tomas', 'david' ],
+  config: { isAdmin: true }
+}
 ```
 
 </TabItem>
@@ -211,20 +227,24 @@ const userInstance = new User({
 });
 
 const input = User.put(userInstance, { return: 'input' });
-// OUTPUT:
-// {
-//   TableName: 'users',
-//   Item: {
-//     dynamodeEntity: { S: 'User' },
-//     partitionKey: { S: '1' },
-//     sortKey: { S: 'blazej' },
-//     username: { S: 'blazej' },
-//     email: { S: 'blazej@gmail.com' },
-//     age: { N: '18' },
-//     friends: { L: [Array] },
-//     config: { M: [Object] }
-//   }
-// }
+```
+
+Output:
+
+```ts
+{
+  TableName: 'users',
+  Item: {
+    dynamodeEntity: { S: 'User' },
+    partitionKey: { S: '1' },
+    sortKey: { S: 'blazej' },
+    username: { S: 'blazej' },
+    email: { S: 'blazej@gmail.com' },
+    age: { N: '18' },
+    friends: { L: [Array] },
+    config: { M: [Object] }
+  }
+}
 ```
 
 </TabItem>
@@ -244,15 +264,19 @@ const userInstance = new User({
 });
 
 const output = await User.put(userInstance, { return: 'output' });
-// OUTPUT:
-// {
-//   '$metadata': {
-//     ...
-//   },
-//   Attributes: undefined,
-//   ConsumedCapacity: undefined,
-//   ItemCollectionMetrics: undefined
-// }
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  Attributes: undefined,
+  ConsumedCapacity: undefined,
+  ItemCollectionMetrics: undefined
+}
 ```
 
 </TabItem>
@@ -335,25 +359,29 @@ const item = await AllPossibleProperties.update(
   },
   { return: 'default' }
 );
-// OUTPUT:
-// AllPossibleProperties {
-//   dynamodeEntity: 'AllPossibleProperties',
-//   partitionKey: 'pk1',
-//   sortKey: 'sk1',
-//   GSI_1_PK: undefined,
-//   GSI_1_SK: undefined,
-//   LSI_1_SK: undefined,
-//   createdAt: 2022-10-16T07:08:21.168Z,
-//   updatedAt: 2022-10-16T07:08:21.168Z,
-//   string: 'string',
-//   object: { optional: 'test', required: 2 },
-//   array: [ '1' ],
-//   map: Map(1) { '1' => 'test' },
-//   set: Set(4) { '1', '2', '3', '5' },
-//   number: 10,
-//   boolean: true,
-//   unsaved: 'unsaved'
-// }
+```
+
+Output:
+
+```ts
+AllPossibleProperties {
+  dynamodeEntity: 'AllPossibleProperties',
+  partitionKey: 'pk1',
+  sortKey: 'sk1',
+  GSI_1_PK: undefined,
+  GSI_1_SK: undefined,
+  LSI_1_SK: undefined,
+  createdAt: 2022-10-16T07:08:21.168Z,
+  updatedAt: 2022-10-16T07:08:21.168Z,
+  string: 'string',
+  object: { optional: 'test', required: 2 },
+  array: [ '1' ],
+  map: Map(1) { '1' => 'test' },
+  set: Set(4) { '1', '2', '3', '5' },
+  number: 10,
+  boolean: true,
+  unsaved: 'unsaved'
+}
 ```
 
 </TabItem>
@@ -372,15 +400,19 @@ const input = AllPossibleProperties.update(
   },
   { return: 'input' }
 );
-// OUTPUT:
-// {
-//   TableName: 'all-possible-properties',
-//   Key: { partitionKey: { S: 'prefix#pk1' }, sortKey: { S: 'sk1' } },
-//   ReturnValues: 'ALL_NEW',
-//   ExpressionAttributeNames: { '#array': 'array', '#number': 'number' },
-//   ExpressionAttributeValues: { ':array': { L: [Array] }, ':array__1': { N: '10' } },
-//   UpdateExpression: 'SET #array = list_append(#array, :array), #number = #number + :array__1'
-// }
+```
+
+Output:
+
+```ts
+{
+  TableName: 'all-possible-properties',
+  Key: { partitionKey: { S: 'prefix#pk1' }, sortKey: { S: 'sk1' } },
+  ReturnValues: 'ALL_NEW',
+  ExpressionAttributeNames: { '#array': 'array', '#number': 'number' },
+  ExpressionAttributeValues: { ':array': { L: [Array] }, ':array__1': { N: '10' } },
+  UpdateExpression: 'SET #array = list_append(#array, :array), #number = #number + :array__1'
+}
 ```
 
 </TabItem>
@@ -400,27 +432,31 @@ const output = await AllPossibleProperties.update(
   },
   { return: 'output' }
 );
-// OUTPUT:
-// {
-//   '$metadata': {
-//     ...
-//   },
-//   Attributes: {
-//     createdAt: { S: '2022-10-16T07:08:21.168Z' },
-//     dynamodeEntity: { S: 'AllPossibleProperties' },
-//     boolean: { BOOL: true },
-//     set: { SS: [Array] },
-//     sortKey: { S: 'sk1' },
-//     partitionKey: { S: 'prefix#pk1' },
-//     string: { S: 'string' },
-//     array: { L: [Array] },
-//     map: { M: [Object] },
-//     object: { M: [Object] },
-//     updatedAt: { N: '1665904101168' }
-//   },
-//   ConsumedCapacity: undefined,
-//   ItemCollectionMetrics: undefined
-// }
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  Attributes: {
+    createdAt: { S: '2022-10-16T07:08:21.168Z' },
+    dynamodeEntity: { S: 'AllPossibleProperties' },
+    boolean: { BOOL: true },
+    set: { SS: [Array] },
+    sortKey: { S: 'sk1' },
+    partitionKey: { S: 'prefix#pk1' },
+    string: { S: 'string' },
+    array: { L: [Array] },
+    map: { M: [Object] },
+    object: { M: [Object] },
+    updatedAt: { N: '1665904101168' }
+  },
+  ConsumedCapacity: undefined,
+  ItemCollectionMetrics: undefined
+}
 ```
 
 </TabItem>
@@ -457,17 +493,21 @@ You can add optional **`options`** parameter that is an object. The table below 
 const deletedUser = await User.delete({ partitionKey: '1', sortKey: 'blazej' });
 // OR
 const deletedUser = await User.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'default' });
-// OUTPUT:
-// User {
-//   dynamodeEntity: 'User',
-//   partitionKey: '1',
-//   sortKey: 'blazej',
-//   username: 'blazej',
-//   email: 'blazej@gmail.com',
-//   age: 18,
-//   friends: [ 'tomas', 'david' ],
-//   config: { isAdmin: true }
-// }
+```
+
+Output:
+
+```ts
+User {
+  dynamodeEntity: 'User',
+  partitionKey: '1',
+  sortKey: 'blazej',
+  username: 'blazej',
+  email: 'blazej@gmail.com',
+  age: 18,
+  friends: [ 'tomas', 'david' ],
+  config: { isAdmin: true }
+}
 ```
 
 </TabItem>
@@ -475,45 +515,55 @@ const deletedUser = await User.delete({ partitionKey: '1', sortKey: 'blazej' }, 
 
 ```ts
 const input = User.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'input' });
-// OUTPUT:
-// {
-//   TableName: 'users',
-//   Key: { partitionKey: { S: '1' }, sortKey: { S: 'blazej' } }
-// }
 ```
+
+Output:
+
+```ts
+{
+  TableName: 'users',
+  Key: { partitionKey: { S: '1' }, sortKey: { S: 'blazej' } }
+}
+```
+
 
 </TabItem>
 <TabItem value="output" label="return: 'output'">
 
 ```ts
 const output = await User.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'output' });
-// OUTPUT:
-// {
-//   '$metadata': {
-//     ...
-//   },
-//   Attributes: {
-//     dynamodeEntity: { S: 'User' },
-//     sortKey: { S: 'blazej' },
-//     partitionKey: { S: '1' },
-//     config: { M: [Object] },
-//     email: { S: 'blazej@gmail.com' },
-//     age: { N: '18' },
-//     friends: { L: [Array] },
-//     username: { S: 'blazej' }
-//   },
-//   ConsumedCapacity: {
-//     CapacityUnits: 1,
-//     GlobalSecondaryIndexes: undefined,
-//     LocalSecondaryIndexes: undefined,
-//     ReadCapacityUnits: undefined,
-//     Table: undefined,
-//     TableName: 'users',
-//     WriteCapacityUnits: undefined
-//   },
-//   ItemCollectionMetrics: undefined
-// }
 ```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  Attributes: {
+    dynamodeEntity: { S: 'User' },
+    sortKey: { S: 'blazej' },
+    partitionKey: { S: '1' },
+    config: { M: [Object] },
+    email: { S: 'blazej@gmail.com' },
+    age: { N: '18' },
+    friends: { L: [Array] },
+    username: { S: 'blazej' }
+  },
+  ConsumedCapacity: {
+    CapacityUnits: 1,
+    GlobalSecondaryIndexes: undefined,
+    LocalSecondaryIndexes: undefined,
+    ReadCapacityUnits: undefined,
+    Table: undefined,
+    TableName: 'users',
+    WriteCapacityUnits: undefined
+  },
+  ItemCollectionMetrics: undefined
+}
+```
+
 
 </TabItem>
 </Tabs>
@@ -559,33 +609,38 @@ const input = await User.batchGet(
     return: 'default',
   },
 );
-// OUTPUT:
-// {
-//   items: [
-//     User {
-//       dynamodeEntity: 'User',
-//       partitionKey: '2',
-//       sortKey: 'blazej',
-//       username: 'blazej',
-//       email: 'blazej@gmail.com',
-//       age: 18,
-//       friends: [Array],
-//       config: [Object]
-//     },
-//     User {
-//       dynamodeEntity: 'User',
-//       partitionKey: '1',
-//       sortKey: 'blazej',
-//       username: 'blazej',
-//       email: 'blazej@gmail.com',
-//       age: 18,
-//       friends: [Array],
-//       config: [Object]
-//     }
-//   ],
-//   unprocessedKeys: []
-// }
 ```
+
+Output:
+
+```ts
+{
+  items: [
+    User {
+      dynamodeEntity: 'User',
+      partitionKey: '2',
+      sortKey: 'blazej',
+      username: 'blazej',
+      email: 'blazej@gmail.com',
+      age: 18,
+      friends: [Array],
+      config: [Object]
+    },
+    User {
+      dynamodeEntity: 'User',
+      partitionKey: '1',
+      sortKey: 'blazej',
+      username: 'blazej',
+      email: 'blazej@gmail.com',
+      age: 18,
+      friends: [Array],
+      config: [Object]
+    }
+  ],
+  unprocessedKeys: []
+}
+```
+
 
 </TabItem>
 <TabItem value="input" label="return: 'input'">
@@ -600,8 +655,12 @@ const input = User.batchGet(
     return: 'input',
   },
 );
-// OUTPUT:
-// { RequestItems: { users: { Keys: [Array], ConsistentRead: false } } }
+```
+
+Output:
+
+```ts
+{ RequestItems: { users: { Keys: [Array], ConsistentRead: false } } }
 ```
 
 </TabItem>
@@ -617,16 +676,21 @@ const output = await User.batchGet(
     return: 'output',
   },
 );
-// OUTPUT:
-// {
-//   '$metadata': {
-//     ...
-//   },
-//   ConsumedCapacity: undefined,
-//   Responses: { users: [ [Object], [Object] ] },
-//   UnprocessedKeys: {}
-// }
 ```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  ConsumedCapacity: undefined,
+  Responses: { users: [ [Object], [Object] ] },
+  UnprocessedKeys: {}
+}
+```
+
 
 </TabItem>
 </Tabs>
@@ -686,32 +750,36 @@ const result = await User.batchPut(users);
 const result = await User.batchPut(users, {
   return: 'default',
 });
-// OUTPUT:
-// {
-//   items: [
-//     User {
-//       dynamodeEntity: 'User',
-//       partitionKey: '1',
-//       sortKey: 'blazej',
-//       username: 'blazej',
-//       email: 'blazej@gmail.com',
-//       age: 18,
-//       friends: [Array],
-//       config: [Object]
-//     },
-//     User {
-//       dynamodeEntity: 'User',
-//       partitionKey: '2',
-//       sortKey: 'blazej',
-//       username: 'blazej',
-//       email: 'blazej@gmail.com',
-//       age: 18,
-//       friends: [Array],
-//       config: [Object]
-//     }
-//   ],
-//   unprocessedItems: []
-// }
+```
+
+Output:
+
+```ts
+{
+  items: [
+    User {
+      dynamodeEntity: 'User',
+      partitionKey: '1',
+      sortKey: 'blazej',
+      username: 'blazej',
+      email: 'blazej@gmail.com',
+      age: 18,
+      friends: [Array],
+      config: [Object]
+    },
+    User {
+      dynamodeEntity: 'User',
+      partitionKey: '2',
+      sortKey: 'blazej',
+      username: 'blazej',
+      email: 'blazej@gmail.com',
+      age: 18,
+      friends: [Array],
+      config: [Object]
+    }
+  ],
+  unprocessedItems: []
+}
 ```
 
 </TabItem>
@@ -746,8 +814,12 @@ const users = [
 const input = User.batchPut(users, {
   return: 'input',
 });
-// OUTPUT:
-// { RequestItems: { users: [ [Object], [Object] ] } }
+```
+
+Output:
+
+```ts
+{ RequestItems: { users: [ [Object], [Object] ] } }
 ```
 
 </TabItem>
@@ -782,15 +854,19 @@ const users = [
 const output = await User.batchPut(users, {
   return: 'output',
 });
-// OUTPUT:
-// {
-//   '$metadata': {
-//     ...
-//   },
-//   ConsumedCapacity: undefined,
-//   ItemCollectionMetrics: undefined,
-//   UnprocessedItems: {}
-// }
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  ConsumedCapacity: undefined,
+  ItemCollectionMetrics: undefined,
+  UnprocessedItems: {}
+}
 ```
 
 </TabItem>
@@ -834,8 +910,12 @@ const result = await User.batchDelete(
   ],
   { return: 'default' },
 );
-// OUTPUT:
-// { unprocessedItems: [] }
+```
+
+Output:
+
+```ts
+{ unprocessedItems: [] }
 ```
 
 </TabItem>
@@ -849,8 +929,10 @@ const input = User.batchDelete(
   ],
   { return: 'input' },
 );
-// OUTPUT:
-// { RequestItems: { users: [ [Object], [Object] ] } }
+```
+
+```ts
+{ RequestItems: { users: [ [Object], [Object] ] } }
 ```
 
 </TabItem>
@@ -864,15 +946,19 @@ const output = await User.batchDelete(
   ],
   { return: 'output' },
 );
-// OUTPUT:
-// {
-//   '$metadata': {
-//     ...
-//   },
-//   ConsumedCapacity: undefined,
-//   ItemCollectionMetrics: undefined,
-//   UnprocessedItems: {}
-// }
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  ConsumedCapacity: undefined,
+  ItemCollectionMetrics: undefined,
+  UnprocessedItems: {}
+}
 ```
 
 </TabItem>
