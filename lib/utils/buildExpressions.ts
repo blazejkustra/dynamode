@@ -58,5 +58,6 @@ export function substituteAttributeValues(attributeValues: AttributeMap, name: s
       return substituteValueKey;
     }
   }
+
   throw new DefaultError();
 }

@@ -1,9 +1,9 @@
 import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import { Operator } from '@lib/condition/types';
+import { Dynamode } from '@lib/dynamode';
 import { Entity, EntityKey, EntityPartitionKeys, EntitySortKeys, EntityValue } from '@lib/entity/types';
 import { QueryRunOptions, QueryRunOutput } from '@lib/query/types';
 import RetrieverBase from '@lib/retriever';
-import { getDynamodeStorage } from '@lib/storage';
 import { AttributeMap, buildExpression, ConditionExpression, isNotEmpty, isNotEmptyString, timeout } from '@lib/utils';
 
 export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
@@ -15,7 +15,7 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
   }
 
   public partitionKey<Q extends Query<T>, K extends EntityKey<T> & EntityPartitionKeys<T>>(this: Q, key: K) {
-    const attributes = getDynamodeStorage().getEntityAttributes(this.entity.tableName, this.entity.name);
+    const attributes = Dynamode.storage.getEntityAttributes(this.entity.tableName, this.entity.name);
     const indexName = attributes[String(key)].indexName;
     if (indexName) this.input.IndexName = indexName;
 

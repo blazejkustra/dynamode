@@ -14,6 +14,7 @@ import {
   UpdateItemCommandOutput,
 } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
+import { Dynamode } from '@lib/dynamode';
 import { buildDeleteConditionExpression, buildGetProjectionExpression, buildPutConditionExpression, buildUpdateConditionExpression, mapReturnValues, mapReturnValuesLimited } from '@lib/entity/helpers';
 import {
   EntityBatchDeleteOptions,
@@ -37,13 +38,12 @@ import {
 } from '@lib/entity/types';
 import Query from '@lib/query';
 import Scan from '@lib/scan';
-import { getDynamodeStorage } from '@lib/storage';
 import { GetTransaction } from '@lib/transactionGet/types';
 import { WriteTransaction } from '@lib/transactionWrite/types';
 import { AttributeMap, buildExpression, DefaultError, fromDynamo, GenericObject, isNotEmpty, NotFoundError, objectToDynamo } from '@lib/utils';
 
 export default function Entity<Metadata extends EntityMetadata>(tableName: string) {
-  getDynamodeStorage().addEntityAttributeMetadata(tableName, 'Entity', 'dynamodeEntity', { propertyName: 'dynamodeEntity', type: String, role: 'dynamodeEntity' });
+  Dynamode.storage.addEntityAttributeMetadata(tableName, 'Entity', 'dynamodeEntity', { propertyName: 'dynamodeEntity', type: String, role: 'dynamodeEntity' });
 
   return class Entity {
     public static ddb: DynamoDB;
@@ -135,7 +135,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
     public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'input' }): PutItemCommandInput;
     public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityPutOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
       const overwrite = options?.overwrite ?? true;
-      const partitionKey = getDynamodeStorage().getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
+      const partitionKey = Dynamode.storage.getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
       const overwriteCondition = overwrite ? undefined : this.condition().attribute(partitionKey).not().exists();
       const dynamoItem = this.convertEntityToAttributeMap(item);
 
@@ -176,7 +176,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
     public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'input' }): DeleteItemCommandInput;
     public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityDeleteOptions<T>): Promise<InstanceType<T> | null | DeleteItemCommandOutput> | DeleteItemCommandInput {
       const throwErrorIfNotExists = options?.throwErrorIfNotExists ?? false;
-      const partitionKey = getDynamodeStorage().getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
+      const partitionKey = Dynamode.storage.getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
       const notExistsCondition = throwErrorIfNotExists ? this.condition().attribute(partitionKey).exists() : undefined;
 
       const commandInput: DeleteItemCommandInput = {
@@ -350,7 +350,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
 
     public static transactionPut<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityTransactionPutOptions<T>): WriteTransaction<T> {
       const overwrite = options?.overwrite ?? true;
-      const partitionKey = getDynamodeStorage().getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
+      const partitionKey = Dynamode.storage.getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
       const overwriteCondition = overwrite ? undefined : this.condition().attribute(partitionKey).not().exists();
 
       const commandInput: WriteTransaction<T> = {
@@ -406,8 +406,8 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
 
     public static convertAttributeMapToEntity<T extends typeof Entity>(this: T, dynamoItem: AttributeMap): InstanceType<T> {
       const object = fromDynamo(dynamoItem);
-      const attributes = getDynamodeStorage().getEntityAttributes(this.tableName, this.name);
-      const { createdAt, updatedAt } = getDynamodeStorage().getTableMetadata(this.tableName);
+      const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
+      const { createdAt, updatedAt } = Dynamode.storage.getTableMetadata(this.tableName);
 
       if (createdAt) object[createdAt] = new Date(object[createdAt] as string | number);
       if (updatedAt) object[updatedAt] = new Date(object[updatedAt] as string | number);
@@ -427,8 +427,8 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
 
     public static convertEntityToAttributeMap<T extends typeof Entity>(this: T, item: InstanceType<T>): AttributeMap {
       const dynamoObject: GenericObject = {};
-      const attributes = getDynamodeStorage().getEntityAttributes(this.tableName, this.name);
-      const { createdAt, updatedAt } = getDynamodeStorage().getTableMetadata(this.tableName);
+      const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
+      const { createdAt, updatedAt } = Dynamode.storage.getTableMetadata(this.tableName);
 
       Object.keys(attributes).forEach((propertyName) => {
         let value: unknown = item[propertyName as keyof InstanceType<T>];
@@ -449,7 +449,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
 
     public static convertAttributeMapToPrimaryKey<T extends typeof Entity>(this: T, dynamoItem: AttributeMap): EntityPrimaryKey<T> {
       const object = fromDynamo(dynamoItem);
-      const { partitionKey, sortKey } = getDynamodeStorage().getTableMetadata(this.tableName);
+      const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(this.tableName);
       if (partitionKey) object[partitionKey] = this.truncateValue(partitionKey as EntityKey<T>, object[partitionKey]);
       if (sortKey) object[sortKey] = this.truncateValue(sortKey as EntityKey<T>, object[sortKey]);
 
@@ -458,7 +458,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
 
     public static convertPrimaryKeyToAttributeMap<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): AttributeMap {
       const dynamoObject: GenericObject = {};
-      const { partitionKey, sortKey } = getDynamodeStorage().getTableMetadata(this.tableName);
+      const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(this.tableName);
       if (partitionKey) dynamoObject[partitionKey] = this.prefixSuffixValue(partitionKey as EntityKey<T>, (<any>primaryKey)[partitionKey]);
       if (sortKey) dynamoObject[sortKey] = this.prefixSuffixValue(sortKey as EntityKey<T>, (<any>primaryKey)[sortKey]);
 
@@ -467,8 +467,8 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
 
     public static truncateValue<T extends typeof Entity>(this: T, key: EntityKey<T>, value: unknown): unknown {
       if (typeof value === 'string') {
-        const attributes = getDynamodeStorage().getEntityAttributes(this.tableName, this.name);
-        const separator = getDynamodeStorage().separator;
+        const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
+        const separator = Dynamode.separator.get();
         const prefix = attributes[String(key)].prefix || '';
         const suffix = attributes[String(key)].suffix || '';
         return value.replace(`${prefix}${separator}`, '').replace(`${separator}${suffix}`, '');
@@ -479,8 +479,8 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
 
     public static prefixSuffixValue<T extends typeof Entity>(this: T, key: EntityKey<T>, value: unknown): unknown {
       if (typeof value === 'string') {
-        const attributes = getDynamodeStorage().getEntityAttributes(this.tableName, this.name);
-        const separator = getDynamodeStorage().separator;
+        const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
+        const separator = Dynamode.separator.get();
         const prefix = attributes[String(key)].prefix || '';
         const suffix = attributes[String(key)].suffix || '';
         return [prefix, value, suffix].filter((p) => p).join(separator);

@@ -1,8 +1,8 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { DecoratorOptions } from '@lib/decorators/types';
+import { Dynamode } from '@lib/dynamode';
+import { AttributeMetadata, AttributeType, IndexAttributeType, TimestampAttributeType } from '@lib/dynamode/storage/types';
 import { Entity } from '@lib/entity/types';
-import { getDynamodeStorage } from '@lib/storage';
-import { AttributeMetadata, AttributeType, IndexAttributeType, TimestampAttributeType } from '@lib/storage/types';
 
 // export function dependsOn<T>(value: T) {
 //   return (Entity: T, propertyName: string) => {
@@ -23,7 +23,7 @@ export function prefix(value: string) {
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<AttributeType> = { prefix: value, propertyName };
 
-    getDynamodeStorage().addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
+    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
   };
 }
 
@@ -33,7 +33,7 @@ export function suffix(value: string) {
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<AttributeType> = { suffix: value, propertyName };
 
-    getDynamodeStorage().addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
+    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
   };
 }
 
@@ -50,8 +50,8 @@ export function attribute(type: AttributeType, options?: DecoratorOptions) {
     const entityName = Entity.constructor.name;
     const attributeMetadata: AttributeMetadata<AttributeType> = { propertyName, type, role: 'attribute', ...options };
 
-    getDynamodeStorage().addEntityAttributeMetadata(tableName, entityName, propertyName, attributeMetadata);
-    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
+    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, attributeMetadata);
+    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
@@ -63,9 +63,9 @@ export function primaryPartitionKey(type: IndexAttributeType, options?: Decorato
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<IndexAttributeType> = { type, propertyName, role: 'partitionKey', ...options };
 
-    getDynamodeStorage().addPrimaryPartitionKeyMetadata(tableName, propertyName);
-    getDynamodeStorage().addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
+    Dynamode.storage.addPrimaryPartitionKeyMetadata(tableName, propertyName);
+    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
+    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
@@ -77,9 +77,9 @@ export function primarySortKey(type: IndexAttributeType, options?: DecoratorOpti
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<IndexAttributeType> = { type, propertyName, role: 'sortKey', ...options };
 
-    getDynamodeStorage().addPrimarySortKeyMetadata(tableName, propertyName);
-    getDynamodeStorage().addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
+    Dynamode.storage.addPrimarySortKeyMetadata(tableName, propertyName);
+    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
+    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
@@ -91,9 +91,9 @@ export function gsiPartitionKey(type: IndexAttributeType, indexName: string, opt
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<IndexAttributeType> = { type, propertyName, indexName, role: 'gsiPartitionKey', ...options };
 
-    getDynamodeStorage().addGsiPartitionKeyMetadata(tableName, indexName, propertyName);
-    getDynamodeStorage().addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
+    Dynamode.storage.addGsiPartitionKeyMetadata(tableName, indexName, propertyName);
+    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
+    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
@@ -105,9 +105,9 @@ export function gsiSortKey(type: IndexAttributeType, indexName: string, options?
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<IndexAttributeType> = { type, propertyName, indexName, role: 'gsiSortKey', ...options };
 
-    getDynamodeStorage().addGsiSortKeyMetadata(tableName, indexName, propertyName);
-    getDynamodeStorage().addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
+    Dynamode.storage.addGsiSortKeyMetadata(tableName, indexName, propertyName);
+    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
+    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
@@ -119,9 +119,9 @@ export function lsiSortKey(type: IndexAttributeType, indexName: string, options?
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<IndexAttributeType> = { type, propertyName, indexName, role: 'lsiSortKey', ...options };
 
-    getDynamodeStorage().addLsiSortKeyMetadata(tableName, indexName, propertyName);
-    getDynamodeStorage().addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
+    Dynamode.storage.addLsiSortKeyMetadata(tableName, indexName, propertyName);
+    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
+    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
@@ -133,9 +133,9 @@ export function createdAt(type: TimestampAttributeType, options?: DecoratorOptio
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<TimestampAttributeType> = { type, propertyName, role: 'createdAt', ...options };
 
-    getDynamodeStorage().addCreatedAtMetadata(tableName, propertyName);
-    getDynamodeStorage().addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
+    Dynamode.storage.addCreatedAtMetadata(tableName, propertyName);
+    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
+    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
@@ -147,8 +147,8 @@ export function updatedAt(type: TimestampAttributeType, options?: DecoratorOptio
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<TimestampAttributeType> = { type, propertyName, role: 'createdAt', ...options };
 
-    getDynamodeStorage().addUpdatedAtMetadata(tableName, propertyName);
-    getDynamodeStorage().addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    getDynamodeStorage().addEntityConstructor(tableName, entityName, Entity.constructor);
+    Dynamode.storage.addUpdatedAtMetadata(tableName, propertyName);
+    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
+    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }

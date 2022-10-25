@@ -1,6 +1,6 @@
 import { TransactGetItemsCommandInput, TransactGetItemsOutput } from '@aws-sdk/client-dynamodb';
+import { Dynamode } from '@lib/dynamode';
 import { Entity } from '@lib/entity/types';
-import { getDynamodeStorage } from '@lib/storage';
 import { GetTransaction, TransactionGetOptions, TransactionGetOutput } from '@lib/transactionGet/types';
 import { NotFoundError } from '@lib/utils';
 
@@ -17,7 +17,7 @@ export default function transactionGet<T extends Entity<T>>(transactions: Array<
   }
 
   return (async () => {
-    const result = await getDynamodeStorage().ddb.transactGetItems(commandInput);
+    const result = await Dynamode.ddb.get().transactGetItems(commandInput);
     const responses = result.Responses || [];
     const items = responses.map((response) => response.Item);
 
@@ -29,7 +29,7 @@ export default function transactionGet<T extends Entity<T>>(transactions: Array<
       return result;
     }
 
-    const entities = items.map((item, idx) => getDynamodeStorage().convertEntityToAttributeMap(item, transactions[idx].Get.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
+    const entities = items.map((item, idx) => Dynamode.storage.convertEntityToAttributeMap(item, transactions[idx].Get.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
     return {
       items: entities,
       count: entities.length,

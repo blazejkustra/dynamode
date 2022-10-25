@@ -1,5 +1,4 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
-import { getDynamodeStorage } from '@lib/storage';
 
 export interface DDBType {
   DynamoDB: typeof DynamoDB;
@@ -12,12 +11,10 @@ export default function (): DDBType {
   let ddbInstance = new DynamoDB({});
 
   const get = () => {
-    getDynamodeStorage().setDynamoInstance(ddbInstance);
     return ddbInstance;
   };
 
   const set = (ddb: DynamoDB): void => {
-    getDynamodeStorage().setDynamoInstance(ddb);
     ddbInstance = ddb;
   };
 

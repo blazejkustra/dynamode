@@ -1,4 +1,3 @@
-import { getDynamodeStorage } from '@lib/storage';
 import { DefaultError } from '@lib/utils';
 
 export type SeparatorType = {
@@ -6,15 +5,15 @@ export type SeparatorType = {
   set: (separator: string) => void;
 };
 
+let defaultConverter = '#';
+
 const get = (): string => {
-  return getDynamodeStorage().separator;
+  return defaultConverter;
 };
 
 const set = (separator: string): void => {
   if (!separator) throw new DefaultError();
-  getDynamodeStorage().setSeparator(separator);
+  defaultConverter = separator;
 };
 
-const separator: SeparatorType = { get, set };
-
-export default separator;
+export default { get, set };

@@ -1,5 +1,5 @@
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
-import DynamoDBconverter from '@lib/dynamode/aws/converter';
+import DynamoDBconverter from '@lib/dynamode/converter';
 import { AttributeMap, GenericObject } from '@lib/utils';
 
 export function objectToDynamo(object: GenericObject): AttributeMap {

@@ -1,17 +1,20 @@
-import Converter from '@lib/dynamode/aws/converter';
-import DDB, { DDBType } from '@lib/dynamode/aws/ddb';
+import converter from '@lib/dynamode/converter';
+import DDB, { DDBType } from '@lib/dynamode/ddb';
 import separator, { SeparatorType } from '@lib/dynamode/separator';
+import DynamodeStorage from '@lib/dynamode/storage';
 
 class Dynamode {
   static default: Dynamode = new Dynamode();
 
-  public converter: typeof Converter;
   public ddb: DDBType;
+  public storage: DynamodeStorage;
+  public converter: typeof converter;
   public separator: SeparatorType;
 
   constructor() {
     this.ddb = DDB();
-    this.converter = Converter;
+    this.storage = new DynamodeStorage();
+    this.converter = converter;
     this.separator = separator;
   }
 }

@@ -1,6 +1,6 @@
 import { TransactWriteItemsCommandInput, TransactWriteItemsOutput } from '@aws-sdk/client-dynamodb';
+import { Dynamode } from '@lib/dynamode';
 import { Entity } from '@lib/entity/types';
-import { getDynamodeStorage } from '@lib/storage';
 import { TransactionWriteOptions, TransactionWriteOutput, WriteTransaction } from '@lib/transactionWrite/types';
 
 export default function transactionWrite<T extends Entity<T>>(transactions: Array<WriteTransaction<T>>): Promise<TransactionWriteOutput<T>>;
@@ -15,13 +15,13 @@ export default function transactionWrite<T extends Entity<T>>(transactions: Arra
   }
 
   return (async () => {
-    const result = await getDynamodeStorage().ddb.transactWriteItems(commandInput);
+    const result = await Dynamode.ddb.get().transactWriteItems(commandInput);
 
     if (options?.return === 'output') {
       return result;
     }
 
-    const entities = transactions.map((transaction) => getDynamodeStorage().convertEntityToAttributeMap(transaction?.Put?.Item, transaction?.Put?.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
+    const entities = transactions.map((transaction) => Dynamode.storage.convertEntityToAttributeMap(transaction?.Put?.Item, transaction?.Put?.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
     return {
       items: entities,
       count: entities.length,

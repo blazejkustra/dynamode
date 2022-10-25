@@ -1,34 +1,9 @@
-import { DynamoDB } from '@aws-sdk/client-dynamodb';
+import { AttributeMetadata, AttributeType, EntityMetadata, TablesMetadata } from '@lib/dynamode/storage/types';
 import { Entity } from '@lib/entity/types';
-import { AttributeMetadata, AttributeType, EntityMetadata, TablesMetadata } from '@lib/storage/types';
 import { AttributeMap, DefaultError, mergeObjects, valueFromDynamo } from '@lib/utils';
 
-declare global {
-  // eslint-disable-next-line no-var
-  var dynamodeStorage: DynamodeStorage | undefined;
-}
-
-export function getDynamodeStorage(): DynamodeStorage {
-  // we need store metadata storage in a global variable otherwise it brings too much problems
-  if (!global.dynamodeStorage) {
-    global.dynamodeStorage = new DynamodeStorage();
-  }
-
-  return global.dynamodeStorage;
-}
-
-class DynamodeStorage {
+export default class DynamodeStorage {
   public tables: TablesMetadata = {};
-  public separator = '#';
-  public ddb: DynamoDB;
-
-  public setSeparator(separator: string) {
-    this.separator = separator;
-  }
-
-  public setDynamoInstance(ddb: DynamoDB) {
-    this.ddb = ddb;
-  }
 
   public convertEntityToAttributeMap<T extends Entity<T>>(dynamoItem?: AttributeMap, tableName?: string): InstanceType<T> | undefined {
     if (!dynamoItem || !tableName) {
@@ -98,8 +73,6 @@ class DynamodeStorage {
     if (value.suffix) attributeMetadata.suffix = value.suffix;
     if (value.indexName) attributeMetadata.indexName = value.indexName;
   }
-
-  // helpers
 
   public getEntityAttributes(tableName: string, entityName: string) {
     const entitiesMetadata: EntityMetadata[] = [];
