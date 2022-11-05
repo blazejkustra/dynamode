@@ -8,7 +8,7 @@ hide_title: true
 
 `Dynamode` is a global singleton class that allows you to configure Dynamode to suit your needs. 
 
-## Dynamode.separator`
+## Dynamode.separator
 
 A common practice when modeling entities in one table is to add prefixes/suffixes before actual partition and sort keys. Separator is a string that splits prefix, suffix and the actual value. By default `separator` is set to `'#'`.
 
@@ -47,11 +47,11 @@ This function allows to change `separator` to whatever string that is passed as 
 In case you want to change separator, do it as early in the application life cycle as possible to prevent errors.
 :::
 
-## Dynamode.ddb`
+## Dynamode.ddb
 
 Dynamode uses [`@aws-sdk/client-dynamodb`](https://www.npmjs.com/package/@aws-sdk/client-dynamodb) package under the hood. Therefore, it is required to authenticate with AWS so Dynamode can make requests to DynamoDB. `Dynamode.ddb` has a couple of custom settings for managing the `@aws-sdk/client-dynamodb` DynamoDB instance that Dynamode uses.
 
-### Dynamode.ddb.DynamoDB`
+### Dynamode.ddb.DynamoDB
 
 This is the default `@aws-sdk/client-dynamodb` DynamoDB constructor that you can use to create a new DynamoDB instance. Pass the instance to Dynamode with `Dynamode.ddb.set(ddb)` in order to use it.
 
@@ -131,7 +131,7 @@ To setup [DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerg
 const ddb = Dynamode.ddb.local();
 ```
 
-## Dynamode.converter`
+## Dynamode.converter
 
 The `Dynamode.converter` has a couple of custom settings for managing the `@aws-sdk/util-dynamodb` converter methods that Dynamode uses.
 

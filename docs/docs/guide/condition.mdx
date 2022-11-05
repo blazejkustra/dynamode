@@ -222,7 +222,7 @@ User.condition().attribute('username').eq('blazej').or.condition(
 ); // username = blazej OR age = 21 OR age = 37 
 ```
 
-## Condition.and`
+## Condition.and
 
 This method specifies an `AND` operator between two conditions, condition will return true only when both conditions are met. This function can be omitted as `AND` operator is set as default
 
@@ -232,7 +232,7 @@ User.condition().attribute('username').eq('blazej').and.attribute('age').eq(21);
 User.condition().attribute('username').eq('blazej').attribute('age').eq(21); // username = blazej AND age = 21
 ```
 
-## Condition.or`
+## Condition.or
 
 This method specifies an `OR` operator between two conditions, condition will return true if either of two conditions are met.
 
