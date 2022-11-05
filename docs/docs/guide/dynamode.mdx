@@ -8,7 +8,7 @@ hide_title: true
 
 `Dynamode` is a global singleton class that allows you to configure Dynamode to suit your needs. 
 
-## `Dynamode.separator`
+## Dynamode.separator`
 
 A common practice when modeling entities in one table is to add prefixes/suffixes before actual partition and sort keys. Separator is a string that splits prefix, suffix and the actual value. By default `separator` is set to `'#'`.
 
@@ -35,11 +35,11 @@ new AllPossibleProperties(
 
 [AllPossibleProperties](/docs/guide/entity/modeling#all-possible-properties) is an example class that extends [Entity](/docs/guide/entity/methods).
 
-### `Dynamode.separator.get()`
+### Dynamode.separator.get()
 
 This function allows to get current `separator` value. 
 
-### `Dynamode.separator.set(separator)`
+### Dynamode.separator.set(separator)
 
 This function allows to change `separator` to whatever string that is passed as an argument.
 
@@ -47,11 +47,11 @@ This function allows to change `separator` to whatever string that is passed as 
 In case you want to change separator, do it as early in the application life cycle as possible to prevent errors.
 :::
 
-## `Dynamode.ddb`
+## Dynamode.ddb`
 
 Dynamode uses [`@aws-sdk/client-dynamodb`](https://www.npmjs.com/package/@aws-sdk/client-dynamodb) package under the hood. Therefore, it is required to authenticate with AWS so Dynamode can make requests to DynamoDB. `Dynamode.ddb` has a couple of custom settings for managing the `@aws-sdk/client-dynamodb` DynamoDB instance that Dynamode uses.
 
-### `Dynamode.ddb.DynamoDB`
+### Dynamode.ddb.DynamoDB`
 
 This is the default `@aws-sdk/client-dynamodb` DynamoDB constructor that you can use to create a new DynamoDB instance. Pass the instance to Dynamode with `Dynamode.ddb.set(ddb)` in order to use it.
 
@@ -80,7 +80,7 @@ const ddb = new DynamoDB({
 Dynamode.ddb.set(ddb);
 ```
 
-### `Dynamode.ddb.get()`
+### Dynamode.ddb.get()
 
 This function will return the current `@aws-sdk/client-dynamodb` DynamoDB instance that Dynamode is using to interact with DynamoDB. 
 
@@ -99,7 +99,7 @@ AWS_REGION = "region"
 const ddb = Dynamode.ddb.get();
 ```
 
-### `Dynamode.ddb.set(ddb)`
+### Dynamode.ddb.set(ddb)
 
 This function is used to set a custom `@aws-sdk/client-dynamodb` DynamoDB instance. 
 
@@ -116,7 +116,7 @@ const ddb = new Dynamode.ddb.DynamoDB({
 Dynamode.ddb.set(ddb);
 ```
 
-### `Dynamode.ddb.local(endpoint?)`
+### Dynamode.ddb.local(endpoint?)
 
 This function is used to set the `@aws-sdk/client-dynamodb` DynamoDB instance to use local endpoint as opposed to the production instance of DynamoDB. By default `endpoint` is set to `'http://localhost:8000'`. You can pass in a `string` for the `endpoint` argument to change the endpoint that will be used.
 
@@ -131,7 +131,7 @@ To setup [DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerg
 const ddb = Dynamode.ddb.local();
 ```
 
-## `Dynamode.converter`
+## Dynamode.converter`
 
 The `Dynamode.converter` has a couple of custom settings for managing the `@aws-sdk/util-dynamodb` converter methods that Dynamode uses.
 
@@ -142,7 +142,7 @@ By default Dynamode uses the following converter methods from `@aws-sdk/util-dyn
 - convertToAttr
 - convertToNative
 
-### `Dynamode.converter.get()`
+### Dynamode.converter.get()
 
 This function returns the current object of converter methods that Dynamode uses to parse objects in and out of DynamoDB.
 
@@ -161,7 +161,7 @@ Output:
 }
 ```
 
-### `Dynamode.converter.set(converter)` 
+### Dynamode.converter.set(converter) 
 
 This function is used to set a custom object of methods for Dynamode to use when converting (parsing objects in and out of DynamoDB).
 

@@ -12,7 +12,7 @@ import TabItem from '@theme/TabItem';
 
 Transactions are all or nothing, meaning the entire transaction will succeed, or the entire transaction will fail. In the event the transaction fails, state of the database will be the same as if the transaction did not take place. You can also run transaction across multiple tables at once.
 
-## `transactionGet(transactions, options?)`
+## transactionGet(transactions, options?)
 
 ### Description
 
@@ -137,7 +137,7 @@ Output:
 </TabItem>
 </Tabs>
 
-## `transactionWrite(transactions, options?)`
+## transactionWrite(transactions, options?)`
 
 ### Description
 
@@ -149,7 +149,7 @@ This function is used to insert/update/delete multiple items in a single transac
 
 | Method                                                                                                                                            | Description                                     |
 | ------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| [`Entity.transactionPut(item, options?)`](/docs/guide/entity/methods#entitytransactionputitem-options)                                            | Insert an item to DynamoDB.                     |
+| [`Entity.transactionPut(item, options?)](/docs/guide/entity/methods#entitytransactionputitem-options)                                             | Insert an item to DynamoDB.                     |
 | [`Entity.transactionCreate(item, options?)`](/docs/guide/entity/methods#entitytransactioncreateitem-options)                                      | Insert an item to DynamoDB (without overwrite). |
 | [`Entity.transactionUpdate(primaryKey, props, options?)`](/docs/guide/entity/methods#entitytransactionupdateprimarykey-props-options)             | Update an item in DynamoDB.                     |
 | [`Entity.transactionDelete(primaryKey, options?)`](/docs/guide/entity/methods#entitytransactiondeleteprimarykey-options)                          | Delete an item in DynamoDB.                     |

@@ -11,7 +11,7 @@ Condition class represents a conditional that you can pass to [Entity methods](/
 
 Condition is also a base class for [Query](/docs/guide/query) and [Scan](/docs/guide/scan), meaning that all methods listed here are also available in [Query](/docs/guide/query) and [Scan](/docs/guide/scan) classes.
 
-## `new Condition(Entity)` or `Entity.condition()`
+## new Condition(Entity) or Entity.condition()
 
 Every condition has to be initialized with [Entity](/docs/guide/entity/methods) to infer its underlying properties. You can achieve this in two ways:
 
@@ -23,7 +23,7 @@ User.condition();
 
 [User](/docs/guide/entity/modeling#user) is an example class that extends [Entity](/docs/guide/entity/methods).
 
-## `Condition.attribute(key)`
+## Condition.attribute(key)
 
 This method prepares a new conditional expression. The `key` parameter is a string, narrowed down to flattened entity properties.
 
@@ -57,7 +57,7 @@ User.condition().attribute('username'); // This condition has no impact on the f
 User.condition().attribute('username').eq('blazej'); // Adding comparison function (eq) after `attribute` method will complete the conditional. Resulting in: `username = blazej`
 ```
 
-### `.eq(value)`
+### .eq(value)
 
 This comparison function will check if the given key is equal to the value that is passed in as a parameter.
 
@@ -65,7 +65,7 @@ This comparison function will check if the given key is equal to the value that 
 User.condition().attribute('username').eq('blazej'); // Resulting in: `username = blazej`
 ```
 
-### `.ne(value)`
+### .ne(value)
 
 This comparison function will check if the given key is not equal to the value that is passed in as a parameter.
 
@@ -73,7 +73,7 @@ This comparison function will check if the given key is not equal to the value t
 User.condition().attribute('username').ne('blazej'); // Resulting in: `username <> blazej`
 ```
 
-### `.lt(value)`
+### .lt(value)
 
 This comparison function will check if the given key is less than the value that is passed in as a parameter.
 
@@ -81,7 +81,7 @@ This comparison function will check if the given key is less than the value that
 User.condition().attribute('username').lt('blazej'); // Resulting in: `username < blazej`
 ```
 
-### `.le(value)`
+### .le(value)
 
 This comparison function will check if the given key is less than or equal to the value that is passed in as a parameter.
 
@@ -89,7 +89,7 @@ This comparison function will check if the given key is less than or equal to th
 User.condition().attribute('username').le('blazej'); // Resulting in: `username <= blazej`
 ```
 
-### `.gt(value)`
+### .gt(value)
 
 This comparison function will check if the given key is greater than the value that is passed in as a parameter.
 
@@ -97,7 +97,7 @@ This comparison function will check if the given key is greater than the value t
 User.condition().attribute('username').gt('blazej'); // Resulting in: `username > blazej`
 ```
 
-### `.ge(value)`
+### .ge(value)
 
 This comparison function will check if the given key is greater than or equal to the value that is passed in as a parameter.
 
@@ -105,7 +105,7 @@ This comparison function will check if the given key is greater than or equal to
 User.condition().attribute('username').ge('blazej'); // Resulting in: `username >= blazej`
 ```
 
-### `.beginsWith(value)`
+### .beginsWith(value)
 
 This comparison function will check if the given key is begins with the value that is passed in as a parameter.
 
@@ -113,7 +113,7 @@ This comparison function will check if the given key is begins with the value th
 User.condition().attribute('username').beginsWith('bla'); // Resulting in: `begins_with(username, bla)`
 ```
 
-### `.between(value1, value2)`
+### .between(value1, value2)
 
 This comparison function will check if the given key is between the values that were passed in as parameters.
 
@@ -121,7 +121,7 @@ This comparison function will check if the given key is between the values that 
 User.condition().attribute('age').between(21, 37); // Resulting in: `age BETWEEN 21 AND 37`
 ```
 
-### `.contains(values)`
+### .contains(values)
 
 This comparison function will check if the given key contains the value that is passed in as a parameter.
 
@@ -129,7 +129,7 @@ This comparison function will check if the given key contains the value that is 
 User.condition().attribute('username').contains('blazej'); // Resulting in: `contains(username, blazej)`
 ```
 
-### `.in(values)`
+### .in(values)
 
 This comparison function will check if the given key equals to any of the items that are passed in as parameters.
 
@@ -137,7 +137,7 @@ This comparison function will check if the given key equals to any of the items 
 User.condition().attribute('username').in(['blazej', 'david']); // Resulting in: `username IN blazej, david`
 ```
 
-### `.type(value)`
+### .type(value)
 
 This comparison function will check if the given key is of a given type that is passed in as a parameter.
 
@@ -147,7 +147,7 @@ import { AttributeType } from 'dynamode/condition';
 User.condition().attribute('username').type(AttributeType.String); // Resulting in: `attribute_type(username, 'S')`
 ```
 
-### `.exists()`
+### .exists()
 
 This comparison function will check if the given key exists in the item.
 
@@ -155,7 +155,7 @@ This comparison function will check if the given key exists in the item.
 User.condition().attribute('username').exists(); // Resulting in: `attribute_exists(username)`
 ```
 
-### `.size()`
+### .size()
 This function will compare the size of property under the given key. List of possible functions:
 
 | Function     | Result                 |
@@ -167,7 +167,7 @@ This function will compare the size of property under the given key. List of pos
 | `.gt(value)` | `'size(key) > value'`  |
 | `.ge(value)` | `'size(key) >= value'` |
 
-### `.not()`
+### .not()
 
 This function use the opposite comparison for a given condition. List of possible functions:
 
@@ -200,11 +200,11 @@ User.condition().attribute('username').eq('blazej').and.parenthesis(
 ); // username = blazej AND ( age = 21 OR age = 37 )
 ```
 
-## `Condition.group(condition)`
+## Condition.group(condition)
 
 This method is identical to [`Condition.parenthesis(condition)`](/docs/guide/condition#conditionparenthesiscondition) and is used as an alias.
 
-## `Condition.condition(condition)`
+## Condition.condition(condition)
 
 This method takes initialized `Condition` as a parameter and merges both conditions together without parenthesis.
 
@@ -222,7 +222,7 @@ User.condition().attribute('username').eq('blazej').or.condition(
 ); // username = blazej OR age = 21 OR age = 37 
 ```
 
-## `Condition.and`
+## Condition.and`
 
 This method specifies an `AND` operator between two conditions, condition will return true only when both conditions are met. This function can be omitted as `AND` operator is set as default
 
@@ -232,7 +232,7 @@ User.condition().attribute('username').eq('blazej').and.attribute('age').eq(21);
 User.condition().attribute('username').eq('blazej').attribute('age').eq(21); // username = blazej AND age = 21
 ```
 
-## `Condition.or`
+## Condition.or`
 
 This method specifies an `OR` operator between two conditions, condition will return true if either of two conditions are met.
 

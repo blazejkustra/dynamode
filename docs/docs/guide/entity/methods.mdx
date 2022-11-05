@@ -16,7 +16,7 @@ Every class that inherits `Entity` has static methods that you can use to read, 
 
 To read more about modeling entities check out [Decorators](/docs/guide/entity/decorators) and [Modeling](/docs/guide/entity/modeling) pages. 
 
-## `new Entity(props)`
+## new Entity(props)
 
 ### Description
 
@@ -44,21 +44,21 @@ const user = new User({
 }); // Item is not saved in DynamoDB at this point 
 ```
 
-## `Entity.condition()`
+## Entity.condition()
 
 You can construct a conditional by using the `Entity.condition()` method. This initializes `Condition` class that acts as a condition builder to construct your conditional that you can pass to entity methods, Query and Scan classes. To learn more check out [`Condition`](/docs/guide/condition) page.
 
 
-## `Entity.query()`
+## Entity.query()
 
 You can query items by using the `Entity.query()` method. This initializes `Query` class that acts as a builder to construct your DynamoDB query with the appropriate filters. To learn more check out [`Query`](/docs/guide/query) page.
 
 
-## `Entity.scan()`
+## Entity.scan()
 
 You can scan items by using the `Entity.scan()` method. This initializes `Scan` class that acts as a builder to construct your DynamoDB scan with the appropriate filters. To learn more check out [`Scan`](/docs/guide/scan) page.
 
-## `Entity.get(primaryKey, options?)`
+## Entity.get(primaryKey, options?)
 
 ### Description
 
@@ -153,7 +153,7 @@ Output:
 </TabItem>
 </Tabs>
 
-## `Entity.put(item, options?)`
+## Entity.put(item, options?)
 
 ### Description
 
@@ -282,13 +282,13 @@ Output:
 </TabItem>
 </Tabs>
 
-## `Entity.create(item, options?)`
+## Entity.create(item, options?)
 
 ### Description
 
 This method is almost identical to [`Entity.put(item, options?)`](/docs/guide/entity/methods#entityputitem-options). The only difference being that `Entity.create(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
 
-## `Entity.update(primaryKey, props, options?)`
+## Entity.update(primaryKey, props, options?)
 
 ### Description
 
@@ -462,7 +462,7 @@ Output:
 </TabItem>
 </Tabs>
 
-## `Entity.delete(primaryKey, options?)`
+## Entity.delete(primaryKey, options?)
 
 ### Description
 
@@ -568,7 +568,7 @@ Output:
 </TabItem>
 </Tabs>
 
-## `Entity.batchGet(primaryKeys, options?)`
+## Entity.batchGet(primaryKeys, options?)
 
 ### Description
 
@@ -695,7 +695,7 @@ Output:
 </TabItem>
 </Tabs>
 
-## `Entity.batchPut(items, options?)`
+## Entity.batchPut(items, options?)
 
 ### Description
 
@@ -872,7 +872,7 @@ Output:
 </TabItem>
 </Tabs>
 
-## `Entity.batchDelete(primaryKeys, options?)`
+## Entity.batchDelete(primaryKeys, options?)
 
 ### Description
 
@@ -964,7 +964,7 @@ Output:
 </TabItem>
 </Tabs>
 
-## `Entity.transactionGet(primaryKey, options?)`
+## Entity.transactionGet(primaryKey, options?)
 
 ### Description
 
@@ -989,7 +989,7 @@ You can add optional **`options`** parameter that is an object. The table below 
 
 Check out [`transactionGet(transactions, options?)`](/docs/guide/transactions#transactiongettransactions-options) function to see example usage.
 
-## `Entity.transactionPut(item, options?)`
+## Entity.transactionPut(item, options?)
 
 ### Description
 
@@ -1013,13 +1013,13 @@ You can add optional **`options`** parameter that is an object. The table below 
 
 Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function to see example usage.
 
-## `Entity.transactionCreate(item, options?)`
+## Entity.transactionCreate(item, options?)
 
 ### Description
 
 This method is almost identical to [`Entity.transactionPut(item, options?)`](/docs/guide/entity/methods#entitytransactionputitem-options). The only difference being that `Entity.transactionCreate(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
 
-## `Entity.transactionUpdate(primaryKey, props, options?)`
+## Entity.transactionUpdate(primaryKey, props, options?)
 
 ### Description
 
@@ -1056,7 +1056,7 @@ You can add optional **`options`** parameter that is an object. The table below 
 
 Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function to see example usage.
 
-## `Entity.transactionDelete(primaryKey, options?)`
+## Entity.transactionDelete(primaryKey, options?)
 
 ### Description
 
@@ -1079,7 +1079,7 @@ You can add optional **`options`** parameter that is an object. The table below 
 
 Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function to see example usage.
 
-## `Entity.transactionCondition(primaryKey, conditionInstance)`
+## Entity.transactionCondition(primaryKey, conditionInstance)
 
 ### Description
 
