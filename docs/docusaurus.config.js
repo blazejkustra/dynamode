@@ -84,10 +84,9 @@ module.exports = {
   trailingSlash: false,
   themeConfig: {
     algolia: {
-      appId: 'CHLGM6BFRG',
-      apiKey: 'b87befadf62b27ce46142fee664e9c9c',
-      indexName: 'dynamode',
-      // contextualSearch: true, // doesn't work for some reason
+      appId: "S40J7WL1BI",
+      apiKey: "3d80058ec47985dd7ad5dee251c95019",
+      indexName: "dynamode",
     },
     colorMode: {
       disableSwitch: true,
