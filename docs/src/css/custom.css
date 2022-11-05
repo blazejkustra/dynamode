@@ -273,18 +273,18 @@ section > .container {
   float: left;
 }  
 
-section {
+.landing-container {
   display: flex;
   justify-content: center;
   padding: 3rem 0;
   background-color: var(--swm-color-bright);
 }
 
-section:nth-child(2) {
+.landing-container:nth-child(2) {
   background-color: var(--ifm-color-white);
 }
 
-section > .contaner > .row {
+.landing-container > .contaner > .row {
   display: flex;
   align-items: flex-start;
 }

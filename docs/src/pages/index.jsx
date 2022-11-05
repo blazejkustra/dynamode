@@ -117,14 +117,14 @@ function Home() {
     <Layout title="DynamoDB ODM" description="Modeling tool for Amazon's DynamoDB">
       <Hero />
       <main>
-        <section>
+        <section className="landing-container">
           <div className="container">
             <div className={`row row--box-section ${classnames('row', styles.row)}`}>
               <SectionInfo />
             </div>
           </div>
         </section>
-        <section>
+        <section className="landing-container">
           <div className="container container--center">
             <div className={`row row--center ${classnames('row', styles.row)}`}>
               <div className="col col--7 text--center col--bottom-section">
