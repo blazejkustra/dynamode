@@ -1,10 +1,10 @@
 import { ReturnValue as DynamoReturnValue, ReturnValuesOnConditionCheckFailure as DynamoReturnValueOnFailure } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import { BuildDeleteConditionExpression, BuildGetProjectionExpression, BuildPutConditionExpression, BuildUpdateConditionExpression, Entity, EntityKey, ReturnValues, ReturnValuesLimited, UpdateProps } from '@lib/entity/types';
-import { AttributeMap, buildExpression, checkDuplicatesInArray, ConditionExpression, DefaultError, isNotEmpty, isNotEmptyArray, isNotEmptyString, substituteAttributeName } from '@lib/utils';
+import { AttributeMap, buildExpression, ConditionExpression, DefaultError, duplicatesInArray, isNotEmpty, isNotEmptyArray, isNotEmptyString, substituteAttributeName } from '@lib/utils';
 
 export function buildProjectionExpression<T extends Entity<T>>(attributes: Array<EntityKey<T>>, attributeNames: Record<string, string>): string {
-  if (checkDuplicatesInArray(attributes)) {
+  if (duplicatesInArray(attributes)) {
     throw new DefaultError();
   }
 
