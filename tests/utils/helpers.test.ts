@@ -104,7 +104,7 @@ describe('Helpers', () => {
     const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
 
     afterEach(() => {
-      vi.clearAllMocks();
+      vi.restoreAllMocks();
     });
 
     test('Should call setTimeout if argument is greater than 0', async () => {

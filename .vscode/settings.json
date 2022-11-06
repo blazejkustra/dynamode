@@ -1,6 +1,7 @@
 {
   "cSpell.words": [
-    "dynamode"
+    "dynamode",
+    "unmarshall"
   ],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
