@@ -1,11 +1,11 @@
 import { AttributeMetadata, AttributeType, EntityMetadata, TablesMetadata } from '@lib/dynamode/storage/types';
 import { Entity } from '@lib/entity/types';
-import { AttributeMap, DefaultError, mergeObjects, valueFromDynamo } from '@lib/utils';
+import { AttributeValues, DefaultError, mergeObjects, valueFromDynamo } from '@lib/utils';
 
 export default class DynamodeStorage {
   public tables: TablesMetadata = {};
 
-  public convertEntityToAttributeMap<T extends Entity<T>>(dynamoItem?: AttributeMap, tableName?: string): InstanceType<T> | undefined {
+  public convertEntityToAttributeValues<T extends Entity<T>>(dynamoItem?: AttributeValues, tableName?: string): InstanceType<T> | undefined {
     if (!dynamoItem || !tableName) {
       return undefined;
     }
@@ -22,7 +22,7 @@ export default class DynamodeStorage {
       throw new DefaultError();
     }
 
-    return Constructor.convertAttributeMapToEntity(dynamoItem);
+    return Constructor.convertAttributeValuesToEntity(dynamoItem);
   }
 
   public addPrimaryPartitionKeyMetadata(tableName: string, propertyName: string) {

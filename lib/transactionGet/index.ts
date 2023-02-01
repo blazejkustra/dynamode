@@ -29,7 +29,7 @@ export default function transactionGet<T extends Entity<T>>(transactions: Array<
       return result;
     }
 
-    const entities = items.map((item, idx) => Dynamode.storage.convertEntityToAttributeMap(item, transactions[idx].Get.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
+    const entities = items.map((item, idx) => Dynamode.storage.convertEntityToAttributeValues(item, transactions[idx].Get.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
     return {
       items: entities,
       count: entities.length,

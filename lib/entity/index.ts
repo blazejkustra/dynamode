@@ -40,7 +40,7 @@ import Query from '@lib/query';
 import Scan from '@lib/scan';
 import { GetTransaction } from '@lib/transactionGet/types';
 import { WriteTransaction } from '@lib/transactionWrite/types';
-import { AttributeMap, buildExpression, DefaultError, fromDynamo, GenericObject, isNotEmpty, NotFoundError, objectToDynamo } from '@lib/utils';
+import { AttributeValues, DefaultError, ExpressionBuilder, fromDynamo, GenericObject, NotFoundError, objectToDynamo } from '@lib/utils';
 
 export default function Entity<Metadata extends EntityMetadata>(tableName: string) {
   Dynamode.storage.addEntityAttributeMetadata(tableName, 'Entity', 'dynamodeEntity', { propertyName: 'dynamodeEntity', type: String, role: 'dynamodeEntity' });
@@ -74,11 +74,14 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
     public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityGetOptions<T> & { return: 'output' }): Promise<GetItemCommandOutput>;
     public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityGetOptions<T> & { return: 'input' }): GetItemCommandInput;
     public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityGetOptions<T>): Promise<InstanceType<T> | GetItemCommandOutput> | GetItemCommandInput {
+      const { projectionExpression, attributeNames } = buildGetProjectionExpression(options?.attributes);
+
       const commandInput: GetItemCommandInput = {
         TableName: this.tableName,
-        Key: this.convertPrimaryKeyToAttributeMap(primaryKey),
+        Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
         ConsistentRead: options?.consistent || false,
-        ...buildGetProjectionExpression(options?.attributes),
+        ProjectionExpression: projectionExpression,
+        ExpressionAttributeNames: attributeNames,
         ...options?.extraInput,
       };
 
@@ -97,7 +100,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
           return result;
         }
 
-        return this.convertAttributeMapToEntity(result.Item);
+        return this.convertAttributeValuesToEntity(result.Item);
       })();
     }
 
@@ -106,11 +109,16 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
     public static update<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'output' }): Promise<UpdateItemCommandOutput>;
     public static update<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'input' }): UpdateItemCommandInput;
     public static update<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options?: EntityUpdateOptions<T>): Promise<InstanceType<T> | UpdateItemCommandOutput> | UpdateItemCommandInput {
+      const { updateExpression, conditionExpression, attributeNames, attributeValues } = buildUpdateConditionExpression(props, options?.condition);
+
       const commandInput: UpdateItemCommandInput = {
         TableName: this.tableName,
-        Key: this.convertPrimaryKeyToAttributeMap(primaryKey),
+        Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
         ReturnValues: mapReturnValues(options?.returnValues),
-        ...buildUpdateConditionExpression(props, options?.condition),
+        UpdateExpression: updateExpression,
+        ConditionExpression: conditionExpression,
+        ExpressionAttributeNames: attributeNames,
+        ExpressionAttributeValues: attributeValues,
         ...options?.extraInput,
       };
 
@@ -125,7 +133,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
           return result;
         }
 
-        return this.convertAttributeMapToEntity(result.Attributes || {});
+        return this.convertAttributeValuesToEntity(result.Attributes || {});
       })();
     }
 
@@ -137,12 +145,15 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
       const overwrite = options?.overwrite ?? true;
       const partitionKey = Dynamode.storage.getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
       const overwriteCondition = overwrite ? undefined : this.condition().attribute(partitionKey).not().exists();
-      const dynamoItem = this.convertEntityToAttributeMap(item);
+      const dynamoItem = this.convertEntityToAttributeValues(item);
+      const { conditionExpression, attributeNames, attributeValues } = buildPutConditionExpression(overwriteCondition, options?.condition);
 
       const commandInput: PutItemCommandInput = {
         TableName: this.tableName,
         Item: dynamoItem,
-        ...buildPutConditionExpression(overwriteCondition, options?.condition),
+        ConditionExpression: conditionExpression,
+        ExpressionAttributeNames: attributeNames,
+        ExpressionAttributeValues: attributeValues,
         ...options?.extraInput,
       };
 
@@ -157,7 +168,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
           return result;
         }
 
-        return this.convertAttributeMapToEntity(dynamoItem);
+        return this.convertAttributeValuesToEntity(dynamoItem);
       })();
     }
 
@@ -178,12 +189,15 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
       const throwErrorIfNotExists = options?.throwErrorIfNotExists ?? false;
       const partitionKey = Dynamode.storage.getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
       const notExistsCondition = throwErrorIfNotExists ? this.condition().attribute(partitionKey).exists() : undefined;
+      const { conditionExpression, attributeNames, attributeValues } = buildDeleteConditionExpression(notExistsCondition, options?.condition);
 
       const commandInput: DeleteItemCommandInput = {
         TableName: this.tableName,
-        Key: this.convertPrimaryKeyToAttributeMap(primaryKey),
+        Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
         ReturnValues: mapReturnValuesLimited(options?.returnValues),
-        ...buildDeleteConditionExpression(notExistsCondition, options?.condition),
+        ConditionExpression: conditionExpression,
+        ExpressionAttributeNames: attributeNames,
+        ExpressionAttributeValues: attributeValues,
         ...options?.extraInput,
       };
 
@@ -198,7 +212,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
           return result;
         }
 
-        return result.Attributes ? this.convertAttributeMapToEntity(result.Attributes) : null;
+        return result.Attributes ? this.convertAttributeValuesToEntity(result.Attributes) : null;
       })();
     }
 
@@ -211,12 +225,15 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
       primaryKeys: Array<EntityPrimaryKey<T>>,
       options?: EntityBatchGetOptions<T>,
     ): Promise<EntityBatchGetOutput<T, EntityPrimaryKey<T>> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
+      const { projectionExpression, attributeNames } = buildGetProjectionExpression(options?.attributes);
+
       const commandInput: BatchGetItemCommandInput = {
         RequestItems: {
           [this.tableName]: {
-            Keys: primaryKeys.map((primaryKey) => this.convertPrimaryKeyToAttributeMap(primaryKey)),
+            Keys: primaryKeys.map((primaryKey) => this.convertPrimaryKeyToAttributeValues(primaryKey)),
             ConsistentRead: options?.consistent || false,
-            ...buildGetProjectionExpression(options?.attributes),
+            ProjectionExpression: projectionExpression,
+            ExpressionAttributeNames: attributeNames,
           },
         },
         ...options?.extraInput,
@@ -236,7 +253,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
         const items = result.Responses?.[this.tableName] || [];
         const unprocessedKeys = result.UnprocessedKeys?.[this.tableName]?.Keys?.map((key) => fromDynamo(key) as EntityPrimaryKey<T>) || [];
 
-        return { items: items.map((item) => this.convertAttributeMapToEntity(item)), unprocessedKeys };
+        return { items: items.map((item) => this.convertAttributeValuesToEntity(item)), unprocessedKeys };
       })();
     }
 
@@ -245,7 +262,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
     public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
     public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'input' }): BatchWriteItemCommandInput;
     public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options?: EntityBatchPutOptions): Promise<EntityBatchPutOutput<T> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
-      const dynamoItems = items.map((item) => this.convertEntityToAttributeMap(item));
+      const dynamoItems = items.map((item) => this.convertEntityToAttributeValues(item));
       const commandInput: BatchWriteItemCommandInput = {
         RequestItems: {
           [this.tableName]: dynamoItems.map((dynamoItem) => ({
@@ -271,10 +288,10 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
         const unprocessedItems =
           result.UnprocessedItems?.[this.tableName]
             ?.map((request) => request.PutRequest?.Item)
-            ?.filter((item): item is AttributeMap => !!item)
-            ?.map((item) => this.convertAttributeMapToEntity(item)) || [];
+            ?.filter((item): item is AttributeValues => !!item)
+            ?.map((item) => this.convertAttributeValuesToEntity(item)) || [];
 
-        return { items: dynamoItems.map((dynamoItem) => this.convertAttributeMapToEntity(dynamoItem)), unprocessedItems };
+        return { items: dynamoItems.map((dynamoItem) => this.convertAttributeValuesToEntity(dynamoItem)), unprocessedItems };
       })();
     }
 
@@ -291,7 +308,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
         RequestItems: {
           [this.tableName]: primaryKeys.map((primaryKey) => ({
             DeleteRequest: {
-              Key: this.convertPrimaryKeyToAttributeMap(primaryKey),
+              Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
             },
           })),
         },
@@ -312,7 +329,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
         const unprocessedItems =
           result.UnprocessedItems?.[this.tableName]
             ?.map((request) => request.DeleteRequest?.Key)
-            ?.filter((item): item is AttributeMap => !!item)
+            ?.filter((item): item is AttributeValues => !!item)
             .map((key) => fromDynamo(key) as EntityPrimaryKey<T>) || [];
 
         return { unprocessedItems };
@@ -320,12 +337,15 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
     }
 
     public static transactionGet<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityTransactionGetOptions<T>): GetTransaction<T> {
+      const { projectionExpression, attributeNames } = buildGetProjectionExpression(options?.attributes);
+
       const commandInput: GetTransaction<T> = {
         ...this,
         Get: {
           TableName: this.tableName,
-          Key: this.convertPrimaryKeyToAttributeMap(primaryKey),
-          ...buildGetProjectionExpression(options?.attributes),
+          Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
+          ProjectionExpression: projectionExpression,
+          ExpressionAttributeNames: attributeNames,
           ...options?.extraInput,
         },
       };
@@ -334,13 +354,18 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
     }
 
     public static transactionUpdate<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options?: EntityTransactionUpdateOptions<T>): WriteTransaction<T> {
+      const { updateExpression, conditionExpression, attributeNames, attributeValues } = buildUpdateConditionExpression(props, options?.condition);
+
       const commandInput: WriteTransaction<T> = {
         ...this,
         Update: {
           TableName: this.tableName,
-          Key: this.convertPrimaryKeyToAttributeMap(primaryKey),
+          Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
           ReturnValuesOnConditionCheckFailure: mapReturnValuesLimited(options?.returnValuesOnFailure),
-          ...buildUpdateConditionExpression(props, options?.condition),
+          UpdateExpression: updateExpression,
+          ConditionExpression: conditionExpression,
+          ExpressionAttributeNames: attributeNames,
+          ExpressionAttributeValues: attributeValues,
           ...options?.extraInput,
         },
       };
@@ -352,14 +377,17 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
       const overwrite = options?.overwrite ?? true;
       const partitionKey = Dynamode.storage.getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
       const overwriteCondition = overwrite ? undefined : this.condition().attribute(partitionKey).not().exists();
+      const { conditionExpression, attributeNames, attributeValues } = buildPutConditionExpression(overwriteCondition, options?.condition);
 
       const commandInput: WriteTransaction<T> = {
         ...this,
         Put: {
           TableName: this.tableName,
-          Item: this.convertEntityToAttributeMap(item),
+          Item: this.convertEntityToAttributeValues(item),
           ReturnValuesOnConditionCheckFailure: mapReturnValuesLimited(options?.returnValuesOnFailure),
-          ...buildPutConditionExpression(overwriteCondition, options?.condition),
+          ConditionExpression: conditionExpression,
+          ExpressionAttributeNames: attributeNames,
+          ExpressionAttributeValues: attributeValues,
           ...options?.extraInput,
         },
       };
@@ -373,12 +401,16 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
     }
 
     public static transactionDelete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityTransactionDeleteOptions<T>): WriteTransaction<T> {
+      const { conditionExpression, attributeNames, attributeValues } = buildDeleteConditionExpression(options?.condition);
+
       const commandInput: WriteTransaction<T> = {
         ...this,
         Delete: {
           TableName: this.tableName,
-          Key: this.convertPrimaryKeyToAttributeMap(primaryKey),
-          ...buildDeleteConditionExpression(options?.condition),
+          Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
+          ConditionExpression: conditionExpression,
+          ExpressionAttributeNames: attributeNames,
+          ExpressionAttributeValues: attributeValues,
           ...options?.extraInput,
         },
       };
@@ -387,24 +419,24 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
     }
 
     public static transactionCondition<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, conditionInstance: Condition<T>): WriteTransaction<T> {
-      const attributeNames: Record<string, string> = {};
-      const attributeValues: AttributeMap = {};
-      const conditionExpression = buildExpression(conditionInstance.conditions, attributeNames, attributeValues);
+      const expressionBuilder = new ExpressionBuilder();
+      const conditionExpression = expressionBuilder.run(conditionInstance.operators);
+
       const commandInput: WriteTransaction<T> = {
         ...this,
         ConditionCheck: {
           TableName: this.tableName,
-          Key: this.convertPrimaryKeyToAttributeMap(primaryKey),
+          Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
           ConditionExpression: conditionExpression,
-          ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
-          ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
+          ExpressionAttributeNames: expressionBuilder.attributeNames,
+          ExpressionAttributeValues: expressionBuilder.attributeValues,
         },
       };
 
       return commandInput;
     }
 
-    public static convertAttributeMapToEntity<T extends typeof Entity>(this: T, dynamoItem: AttributeMap): InstanceType<T> {
+    public static convertAttributeValuesToEntity<T extends typeof Entity>(this: T, dynamoItem: AttributeValues): InstanceType<T> {
       const object = fromDynamo(dynamoItem);
       const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
       const { createdAt, updatedAt } = Dynamode.storage.getTableMetadata(this.tableName);
@@ -425,7 +457,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
       return new this(object) as InstanceType<T>;
     }
 
-    public static convertEntityToAttributeMap<T extends typeof Entity>(this: T, item: InstanceType<T>): AttributeMap {
+    public static convertEntityToAttributeValues<T extends typeof Entity>(this: T, item: InstanceType<T>): AttributeValues {
       const dynamoObject: GenericObject = {};
       const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
       const { createdAt, updatedAt } = Dynamode.storage.getTableMetadata(this.tableName);
@@ -447,7 +479,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
       return objectToDynamo(dynamoObject);
     }
 
-    public static convertAttributeMapToPrimaryKey<T extends typeof Entity>(this: T, dynamoItem: AttributeMap): EntityPrimaryKey<T> {
+    public static convertAttributeValuesToPrimaryKey<T extends typeof Entity>(this: T, dynamoItem: AttributeValues): EntityPrimaryKey<T> {
       const object = fromDynamo(dynamoItem);
       const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(this.tableName);
       if (partitionKey) object[partitionKey] = this.truncateValue(partitionKey as EntityKey<T>, object[partitionKey]);
@@ -456,7 +488,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
       return object as EntityPrimaryKey<T>;
     }
 
-    public static convertPrimaryKeyToAttributeMap<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): AttributeMap {
+    public static convertPrimaryKeyToAttributeValues<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): AttributeValues {
       const dynamoObject: GenericObject = {};
       const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(this.tableName);
       if (partitionKey) dynamoObject[partitionKey] = this.prefixSuffixValue(partitionKey as EntityKey<T>, (<any>primaryKey)[partitionKey]);

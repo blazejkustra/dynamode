@@ -1,4 +1,4 @@
-const createError = (defaultMessage: string, errorName: string) =>
+export const createError = (defaultMessage: string, errorName: string) =>
   class CustomError extends Error {
     name: string;
     message: string;

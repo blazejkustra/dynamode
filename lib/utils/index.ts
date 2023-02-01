@@ -1,4 +1,4 @@
-export * from '@lib/utils/buildExpressions';
+export * from '@lib/utils/ExpressionBuilder';
 export * from '@lib/utils/converter';
 export * from '@lib/utils/errors';
 export * from '@lib/utils/helpers';

@@ -20,6 +20,29 @@ export function isNotEmptyArray<T>(array?: Array<T>): array is Array<T> {
   return !!array && array.length > 0;
 }
 
+export function insertBetween<T>(arr: T[], separator: T | T[]): T[] {
+  return arr.flatMap((value, index, array) =>
+    array.length - 1 !== index // check for the last item
+      ? Array.isArray(separator)
+        ? [value, ...separator]
+        : [value, separator]
+      : value,
+  );
+}
+
+/** Splits key that reference a list element.
+ * Alphanumeric part can be replaced in case it is a DynamoDB reserved word.
+ * Examples: 'list[0][1]' -> ['list', '[0][1]']. 'auto[10]' -> ['auto', '[10]'] */
+export function splitListPathReference(key: string): [string, string] {
+  const index = key.search(/\[\d+\]/g);
+
+  if (index === -1) {
+    return [key, ''];
+  }
+
+  return [key.slice(0, index), key.slice(index)];
+}
+
 /**
  * Performs a deep merge of objects and returns new object. Does not modify
  * objects (immutable) and merges arrays via concatenation.

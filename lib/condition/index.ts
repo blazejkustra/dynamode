@@ -1,29 +1,31 @@
-import { AttributeType, Operator } from '@lib/condition/types';
+import { AttributeType } from '@lib/condition/types';
 import { Entity, EntityKey, EntityValue } from '@lib/entity/types';
-import { ConditionExpression, DefaultError } from '@lib/utils';
+import { DefaultError, OPERATORS, Operators } from '@lib/utils';
+
+import { BASE_OPERATOR } from './../utils/constants';
 
 export default class Condition<T extends Entity<T>> {
   protected entity: T;
-  protected operator = Operator.AND;
-  public conditions: ConditionExpression[];
+  protected logicalOperator: typeof BASE_OPERATOR.and | typeof BASE_OPERATOR.or = BASE_OPERATOR.and;
+  public operators: Operators;
 
   constructor(entity: T) {
     this.entity = entity;
-    this.conditions = [];
+    this.operators = [];
   }
 
   public attribute<C extends Condition<T>, K extends EntityKey<T>>(this: C, key: K) {
-    this.maybePushOperator(this.conditions);
+    this.maybePushOperator(this.operators);
 
     return {
-      eq: (value: EntityValue<T, K>): C => this.eq(this.conditions, key, value),
-      ne: (value: EntityValue<T, K>): C => this.ne(this.conditions, key, value),
-      lt: (value: EntityValue<T, K>): C => this.lt(this.conditions, key, value),
-      le: (value: EntityValue<T, K>): C => this.le(this.conditions, key, value),
-      gt: (value: EntityValue<T, K>): C => this.gt(this.conditions, key, value),
-      ge: (value: EntityValue<T, K>): C => this.ge(this.conditions, key, value),
-      beginsWith: (value: EntityValue<T, K>): C => this.beginsWith(this.conditions, key, value),
-      between: (value1: EntityValue<T, K>, value2: EntityValue<T, K>): C => this.between(this.conditions, key, value1, value2),
+      eq: (value: EntityValue<T, K>): C => this.eq(this.operators, key, value),
+      ne: (value: EntityValue<T, K>): C => this.ne(this.operators, key, value),
+      lt: (value: EntityValue<T, K>): C => this.lt(this.operators, key, value),
+      le: (value: EntityValue<T, K>): C => this.le(this.operators, key, value),
+      gt: (value: EntityValue<T, K>): C => this.gt(this.operators, key, value),
+      ge: (value: EntityValue<T, K>): C => this.ge(this.operators, key, value),
+      beginsWith: (value: EntityValue<T, K>): C => this.beginsWith(this.operators, key, value),
+      between: (value1: EntityValue<T, K>, value2: EntityValue<T, K>): C => this.between(this.operators, key, value1, value2),
       contains: (value: EntityValue<T, K>): C => {
         let processedValue = value;
 
@@ -34,55 +36,55 @@ export default class Condition<T extends Entity<T>> {
           processedValue = Array.from(value)[0];
         }
 
-        this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, processedValue)], expr: `contains($K, $V)` });
+        this.operators.push(...OPERATORS.contains(String(key), this.entity.prefixSuffixValue(key, processedValue)));
         return this;
       },
       in: (values: Array<EntityValue<T, K>>): C => {
         const processedValues = values.map((value) => this.entity.prefixSuffixValue(key, value));
-        this.conditions.push({ keys: [String(key)], values: processedValues, expr: `$K IN ${Array(values.length).fill('$V').join(', ')}` });
+        this.operators.push(...OPERATORS.in(String(key), processedValues));
         return this;
       },
       type: (value: AttributeType): C => {
-        this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'attribute_type($K, $V)' });
+        this.operators.push(...OPERATORS.attributeType(String(key), this.entity.prefixSuffixValue(key, value)));
         return this;
       },
       exists: (): C => {
-        this.conditions.push({ keys: [String(key)], expr: 'attribute_exists($K)' });
+        this.operators.push(...OPERATORS.attributeExists(String(key)));
         return this;
       },
       size: () => ({
         eq: (value: number): C => {
-          this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) = $V' });
+          this.operators.push(...OPERATORS.sizeEq(String(key), this.entity.prefixSuffixValue(key, value)));
           return this;
         },
         ne: (value: number): C => {
-          this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) <> $V' });
+          this.operators.push(...OPERATORS.sizeNe(String(key), this.entity.prefixSuffixValue(key, value)));
           return this;
         },
         lt: (value: number): C => {
-          this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) < $V' });
+          this.operators.push(...OPERATORS.sizeLt(String(key), this.entity.prefixSuffixValue(key, value)));
           return this;
         },
         le: (value: number): C => {
-          this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) <= $V' });
+          this.operators.push(...OPERATORS.sizeLe(String(key), this.entity.prefixSuffixValue(key, value)));
           return this;
         },
         gt: (value: number): C => {
-          this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) > $V' });
+          this.operators.push(...OPERATORS.sizeGt(String(key), this.entity.prefixSuffixValue(key, value)));
           return this;
         },
         ge: (value: number): C => {
-          this.conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'size($K) >= $V' });
+          this.operators.push(...OPERATORS.sizeGe(String(key), this.entity.prefixSuffixValue(key, value)));
           return this;
         },
       }),
       not: () => ({
-        eq: (value: EntityValue<T, K>): C => this.ne(this.conditions, key, value),
-        ne: (value: EntityValue<T, K>): C => this.eq(this.conditions, key, value),
-        lt: (value: EntityValue<T, K>): C => this.ge(this.conditions, key, value),
-        le: (value: EntityValue<T, K>): C => this.gt(this.conditions, key, value),
-        gt: (value: EntityValue<T, K>): C => this.le(this.conditions, key, value),
-        ge: (value: EntityValue<T, K>): C => this.lt(this.conditions, key, value),
+        eq: (value: EntityValue<T, K>): C => this.ne(this.operators, key, value),
+        ne: (value: EntityValue<T, K>): C => this.eq(this.operators, key, value),
+        lt: (value: EntityValue<T, K>): C => this.ge(this.operators, key, value),
+        le: (value: EntityValue<T, K>): C => this.gt(this.operators, key, value),
+        gt: (value: EntityValue<T, K>): C => this.le(this.operators, key, value),
+        ge: (value: EntityValue<T, K>): C => this.lt(this.operators, key, value),
         contains: (value: EntityValue<T, K>): C => {
           let processedValue = value;
 
@@ -93,20 +95,17 @@ export default class Condition<T extends Entity<T>> {
             processedValue = Array.from(value)[0];
           }
 
-          this.conditions.push({
-            keys: [String(key)],
-            values: [this.entity.prefixSuffixValue(key, processedValue)],
-            expr: `NOT contains($K, $V)`,
-          });
+          this.operators.push(...OPERATORS.notContains(String(key), this.entity.prefixSuffixValue(key, processedValue)));
+
           return this;
         },
         in: (values: Array<EntityValue<T, K>>): C => {
           const processedValues = values.map((value) => this.entity.prefixSuffixValue(key, value));
-          this.conditions.push({ keys: [String(key)], values: processedValues, expr: `NOT ($K IN ${Array(values.length).fill('$V').join(', ')})` });
+          this.operators.push(...OPERATORS.notIn(String(key), processedValues));
           return this;
         },
         exists: (): C => {
-          this.conditions.push({ keys: [String(key)], expr: 'attribute_not_exists($K)' });
+          this.operators.push(...OPERATORS.attributeNotExists(String(key)));
           return this;
         },
       }),
@@ -115,8 +114,8 @@ export default class Condition<T extends Entity<T>> {
 
   public parenthesis(condition?: Condition<T>): this {
     if (condition) {
-      this.maybePushOperator(this.conditions);
-      this.conditions.push(...[{ expr: '(' }, ...condition.conditions, { expr: ')' }]);
+      this.maybePushOperator(this.operators);
+      this.operators.push(...OPERATORS.parenthesis(condition.operators));
     }
     return this;
   }
@@ -127,67 +126,67 @@ export default class Condition<T extends Entity<T>> {
 
   public condition(condition?: Condition<T>): this {
     if (condition) {
-      this.maybePushOperator(this.conditions);
-      this.conditions.push(...condition.conditions);
+      this.maybePushOperator(this.operators);
+      this.operators.push(...condition.operators);
     }
     return this;
   }
 
   public get and(): this {
-    this.operator = Operator.AND;
+    this.logicalOperator = BASE_OPERATOR.and;
     return this;
   }
 
   public get or(): this {
-    this.operator = Operator.OR;
+    this.logicalOperator = BASE_OPERATOR.or;
     return this;
   }
 
-  protected eq<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): this {
-    conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: '$K = $V' });
+  protected eq<K extends EntityKey<T>>(operators: Operators, key: K, value: EntityValue<T, K>): this {
+    operators.push(...OPERATORS.eq(String(key), this.entity.prefixSuffixValue(key, value)));
     return this;
   }
 
-  protected ne<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): this {
-    conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: '$K <> $V' });
+  protected ne<K extends EntityKey<T>>(operators: Operators, key: K, value: EntityValue<T, K>): this {
+    operators.push(...OPERATORS.ne(String(key), this.entity.prefixSuffixValue(key, value)));
     return this;
   }
 
-  protected lt<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): this {
-    conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: '$K < $V' });
+  protected lt<K extends EntityKey<T>>(operators: Operators, key: K, value: EntityValue<T, K>): this {
+    operators.push(...OPERATORS.lt(String(key), this.entity.prefixSuffixValue(key, value)));
     return this;
   }
 
-  protected le<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): this {
-    conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: '$K <= $V' });
+  protected le<K extends EntityKey<T>>(operators: Operators, key: K, value: EntityValue<T, K>): this {
+    operators.push(...OPERATORS.le(String(key), this.entity.prefixSuffixValue(key, value)));
     return this;
   }
 
-  protected gt<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): this {
-    conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: '$K > $V' });
+  protected gt<K extends EntityKey<T>>(operators: Operators, key: K, value: EntityValue<T, K>): this {
+    operators.push(...OPERATORS.gt(String(key), this.entity.prefixSuffixValue(key, value)));
     return this;
   }
 
-  protected ge<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): this {
-    conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: '$K >= $V' });
+  protected ge<K extends EntityKey<T>>(operators: Operators, key: K, value: EntityValue<T, K>): this {
+    operators.push(...OPERATORS.ge(String(key), this.entity.prefixSuffixValue(key, value)));
     return this;
   }
 
-  protected beginsWith<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, value: EntityValue<T, K>): this {
-    conditions.push({ keys: [String(key)], values: [this.entity.prefixSuffixValue(key, value)], expr: 'begins_with($K, $V)' });
+  protected beginsWith<K extends EntityKey<T>>(operators: Operators, key: K, value: EntityValue<T, K>): this {
+    operators.push(...OPERATORS.beginsWith(String(key), this.entity.prefixSuffixValue(key, value)));
     return this;
   }
 
-  protected between<K extends EntityKey<T>>(conditions: ConditionExpression[], key: K, v1: EntityValue<T, K>, v2: EntityValue<T, K>): this {
-    conditions.push({ keys: [String(key), String(key)], values: [this.entity.prefixSuffixValue(key, v1), this.entity.prefixSuffixValue(key, v2)], expr: '$K BETWEEN $V AND $V' });
+  protected between<K extends EntityKey<T>>(operators: Operators, key: K, v1: EntityValue<T, K>, v2: EntityValue<T, K>): this {
+    operators.push(...OPERATORS.between(String(key), this.entity.prefixSuffixValue(key, v1), this.entity.prefixSuffixValue(key, v2)));
     return this;
   }
 
-  protected maybePushOperator(conditions: ConditionExpression[]) {
-    if (conditions.length > 0) {
-      conditions.push({ expr: this.operator });
+  protected maybePushOperator(operators: Operators) {
+    if (operators.length > 0) {
+      operators.push(BASE_OPERATOR.space, this.logicalOperator, BASE_OPERATOR.space);
     }
-    this.operator = Operator.AND;
+    this.logicalOperator = BASE_OPERATOR.and;
   }
 }
 

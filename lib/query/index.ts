@@ -1,14 +1,15 @@
 import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
-import { Operator } from '@lib/condition/types';
 import { Dynamode } from '@lib/dynamode';
 import { Entity, EntityKey, EntityPartitionKeys, EntitySortKeys, EntityValue } from '@lib/entity/types';
 import { QueryRunOptions, QueryRunOutput } from '@lib/query/types';
 import RetrieverBase from '@lib/retriever';
-import { AttributeMap, buildExpression, ConditionExpression, isNotEmpty, isNotEmptyString, timeout } from '@lib/utils';
+import { AttributeValues, ExpressionBuilder, isNotEmptyString, Operators, timeout } from '@lib/utils';
+
+import { BASE_OPERATOR } from './../utils/constants';
 
 export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
   protected input: QueryInput;
-  public keyConditions: ConditionExpression[] = [];
+  public keyOperators: Operators = [];
 
   constructor(entity: T) {
     super(entity);
@@ -20,22 +21,22 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
     if (indexName) this.input.IndexName = indexName;
 
     return {
-      eq: (value: EntityValue<T, K>): Q => this.eq(this.keyConditions, key, value),
+      eq: (value: EntityValue<T, K>): Q => this.eq(this.keyOperators, key, value),
     };
   }
 
   public sortKey<Q extends Query<T>, K extends EntityKey<T> & EntitySortKeys<T>>(this: Q, key: K) {
-    this.keyConditions.push({ expr: Operator.AND });
+    this.keyOperators.push(BASE_OPERATOR.space, BASE_OPERATOR.and, BASE_OPERATOR.space);
 
     return {
-      eq: (value: EntityValue<T, K>): Q => this.eq(this.keyConditions, key, value),
-      ne: (value: EntityValue<T, K>): Q => this.ne(this.keyConditions, key, value),
-      lt: (value: EntityValue<T, K>): Q => this.lt(this.keyConditions, key, value),
-      le: (value: EntityValue<T, K>): Q => this.le(this.keyConditions, key, value),
-      gt: (value: EntityValue<T, K>): Q => this.gt(this.keyConditions, key, value),
-      ge: (value: EntityValue<T, K>): Q => this.ge(this.keyConditions, key, value),
-      beginsWith: (value: EntityValue<T, K>): Q => this.beginsWith(this.keyConditions, key, value),
-      between: (value1: EntityValue<T, K>, value2: EntityValue<T, K>): Q => this.between(this.keyConditions, key, value1, value2),
+      eq: (value: EntityValue<T, K>): Q => this.eq(this.keyOperators, key, value),
+      ne: (value: EntityValue<T, K>): Q => this.ne(this.keyOperators, key, value),
+      lt: (value: EntityValue<T, K>): Q => this.lt(this.keyOperators, key, value),
+      le: (value: EntityValue<T, K>): Q => this.le(this.keyOperators, key, value),
+      gt: (value: EntityValue<T, K>): Q => this.gt(this.keyOperators, key, value),
+      ge: (value: EntityValue<T, K>): Q => this.ge(this.keyOperators, key, value),
+      beginsWith: (value: EntityValue<T, K>): Q => this.beginsWith(this.keyOperators, key, value),
+      between: (value1: EntityValue<T, K>, value2: EntityValue<T, K>): Q => this.between(this.keyOperators, key, value1, value2),
     };
   }
 
@@ -66,11 +67,11 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
       const all = options?.all ?? false;
       const delay = options?.delay ?? 0;
       const max = options?.max ?? Infinity;
-      const items: AttributeMap[] = [];
+      const items: AttributeValues[] = [];
 
       let count = 0;
       let scannedCount = 0;
-      let lastKey: AttributeMap | undefined = undefined;
+      let lastKey: AttributeValues | undefined = undefined;
 
       do {
         const result = await this.entity.ddb.query(this.input);
@@ -85,23 +86,27 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
       } while (all && !!lastKey && count < max);
 
       return {
-        items: items.map((item) => this.entity.convertAttributeMapToEntity(item)),
+        items: items.map((item) => this.entity.convertAttributeValuesToEntity(item)),
         count,
         scannedCount,
-        lastKey: lastKey && this.entity.convertAttributeMapToPrimaryKey(lastKey),
+        lastKey: lastKey && this.entity.convertAttributeValuesToPrimaryKey(lastKey),
       };
     })();
   }
 
   private buildQueryInput(extraInput?: Partial<QueryInput>): void {
-    const keyConditionExpression = buildExpression(this.keyConditions, this.attributeNames, this.attributeValues);
-    const conditionExpression = buildExpression(this.conditions, this.attributeNames, this.attributeValues);
+    const expressionBuilder = new ExpressionBuilder({ attributeNames: this.attributeNames, attributeValues: this.attributeValues });
+    const keyConditionExpression = expressionBuilder.run(this.keyOperators);
+    const conditionExpression = expressionBuilder.run(this.operators);
 
-    this.input.KeyConditionExpression = isNotEmptyString(keyConditionExpression) ? keyConditionExpression : undefined;
-    this.input.FilterExpression = isNotEmptyString(conditionExpression) ? conditionExpression : undefined;
-    this.input.ExpressionAttributeNames = isNotEmpty(this.attributeNames) ? this.attributeNames : undefined;
-    this.input.ExpressionAttributeValues = isNotEmpty(this.attributeValues) ? this.attributeValues : undefined;
-    this.input = { ...this.input, ...extraInput };
+    this.input = {
+      ...this.input,
+      KeyConditionExpression: isNotEmptyString(keyConditionExpression) ? keyConditionExpression : undefined,
+      FilterExpression: isNotEmptyString(conditionExpression) ? conditionExpression : undefined,
+      ExpressionAttributeNames: expressionBuilder.attributeNames,
+      ExpressionAttributeValues: expressionBuilder.attributeValues,
+      ...extraInput,
+    };
   }
 
   //TODO: Implement validation

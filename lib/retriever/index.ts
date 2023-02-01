@@ -2,12 +2,12 @@ import { QueryInput, ScanInput } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import { buildProjectionExpression } from '@lib/entity/helpers';
 import { Entity, EntityKey, EntityPrimaryKey } from '@lib/entity/types';
-import { AttributeMap } from '@lib/utils';
+import { AttributeNames, AttributeValues } from '@lib/utils';
 
 export default class RetrieverBase<T extends Entity<T>> extends Condition<T> {
   protected input: QueryInput | ScanInput;
-  protected attributeNames: Record<string, string> = {};
-  protected attributeValues: AttributeMap = {};
+  protected attributeNames: AttributeNames = {};
+  protected attributeValues: AttributeValues = {};
 
   constructor(entity: T) {
     super(entity);
@@ -22,7 +22,7 @@ export default class RetrieverBase<T extends Entity<T>> extends Condition<T> {
   }
 
   public startAt(key?: EntityPrimaryKey<T>) {
-    if (key) this.input.ExclusiveStartKey = this.entity.convertPrimaryKeyToAttributeMap(key);
+    if (key) this.input.ExclusiveStartKey = this.entity.convertPrimaryKeyToAttributeValues(key);
     return this;
   }
 

@@ -1,14 +1,19 @@
 import { ReturnValue as DynamoReturnValue, ReturnValuesOnConditionCheckFailure as DynamoReturnValueOnFailure } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import { BuildDeleteConditionExpression, BuildGetProjectionExpression, BuildPutConditionExpression, BuildUpdateConditionExpression, Entity, EntityKey, ReturnValues, ReturnValuesLimited, UpdateProps } from '@lib/entity/types';
-import { AttributeMap, buildExpression, ConditionExpression, DefaultError, duplicatesInArray, isNotEmpty, isNotEmptyArray, isNotEmptyString, substituteAttributeName } from '@lib/utils';
+import { AttributeNames, BASE_OPERATOR, DefaultError, duplicatesInArray, insertBetween, isNotEmpty, isNotEmptyArray, Operators } from '@lib/utils';
 
-export function buildProjectionExpression<T extends Entity<T>>(attributes: Array<EntityKey<T>>, attributeNames: Record<string, string>): string {
+import { UPDATE_OPERATORS } from './../utils/constants';
+import { ExpressionBuilder } from './../utils/ExpressionBuilder';
+
+export function buildProjectionExpression<T extends Entity<T>>(attributes: Array<EntityKey<T>>, attributeNames: AttributeNames): string {
   if (duplicatesInArray(attributes)) {
     throw new DefaultError();
   }
 
-  return [...new Set([...attributes, 'dynamodeEntity'])].map((attribute) => substituteAttributeName(attributeNames, String(attribute))).join(', ');
+  const uniqueAttributes = Array.from(new Set([...attributes, 'dynamodeEntity']));
+  const operators: Operators = uniqueAttributes.map((attribute) => ({ key: String(attribute) }));
+  return new ExpressionBuilder({ attributeNames }).run(insertBetween(operators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]));
 }
 
 export function buildGetProjectionExpression<T extends Entity<T>>(attributes?: Array<EntityKey<T>>): BuildGetProjectionExpression {
@@ -16,131 +21,81 @@ export function buildGetProjectionExpression<T extends Entity<T>>(attributes?: A
     return {};
   }
 
-  const attributeNames: Record<string, string> = {};
-  const projectionExpression = buildProjectionExpression(attributes, attributeNames);
+  const attributeNames: AttributeNames = {};
 
   return {
-    ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
-    ProjectionExpression: projectionExpression,
+    projectionExpression: buildProjectionExpression(attributes, attributeNames),
+    attributeNames: isNotEmpty(attributeNames) ? attributeNames : undefined,
   };
 }
 
-export function buildUpdateConditionExpression<T extends Entity<T>>(props: UpdateProps<T>, optionsCondition: Condition<T> | undefined): BuildUpdateConditionExpression {
-  const attributeNames: Record<string, string> = {};
-  const attributeValues: AttributeMap = {};
-  const conditions = buildUpdateConditions(props);
-  const updateExpression = buildExpression(conditions, attributeNames, attributeValues);
-  const conditionExpression = optionsCondition ? buildExpression(optionsCondition.conditions, attributeNames, attributeValues) : undefined;
+export function buildUpdateConditionExpression<T extends Entity<T>>(props: UpdateProps<T>, optionsCondition?: Condition<T>): BuildUpdateConditionExpression {
+  const expressionsBuilder = new ExpressionBuilder();
+  const operators = buildUpdateConditions(props);
 
   return {
-    ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
-    ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
-    ...(conditionExpression ? { ConditionExpression: conditionExpression } : {}),
-    UpdateExpression: updateExpression,
+    updateExpression: expressionsBuilder.run(operators),
+    conditionExpression: optionsCondition ? expressionsBuilder.run(optionsCondition.operators) : undefined,
+    attributeNames: expressionsBuilder.attributeNames,
+    attributeValues: expressionsBuilder.attributeValues,
   };
 }
 
-export function buildUpdateConditions<T extends Entity<T>>(props: UpdateProps<T>): ConditionExpression[] {
-  const conditions: ConditionExpression[] = [];
+export function buildUpdateConditions<T extends Entity<T>>(props: UpdateProps<T>): Operators {
+  const operators: Operators = [];
 
-  if (
-    (props.set && isNotEmpty(props.set)) ||
-    (props.setIfNotExists && isNotEmpty(props.setIfNotExists)) ||
-    (props.listAppend && isNotEmpty(props.listAppend)) ||
-    (props.increment && isNotEmpty(props.increment)) ||
-    (props.decrement && isNotEmpty(props.decrement))
-  ) {
-    const setKeys: string[] = [];
-    const setValues: unknown[] = [];
-    const setExprs: string[] = [];
-    const setProps = [
-      { ops: props.set, expr: '$K = $V', twoKeys: false },
-      { ops: props.setIfNotExists, expr: '$K = if_not_exists($K, $V)', twoKeys: true },
-      { ops: props.listAppend, expr: '$K = list_append($K, $V)', twoKeys: true },
-      { ops: props.increment, expr: '$K = $K + $V', twoKeys: true },
-      { ops: props.decrement, expr: '$K = $K - $V', twoKeys: true },
+  if (isNotEmpty({ ...(props.set || {}), ...(props.setIfNotExists || {}), ...(props.listAppend || {}), ...(props.increment || {}), ...(props.decrement || {}) })) {
+    const setOperators: Operators = [
+      ...Object.entries(props.set || {}).flatMap(([key, value]) => UPDATE_OPERATORS.set(key, value)),
+      ...Object.entries(props.setIfNotExists || {}).flatMap(([key, value]) => UPDATE_OPERATORS.setIfNotExists(key, value)),
+      ...Object.entries(props.listAppend || {}).flatMap(([key, value]) => UPDATE_OPERATORS.listAppend(key, value)),
+      ...Object.entries(props.increment || {}).flatMap(([key, value]) => UPDATE_OPERATORS.increment(key, value)),
+      ...Object.entries(props.decrement || {}).flatMap(([key, value]) => UPDATE_OPERATORS.decrement(key, value)),
     ];
 
-    setProps.forEach(({ ops, expr, twoKeys }) => {
-      if (ops && isNotEmpty(ops)) {
-        const keys = Object.keys(ops);
-        const values = Object.values(ops);
-
-        setKeys.push(...keys.flatMap((key) => Array(twoKeys ? 2 : 1).fill(key)));
-        setValues.push(...values);
-        setExprs.push(...Array(keys.length).fill(expr));
-      }
-    });
-
-    conditions.push({ expr: 'SET' }, { keys: setKeys, values: setValues, expr: setExprs.join(', ') });
+    operators.push(BASE_OPERATOR.set, BASE_OPERATOR.space, ...insertBetween(setOperators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]));
   }
 
   if (props.add && isNotEmpty(props.add)) {
-    const keys = Object.keys(props.add);
-    const values = Object.values(props.add);
-
-    conditions.push(
-      { expr: 'ADD' },
-      {
-        keys,
-        values,
-        expr: Array(keys.length).fill('$K $V').join(', '),
-      },
-    );
+    const addOperators: Operators = Object.entries(props.add).flatMap(([key, value]) => UPDATE_OPERATORS.add(key, value));
+    if (operators.length) operators.push(BASE_OPERATOR.space);
+    operators.push(BASE_OPERATOR.add, BASE_OPERATOR.space, ...insertBetween(addOperators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]));
   }
 
   if (props.delete && isNotEmpty(props.delete)) {
-    const keys = Object.keys(props.delete);
-    const values = Object.values(props.delete);
-
-    conditions.push(
-      { expr: 'DELETE' },
-      {
-        keys,
-        values,
-        expr: Array(keys.length).fill('$K $V').join(', '),
-      },
-    );
+    const deleteOperators: Operators = Object.entries(props.delete).flatMap(([key, value]) => UPDATE_OPERATORS.delete(key, value));
+    if (operators.length) operators.push(BASE_OPERATOR.space);
+    operators.push(BASE_OPERATOR.delete, BASE_OPERATOR.space, ...insertBetween(deleteOperators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]));
   }
 
   if (isNotEmptyArray(props.remove)) {
-    const keys = props.remove.map((key) => String(key));
-
-    conditions.push(
-      { expr: 'REMOVE' },
-      {
-        keys,
-        expr: Array(keys.length).fill('$K').join(', '),
-      },
-    );
+    const removeOperators: Operators = props.remove.flatMap((key) => UPDATE_OPERATORS.remove(String(key)));
+    if (operators.length) operators.push(BASE_OPERATOR.space);
+    operators.push(BASE_OPERATOR.remove, BASE_OPERATOR.space, ...insertBetween(removeOperators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]));
   }
 
-  return conditions;
+  return operators;
 }
 
 export function buildPutConditionExpression<T extends Entity<T>>(overwriteCondition?: Condition<T>, optionsCondition?: Condition<T>): BuildPutConditionExpression {
-  const attributeNames: Record<string, string> = {};
-  const attributeValues: AttributeMap = {};
-  const conditions = overwriteCondition ? overwriteCondition.condition(optionsCondition).conditions : optionsCondition?.conditions || [];
-  const conditionExpression = buildExpression(conditions, attributeNames, attributeValues);
+  const expressionsBuilder = new ExpressionBuilder();
+  const conditions = overwriteCondition?.condition(optionsCondition) || optionsCondition?.condition(overwriteCondition);
 
   return {
-    ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
-    ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
-    ...(isNotEmptyString(conditionExpression) ? { ConditionExpression: conditionExpression } : {}),
+    conditionExpression: expressionsBuilder.run(conditions?.operators || []),
+    attributeNames: expressionsBuilder.attributeNames,
+    attributeValues: expressionsBuilder.attributeValues,
   };
 }
 
 export function buildDeleteConditionExpression<T extends Entity<T>>(notExistsCondition?: Condition<T>, optionsCondition?: Condition<T>): BuildDeleteConditionExpression {
-  const attributeNames: Record<string, string> = {};
-  const attributeValues: AttributeMap = {};
-  const conditions = notExistsCondition ? notExistsCondition.condition(optionsCondition).conditions : optionsCondition?.conditions || [];
-  const conditionExpression = buildExpression(conditions, attributeNames, attributeValues);
+  const expressionsBuilder = new ExpressionBuilder();
+  const conditions = notExistsCondition?.condition(optionsCondition) || optionsCondition?.condition(notExistsCondition);
 
   return {
-    ...(isNotEmpty(attributeNames) ? { ExpressionAttributeNames: attributeNames } : {}),
-    ...(isNotEmpty(attributeValues) ? { ExpressionAttributeValues: attributeValues } : {}),
-    ...(isNotEmptyString(conditionExpression) ? { ConditionExpression: conditionExpression } : {}),
+    conditionExpression: expressionsBuilder.run(conditions?.operators || []),
+    attributeNames: expressionsBuilder.attributeNames,
+    attributeValues: expressionsBuilder.attributeValues,
   };
 }
 

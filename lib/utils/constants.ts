@@ -1,6 +1,4 @@
-export const NESTED_ATTRIBUTE_REGEX = /\.(\d*)(\.|$)/;
-
-export const RESERVED_WORDS = [
+export const RESERVED_WORDS = new Set([
   'ABORT',
   'ABSOLUTE',
   'ACTION',
@@ -574,4 +572,182 @@ export const RESERVED_WORDS = [
   'WRITE',
   'YEAR',
   'ZONE',
-] as const;
+]);
+
+export type OperatorExpression = { expression: string };
+export type OperatorKey = { key: string };
+export type OperatorValue = { value: unknown; key: string };
+export type Operators = Array<OperatorExpression | OperatorKey | OperatorValue>;
+
+export const BASE_OPERATOR = {
+  /** space */
+  space: { expression: ' ' },
+  /** , */
+  comma: { expression: ',' },
+
+  /** ( */
+  leftParenthesis: { expression: '(' },
+  /** ) */
+  rightParenthesis: { expression: ')' },
+
+  /** + */
+  plus: { expression: '+' },
+  /** - */
+  minus: { expression: '-' },
+
+  /** NOT */
+  not: { expression: 'NOT' },
+
+  /** AND */
+  and: { expression: 'AND' },
+  /** OR */
+  or: { expression: 'OR' },
+  /** = */
+  eq: { expression: '=' },
+  /** <> */
+  ne: { expression: '<>' },
+  /** < */
+  lt: { expression: '<' },
+  /** <= */
+  le: { expression: '<=' },
+  /** > */
+  gt: { expression: '>' },
+  /** >= */
+  ge: { expression: '>=' },
+
+  /** attribute_exists */
+  attributeExists: { expression: 'attribute_exists' },
+  /** contains */
+  contains: { expression: 'contains' },
+  /** IN */
+  in: { expression: 'IN' },
+  /** BETWEEN */
+  between: { expression: 'BETWEEN' },
+  /** attribute_type */
+  attributeType: { expression: 'attribute_type' },
+  /** begins_with */
+  beginsWith: { expression: 'begins_with' },
+  /** attribute_not_exists */
+  attributeNotExists: { expression: 'attribute_not_exists' },
+  /** size */
+  size: { expression: 'size' },
+  /** if_not_exists */
+  ifNotExists: { expression: 'if_not_exists' },
+  /** list_append */
+  listAppend: { expression: 'list_append' },
+
+  /** SET */
+  set: { expression: 'SET' },
+  /** ADD */
+  add: { expression: 'ADD' },
+  /** REMOVE */
+  remove: { expression: 'REMOVE' },
+  /** DELETE */
+  delete: { expression: 'DELETE' },
+} as const;
+
+export const OPERATORS = {
+  /** parenthesis */
+  parenthesis: (operatorStructure: Operators): Operators => [BASE_OPERATOR.leftParenthesis, ...operatorStructure, BASE_OPERATOR.rightParenthesis],
+
+  /** $K = $V */
+  eq: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.eq, BASE_OPERATOR.space, { value, key }],
+  /** $K <> $V */
+  ne: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.ne, BASE_OPERATOR.space, { value, key }],
+  /** $K < $V */
+  lt: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.lt, BASE_OPERATOR.space, { value, key }],
+  /** $K <= $V */
+  le: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.le, BASE_OPERATOR.space, { value, key }],
+  /** $K > $V */
+  gt: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.gt, BASE_OPERATOR.space, { value, key }],
+  /** $K >= $V */
+  ge: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.ge, BASE_OPERATOR.space, { value, key }],
+
+  /** attribute_exists($K) */
+  attributeExists: (key: string): Operators => [BASE_OPERATOR.attributeExists, ...OPERATORS.parenthesis([{ key }])],
+  /** contains($K, $V) */
+  contains: (key: string, value: unknown): Operators => [BASE_OPERATOR.contains, ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }])],
+  /** $K IN $V, $V, $V */
+  in: (key: string, values: unknown[]): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.in, BASE_OPERATOR.space, ...values.flatMap((value) => [{ value, key }, BASE_OPERATOR.comma, BASE_OPERATOR.space])],
+  /** $K BETWEEN $V AND $V */
+  between: (key: string, value1: unknown, value2: unknown): Operators => [
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.between,
+    BASE_OPERATOR.space,
+    { value: value1, key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.and,
+    BASE_OPERATOR.space,
+    { value: value2, key },
+  ],
+  /** attribute_type($K, $V) */
+  attributeType: (key: string, value: unknown): Operators => [BASE_OPERATOR.attributeType, ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }])],
+  /** begins_with($K, $V) */
+  beginsWith: (key: string, value: unknown): Operators => [BASE_OPERATOR.beginsWith, ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }])],
+
+  /** attribute_not_exists($K) */
+  attributeNotExists: (key: string): Operators => [BASE_OPERATOR.attributeNotExists, ...OPERATORS.parenthesis([{ key }])],
+  /** NOT contains($K, $V) */
+  notContains: (key: string, value: unknown): Operators => [BASE_OPERATOR.not, BASE_OPERATOR.space, ...OPERATORS.parenthesis(OPERATORS.contains(key, value))],
+  /** NOT ($K IN $V, $V, $V) */
+  notIn: (key: string, values: unknown[]): Operators => [BASE_OPERATOR.not, BASE_OPERATOR.space, ...OPERATORS.parenthesis(OPERATORS.in(key, values))],
+  /** NOT $K = $V */
+  notEq: (key: string, value: unknown): Operators => OPERATORS.ne(key, value),
+  /** NOT $K <> $V */
+  notNe: (key: string, value: unknown): Operators => OPERATORS.eq(key, value),
+  /** NOT $K < $V */
+  notLt: (key: string, value: unknown): Operators => OPERATORS.ge(key, value),
+  /** NOT $K <= $V */
+  notLe: (key: string, value: unknown): Operators => OPERATORS.gt(key, value),
+  /** NOT $K > $V */
+  notGt: (key: string, value: unknown): Operators => OPERATORS.le(key, value),
+  /** NOT $K >= $V */
+  notGe: (key: string, value: unknown): Operators => OPERATORS.lt(key, value),
+
+  /** size($K) = $V */
+  sizeEq: (key: string, value: unknown): Operators => [BASE_OPERATOR.size, ...OPERATORS.parenthesis([{ key }]), BASE_OPERATOR.space, BASE_OPERATOR.eq, BASE_OPERATOR.space, { value, key }],
+  /** size($K) <> $V */
+  sizeNe: (key: string, value: unknown): Operators => [BASE_OPERATOR.size, ...OPERATORS.parenthesis([{ key }]), BASE_OPERATOR.space, BASE_OPERATOR.ne, BASE_OPERATOR.space, { value, key }],
+  /** size($K) < $V */
+  sizeLt: (key: string, value: unknown): Operators => [BASE_OPERATOR.size, ...OPERATORS.parenthesis([{ key }]), BASE_OPERATOR.space, BASE_OPERATOR.lt, BASE_OPERATOR.space, { value, key }],
+  /** size($K) <= $V */
+  sizeLe: (key: string, value: unknown): Operators => [BASE_OPERATOR.size, ...OPERATORS.parenthesis([{ key }]), BASE_OPERATOR.space, BASE_OPERATOR.le, BASE_OPERATOR.space, { value, key }],
+  /** size($K) > $V */
+  sizeGt: (key: string, value: unknown): Operators => [BASE_OPERATOR.size, ...OPERATORS.parenthesis([{ key }]), BASE_OPERATOR.space, BASE_OPERATOR.gt, BASE_OPERATOR.space, { value, key }],
+  /** size($K) >= $V */
+  sizeGe: (key: string, value: unknown): Operators => [BASE_OPERATOR.size, ...OPERATORS.parenthesis([{ key }]), BASE_OPERATOR.space, BASE_OPERATOR.ge, BASE_OPERATOR.space, { value, key }],
+};
+
+export const UPDATE_OPERATORS = {
+  /** $K = $V */
+  set: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.eq, BASE_OPERATOR.space, { value, key }],
+  /** $K = if_not_exists($K, $V) */
+  setIfNotExists: (key: string, value: unknown): Operators => [
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.eq,
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.ifNotExists,
+    ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
+  ],
+  /** $K = list_append($K, $V) */
+  listAppend: (key: string, value: unknown): Operators => [
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.eq,
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.listAppend,
+    ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
+  ],
+  /** $K = $K + $V */
+  increment: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.eq, BASE_OPERATOR.space, { key }, BASE_OPERATOR.space, BASE_OPERATOR.plus, BASE_OPERATOR.space, { value, key }],
+  /** $K = $K - $V */
+  decrement: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.eq, BASE_OPERATOR.space, { key }, BASE_OPERATOR.space, BASE_OPERATOR.minus, BASE_OPERATOR.space, { value, key }],
+  /** $K $V */
+  add: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, { value, key }],
+  /** $K $V */
+  delete: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, { value, key }],
+  /** $K */
+  remove: (key: string): Operators => [{ key }],
+};

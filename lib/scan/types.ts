@@ -1,6 +1,6 @@
 import { ScanInput } from '@aws-sdk/client-dynamodb';
 import { Entity, ReturnOption } from '@lib/entity/types';
-import { AttributeMap, GenericObject } from '@lib/utils';
+import { AttributeNames, AttributeValues, GenericObject } from '@lib/utils';
 
 export interface ScanRunOptions {
   extraInput?: Partial<ScanInput>;
@@ -15,7 +15,7 @@ export interface ScanRunOutput<T extends Entity<T>> {
 }
 
 export interface BuildScanConditionExpression {
-  attributeNames: Record<string, string>;
-  attributeValues: AttributeMap;
+  attributeNames: AttributeNames;
+  attributeValues: AttributeValues;
   conditionExpression: string;
 }

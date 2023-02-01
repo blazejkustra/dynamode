@@ -2,7 +2,9 @@ import { ScanCommandOutput, ScanInput } from '@aws-sdk/client-dynamodb';
 import { Entity, EntityIndexNames } from '@lib/entity/types';
 import RetrieverBase from '@lib/retriever';
 import { ScanRunOptions, ScanRunOutput } from '@lib/scan/types';
-import { buildExpression, isNotEmpty, isNotEmptyString } from '@lib/utils';
+import { isNotEmptyString } from '@lib/utils';
+
+import { ExpressionBuilder } from './../utils/ExpressionBuilder';
 
 export default class Scan<T extends Entity<T>> extends RetrieverBase<T> {
   protected input: ScanInput;
@@ -34,10 +36,10 @@ export default class Scan<T extends Entity<T>> extends RetrieverBase<T> {
       const items = result.Items || [];
 
       return {
-        items: items.map((item) => this.entity.convertAttributeMapToEntity(item)),
+        items: items.map((item) => this.entity.convertAttributeValuesToEntity(item)),
         count: result.Count || 0,
         scannedCount: result.ScannedCount || 0,
-        lastKey: result.LastEvaluatedKey ? this.entity.convertAttributeMapToPrimaryKey(result.LastEvaluatedKey) : undefined,
+        lastKey: result.LastEvaluatedKey ? this.entity.convertAttributeValuesToPrimaryKey(result.LastEvaluatedKey) : undefined,
       };
     })();
   }
@@ -57,13 +59,17 @@ export default class Scan<T extends Entity<T>> extends RetrieverBase<T> {
     return this;
   }
 
-  private buildScanInput(input?: Partial<ScanInput>) {
-    const conditionExpression = buildExpression(this.conditions, this.attributeNames, this.attributeValues);
+  private buildScanInput(extraInput?: Partial<ScanInput>) {
+    const expressionBuilder = new ExpressionBuilder({ attributeNames: this.attributeNames, attributeValues: this.attributeValues });
+    const conditionExpression = expressionBuilder.run(this.operators);
 
-    this.input.FilterExpression = isNotEmptyString(conditionExpression) ? conditionExpression : undefined;
-    this.input.ExpressionAttributeNames = isNotEmpty(this.attributeNames) ? this.attributeNames : undefined;
-    this.input.ExpressionAttributeValues = isNotEmpty(this.attributeValues) ? this.attributeValues : undefined;
-    this.input = { ...this.input, ...input };
+    this.input = {
+      ...this.input,
+      FilterExpression: isNotEmptyString(conditionExpression) ? conditionExpression : undefined,
+      ExpressionAttributeNames: expressionBuilder.attributeNames,
+      ExpressionAttributeValues: expressionBuilder.attributeValues,
+      ...extraInput,
+    };
   }
 
   //TODO: Implement validation

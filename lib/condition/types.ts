@@ -10,8 +10,3 @@ export enum AttributeType {
   List = 'L',
   Map = 'M',
 }
-
-export enum Operator {
-  AND = 'AND',
-  OR = 'OR',
-}

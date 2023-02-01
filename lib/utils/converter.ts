@@ -1,8 +1,8 @@
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
 import ddbConverter from '@lib/dynamode/converter';
-import { AttributeMap, GenericObject } from '@lib/utils';
+import { AttributeValues, GenericObject } from '@lib/utils';
 
-export function objectToDynamo(object: GenericObject): AttributeMap {
+export function objectToDynamo(object: GenericObject): AttributeValues {
   return ddbConverter.get().marshall(object, { removeUndefinedValues: true });
 }
 
@@ -14,6 +14,6 @@ export function valueFromDynamo(value: AttributeValue): unknown {
   return ddbConverter.get().convertToNative(value);
 }
 
-export function fromDynamo(object: AttributeMap): GenericObject {
+export function fromDynamo(object: AttributeValues): GenericObject {
   return ddbConverter.get().unmarshall(object);
 }

@@ -21,7 +21,7 @@ export default function transactionWrite<T extends Entity<T>>(transactions: Arra
       return result;
     }
 
-    const entities = transactions.map((transaction) => Dynamode.storage.convertEntityToAttributeMap(transaction?.Put?.Item, transaction?.Put?.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
+    const entities = transactions.map((transaction) => Dynamode.storage.convertEntityToAttributeValues(transaction?.Put?.Item, transaction?.Put?.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
     return {
       items: entities,
       count: entities.length,
