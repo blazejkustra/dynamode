@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import { duplicatesInArray, isEmpty, isNotEmpty, isNotEmptyArray, isNotEmptyString, mergeObjects, timeout } from '@lib/utils';
+import { duplicatesInArray, insertBetween, isEmpty, isNotEmpty, isNotEmptyArray, isNotEmptyString, mergeObjects, splitListPathReference, timeout } from '@lib/utils';
 
 describe('Helpers', () => {
   describe('duplicatesInArray', () => {
@@ -66,6 +66,34 @@ describe('Helpers', () => {
     test('Should return false if array is not defined', async () => {
       expect(isNotEmptyArray()).toEqual(false);
       expect(isNotEmptyArray(undefined)).toEqual(false);
+    });
+  });
+
+  describe('insertBetween', () => {
+    test('Should insert value between values in array', async () => {
+      expect(insertBetween([1, 1, 1, 1], 2)).toEqual([1, 2, 1, 2, 1, 2, 1]);
+      expect(insertBetween([1, 1, 1, 1], [2])).toEqual([1, 2, 1, 2, 1, 2, 1]);
+      expect(insertBetween([1, 1, 1, 1], [2, 2])).toEqual([1, 2, 2, 1, 2, 2, 1, 2, 2, 1]);
+      expect(insertBetween(['a', 'a'], 'b')).toEqual(['a', 'b', 'a']);
+    });
+
+    test('Should not insert if array lenght is less or equal 1', async () => {
+      expect(insertBetween([], 'b')).toEqual([]);
+      expect(insertBetween(['a'], 'b')).toEqual(['a']);
+      expect(insertBetween([1], [1, 1, 1])).toEqual([1]);
+    });
+  });
+
+  describe('splitListPathReference', () => {
+    test('Should split the string before first opening bracket', async () => {
+      expect(splitListPathReference('key[1]')).toEqual(['key', '[1]']);
+      expect(splitListPathReference('key[1][2][3]')).toEqual(['key', '[1][2][3]']);
+      expect(splitListPathReference('another_key[123]')).toEqual(['another_key', '[123]']);
+    });
+
+    test('Should not split the string if there are no brackets', async () => {
+      expect(splitListPathReference('key')).toEqual(['key', '']);
+      expect(splitListPathReference('another_key')).toEqual(['another_key', '']);
     });
   });
 
