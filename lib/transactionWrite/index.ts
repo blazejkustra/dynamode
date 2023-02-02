@@ -1,5 +1,6 @@
 import { TransactWriteItemsCommandInput, TransactWriteItemsOutput } from '@aws-sdk/client-dynamodb';
 import { Dynamode } from '@lib/dynamode';
+import { convertEntityToAttributeValues } from '@lib/entity/helpers';
 import { Entity } from '@lib/entity/types';
 import { TransactionWriteOptions, TransactionWriteOutput, WriteTransaction } from '@lib/transactionWrite/types';
 
@@ -21,7 +22,8 @@ export default function transactionWrite<T extends Entity<T>>(transactions: Arra
       return result;
     }
 
-    const entities = transactions.map((transaction) => Dynamode.storage.convertEntityToAttributeValues(transaction?.Put?.Item, transaction?.Put?.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
+    const entities = transactions.map((transaction) => convertEntityToAttributeValues(transaction?.Put?.Item, transaction?.Put?.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
+
     return {
       items: entities,
       count: entities.length,

@@ -1,29 +1,8 @@
 import { AttributeMetadata, AttributeType, EntityMetadata, TablesMetadata } from '@lib/dynamode/storage/types';
-import { Entity } from '@lib/entity/types';
-import { AttributeValues, DefaultError, mergeObjects, valueFromDynamo } from '@lib/utils';
+import { mergeObjects } from '@lib/utils';
 
 export default class DynamodeStorage {
   public tables: TablesMetadata = {};
-
-  public convertEntityToAttributeValues<T extends Entity<T>>(dynamoItem?: AttributeValues, tableName?: string): InstanceType<T> | undefined {
-    if (!dynamoItem || !tableName) {
-      return undefined;
-    }
-
-    const entityName = valueFromDynamo(dynamoItem.dynamodeEntity);
-
-    if (typeof entityName !== 'string') {
-      throw new DefaultError();
-    }
-
-    const { Constructor } = this.getEntityMetadata(tableName, entityName);
-
-    if (!Constructor) {
-      throw new DefaultError();
-    }
-
-    return Constructor.convertAttributeValuesToEntity(dynamoItem);
-  }
 
   public addPrimaryPartitionKeyMetadata(tableName: string, propertyName: string) {
     const table = this.getTableMetadata(tableName);
@@ -60,9 +39,9 @@ export default class DynamodeStorage {
     localSecondaryIndexes.sortKey = propertyName;
   }
 
-  public addEntityConstructor(tableName: string, entityName: string, value: EntityMetadata['Constructor']) {
+  public addEntityConstructor(tableName: string, entityName: string, value: EntityMetadata['entityConstructor']) {
     const entityMetadata = this.getEntityMetadata(tableName, entityName);
-    entityMetadata.Constructor = entityMetadata.Constructor || value;
+    entityMetadata.entityConstructor = entityMetadata.entityConstructor || value;
   }
 
   public addEntityAttributeMetadata(tableName: string, entityName: string, propertyName: string, value: AttributeMetadata<AttributeType>) {
@@ -72,11 +51,12 @@ export default class DynamodeStorage {
     if (value.prefix) attributeMetadata.prefix = value.prefix;
     if (value.suffix) attributeMetadata.suffix = value.suffix;
     if (value.indexName) attributeMetadata.indexName = value.indexName;
+    if (value.role) attributeMetadata.role = value.role;
   }
 
   public getEntityAttributes(tableName: string, entityName: string) {
     const entitiesMetadata: EntityMetadata[] = [];
-    let constructor = this.getEntityMetadata(tableName, entityName).Constructor;
+    let constructor = this.getEntityMetadata(tableName, entityName).entityConstructor;
     while (constructor) {
       const entityMetadata = this.getEntityMetadata(tableName, constructor.name);
       entitiesMetadata.push(entityMetadata);
@@ -85,7 +65,7 @@ export default class DynamodeStorage {
     return mergeObjects(...entitiesMetadata.reverse()).attributes || {};
   }
 
-  private getGsiMetadata(tableName: string, indexName: string) {
+  public getGsiMetadata(tableName: string, indexName: string) {
     const tableMetadata = this.getTableMetadata(tableName);
 
     if (!tableMetadata.globalSecondaryIndexes) {
@@ -99,7 +79,7 @@ export default class DynamodeStorage {
     return tableMetadata.globalSecondaryIndexes[indexName];
   }
 
-  private getLsiMetadata(tableName: string, indexName: string) {
+  public getLsiMetadata(tableName: string, indexName: string) {
     const tableMetadata = this.getTableMetadata(tableName);
 
     if (!tableMetadata.localSecondaryIndexes) {
@@ -121,7 +101,7 @@ export default class DynamodeStorage {
     return this.tables[tableName];
   }
 
-  private getEntityAttributeMetadata(tableName: string, entityName: string, attributeName: string) {
+  public getEntityAttributeMetadata(tableName: string, entityName: string, attributeName: string) {
     const entityMetadata = this.getEntityMetadata(tableName, entityName);
 
     if (!entityMetadata.attributes) {
@@ -135,7 +115,7 @@ export default class DynamodeStorage {
     return entityMetadata.attributes[attributeName];
   }
 
-  private getEntityMetadata(tableName: string, entityName: string) {
+  public getEntityMetadata(tableName: string, entityName: string) {
     const table = this.getTableMetadata(tableName);
 
     if (!table.entities) {

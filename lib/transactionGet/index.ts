@@ -1,5 +1,6 @@
 import { TransactGetItemsCommandInput, TransactGetItemsOutput } from '@aws-sdk/client-dynamodb';
 import { Dynamode } from '@lib/dynamode';
+import { convertEntityToAttributeValues } from '@lib/entity/helpers';
 import { Entity } from '@lib/entity/types';
 import { GetTransaction, TransactionGetOptions, TransactionGetOutput } from '@lib/transactionGet/types';
 import { NotFoundError } from '@lib/utils';
@@ -29,7 +30,8 @@ export default function transactionGet<T extends Entity<T>>(transactions: Array<
       return result;
     }
 
-    const entities = items.map((item, idx) => Dynamode.storage.convertEntityToAttributeValues(item, transactions[idx].Get.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
+    const entities = items.map((item, idx) => convertEntityToAttributeValues(item, transactions[idx].Get.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
+
     return {
       items: entities,
       count: entities.length,

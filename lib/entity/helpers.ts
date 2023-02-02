@@ -1,7 +1,8 @@
 import { ReturnValue as DynamoReturnValue, ReturnValuesOnConditionCheckFailure as DynamoReturnValueOnFailure } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
+import { Dynamode } from '@lib/dynamode';
 import { BuildDeleteConditionExpression, BuildGetProjectionExpression, BuildPutConditionExpression, BuildUpdateConditionExpression, Entity, EntityKey, ReturnValues, ReturnValuesLimited, UpdateProps } from '@lib/entity/types';
-import { AttributeNames, BASE_OPERATOR, DefaultError, duplicatesInArray, insertBetween, isNotEmpty, isNotEmptyArray, Operators } from '@lib/utils';
+import { AttributeNames, AttributeValues, BASE_OPERATOR, DefaultError, duplicatesInArray, insertBetween, isNotEmpty, isNotEmptyArray, Operators, valueFromDynamo } from '@lib/utils';
 
 import { UPDATE_OPERATORS } from './../utils/constants';
 import { ExpressionBuilder } from './../utils/ExpressionBuilder';
@@ -126,4 +127,24 @@ export function mapReturnValuesLimited(returnValues?: ReturnValuesLimited): Dyna
       allOld: 'ALL_OLD',
     } as const
   )[returnValues];
+}
+
+export function convertEntityToAttributeValues<T extends Entity<T>>(dynamoItem?: AttributeValues, tableName?: string): InstanceType<T> | undefined {
+  if (!dynamoItem || !tableName) {
+    return undefined;
+  }
+
+  const entityName = valueFromDynamo(dynamoItem.dynamodeEntity);
+
+  if (typeof entityName !== 'string') {
+    throw new DefaultError();
+  }
+
+  const { entityConstructor } = Dynamode.storage.getEntityMetadata(tableName, entityName);
+
+  if (!entityConstructor) {
+    throw new DefaultError();
+  }
+
+  return entityConstructor.convertAttributeValuesToEntity(dynamoItem);
 }

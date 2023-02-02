@@ -1,5 +1,3 @@
-import { DefaultError } from '@lib/utils';
-
 export type SeparatorType = {
   get: () => string;
   set: (separator: string) => void;
@@ -12,7 +10,6 @@ const get = (): string => {
 };
 
 const set = (separator: string): void => {
-  if (!separator) throw new DefaultError();
   defaultConverter = separator;
 };
 

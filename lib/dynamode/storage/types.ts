@@ -28,7 +28,7 @@ export type LsiMetadata = {
 };
 
 export type EntityMetadata = {
-  Constructor?: Entity<any>;
+  entityConstructor?: Entity<any>;
   attributes?: { [attributeName: string]: AttributeMetadata<AttributeType> };
 };
 
