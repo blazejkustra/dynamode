@@ -420,7 +420,7 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
 
     public static transactionCondition<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, conditionInstance: Condition<T>): WriteTransaction<T> {
       const expressionBuilder = new ExpressionBuilder();
-      const conditionExpression = expressionBuilder.run(conditionInstance.operators);
+      const conditionExpression = expressionBuilder.run(conditionInstance['operators']);
 
       const commandInput: WriteTransaction<T> = {
         ...this,
@@ -460,17 +460,18 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
     public static convertEntityToAttributeValues<T extends typeof Entity>(this: T, item: InstanceType<T>): AttributeValues {
       const dynamoObject: GenericObject = {};
       const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
-      const { createdAt, updatedAt } = Dynamode.storage.getTableMetadata(this.tableName);
 
       Object.keys(attributes).forEach((propertyName) => {
         let value: unknown = item[propertyName as keyof InstanceType<T>];
 
         if (value instanceof Date) {
-          if (createdAt === propertyName && attributes[createdAt]?.type === String) value = value.toISOString();
-          else if (createdAt === propertyName && attributes[createdAt]?.type === Number) value = value.getTime();
-          else if (updatedAt === propertyName && attributes[updatedAt]?.type === String) value = value.toISOString();
-          else if (updatedAt === propertyName && attributes[updatedAt]?.type === Number) value = value.getTime();
-          else throw new DefaultError();
+          if (attributes[propertyName].type === String) {
+            value = value.toISOString();
+          } else if (attributes[propertyName].type === Number) {
+            value = value.getTime();
+          } else {
+            throw new DefaultError();
+          }
         }
 
         dynamoObject[propertyName] = this.prefixSuffixValue(propertyName as EntityKey<T>, value);

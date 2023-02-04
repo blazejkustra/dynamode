@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
-    include: ['tests/**'],
+    include: ['tests/**/*.test.ts'],
     exclude: ['**.json'],
     coverage: {
       reporter: ['text', 'html', 'lcovonly'],

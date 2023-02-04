@@ -1,13 +1,13 @@
 import { AttributeType } from '@lib/condition/types';
 import { Entity, EntityKey, EntityValue } from '@lib/entity/types';
-import { DefaultError, OPERATORS, Operators } from '@lib/utils';
+import { OPERATORS, Operators } from '@lib/utils';
 
 import { BASE_OPERATOR } from './../utils/constants';
 
 export default class Condition<T extends Entity<T>> {
   protected entity: T;
   protected logicalOperator: typeof BASE_OPERATOR.and | typeof BASE_OPERATOR.or = BASE_OPERATOR.and;
-  public operators: Operators;
+  protected operators: Operators;
 
   constructor(entity: T) {
     this.entity = entity;
@@ -15,7 +15,7 @@ export default class Condition<T extends Entity<T>> {
   }
 
   public attribute<C extends Condition<T>, K extends EntityKey<T>>(this: C, key: K) {
-    this.maybePushOperator(this.operators);
+    this.maybePushLogicalOperator();
 
     return {
       eq: (value: EntityValue<T, K>): C => this.eq(this.operators, key, value),
@@ -27,14 +27,15 @@ export default class Condition<T extends Entity<T>> {
       beginsWith: (value: EntityValue<T, K>): C => this.beginsWith(this.operators, key, value),
       between: (value1: EntityValue<T, K>, value2: EntityValue<T, K>): C => this.between(this.operators, key, value1, value2),
       contains: (value: EntityValue<T, K>): C => {
-        let processedValue = value;
+        const processedValue = value;
 
-        if (value instanceof Set) {
-          if (value.size > 1) {
-            throw new DefaultError();
-          }
-          processedValue = Array.from(value)[0];
-        }
+        // TODO(blazejkustra): Make sure that this logic is valid for sets
+        // if (value instanceof Set) {
+        //   if (value.size > 1) {
+        //     throw new DefaultError();
+        //   }
+        //   processedValue = Array.from(value)[0];
+        // }
 
         this.operators.push(...OPERATORS.contains(String(key), this.entity.prefixSuffixValue(key, processedValue)));
         return this;
@@ -45,7 +46,7 @@ export default class Condition<T extends Entity<T>> {
         return this;
       },
       type: (value: AttributeType): C => {
-        this.operators.push(...OPERATORS.attributeType(String(key), this.entity.prefixSuffixValue(key, value)));
+        this.operators.push(...OPERATORS.attributeType(String(key), value));
         return this;
       },
       exists: (): C => {
@@ -54,27 +55,27 @@ export default class Condition<T extends Entity<T>> {
       },
       size: () => ({
         eq: (value: number): C => {
-          this.operators.push(...OPERATORS.sizeEq(String(key), this.entity.prefixSuffixValue(key, value)));
+          this.operators.push(...OPERATORS.sizeEq(String(key), value));
           return this;
         },
         ne: (value: number): C => {
-          this.operators.push(...OPERATORS.sizeNe(String(key), this.entity.prefixSuffixValue(key, value)));
+          this.operators.push(...OPERATORS.sizeNe(String(key), value));
           return this;
         },
         lt: (value: number): C => {
-          this.operators.push(...OPERATORS.sizeLt(String(key), this.entity.prefixSuffixValue(key, value)));
+          this.operators.push(...OPERATORS.sizeLt(String(key), value));
           return this;
         },
         le: (value: number): C => {
-          this.operators.push(...OPERATORS.sizeLe(String(key), this.entity.prefixSuffixValue(key, value)));
+          this.operators.push(...OPERATORS.sizeLe(String(key), value));
           return this;
         },
         gt: (value: number): C => {
-          this.operators.push(...OPERATORS.sizeGt(String(key), this.entity.prefixSuffixValue(key, value)));
+          this.operators.push(...OPERATORS.sizeGt(String(key), value));
           return this;
         },
         ge: (value: number): C => {
-          this.operators.push(...OPERATORS.sizeGe(String(key), this.entity.prefixSuffixValue(key, value)));
+          this.operators.push(...OPERATORS.sizeGe(String(key), value));
           return this;
         },
       }),
@@ -86,14 +87,15 @@ export default class Condition<T extends Entity<T>> {
         gt: (value: EntityValue<T, K>): C => this.le(this.operators, key, value),
         ge: (value: EntityValue<T, K>): C => this.lt(this.operators, key, value),
         contains: (value: EntityValue<T, K>): C => {
-          let processedValue = value;
+          const processedValue = value;
 
-          if (value instanceof Set) {
-            if (value.size > 1) {
-              throw new DefaultError();
-            }
-            processedValue = Array.from(value)[0];
-          }
+          // TODO(blazejkustra): Make sure that this logic is valid for sets
+          // if (value instanceof Set) {
+          //   if (value.size > 1) {
+          //     throw new DefaultError();
+          //   }
+          //   processedValue = Array.from(value)[0];
+          // }
 
           this.operators.push(...OPERATORS.notContains(String(key), this.entity.prefixSuffixValue(key, processedValue)));
 
@@ -114,7 +116,7 @@ export default class Condition<T extends Entity<T>> {
 
   public parenthesis(condition?: Condition<T>): this {
     if (condition) {
-      this.maybePushOperator(this.operators);
+      this.maybePushLogicalOperator();
       this.operators.push(...OPERATORS.parenthesis(condition.operators));
     }
     return this;
@@ -126,7 +128,7 @@ export default class Condition<T extends Entity<T>> {
 
   public condition(condition?: Condition<T>): this {
     if (condition) {
-      this.maybePushOperator(this.operators);
+      this.maybePushLogicalOperator();
       this.operators.push(...condition.operators);
     }
     return this;
@@ -182,9 +184,9 @@ export default class Condition<T extends Entity<T>> {
     return this;
   }
 
-  protected maybePushOperator(operators: Operators) {
-    if (operators.length > 0) {
-      operators.push(BASE_OPERATOR.space, this.logicalOperator, BASE_OPERATOR.space);
+  protected maybePushLogicalOperator(): void {
+    if (this.operators.length > 0) {
+      this.operators.push(BASE_OPERATOR.space, this.logicalOperator, BASE_OPERATOR.space);
     }
     this.logicalOperator = BASE_OPERATOR.and;
   }

@@ -1,8 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { OPERATORS, RESERVED_WORDS } from '@lib/utils';
-
-import { BASE_OPERATOR, UPDATE_OPERATORS } from './../../lib/utils/constants';
+import { BASE_OPERATOR, OPERATORS, RESERVED_WORDS, UPDATE_OPERATORS } from '@lib/utils';
 
 describe('Constants', () => {
   describe('RESERVED_WORDS', () => {

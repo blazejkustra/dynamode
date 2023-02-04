@@ -36,7 +36,7 @@ export function buildUpdateConditionExpression<T extends Entity<T>>(props: Updat
 
   return {
     updateExpression: expressionsBuilder.run(operators),
-    conditionExpression: optionsCondition ? expressionsBuilder.run(optionsCondition.operators) : undefined,
+    conditionExpression: optionsCondition ? expressionsBuilder.run(optionsCondition['operators']) : undefined,
     attributeNames: expressionsBuilder.attributeNames,
     attributeValues: expressionsBuilder.attributeValues,
   };
@@ -83,7 +83,7 @@ export function buildPutConditionExpression<T extends Entity<T>>(overwriteCondit
   const conditions = overwriteCondition?.condition(optionsCondition) || optionsCondition?.condition(overwriteCondition);
 
   return {
-    conditionExpression: expressionsBuilder.run(conditions?.operators || []),
+    conditionExpression: expressionsBuilder.run(conditions?.['operators'] || []),
     attributeNames: expressionsBuilder.attributeNames,
     attributeValues: expressionsBuilder.attributeValues,
   };
@@ -94,7 +94,7 @@ export function buildDeleteConditionExpression<T extends Entity<T>>(notExistsCon
   const conditions = notExistsCondition?.condition(optionsCondition) || optionsCondition?.condition(notExistsCondition);
 
   return {
-    conditionExpression: expressionsBuilder.run(conditions?.operators || []),
+    conditionExpression: expressionsBuilder.run(conditions?.['operators'] || []),
     attributeNames: expressionsBuilder.attributeNames,
     attributeValues: expressionsBuilder.attributeValues,
   };
