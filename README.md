@@ -58,7 +58,7 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 * [ ] Fix issue with empty set when using Entity.update (add additional validation) - empty set and string are not allowed https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html
 * [ ] Add validation to query/scan classes
-* [ ] Add validation to make sure that entities are registered have partitionKey and other stuff
+* [ ] Add validation to make sure that entities are registered have partitionKey and other stuff (think if it is needed at all)
 
 ### Consider
 
@@ -71,6 +71,7 @@ Dynamode is licensed under [The MIT License](LICENSE).
 * [ ] CLI tool to create/update table/index
 * [ ] Type entity return type better https://github.com/Polymer/polymer-decorators/issues/80
 * [ ] Fix Condition, Query and Scan methods to work only on specific properties (between, contains etc shouldn't work for array as an example)
+* [ ] convert all Date attributes to String/Number not only updatedAt and createdAt
 
 ### Other
  * [ ] You can only add local secondary indexes on tables with composite primary keys
