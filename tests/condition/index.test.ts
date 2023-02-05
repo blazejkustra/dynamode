@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 
-import { AttributeType } from '@lib/condition';
+import Condition from '@lib/condition';
+import { AttributeType } from '@lib/condition/types';
 import { attribute } from '@lib/decorators';
 import Entity from '@lib/entity';
 import { BASE_OPERATOR, OPERATORS } from '@lib/utils';
@@ -24,11 +25,11 @@ describe('Condition', () => {
     expect(condition1['entity']).toEqual(MockEntity);
     expect(condition1['logicalOperator']).toEqual(BASE_OPERATOR.and);
 
-    //FIX this
-    // const condition2 = new Condition(MockEntity);
-    // expect(condition2['operators']).toEqual([]);
-    // expect(condition2['entity']).toEqual(MockEntity);
-    // expect(condition2['logicalOperator']).toEqual(BASE_OPERATOR.and);
+    // FIX this
+    const condition2 = new Condition(MockEntity as any);
+    expect(condition2['operators']).toEqual([]);
+    expect(condition2['entity']).toEqual(MockEntity);
+    expect(condition2['logicalOperator']).toEqual(BASE_OPERATOR.and);
   });
 
   describe('attribute', () => {
@@ -42,32 +43,32 @@ describe('Condition', () => {
 
     describe('Methods', () => {
       describe('eq', () => {
-        test('Should call Condition.eq', async () => {
-          const condition = MockEntity.condition();
-          const eqSpy = vi.spyOn(condition, 'eq' as any);
+        const condition = MockEntity.condition();
+        const eqSpy = vi.spyOn(condition, 'eq' as any);
 
+        test('Should call Condition.eq', async () => {
           condition.attribute('key').eq('value');
-          expect(eqSpy).toBeCalled();
+          expect(eqSpy).toBeCalledWith(condition['operators'], 'key', 'value');
         });
       });
 
       describe('ne', () => {
-        test('Should call Condition.ne', async () => {
-          const condition = MockEntity.condition();
-          const neSpy = vi.spyOn(condition, 'ne' as any);
+        const condition = MockEntity.condition();
+        const neSpy = vi.spyOn(condition, 'ne' as any);
 
+        test('Should call Condition.ne', async () => {
           condition.attribute('key').ne('value');
-          expect(neSpy).toBeCalled();
+          expect(neSpy).toBeCalledWith(condition['operators'], 'key', 'value');
         });
       });
 
       describe('lt', () => {
-        test('Should call Condition.lt', async () => {
-          const condition = MockEntity.condition();
-          const ltSpy = vi.spyOn(condition, 'lt' as any);
+        const condition = MockEntity.condition();
+        const ltSpy = vi.spyOn(condition, 'lt' as any);
 
+        test('Should call Condition.lt', async () => {
           condition.attribute('key').lt('value');
-          expect(ltSpy).toBeCalled();
+          expect(ltSpy).toBeCalledWith(condition['operators'], 'key', 'value');
         });
       });
 
@@ -77,47 +78,47 @@ describe('Condition', () => {
           const leSpy = vi.spyOn(condition, 'le' as any);
 
           condition.attribute('key').le('value');
-          expect(leSpy).toBeCalled();
+          expect(leSpy).toBeCalledWith(condition['operators'], 'key', 'value');
         });
       });
 
       describe('gt', () => {
-        test('Should call Condition.gt', async () => {
-          const condition = MockEntity.condition();
-          const gtSpy = vi.spyOn(condition, 'gt' as any);
+        const condition = MockEntity.condition();
+        const gtSpy = vi.spyOn(condition, 'gt' as any);
 
+        test('Should call Condition.gt', async () => {
           condition.attribute('key').gt('value');
-          expect(gtSpy).toBeCalled();
+          expect(gtSpy).toBeCalledWith(condition['operators'], 'key', 'value');
         });
       });
 
       describe('ge', () => {
-        test('Should call Condition.ge', async () => {
-          const condition = MockEntity.condition();
-          const geSpy = vi.spyOn(condition, 'ge' as any);
+        const condition = MockEntity.condition();
+        const geSpy = vi.spyOn(condition, 'ge' as any);
 
+        test('Should call Condition.ge', async () => {
           condition.attribute('key').ge('value');
-          expect(geSpy).toBeCalled();
+          expect(geSpy).toBeCalledWith(condition['operators'], 'key', 'value');
         });
       });
 
       describe('beginsWith', () => {
-        test('Should call Condition.beginsWith', async () => {
-          const condition = MockEntity.condition();
-          const beginsWithSpy = vi.spyOn(condition, 'beginsWith' as any);
+        const condition = MockEntity.condition();
+        const beginsWithSpy = vi.spyOn(condition, 'beginsWith' as any);
 
+        test('Should call Condition.beginsWith', async () => {
           condition.attribute('key').beginsWith('value');
-          expect(beginsWithSpy).toBeCalled();
+          expect(beginsWithSpy).toBeCalledWith(condition['operators'], 'key', 'value');
         });
       });
 
       describe('between', () => {
-        test('Should call Condition.between', async () => {
-          const condition = MockEntity.condition();
-          const betweenSpy = vi.spyOn(condition, 'between' as any);
+        const condition = MockEntity.condition();
+        const betweenSpy = vi.spyOn(condition, 'between' as any);
 
+        test('Should call Condition.between', async () => {
           condition.attribute('key').between('value1', 'value2');
-          expect(betweenSpy).toBeCalled();
+          expect(betweenSpy).toBeCalledWith(condition['operators'], 'key', 'value1', 'value2');
         });
       });
 
@@ -234,7 +235,7 @@ describe('Condition', () => {
             const neSpy = vi.spyOn(condition, 'ne' as any);
 
             condition.attribute('key').not().eq('value');
-            expect(neSpy).toBeCalled();
+            expect(neSpy).toBeCalledWith(condition['operators'], 'key', 'value');
           });
         });
 
@@ -244,7 +245,7 @@ describe('Condition', () => {
             const eqSpy = vi.spyOn(condition, 'eq' as any);
 
             condition.attribute('key').not().ne('value');
-            expect(eqSpy).toBeCalled();
+            expect(eqSpy).toBeCalledWith(condition['operators'], 'key', 'value');
           });
         });
 
@@ -254,7 +255,7 @@ describe('Condition', () => {
             const geSpy = vi.spyOn(condition, 'ge' as any);
 
             condition.attribute('key').not().lt('value');
-            expect(geSpy).toBeCalled();
+            expect(geSpy).toBeCalledWith(condition['operators'], 'key', 'value');
           });
         });
 
@@ -264,7 +265,7 @@ describe('Condition', () => {
             const gtSpy = vi.spyOn(condition, 'gt' as any);
 
             condition.attribute('key').not().le('value');
-            expect(gtSpy).toBeCalled();
+            expect(gtSpy).toBeCalledWith(condition['operators'], 'key', 'value');
           });
         });
 
@@ -274,7 +275,7 @@ describe('Condition', () => {
             const leSpy = vi.spyOn(condition, 'le' as any);
 
             condition.attribute('key').not().gt('value');
-            expect(leSpy).toBeCalled();
+            expect(leSpy).toBeCalledWith(condition['operators'], 'key', 'value');
           });
         });
 
@@ -284,7 +285,7 @@ describe('Condition', () => {
             const ltSpy = vi.spyOn(condition, 'lt' as any);
 
             condition.attribute('key').not().ge('value');
-            expect(ltSpy).toBeCalled();
+            expect(ltSpy).toBeCalledWith(condition['operators'], 'key', 'value');
           });
         });
 

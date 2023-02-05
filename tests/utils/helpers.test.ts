@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { duplicatesInArray, insertBetween, isEmpty, isNotEmpty, isNotEmptyArray, isNotEmptyString, mergeObjects, splitListPathReference, timeout } from '@lib/utils';
 
@@ -131,7 +131,7 @@ describe('Helpers', () => {
   describe('timeout', () => {
     const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
 
-    afterEach(() => {
+    beforeEach(() => {
       vi.restoreAllMocks();
     });
 
