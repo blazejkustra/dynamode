@@ -483,8 +483,13 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
     public static convertAttributeValuesToPrimaryKey<T extends typeof Entity>(this: T, dynamoItem: AttributeValues): EntityPrimaryKey<T> {
       const object = fromDynamo(dynamoItem);
       const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(this.tableName);
-      if (partitionKey) object[partitionKey] = this.truncateValue(partitionKey as EntityKey<T>, object[partitionKey]);
-      if (sortKey) object[sortKey] = this.truncateValue(sortKey as EntityKey<T>, object[sortKey]);
+
+      if (partitionKey) {
+        object[partitionKey] = this.truncateValue(partitionKey as EntityKey<T>, object[partitionKey]);
+      }
+      if (sortKey) {
+        object[sortKey] = this.truncateValue(sortKey as EntityKey<T>, object[sortKey]);
+      }
 
       return object as EntityPrimaryKey<T>;
     }
@@ -492,34 +497,41 @@ export default function Entity<Metadata extends EntityMetadata>(tableName: strin
     public static convertPrimaryKeyToAttributeValues<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): AttributeValues {
       const dynamoObject: GenericObject = {};
       const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(this.tableName);
-      if (partitionKey) dynamoObject[partitionKey] = this.prefixSuffixValue(partitionKey as EntityKey<T>, (<any>primaryKey)[partitionKey]);
-      if (sortKey) dynamoObject[sortKey] = this.prefixSuffixValue(sortKey as EntityKey<T>, (<any>primaryKey)[sortKey]);
+
+      if (partitionKey) {
+        dynamoObject[partitionKey] = this.prefixSuffixValue(partitionKey as EntityKey<T>, (<any>primaryKey)[partitionKey]);
+      }
+      if (sortKey) {
+        dynamoObject[sortKey] = this.prefixSuffixValue(sortKey as EntityKey<T>, (<any>primaryKey)[sortKey]);
+      }
 
       return objectToDynamo(dynamoObject);
     }
 
     public static truncateValue<T extends typeof Entity>(this: T, key: EntityKey<T>, value: unknown): unknown {
-      if (typeof value === 'string') {
-        const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
-        const separator = Dynamode.separator.get();
-        const prefix = attributes[String(key)].prefix || '';
-        const suffix = attributes[String(key)].suffix || '';
-        return value.replace(`${prefix}${separator}`, '').replace(`${separator}${suffix}`, '');
-      } else {
+      if (typeof value !== 'string') {
         return value;
       }
+
+      const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
+      const separator = Dynamode.separator.get();
+      const prefix = attributes[String(key)].prefix || '';
+      const suffix = attributes[String(key)].suffix || '';
+
+      return value.replace(`${prefix}${separator}`, '').replace(`${separator}${suffix}`, '');
     }
 
     public static prefixSuffixValue<T extends typeof Entity>(this: T, key: EntityKey<T>, value: unknown): unknown {
-      if (typeof value === 'string') {
-        const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
-        const separator = Dynamode.separator.get();
-        const prefix = attributes[String(key)].prefix || '';
-        const suffix = attributes[String(key)].suffix || '';
-        return [prefix, value, suffix].filter((p) => p).join(separator);
-      } else {
+      if (typeof value !== 'string') {
         return value;
       }
+
+      const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
+      const separator = Dynamode.separator.get();
+      const prefix = attributes[String(key)].prefix || '';
+      const suffix = attributes[String(key)].suffix || '';
+
+      return [prefix, value, suffix].filter((p) => p).join(separator);
     }
   };
 }
