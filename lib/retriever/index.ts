@@ -22,7 +22,10 @@ export default class RetrieverBase<T extends Entity<T>> extends Condition<T> {
   }
 
   public startAt(key?: EntityPrimaryKey<T>) {
-    if (key) this.input.ExclusiveStartKey = this.entity.convertPrimaryKeyToAttributeValues(key);
+    if (key) {
+      this.input.ExclusiveStartKey = this.entity.convertPrimaryKeyToAttributeValues(key);
+    }
+
     return this;
   }
 

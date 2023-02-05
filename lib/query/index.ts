@@ -8,41 +8,11 @@ import { AttributeValues, ExpressionBuilder, isNotEmptyString, Operators, timeou
 import { BASE_OPERATOR } from './../utils/constants';
 
 export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
-  protected input: QueryInput;
-  public keyOperators: Operators = [];
+  protected declare input: QueryInput;
+  protected keyOperators: Operators = [];
 
   constructor(entity: T) {
     super(entity);
-  }
-
-  public partitionKey<Q extends Query<T>, K extends EntityKey<T> & EntityPartitionKeys<T>>(this: Q, key: K) {
-    const attributes = Dynamode.storage.getEntityAttributes(this.entity.tableName, this.entity.name);
-    const indexName = attributes[String(key)].indexName;
-    if (indexName) this.input.IndexName = indexName;
-
-    return {
-      eq: (value: EntityValue<T, K>): Q => this.eq(this.keyOperators, key, value),
-    };
-  }
-
-  public sortKey<Q extends Query<T>, K extends EntityKey<T> & EntitySortKeys<T>>(this: Q, key: K) {
-    this.keyOperators.push(BASE_OPERATOR.space, BASE_OPERATOR.and, BASE_OPERATOR.space);
-
-    return {
-      eq: (value: EntityValue<T, K>): Q => this.eq(this.keyOperators, key, value),
-      ne: (value: EntityValue<T, K>): Q => this.ne(this.keyOperators, key, value),
-      lt: (value: EntityValue<T, K>): Q => this.lt(this.keyOperators, key, value),
-      le: (value: EntityValue<T, K>): Q => this.le(this.keyOperators, key, value),
-      gt: (value: EntityValue<T, K>): Q => this.gt(this.keyOperators, key, value),
-      ge: (value: EntityValue<T, K>): Q => this.ge(this.keyOperators, key, value),
-      beginsWith: (value: EntityValue<T, K>): Q => this.beginsWith(this.keyOperators, key, value),
-      between: (value1: EntityValue<T, K>, value2: EntityValue<T, K>): Q => this.between(this.keyOperators, key, value1, value2),
-    };
-  }
-
-  public sort(order: 'ascending' | 'descending'): this {
-    this.input.ScanIndexForward = order === 'ascending';
-    return this;
   }
 
   public run(): Promise<QueryRunOutput<T>>;
@@ -75,9 +45,11 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
 
       do {
         const result = await this.entity.ddb.query(this.input);
-        await timeout(delay);
-        items.push(...(result.Items || []));
+        if (all) {
+          await timeout(delay);
+        }
 
+        items.push(...(result.Items || []));
         lastKey = result.LastEvaluatedKey;
         this.input.ExclusiveStartKey = lastKey;
 
@@ -87,22 +59,52 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
 
       return {
         items: items.map((item) => this.entity.convertAttributeValuesToEntity(item)),
+        lastKey: lastKey && this.entity.convertAttributeValuesToPrimaryKey(lastKey),
         count,
         scannedCount,
-        lastKey: lastKey && this.entity.convertAttributeValuesToPrimaryKey(lastKey),
       };
     })();
+  }
+
+  public partitionKey<Q extends Query<T>, K extends EntityKey<T> & EntityPartitionKeys<T>>(this: Q, key: K) {
+    this.maybePushKeyLogicalOperator();
+    this.setAssociatedIndexName(String(key));
+
+    return {
+      eq: (value: EntityValue<T, K>): Q => this.eq(this.keyOperators, key, value),
+    };
+  }
+
+  public sortKey<Q extends Query<T>, K extends EntityKey<T> & EntitySortKeys<T>>(this: Q, key: K) {
+    this.maybePushKeyLogicalOperator();
+    this.setAssociatedIndexName(String(key));
+
+    return {
+      eq: (value: EntityValue<T, K>): Q => this.eq(this.keyOperators, key, value),
+      ne: (value: EntityValue<T, K>): Q => this.ne(this.keyOperators, key, value),
+      lt: (value: EntityValue<T, K>): Q => this.lt(this.keyOperators, key, value),
+      le: (value: EntityValue<T, K>): Q => this.le(this.keyOperators, key, value),
+      gt: (value: EntityValue<T, K>): Q => this.gt(this.keyOperators, key, value),
+      ge: (value: EntityValue<T, K>): Q => this.ge(this.keyOperators, key, value),
+      beginsWith: (value: EntityValue<T, K>): Q => this.beginsWith(this.keyOperators, key, value),
+      between: (value1: EntityValue<T, K>, value2: EntityValue<T, K>): Q => this.between(this.keyOperators, key, value1, value2),
+    };
+  }
+
+  public sort(order: 'ascending' | 'descending'): this {
+    this.input.ScanIndexForward = order === 'ascending';
+    return this;
   }
 
   private buildQueryInput(extraInput?: Partial<QueryInput>): void {
     const expressionBuilder = new ExpressionBuilder({ attributeNames: this.attributeNames, attributeValues: this.attributeValues });
     const keyConditionExpression = expressionBuilder.run(this.keyOperators);
-    const conditionExpression = expressionBuilder.run(this.operators);
+    const filterExpression = expressionBuilder.run(this.operators);
 
     this.input = {
       ...this.input,
-      KeyConditionExpression: isNotEmptyString(keyConditionExpression) ? keyConditionExpression : undefined,
-      FilterExpression: isNotEmptyString(conditionExpression) ? conditionExpression : undefined,
+      KeyConditionExpression: keyConditionExpression,
+      FilterExpression: isNotEmptyString(filterExpression) ? filterExpression : undefined,
       ExpressionAttributeNames: expressionBuilder.attributeNames,
       ExpressionAttributeValues: expressionBuilder.attributeValues,
       ...extraInput,
@@ -114,5 +116,19 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
     // ValidationException: Invalid FilterExpression: The BETWEEN operator requires upper bound to be greater than or equal to lower bound; lower bound operand: AttributeValue: {S:5}, upper bound operand: AttributeValue: {S:100}
     // Index validation
     console.log('validateQueryInput');
+  }
+
+  private maybePushKeyLogicalOperator(): void {
+    if (this.keyOperators.length > 0) {
+      this.keyOperators.push(BASE_OPERATOR.space, BASE_OPERATOR.and, BASE_OPERATOR.space);
+    }
+  }
+
+  private setAssociatedIndexName(key: string) {
+    const attributes = Dynamode.storage.getEntityAttributes(this.entity.tableName, this.entity.name);
+    const { indexName } = attributes[key];
+    if (indexName) {
+      this.input.IndexName = indexName;
+    }
   }
 }

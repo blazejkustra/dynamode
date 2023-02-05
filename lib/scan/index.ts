@@ -7,7 +7,7 @@ import { isNotEmptyString } from '@lib/utils';
 import { ExpressionBuilder } from './../utils/ExpressionBuilder';
 
 export default class Scan<T extends Entity<T>> extends RetrieverBase<T> {
-  protected input: ScanInput;
+  protected declare input: ScanInput;
 
   constructor(entity: T) {
     super(entity);
