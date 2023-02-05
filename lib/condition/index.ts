@@ -1,5 +1,5 @@
-import { AttributeType } from '@lib/condition/types';
-import { Entity, EntityKey, EntityValue } from '@lib/entity/types';
+import type { AttributeType } from '@lib/condition/types';
+import type { Entity, EntityKey, EntityValue } from '@lib/entity/types';
 import { OPERATORS, Operators } from '@lib/utils';
 
 import { BASE_OPERATOR } from './../utils/constants';

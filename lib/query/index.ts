@@ -1,7 +1,7 @@
 import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import { Dynamode } from '@lib/dynamode';
-import { Entity, EntityKey, EntityPartitionKeys, EntitySortKeys, EntityValue } from '@lib/entity/types';
-import { QueryRunOptions, QueryRunOutput } from '@lib/query/types';
+import type { Entity, EntityKey, EntityPartitionKeys, EntitySortKeys, EntityValue } from '@lib/entity/types';
+import type { QueryRunOptions, QueryRunOutput } from '@lib/query/types';
 import RetrieverBase from '@lib/retriever';
 import { AttributeValues, ExpressionBuilder, isNotEmptyString, Operators, timeout } from '@lib/utils';
 

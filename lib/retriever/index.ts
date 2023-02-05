@@ -1,7 +1,7 @@
 import { QueryInput, ScanInput } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import { buildProjectionExpression } from '@lib/entity/helpers';
-import { Entity, EntityKey, EntityPrimaryKey } from '@lib/entity/types';
+import type { Entity, EntityKey, EntityPrimaryKey } from '@lib/entity/types';
 import { AttributeNames, AttributeValues } from '@lib/utils';
 
 export default class RetrieverBase<T extends Entity<T>> extends Condition<T> {

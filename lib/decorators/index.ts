@@ -1,8 +1,8 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
-import { DecoratorOptions } from '@lib/decorators/types';
+import type { DecoratorOptions } from '@lib/decorators/types';
 import { Dynamode } from '@lib/dynamode';
-import { AttributeMetadata, AttributeType, IndexAttributeType, TimestampAttributeType } from '@lib/dynamode/storage/types';
-import { Entity } from '@lib/entity/types';
+import type { AttributeMetadata, AttributeType, IndexAttributeType, TimestampAttributeType } from '@lib/dynamode/storage/types';
+import type { Entity } from '@lib/entity/types';
 
 // export function dependsOn<T>(value: T) {
 //   return (Entity: T, propertyName: string) => {

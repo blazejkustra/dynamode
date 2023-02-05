@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { convertToAttr, convertToNative, marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import Dynamode from '@lib/dynamode/index';
-import { Entity } from '@lib/entity/types';
+import type { Entity } from '@lib/entity/types';
 
 describe('Dynamode', () => {
   test('Should be able to use global ddb instance', async () => {
@@ -49,6 +49,7 @@ describe('Dynamode', () => {
     const tableName = 'tableName';
     const entityName = 'entityName';
     const parentEntityName = 'parentEntityName';
+    // TODO: use mocks.ts here
     const parentEntityConstructor = { name: parentEntityName } as Entity<any>;
     const entityConstructor = { name: entityName } as Entity<any>;
     Object.setPrototypeOf(entityConstructor, parentEntityConstructor);
@@ -132,6 +133,8 @@ describe('Dynamode', () => {
           type: String,
         },
       });
+
+      expect(storage.getEntityAttributes(tableName, 'unknownEntityName')).toEqual({});
     });
 
     test('getGsiMetadata', async () => {

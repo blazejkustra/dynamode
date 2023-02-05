@@ -1,4 +1,4 @@
-import { AttributeMetadata, AttributeType, EntityMetadata, TablesMetadata } from '@lib/dynamode/storage/types';
+import type { AttributeMetadata, AttributeType, EntityMetadata, TablesMetadata } from '@lib/dynamode/storage/types';
 import { mergeObjects } from '@lib/utils';
 
 export default class DynamodeStorage {

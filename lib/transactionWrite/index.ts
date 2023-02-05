@@ -1,8 +1,8 @@
 import { TransactWriteItemsCommandInput, TransactWriteItemsOutput } from '@aws-sdk/client-dynamodb';
 import { Dynamode } from '@lib/dynamode';
 import { convertEntityToAttributeValues } from '@lib/entity/helpers';
-import { Entity } from '@lib/entity/types';
-import { TransactionWriteOptions, TransactionWriteOutput, WriteTransaction } from '@lib/transactionWrite/types';
+import type { Entity } from '@lib/entity/types';
+import type { TransactionWriteOptions, TransactionWriteOutput, WriteTransaction } from '@lib/transactionWrite/types';
 
 export default function transactionWrite<T extends Entity<T>>(transactions: Array<WriteTransaction<T>>): Promise<TransactionWriteOutput<T>>;
 export default function transactionWrite<T extends Entity<T>>(transactions: Array<WriteTransaction<T>>, options: TransactionWriteOptions & { return: 'default' }): Promise<TransactionWriteOutput<T>>;

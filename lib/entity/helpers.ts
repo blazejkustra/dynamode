@@ -1,7 +1,7 @@
 import { ReturnValue as DynamoReturnValue, ReturnValuesOnConditionCheckFailure as DynamoReturnValueOnFailure } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import { Dynamode } from '@lib/dynamode';
-import { BuildDeleteConditionExpression, BuildGetProjectionExpression, BuildPutConditionExpression, BuildUpdateConditionExpression, Entity, EntityKey, ReturnValues, ReturnValuesLimited, UpdateProps } from '@lib/entity/types';
+import type { BuildDeleteConditionExpression, BuildGetProjectionExpression, BuildPutConditionExpression, BuildUpdateConditionExpression, Entity, EntityKey, ReturnValues, ReturnValuesLimited, UpdateProps } from '@lib/entity/types';
 import { AttributeNames, AttributeValues, BASE_OPERATOR, DefaultError, duplicatesInArray, insertBetween, isNotEmpty, isNotEmptyArray, Operators, valueFromDynamo } from '@lib/utils';
 
 import { UPDATE_OPERATORS } from './../utils/constants';

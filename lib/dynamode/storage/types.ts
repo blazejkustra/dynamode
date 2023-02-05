@@ -1,4 +1,4 @@
-import { Entity } from '@lib/entity/types';
+import type { Entity } from '@lib/entity/types';
 
 export type IndexAttributeType = StringConstructor | NumberConstructor;
 export type TimestampAttributeType = StringConstructor | NumberConstructor;

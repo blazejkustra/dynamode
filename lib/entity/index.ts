@@ -38,8 +38,8 @@ import {
 } from '@lib/entity/types';
 import Query from '@lib/query';
 import Scan from '@lib/scan';
-import { GetTransaction } from '@lib/transactionGet/types';
-import { WriteTransaction } from '@lib/transactionWrite/types';
+import type { GetTransaction } from '@lib/transactionGet/types';
+import type { WriteTransaction } from '@lib/transactionWrite/types';
 import { AttributeValues, DefaultError, ExpressionBuilder, fromDynamo, GenericObject, NotFoundError, objectToDynamo } from '@lib/utils';
 
 export default function Entity<Metadata extends EntityMetadata>(tableName: string) {

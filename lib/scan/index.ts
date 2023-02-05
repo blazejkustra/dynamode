@@ -1,7 +1,7 @@
 import { ScanCommandOutput, ScanInput } from '@aws-sdk/client-dynamodb';
-import { Entity, EntityIndexNames } from '@lib/entity/types';
+import type { Entity, EntityIndexNames } from '@lib/entity/types';
 import RetrieverBase from '@lib/retriever';
-import { ScanRunOptions, ScanRunOutput } from '@lib/scan/types';
+import type { ScanRunOptions, ScanRunOutput } from '@lib/scan/types';
 import { isNotEmptyString } from '@lib/utils';
 
 import { ExpressionBuilder } from './../utils/ExpressionBuilder';
