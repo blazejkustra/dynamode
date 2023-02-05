@@ -5,7 +5,7 @@
     "target": "es2015",
     "lib": ["ES2015"],
     "moduleResolution": "node",
-    "rootDir": ".",
+    "rootDir": "lib",
     "baseUrl": "lib",
     "outDir": "dist",
     "paths": {
