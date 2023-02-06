@@ -102,29 +102,29 @@ export function buildDeleteConditionExpression<T extends Entity<T>>(notExistsCon
 
 export function mapReturnValues(returnValues?: ReturnValues): DynamoReturnValue {
   if (!returnValues) {
-    return 'ALL_NEW';
+    return DynamoReturnValue.ALL_NEW;
   }
 
   return (
     {
-      none: 'NONE',
-      allOld: 'ALL_OLD',
-      allNew: 'ALL_NEW',
-      updatedOld: 'UPDATED_OLD',
-      updatedNew: 'UPDATED_NEW',
+      none: DynamoReturnValue.NONE,
+      allOld: DynamoReturnValue.ALL_OLD,
+      allNew: DynamoReturnValue.ALL_NEW,
+      updatedOld: DynamoReturnValue.UPDATED_OLD,
+      updatedNew: DynamoReturnValue.UPDATED_NEW,
     } as const
   )[returnValues];
 }
 
 export function mapReturnValuesLimited(returnValues?: ReturnValuesLimited): DynamoReturnValueOnFailure {
   if (!returnValues) {
-    return 'ALL_OLD';
+    return DynamoReturnValueOnFailure.ALL_OLD;
   }
 
   return (
     {
-      none: 'NONE',
-      allOld: 'ALL_OLD',
+      none: DynamoReturnValueOnFailure.NONE,
+      allOld: DynamoReturnValueOnFailure.ALL_OLD,
     } as const
   )[returnValues];
 }
