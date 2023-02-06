@@ -15,29 +15,29 @@
     "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.186.0",
-    "@aws-sdk/util-dynamodb": "^3.186.0"
+    "@aws-sdk/client-dynamodb": "^3.264.0",
+    "@aws-sdk/util-dynamodb": "^3.264.0"
   },
   "devDependencies": {
-    "@types/node": "^18.8.3",
-    "@typescript-eslint/eslint-plugin": "^5.39.0",
-    "@typescript-eslint/parser": "^5.39.0",
-    "@vitest/coverage-c8": "^0.24.0",
+    "@types/node": "^18.11.19",
+    "@typescript-eslint/eslint-plugin": "^5.51.0",
+    "@typescript-eslint/parser": "^5.51.0",
+    "@vitest/coverage-c8": "^0.28.4",
     "c8": "^7.12.0",
-    "concurrently": "^7.4.0",
-    "eslint": "^8.25.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-import-resolver-typescript": "^3.5.1",
-    "eslint-plugin-import": "^2.26.0",
+    "concurrently": "^7.6.0",
+    "eslint": "^8.33.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-import-resolver-typescript": "^3.5.3",
+    "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-simple-import-sort": "^8.0.0",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
     "eslint-plugin-unused-imports": "^2.0.0",
-    "prettier": "^2.7.1",
-    "tsc-alias": "^1.7.0",
-    "type-fest": "^3.0.0",
-    "typescript": "^4.8.4",
-    "vite-tsconfig-paths": "^3.5.2",
-    "vitest": "^0.24.0"
+    "prettier": "^2.8.3",
+    "tsc-alias": "^1.8.2",
+    "type-fest": "^3.5.5",
+    "typescript": "^4.9.5",
+    "vite-tsconfig-paths": "^4.0.5",
+    "vitest": "^0.28.4"
   },
   "repository": {
     "type": "git",
