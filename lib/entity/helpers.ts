@@ -223,7 +223,7 @@ export function convertEntityToAttributeValues<E extends typeof Entity>(entity: 
   return objectToDynamo(dynamoObject);
 }
 
-export function convertAttributeValuesToPrimaryKey<E extends typeof Entity, EM extends EntityMetadata>(entity: E, dynamoItem: AttributeValues): EntityPrimaryKey<E, EM> {
+export function convertAttributeValuesToPrimaryKey<EM extends EntityMetadata, E extends typeof Entity>(entity: E, dynamoItem: AttributeValues): EntityPrimaryKey<EM, E> {
   const object = fromDynamo(dynamoItem);
   const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(entity.tableName);
 
@@ -234,10 +234,10 @@ export function convertAttributeValuesToPrimaryKey<E extends typeof Entity, EM e
     object[sortKey] = truncateValue(entity, sortKey as EntityKey<E>, object[sortKey]);
   }
 
-  return object as EntityPrimaryKey<E, EM>;
+  return object as EntityPrimaryKey<EM, E>;
 }
 
-export function convertPrimaryKeyToAttributeValues<E extends typeof Entity, EM extends EntityMetadata>(entity: E, primaryKey: EntityPrimaryKey<E, EM>): AttributeValues {
+export function convertPrimaryKeyToAttributeValues<EM extends EntityMetadata, E extends typeof Entity>(entity: E, primaryKey: EntityPrimaryKey<EM, E>): AttributeValues {
   const dynamoObject: GenericObject = {};
   const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(entity.tableName);
 

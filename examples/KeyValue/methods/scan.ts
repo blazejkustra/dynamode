@@ -1,7 +1,7 @@
-import { KeyValue } from '../model';
+import { KeyValueRegistry } from '../model';
 
 async function scan() {
-  const userScan = await KeyValue.scan().attribute('key').beginsWith('k').run();
+  const userScan = await KeyValueRegistry.scan().attribute('key').beginsWith('k').run();
 
   console.log();
   console.log('OUTPUT:');

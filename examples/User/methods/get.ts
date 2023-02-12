@@ -1,7 +1,7 @@
-import { User } from '../model';
+import { UserRegistry } from '../model';
 
 async function get() {
-  const userGet = await User.get({ partitionKey: 'pk1', sortKey: 'sk1' });
+  const userGet = await UserRegistry.get({ partitionKey: 'pk1', sortKey: 'sk1' });
 
   console.log();
   console.log('OUTPUT:');

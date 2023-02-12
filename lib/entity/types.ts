@@ -32,7 +32,7 @@ type Indexes<EM extends EntityMetadata> = EM['indexes'];
 
 // Entity types
 
-export type EntityPrimaryKey<E extends typeof Entity, EM extends EntityMetadata> = Pick<InstanceType<E>, Extract<keyof InstanceType<E>, SortKey<EM> extends string ? PartitionKey<EM> | SortKey<EM> : PartitionKey<EM>>>;
+export type EntityPrimaryKey<EM extends EntityMetadata, E extends typeof Entity> = Pick<InstanceType<E>, Extract<keyof InstanceType<E>, SortKey<EM> extends string ? PartitionKey<EM> | SortKey<EM> : PartitionKey<EM>>>;
 
 export type EntityProperties<E extends typeof Entity> = Partial<FlattenObject<InstanceType<E>>>;
 export type EntityKey<E extends typeof Entity> = keyof EntityProperties<E>;
@@ -142,9 +142,9 @@ export interface EntityBatchDeleteOutput<PrimaryKey> {
 
 // Entity.batchGet
 
-export interface EntityBatchGetOutput<E extends typeof Entity, EM extends EntityMetadata> {
+export interface EntityBatchGetOutput<EM extends EntityMetadata, E extends typeof Entity> {
   items: Array<InstanceType<E>>;
-  unprocessedKeys: Array<EntityPrimaryKey<E, EM>>;
+  unprocessedKeys: Array<EntityPrimaryKey<EM, E>>;
 }
 
 // Entity.batchPut

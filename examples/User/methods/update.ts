@@ -1,7 +1,7 @@
-import { User } from '../model';
+import { UserRegistry } from '../model';
 
 async function update() {
-  const userUpdate = await User.update(
+  const userUpdate = await UserRegistry.update(
     { partitionKey: 'pk1', sortKey: 'sk1' },
     {
       set: {

@@ -1,7 +1,7 @@
-import { EntityOne, EntityThree, EntityTwo } from '../model';
+import { EntityOne, EntityOneRegistry, EntityThree, EntityThreeRegistry, EntityTwo, EntityTwoRegistry } from '../model';
 
 async function put() {
-  const item1 = await EntityOne.put(
+  const item1 = await EntityOneRegistry.put(
     new EntityOne({
       propPk: 'propPk',
       propSk: 101,
@@ -9,7 +9,7 @@ async function put() {
       one: { test: 2 },
     }),
   );
-  const item2 = await EntityTwo.put(
+  const item2 = await EntityTwoRegistry.put(
     new EntityTwo({
       propPk: 'propPk',
       propSk: 102,
@@ -18,7 +18,7 @@ async function put() {
       two: { test: '2' },
     }),
   );
-  const item3 = await EntityThree.put(
+  const item3 = await EntityThreeRegistry.put(
     new EntityThree({
       propPk: 'propPk',
       propSk: 103,

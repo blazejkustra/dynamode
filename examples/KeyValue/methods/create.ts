@@ -1,7 +1,7 @@
-import { KeyValue } from '../model';
+import { KeyValue, KeyValueRegistry } from '../model';
 
 async function create() {
-  const item = await KeyValue.create(
+  const item = await KeyValueRegistry.create(
     new KeyValue({
       key: 'key1',
       value: { test: 123 },

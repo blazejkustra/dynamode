@@ -11,7 +11,7 @@ import { Entity } from '@lib/entity';
 // }
 
 // TODO: implement
-export function register(value: DynamoDB) {
+export function register(_value: DynamoDB) {
   return <E extends typeof Entity>(Class: E) => {
     // Class.ddb = value;
     return Class;

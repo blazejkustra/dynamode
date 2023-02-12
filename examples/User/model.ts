@@ -1,7 +1,5 @@
-import { Entity } from '../../dist';
-import { attribute, primaryPartitionKey, primarySortKey, register } from '../../dist/decorators';
-
-import { ddb } from './setup';
+import { attribute, primaryPartitionKey, primarySortKey } from '../../dist/decorators';
+import { Entity, register } from '../../dist/entity';
 
 type UserKeys = {
   partitionKey: 'partitionKey';
@@ -22,8 +20,8 @@ type UserProps = {
 
 const USERS_TABLE = 'users';
 
-@register(ddb)
-export class User extends Entity<UserKeys>(USERS_TABLE) {
+// @register(ddb)
+export class User extends Entity {
   @primaryPartitionKey(String)
   partitionKey: string;
 
@@ -62,3 +60,5 @@ export class User extends Entity<UserKeys>(USERS_TABLE) {
     this.config = props.config;
   }
 }
+
+export const UserRegistry = register<UserKeys, typeof User>(User, USERS_TABLE);

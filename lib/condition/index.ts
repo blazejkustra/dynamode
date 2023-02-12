@@ -114,7 +114,7 @@ export default class Condition<E extends typeof Entity> {
     };
   }
 
-  public parenthesis(condition?: this): this {
+  public parenthesis(condition?: Condition<E>): this {
     if (condition) {
       this.maybePushLogicalOperator();
       this.operators.push(...OPERATORS.parenthesis(condition.operators));
@@ -122,11 +122,11 @@ export default class Condition<E extends typeof Entity> {
     return this;
   }
 
-  public group(condition?: this): this {
+  public group(condition?: Condition<E>): this {
     return this.parenthesis(condition);
   }
 
-  public condition(condition?: this): this {
+  public condition(condition?: Condition<E>): this {
     if (condition) {
       this.maybePushLogicalOperator();
       this.operators.push(...condition.operators);

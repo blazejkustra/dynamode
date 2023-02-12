@@ -1,7 +1,7 @@
-import { User } from '../model';
+import { User, UserRegistry } from '../model';
 
 async function create() {
-  const user = await User.create(
+  const user = await UserRegistry.create(
     new User({
       partitionKey: 'pk1',
       sortKey: 'sk1',

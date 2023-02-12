@@ -1,7 +1,5 @@
-import { Entity } from '../../dist';
-import { attribute, lsiSortKey, primaryPartitionKey, primarySortKey, register } from '../../dist/decorators';
-
-import { ddb } from './setup';
+import { attribute, lsiSortKey, primaryPartitionKey, primarySortKey } from '../../dist/decorators';
+import { Entity, register } from '../../dist/entity';
 
 type TableKeys = {
   partitionKey: 'propPk';
@@ -21,8 +19,7 @@ type TableProps = {
 
 const TABLE_NAME = 'inheritance';
 
-@register(ddb)
-class BaseTable extends Entity<TableKeys>(TABLE_NAME) {
+class BaseTable extends Entity {
   @primaryPartitionKey(String)
   propPk: string;
 
@@ -85,3 +82,7 @@ export class EntityThree extends BaseTable {
     this.otherProperty = props.otherProperty;
   }
 }
+
+export const EntityOneRegistry = register<TableKeys, typeof EntityOne>(EntityOne, TABLE_NAME);
+export const EntityTwoRegistry = register<TableKeys, typeof EntityTwo>(EntityTwo, TABLE_NAME);
+export const EntityThreeRegistry = register<TableKeys, typeof EntityThree>(EntityThree, TABLE_NAME);

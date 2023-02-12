@@ -1,7 +1,7 @@
-import { AllPossibleProperties } from '../model';
+import { AllPossibleProperties, AllPossiblePropertiesRegistry } from '../model';
 
 async function put() {
-  const item = await AllPossibleProperties.put(
+  const item = await AllPossiblePropertiesRegistry.put(
     new AllPossibleProperties({
       partitionKey: 'pk1',
       sortKey: 'sk1',

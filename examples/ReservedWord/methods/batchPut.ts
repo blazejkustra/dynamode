@@ -1,7 +1,7 @@
-import { EntityReservedWord } from '../model';
+import { EntityReservedWord, EntityReservedWordRegistry } from '../model';
 
 async function batchPut() {
-  const entityReservedWordBatchPut = await EntityReservedWord.batchPut([
+  const entityReservedWordBatchPut = await EntityReservedWordRegistry.batchPut([
     new EntityReservedWord({
       COLUMN: 'pk1',
       OBJECT: 'sk1',

@@ -9,7 +9,7 @@ import { AttributeValues, ExpressionBuilder, isNotEmptyString, Operators, timeou
 
 import { BASE_OPERATOR } from './../utils/constants';
 
-export default class Query<E extends typeof Entity, EM extends EntityMetadata> extends RetrieverBase<E, EM> {
+export default class Query<EM extends EntityMetadata, E extends typeof Entity> extends RetrieverBase<EM, E> {
   protected declare input: QueryInput;
   protected keyOperators: Operators = [];
 
@@ -68,7 +68,7 @@ export default class Query<E extends typeof Entity, EM extends EntityMetadata> e
     })();
   }
 
-  public partitionKey<Q extends Query<E, EM>, K extends EntityKey<E> & EntityPartitionKeys<EM>>(this: Q, key: K) {
+  public partitionKey<Q extends Query<EM, E>, K extends EntityKey<E> & EntityPartitionKeys<EM>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
     this.setAssociatedIndexName(String(key));
 
@@ -77,7 +77,7 @@ export default class Query<E extends typeof Entity, EM extends EntityMetadata> e
     };
   }
 
-  public sortKey<Q extends Query<E, EM>, K extends EntityKey<E> & EntitySortKeys<EM>>(this: Q, key: K) {
+  public sortKey<Q extends Query<EM, E>, K extends EntityKey<E> & EntitySortKeys<EM>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
     this.setAssociatedIndexName(String(key));
 

@@ -5,7 +5,7 @@ import { buildProjectionExpression, convertPrimaryKeyToAttributeValues } from '@
 import { EntityKey, EntityMetadata, EntityPrimaryKey } from '@lib/entity/types';
 import { AttributeNames, AttributeValues } from '@lib/utils';
 
-export default class RetrieverBase<E extends typeof Entity, EM extends EntityMetadata> extends Condition<E> {
+export default class RetrieverBase<EM extends EntityMetadata, E extends typeof Entity> extends Condition<E> {
   protected input: QueryInput | ScanInput;
   protected attributeNames: AttributeNames = {};
   protected attributeValues: AttributeValues = {};
@@ -22,7 +22,7 @@ export default class RetrieverBase<E extends typeof Entity, EM extends EntityMet
     return this;
   }
 
-  public startAt(key?: EntityPrimaryKey<E, EM>) {
+  public startAt(key?: EntityPrimaryKey<EM, E>) {
     if (key) {
       this.input.ExclusiveStartKey = convertPrimaryKeyToAttributeValues(this.entity, key);
     }

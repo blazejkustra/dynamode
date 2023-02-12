@@ -1,7 +1,5 @@
-import { Entity } from '../../dist';
-import { createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, primaryPartitionKey, primarySortKey, register, updatedAt } from '../../dist/decorators';
-
-import { ddb } from './setup';
+import { createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, primaryPartitionKey, primarySortKey, updatedAt } from '../../dist/decorators';
+import { Entity, register } from '../../dist/entity';
 
 type ReservedWordKeys = {
   partitionKey: 'COLUMN';
@@ -27,10 +25,10 @@ type ReservedWordProps = {
   DATE?: Date;
 };
 
-const USERS_TABLE = 'reservedWord';
+const TABLE_NAME = 'reservedWord';
 
-@register(ddb)
-export class EntityReservedWord extends Entity<ReservedWordKeys>(USERS_TABLE) {
+// @register(ddb)
+export class EntityReservedWord extends Entity {
   // Primary key
   @primaryPartitionKey(String)
   COLUMN: string;
@@ -71,3 +69,5 @@ export class EntityReservedWord extends Entity<ReservedWordKeys>(USERS_TABLE) {
     this.DATE = props.DATE || new Date();
   }
 }
+
+export const EntityReservedWordRegistry = register<ReservedWordKeys, typeof EntityReservedWord>(EntityReservedWord, TABLE_NAME);
