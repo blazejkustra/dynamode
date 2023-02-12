@@ -1,13 +1,38 @@
 import { ReturnValue as DynamoReturnValue, ReturnValuesOnConditionCheckFailure as DynamoReturnValueOnFailure } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import { Dynamode } from '@lib/dynamode';
-import type { BuildDeleteConditionExpression, BuildGetProjectionExpression, BuildPutConditionExpression, BuildUpdateConditionExpression, Entity, EntityKey, ReturnValues, ReturnValuesLimited, UpdateProps } from '@lib/entity/types';
-import { AttributeNames, AttributeValues, BASE_OPERATOR, DefaultError, duplicatesInArray, insertBetween, isNotEmpty, isNotEmptyArray, Operators, valueFromDynamo } from '@lib/utils';
+import { Entity } from '@lib/entity';
+import type {
+  BuildDeleteConditionExpression,
+  BuildGetProjectionExpression,
+  BuildPutConditionExpression,
+  BuildUpdateConditionExpression,
+  EntityKey,
+  EntityMetadata,
+  EntityPrimaryKey,
+  ReturnValues,
+  ReturnValuesLimited,
+  UpdateProps,
+} from '@lib/entity/types';
+import {
+  AttributeNames,
+  AttributeValues,
+  BASE_OPERATOR,
+  DefaultError,
+  duplicatesInArray,
+  ExpressionBuilder,
+  fromDynamo,
+  GenericObject,
+  insertBetween,
+  isNotEmpty,
+  isNotEmptyArray,
+  objectToDynamo,
+  Operators,
+  UPDATE_OPERATORS,
+  valueFromDynamo,
+} from '@lib/utils';
 
-import { UPDATE_OPERATORS } from './../utils/constants';
-import { ExpressionBuilder } from './../utils/ExpressionBuilder';
-
-export function buildProjectionExpression<T extends Entity<T>>(attributes: Array<EntityKey<T>>, attributeNames: AttributeNames): string {
+export function buildProjectionExpression<E extends typeof Entity>(entity: E, attributes: Array<EntityKey<E>>, attributeNames: AttributeNames): string {
   if (duplicatesInArray(attributes)) {
     throw new DefaultError();
   }
@@ -17,7 +42,7 @@ export function buildProjectionExpression<T extends Entity<T>>(attributes: Array
   return new ExpressionBuilder({ attributeNames }).run(insertBetween(operators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]));
 }
 
-export function buildGetProjectionExpression<T extends Entity<T>>(attributes?: Array<EntityKey<T>>): BuildGetProjectionExpression {
+export function buildGetProjectionExpression<E extends typeof Entity>(entity: E, attributes?: Array<EntityKey<E>>): BuildGetProjectionExpression {
   if (!attributes) {
     return {};
   }
@@ -25,12 +50,12 @@ export function buildGetProjectionExpression<T extends Entity<T>>(attributes?: A
   const attributeNames: AttributeNames = {};
 
   return {
-    projectionExpression: buildProjectionExpression(attributes, attributeNames),
+    projectionExpression: buildProjectionExpression(entity, attributes, attributeNames),
     attributeNames: isNotEmpty(attributeNames) ? attributeNames : undefined,
   };
 }
 
-export function buildUpdateConditionExpression<T extends Entity<T>>(props: UpdateProps<T>, optionsCondition?: Condition<T>): BuildUpdateConditionExpression {
+export function buildUpdateConditionExpression<E extends typeof Entity>(props: UpdateProps<E>, optionsCondition?: Condition<E>): BuildUpdateConditionExpression {
   const expressionsBuilder = new ExpressionBuilder();
   const operators = buildUpdateConditions(props);
 
@@ -42,7 +67,7 @@ export function buildUpdateConditionExpression<T extends Entity<T>>(props: Updat
   };
 }
 
-export function buildUpdateConditions<T extends Entity<T>>(props: UpdateProps<T>): Operators {
+export function buildUpdateConditions<E extends typeof Entity>(props: UpdateProps<E>): Operators {
   const operators: Operators = [];
 
   if (isNotEmpty({ ...(props.set || {}), ...(props.setIfNotExists || {}), ...(props.listAppend || {}), ...(props.increment || {}), ...(props.decrement || {}) })) {
@@ -78,7 +103,7 @@ export function buildUpdateConditions<T extends Entity<T>>(props: UpdateProps<T>
   return operators;
 }
 
-export function buildPutConditionExpression<T extends Entity<T>>(overwriteCondition?: Condition<T>, optionsCondition?: Condition<T>): BuildPutConditionExpression {
+export function buildPutConditionExpression<E extends typeof Entity>(overwriteCondition?: Condition<E>, optionsCondition?: Condition<E>): BuildPutConditionExpression {
   const expressionsBuilder = new ExpressionBuilder();
   const conditions = overwriteCondition?.condition(optionsCondition) || optionsCondition?.condition(overwriteCondition);
 
@@ -89,7 +114,7 @@ export function buildPutConditionExpression<T extends Entity<T>>(overwriteCondit
   };
 }
 
-export function buildDeleteConditionExpression<T extends Entity<T>>(notExistsCondition?: Condition<T>, optionsCondition?: Condition<T>): BuildDeleteConditionExpression {
+export function buildDeleteConditionExpression<E extends typeof Entity>(notExistsCondition?: Condition<E>, optionsCondition?: Condition<E>): BuildDeleteConditionExpression {
   const expressionsBuilder = new ExpressionBuilder();
   const conditions = notExistsCondition?.condition(optionsCondition) || optionsCondition?.condition(notExistsCondition);
 
@@ -129,22 +154,125 @@ export function mapReturnValuesLimited(returnValues?: ReturnValuesLimited): Dyna
   )[returnValues];
 }
 
-export function convertEntityToAttributeValues<T extends Entity<T>>(dynamoItem?: AttributeValues, tableName?: string): InstanceType<T> | undefined {
-  if (!dynamoItem || !tableName) {
-    return undefined;
+export function convertAttributeValuesToEntity<E extends typeof Entity>(entity: E, dynamoItem: AttributeValues): InstanceType<E>;
+export function convertAttributeValuesToEntity<E extends typeof Entity>(tableName: string, dynamoItem: AttributeValues): InstanceType<E> | undefined;
+export function convertAttributeValuesToEntity<E extends typeof Entity>(tableNameOrEntity: E | string, dynamoItem: AttributeValues): InstanceType<E> | undefined {
+  let entityConstructor: E;
+
+  if (typeof tableNameOrEntity === 'string') {
+    const tableName = tableNameOrEntity;
+    const entityName = valueFromDynamo(dynamoItem.dynamodeEntity);
+
+    if (typeof entityName !== 'string') {
+      throw new DefaultError();
+    }
+
+    entityConstructor = Dynamode.storage.getEntityMetadata(tableName, entityName).entityConstructor as E;
+
+    if (!entityConstructor) {
+      throw new DefaultError();
+    }
+  } else {
+    entityConstructor = tableNameOrEntity;
   }
 
-  const entityName = valueFromDynamo(dynamoItem.dynamodeEntity);
+  const object = fromDynamo(dynamoItem);
+  const attributes = Dynamode.storage.getEntityAttributes(entityConstructor.tableName, entityConstructor.name);
+  const { createdAt, updatedAt } = Dynamode.storage.getTableMetadata(entityConstructor.tableName);
 
-  if (typeof entityName !== 'string') {
-    throw new DefaultError();
+  if (createdAt) {
+    object[createdAt] = new Date(object[createdAt] as string | number);
+  }
+  if (updatedAt) {
+    object[updatedAt] = new Date(object[updatedAt] as string | number);
   }
 
-  const { entityConstructor } = Dynamode.storage.getEntityMetadata(tableName, entityName);
+  Object.entries(attributes).forEach(([propertyName, metadata]) => {
+    let value = object[propertyName];
 
-  if (!entityConstructor) {
-    throw new DefaultError();
+    if (value && typeof value === 'object' && metadata.type === Map) {
+      value = new Map(Object.entries(value));
+    }
+
+    object[propertyName] = truncateValue(entityConstructor, propertyName as EntityKey<E>, value);
+  });
+
+  return new entityConstructor(object) as InstanceType<E>;
+}
+
+export function convertEntityToAttributeValues<E extends typeof Entity>(entity: E, item: InstanceType<E>): AttributeValues {
+  const dynamoObject: GenericObject = {};
+  const attributes = Dynamode.storage.getEntityAttributes(entity.tableName, entity.name);
+
+  Object.keys(attributes).forEach((propertyName) => {
+    let value: unknown = item[propertyName as keyof InstanceType<E>];
+
+    if (value instanceof Date) {
+      if (attributes[propertyName].type === String) {
+        value = value.toISOString();
+      } else if (attributes[propertyName].type === Number) {
+        value = value.getTime();
+      } else {
+        throw new DefaultError();
+      }
+    }
+
+    dynamoObject[propertyName] = prefixSuffixValue(entity, propertyName as EntityKey<E>, value);
+  });
+
+  return objectToDynamo(dynamoObject);
+}
+
+export function convertAttributeValuesToPrimaryKey<EM extends EntityMetadata, E extends typeof Entity>(entity: E, dynamoItem: AttributeValues): EntityPrimaryKey<EM, E> {
+  const object = fromDynamo(dynamoItem);
+  const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(entity.tableName);
+
+  if (partitionKey) {
+    object[partitionKey] = truncateValue(entity, partitionKey as EntityKey<E>, object[partitionKey]);
+  }
+  if (sortKey) {
+    object[sortKey] = truncateValue(entity, sortKey as EntityKey<E>, object[sortKey]);
   }
 
-  return entityConstructor.convertAttributeValuesToEntity(dynamoItem);
+  return object as EntityPrimaryKey<EM, E>;
+}
+
+export function convertPrimaryKeyToAttributeValues<EM extends EntityMetadata, E extends typeof Entity>(entity: E, primaryKey: EntityPrimaryKey<EM, E>): AttributeValues {
+  const dynamoObject: GenericObject = {};
+  const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(entity.tableName);
+
+  if (partitionKey) {
+    dynamoObject[partitionKey] = prefixSuffixValue(entity, partitionKey as EntityKey<E>, (<any>primaryKey)[partitionKey]);
+  }
+  if (sortKey) {
+    dynamoObject[sortKey] = prefixSuffixValue(entity, sortKey as EntityKey<E>, (<any>primaryKey)[sortKey]);
+  }
+
+  return objectToDynamo(dynamoObject);
+}
+
+export function prefixSuffixValue<E extends typeof Entity>(entity: E, key: EntityKey<E>, value: unknown): unknown {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  const attributes = Dynamode.storage.getEntityAttributes(entity.tableName, entity.name);
+  const separator = Dynamode.separator.get();
+  const prefix = attributes[String(key)].prefix || '';
+  const suffix = attributes[String(key)].suffix || '';
+
+  return [prefix, value, suffix].filter((p) => p).join(separator);
+}
+
+export function truncateValue<E extends typeof Entity>(entity: E, key: EntityKey<E>, value: unknown): unknown {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  const attributes = Dynamode.storage.getEntityAttributes(entity.tableName, entity.name);
+  const separator = Dynamode.separator.get();
+  const prefix = attributes[String(key)].prefix || '';
+  const suffix = attributes[String(key)].suffix || '';
+
+  return value.replace(`${prefix}${separator}`, '').replace(`${separator}${suffix}`, '');
 }

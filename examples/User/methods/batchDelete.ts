@@ -1,7 +1,7 @@
-import { User } from '../model';
+import { UserRegistry } from '../model';
 
 async function batchDelete() {
-  const userBatchDelete = await User.batchDelete(
+  const userBatchDelete = await UserRegistry.batchDelete(
     [
       { partitionKey: 'pk1', sortKey: 'sk1' },
       { partitionKey: 'pk2', sortKey: 'sk2' },

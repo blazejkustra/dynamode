@@ -1,15 +1,15 @@
 import { TransactGetItemsCommandInput, TransactGetItemsOutput } from '@aws-sdk/client-dynamodb';
 import { Dynamode } from '@lib/dynamode';
-import { convertEntityToAttributeValues } from '@lib/entity/helpers';
-import type { Entity } from '@lib/entity/types';
+import { Entity } from '@lib/entity';
+import { convertAttributeValuesToEntity } from '@lib/entity/helpers';
 import type { GetTransaction, TransactionGetOptions, TransactionGetOutput } from '@lib/transactionGet/types';
 import { NotFoundError } from '@lib/utils';
 
-export default function transactionGet<T extends Entity<T>>(transactions: Array<GetTransaction<T>>): Promise<TransactionGetOutput<T>>;
-export default function transactionGet<T extends Entity<T>>(transactions: Array<GetTransaction<T>>, options: TransactionGetOptions & { return: 'default' }): Promise<TransactionGetOutput<T>>;
-export default function transactionGet<T extends Entity<T>>(transactions: Array<GetTransaction<T>>, options: TransactionGetOptions & { return: 'output' }): Promise<TransactGetItemsOutput>;
-export default function transactionGet<T extends Entity<T>>(transactions: Array<GetTransaction<T>>, options: TransactionGetOptions & { return: 'input' }): TransactGetItemsCommandInput;
-export default function transactionGet<T extends Entity<T>>(transactions: Array<GetTransaction<T>>, options?: TransactionGetOptions): Promise<TransactionGetOutput<T> | TransactGetItemsOutput> | TransactGetItemsCommandInput {
+export default function transactionGet<E extends typeof Entity>(transactions: Array<GetTransaction<E>>): Promise<TransactionGetOutput<E>>;
+export default function transactionGet<E extends typeof Entity>(transactions: Array<GetTransaction<E>>, options: TransactionGetOptions & { return: 'default' }): Promise<TransactionGetOutput<E>>;
+export default function transactionGet<E extends typeof Entity>(transactions: Array<GetTransaction<E>>, options: TransactionGetOptions & { return: 'output' }): Promise<TransactGetItemsOutput>;
+export default function transactionGet<E extends typeof Entity>(transactions: Array<GetTransaction<E>>, options: TransactionGetOptions & { return: 'input' }): TransactGetItemsCommandInput;
+export default function transactionGet<E extends typeof Entity>(transactions: Array<GetTransaction<E>>, options?: TransactionGetOptions): Promise<TransactionGetOutput<E> | TransactGetItemsOutput> | TransactGetItemsCommandInput {
   const throwOnNotFound = options?.throwOnNotFound ?? true;
   const commandInput: TransactGetItemsCommandInput = { TransactItems: transactions, ...options?.extraInput };
 
@@ -30,7 +30,14 @@ export default function transactionGet<T extends Entity<T>>(transactions: Array<
       return result;
     }
 
-    const entities = items.map((item, idx) => convertEntityToAttributeValues(item, transactions[idx].Get.TableName)).filter((entity): entity is InstanceType<T> => !!entity);
+    const entities = items
+      .map((item, idx) => {
+        const tableName = transactions[idx].Get.TableName;
+        if (item && tableName) {
+          return convertAttributeValuesToEntity(tableName, item);
+        }
+      })
+      .filter((entity): entity is InstanceType<E> => !!entity);
 
     return {
       items: entities,

@@ -1,7 +1,7 @@
-import { EntityReservedWord } from '../model';
+import { EntityReservedWordRegistry } from './../model';
 
 async function batchDelete() {
-  const entityReservedWordBatchDelete = await EntityReservedWord.batchDelete([
+  const entityReservedWordBatchDelete = await EntityReservedWordRegistry.batchDelete([
     { COLUMN: 'pk1', OBJECT: 'sk1' },
     { COLUMN: 'pk2', OBJECT: 'sk2' },
   ]);

@@ -1,10 +1,10 @@
 import { transactionWrite } from '../../../dist';
-import { EntityReservedWord } from '../model';
+import { EntityReservedWord, EntityReservedWordRegistry } from '../model';
 
 async function transaction() {
   const transactions = await transactionWrite(
     [
-      EntityReservedWord.transactionUpdate(
+      EntityReservedWordRegistry.transactionUpdate(
         { COLUMN: 'pk1', OBJECT: 'sk1' },
         {
           add: {
@@ -12,7 +12,7 @@ async function transaction() {
           },
         },
       ),
-      EntityReservedWord.transactionPut(
+      EntityReservedWordRegistry.transactionPut(
         new EntityReservedWord({
           COLUMN: 'pk2',
           OBJECT: 'sk2',
@@ -21,7 +21,7 @@ async function transaction() {
           old: 105,
         }),
       ),
-      EntityReservedWord.transactionCreate(
+      EntityReservedWordRegistry.transactionCreate(
         new EntityReservedWord({
           COLUMN: 'pk3',
           OBJECT: 'sk3',
@@ -30,8 +30,8 @@ async function transaction() {
           old: 105,
         }),
       ),
-      EntityReservedWord.transactionDelete({ COLUMN: 'pk5', OBJECT: 'sk5' }),
-      EntityReservedWord.transactionCondition({ COLUMN: 'pk6', OBJECT: 'sk6' }, EntityReservedWord.condition().attribute('COLUMN').not().exists()),
+      EntityReservedWordRegistry.transactionDelete({ COLUMN: 'pk5', OBJECT: 'sk5' }),
+      EntityReservedWordRegistry.transactionCondition({ COLUMN: 'pk6', OBJECT: 'sk6' }, EntityReservedWordRegistry.condition().attribute('COLUMN').not().exists()),
     ],
     { return: 'default' },
   );

@@ -1,7 +1,8 @@
 import { Get, TransactGetItemsCommandInput } from '@aws-sdk/client-dynamodb';
-import type { Entity, ReturnOption } from '@lib/entity/types';
+import { Entity } from '@lib/entity';
+import type { ReturnOption } from '@lib/entity/types';
 
-export type GetTransaction<T extends Entity<T>> = { Get: Get } & T;
+export type GetTransaction<E> = { Get: Get } & E;
 
 export interface TransactionGetOptions {
   extraInput?: Partial<TransactGetItemsCommandInput>;
@@ -9,7 +10,7 @@ export interface TransactionGetOptions {
   throwOnNotFound?: boolean;
 }
 
-export interface TransactionGetOutput<T extends Entity<T>> {
-  items: Array<InstanceType<T>>;
+export interface TransactionGetOutput<E extends typeof Entity> {
+  items: Array<InstanceType<E>>;
   count: number;
 }

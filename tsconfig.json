@@ -16,6 +16,7 @@
     "strictPropertyInitialization": false,
     "declaration": true,
     "esModuleInterop": true,
+    "experimentalDecorators": true
   },
   "include": ["lib"],
   "exclude": [

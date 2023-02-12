@@ -5,7 +5,6 @@ import {
   BatchWriteItemCommandOutput,
   DeleteItemCommandInput,
   DeleteItemCommandOutput,
-  DynamoDB,
   GetItemCommandInput,
   GetItemCommandOutput,
   PutItemCommandInput,
@@ -15,7 +14,17 @@ import {
 } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import { Dynamode } from '@lib/dynamode';
-import { buildDeleteConditionExpression, buildGetProjectionExpression, buildPutConditionExpression, buildUpdateConditionExpression, mapReturnValues, mapReturnValuesLimited } from '@lib/entity/helpers';
+import {
+  buildDeleteConditionExpression,
+  buildGetProjectionExpression,
+  buildPutConditionExpression,
+  buildUpdateConditionExpression,
+  convertAttributeValuesToEntity,
+  convertEntityToAttributeValues,
+  convertPrimaryKeyToAttributeValues,
+  mapReturnValues,
+  mapReturnValuesLimited,
+} from '@lib/entity/helpers';
 import {
   EntityBatchDeleteOptions,
   EntityBatchDeleteOutput,
@@ -38,500 +47,419 @@ import {
 } from '@lib/entity/types';
 import Query from '@lib/query';
 import Scan from '@lib/scan';
-import type { GetTransaction } from '@lib/transactionGet/types';
-import type { WriteTransaction } from '@lib/transactionWrite/types';
-import { AttributeValues, DefaultError, ExpressionBuilder, fromDynamo, GenericObject, NotFoundError, objectToDynamo } from '@lib/utils';
+import { GetTransaction } from '@lib/transactionGet/types';
+import { WriteTransaction } from '@lib/transactionWrite/types';
+import { AttributeValues, ExpressionBuilder, fromDynamo, NotFoundError } from '@lib/utils';
 
-export default function Entity<Metadata extends EntityMetadata>(tableName: string) {
+export class Entity {
+  public static tableName: string;
+  // TODO: try to make it readonly
+  public dynamodeEntity: string;
+
+  // eslint-disable-next-line unused-imports/no-unused-vars, @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
+  constructor(...args: unknown[]) {}
+}
+
+export function register<EM extends EntityMetadata, E extends typeof Entity>(entity: E, tableName: string) {
   Dynamode.storage.addEntityAttributeMetadata(tableName, 'Entity', 'dynamodeEntity', { propertyName: 'dynamodeEntity', type: String, role: 'dynamodeEntity' });
+  entity.prototype.dynamodeEntity = entity.name;
 
-  return class Entity {
-    public static ddb: DynamoDB;
-    public static tableName = tableName;
-    public static metadata: Metadata;
+  function condition(): Condition<E> {
+    return new Condition(entity);
+  }
 
-    public readonly dynamodeEntity: string;
+  function query(): Query<EM, E> {
+    return new Query(entity);
+  }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    constructor(..._args: any[]) {
-      this.dynamodeEntity = this.constructor.name;
+  function scan(): Scan<EM, E> {
+    return new Scan(entity);
+  }
+
+  function get(primaryKey: EntityPrimaryKey<EM, E>): Promise<InstanceType<E>>;
+  function get(primaryKey: EntityPrimaryKey<EM, E>, options: EntityGetOptions<E> & { return: 'default' }): Promise<InstanceType<E>>;
+  function get(primaryKey: EntityPrimaryKey<EM, E>, options: EntityGetOptions<E> & { return: 'output' }): Promise<GetItemCommandOutput>;
+  function get(primaryKey: EntityPrimaryKey<EM, E>, options: EntityGetOptions<E> & { return: 'input' }): GetItemCommandInput;
+  function get(primaryKey: EntityPrimaryKey<EM, E>, options?: EntityGetOptions<E>): Promise<InstanceType<E> | GetItemCommandOutput> | GetItemCommandInput {
+    const { projectionExpression, attributeNames } = buildGetProjectionExpression(entity, options?.attributes);
+
+    const commandInput: GetItemCommandInput = {
+      TableName: tableName,
+      Key: convertPrimaryKeyToAttributeValues(entity, primaryKey),
+      ConsistentRead: options?.consistent || false,
+      ProjectionExpression: projectionExpression,
+      ExpressionAttributeNames: attributeNames,
+      ...options?.extraInput,
+    };
+
+    if (options?.return === 'input') {
+      return commandInput;
     }
 
-    public static condition<T extends typeof Entity>(this: T): Condition<T> {
-      return new Condition(this);
+    return (async () => {
+      const result = await Dynamode.ddb.get().getItem(commandInput);
+
+      if (!result.Item) {
+        throw new NotFoundError();
+      }
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      return convertAttributeValuesToEntity(entity, result.Item);
+    })();
+  }
+
+  function update(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>): Promise<InstanceType<E>>;
+  function update(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>, options: EntityUpdateOptions<E> & { return: 'default' }): Promise<InstanceType<E>>;
+  function update(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>, options: EntityUpdateOptions<E> & { return: 'output' }): Promise<UpdateItemCommandOutput>;
+  function update(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>, options: EntityUpdateOptions<E> & { return: 'input' }): UpdateItemCommandInput;
+  function update(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>, options?: EntityUpdateOptions<E>): Promise<InstanceType<E> | UpdateItemCommandOutput> | UpdateItemCommandInput {
+    const { updateExpression, conditionExpression, attributeNames, attributeValues } = buildUpdateConditionExpression(props, options?.condition);
+
+    const commandInput: UpdateItemCommandInput = {
+      TableName: tableName,
+      Key: convertPrimaryKeyToAttributeValues(entity, primaryKey),
+      ReturnValues: mapReturnValues(options?.returnValues),
+      UpdateExpression: updateExpression,
+      ConditionExpression: conditionExpression,
+      ExpressionAttributeNames: attributeNames,
+      ExpressionAttributeValues: attributeValues,
+      ...options?.extraInput,
+    };
+
+    if (options?.return === 'input') {
+      return commandInput;
     }
 
-    public static query<T extends typeof Entity>(this: T): Query<T> {
-      return new Query(this);
+    return (async () => {
+      const result = await Dynamode.ddb.get().updateItem(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      return convertAttributeValuesToEntity(entity, result.Attributes || {});
+    })();
+  }
+
+  function put(item: InstanceType<E>): Promise<InstanceType<E>>;
+  function put(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'default' }): Promise<InstanceType<E>>;
+  function put(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'output' }): Promise<PutItemCommandOutput>;
+  function put(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'input' }): PutItemCommandInput;
+  function put(item: InstanceType<E>, options?: EntityPutOptions<E>): Promise<InstanceType<E> | PutItemCommandOutput> | PutItemCommandInput {
+    const overwrite = options?.overwrite ?? true;
+    const partitionKey = Dynamode.storage.getTableMetadata(tableName).partitionKey;
+    const overwriteCondition = overwrite
+      ? undefined
+      : condition()
+          .attribute(partitionKey as EntityKey<E>)
+          .not()
+          .exists();
+    const dynamoItem = convertEntityToAttributeValues(entity, item);
+    const { conditionExpression, attributeNames, attributeValues } = buildPutConditionExpression(overwriteCondition, options?.condition);
+
+    const commandInput: PutItemCommandInput = {
+      TableName: tableName,
+      Item: dynamoItem,
+      ConditionExpression: conditionExpression,
+      ExpressionAttributeNames: attributeNames,
+      ExpressionAttributeValues: attributeValues,
+      ...options?.extraInput,
+    };
+
+    if (options?.return === 'input') {
+      return commandInput;
     }
 
-    public static scan<T extends typeof Entity>(this: T): Scan<T> {
-      return new Scan(this);
+    return (async () => {
+      const result = await Dynamode.ddb.get().putItem(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      return convertAttributeValuesToEntity(entity, dynamoItem);
+    })();
+  }
+
+  function create(item: InstanceType<E>): Promise<InstanceType<E>>;
+  function create(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'default' }): Promise<InstanceType<E>>;
+  function create(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'output' }): Promise<PutItemCommandOutput>;
+  function create(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'input' }): PutItemCommandInput;
+  function create(item: InstanceType<E>, options?: EntityPutOptions<E>): Promise<InstanceType<E> | PutItemCommandOutput> | PutItemCommandInput {
+    const overwrite = options?.overwrite ?? false;
+    return put(item, { ...options, overwrite } as any);
+  }
+
+  function _delete(primaryKey: EntityPrimaryKey<EM, E>): Promise<InstanceType<E> | null>;
+  function _delete(primaryKey: EntityPrimaryKey<EM, E>, options: EntityDeleteOptions<E> & { return: 'default' }): Promise<InstanceType<E> | null>;
+  function _delete(primaryKey: EntityPrimaryKey<EM, E>, options: EntityDeleteOptions<E> & { return: 'output' }): Promise<DeleteItemCommandOutput>;
+  function _delete(primaryKey: EntityPrimaryKey<EM, E>, options: EntityDeleteOptions<E> & { return: 'input' }): DeleteItemCommandInput;
+  function _delete(primaryKey: EntityPrimaryKey<EM, E>, options?: EntityDeleteOptions<E>): Promise<InstanceType<E> | null | DeleteItemCommandOutput> | DeleteItemCommandInput {
+    const throwErrorIfNotExists = options?.throwErrorIfNotExists ?? false;
+    const partitionKey = Dynamode.storage.getTableMetadata(tableName).partitionKey as EntityKey<E>;
+    const notExistsCondition = throwErrorIfNotExists ? condition().attribute(partitionKey).exists() : undefined;
+    const { conditionExpression, attributeNames, attributeValues } = buildDeleteConditionExpression(notExistsCondition, options?.condition);
+
+    const commandInput: DeleteItemCommandInput = {
+      TableName: tableName,
+      Key: convertPrimaryKeyToAttributeValues(entity, primaryKey),
+      ReturnValues: mapReturnValuesLimited(options?.returnValues),
+      ConditionExpression: conditionExpression,
+      ExpressionAttributeNames: attributeNames,
+      ExpressionAttributeValues: attributeValues,
+      ...options?.extraInput,
+    };
+
+    if (options?.return === 'input') {
+      return commandInput;
     }
 
-    public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): Promise<InstanceType<T>>;
-    public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityGetOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityGetOptions<T> & { return: 'output' }): Promise<GetItemCommandOutput>;
-    public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityGetOptions<T> & { return: 'input' }): GetItemCommandInput;
-    public static get<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityGetOptions<T>): Promise<InstanceType<T> | GetItemCommandOutput> | GetItemCommandInput {
-      const { projectionExpression, attributeNames } = buildGetProjectionExpression(options?.attributes);
+    return (async () => {
+      const result = await Dynamode.ddb.get().deleteItem(commandInput);
 
-      const commandInput: GetItemCommandInput = {
-        TableName: this.tableName,
-        Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
-        ConsistentRead: options?.consistent || false,
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      return result.Attributes ? convertAttributeValuesToEntity(entity, result.Attributes) : null;
+    })();
+  }
+
+  function batchGet(primaryKeys: Array<EntityPrimaryKey<EM, E>>): Promise<EntityBatchGetOutput<EM, E>>;
+  function batchGet(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options: EntityBatchGetOptions<E> & { return: 'default' }): Promise<EntityBatchGetOutput<EM, E>>;
+  function batchGet(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options: EntityBatchGetOptions<E> & { return: 'output' }): Promise<BatchGetItemCommandOutput>;
+  function batchGet(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options: EntityBatchGetOptions<E> & { return: 'input' }): BatchGetItemCommandInput;
+  function batchGet(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options?: EntityBatchGetOptions<E>): Promise<EntityBatchGetOutput<EM, E> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
+    const { projectionExpression, attributeNames } = buildGetProjectionExpression(entity, options?.attributes);
+
+    const commandInput: BatchGetItemCommandInput = {
+      RequestItems: {
+        [tableName]: {
+          Keys: primaryKeys.map((primaryKey) => convertPrimaryKeyToAttributeValues(entity, primaryKey)),
+          ConsistentRead: options?.consistent || false,
+          ProjectionExpression: projectionExpression,
+          ExpressionAttributeNames: attributeNames,
+        },
+      },
+      ...options?.extraInput,
+    };
+
+    if (options?.return === 'input') {
+      return commandInput;
+    }
+
+    return (async () => {
+      const result = await Dynamode.ddb.get().batchGetItem(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      const items = result.Responses?.[tableName] || [];
+      const unprocessedKeys = result.UnprocessedKeys?.[tableName]?.Keys?.map((key) => fromDynamo(key) as EntityPrimaryKey<EM, E>) || [];
+
+      return { items: items.map((item) => convertAttributeValuesToEntity(entity, item)), unprocessedKeys };
+    })();
+  }
+
+  function batchPut(items: Array<InstanceType<E>>): Promise<EntityBatchPutOutput<E>>;
+  function batchPut(items: Array<InstanceType<E>>, options: EntityBatchPutOptions & { return: 'default' }): Promise<EntityBatchPutOutput<E>>;
+  function batchPut(items: Array<InstanceType<E>>, options: EntityBatchPutOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
+  function batchPut(items: Array<InstanceType<E>>, options: EntityBatchPutOptions & { return: 'input' }): BatchWriteItemCommandInput;
+  function batchPut(items: Array<InstanceType<E>>, options?: EntityBatchPutOptions): Promise<EntityBatchPutOutput<E> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
+    const dynamoItems = items.map((item) => convertEntityToAttributeValues(entity, item));
+    const commandInput: BatchWriteItemCommandInput = {
+      RequestItems: {
+        [tableName]: dynamoItems.map((dynamoItem) => ({
+          PutRequest: {
+            Item: dynamoItem,
+          },
+        })),
+      },
+      ...options?.extraInput,
+    };
+
+    if (options?.return === 'input') {
+      return commandInput;
+    }
+
+    return (async () => {
+      const result = await Dynamode.ddb.get().batchWriteItem(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      const unprocessedItems =
+        result.UnprocessedItems?.[tableName]
+          ?.map((request) => request.PutRequest?.Item)
+          ?.filter((item): item is AttributeValues => !!item)
+          ?.map((item) => convertAttributeValuesToEntity(entity, item)) || [];
+
+      return { items: dynamoItems.map((dynamoItem) => convertAttributeValuesToEntity(entity, dynamoItem)), unprocessedItems };
+    })();
+  }
+
+  function batchDelete(primaryKeys: Array<EntityPrimaryKey<EM, E>>): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<EM, E>>>;
+  function batchDelete(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options: EntityBatchDeleteOptions & { return: 'default' }): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<EM, E>>>;
+  function batchDelete(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options: EntityBatchDeleteOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
+  function batchDelete(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options: EntityBatchDeleteOptions & { return: 'input' }): BatchWriteItemCommandInput;
+  function batchDelete(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options?: EntityBatchDeleteOptions): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<EM, E>> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
+    const commandInput: BatchWriteItemCommandInput = {
+      RequestItems: {
+        [tableName]: primaryKeys.map((primaryKey) => ({
+          DeleteRequest: {
+            Key: convertPrimaryKeyToAttributeValues(entity, primaryKey),
+          },
+        })),
+      },
+      ...options?.extraInput,
+    };
+
+    if (options?.return === 'input') {
+      return commandInput;
+    }
+
+    return (async () => {
+      const result = await Dynamode.ddb.get().batchWriteItem(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      const unprocessedItems =
+        result.UnprocessedItems?.[tableName]
+          ?.map((request) => request.DeleteRequest?.Key)
+          ?.filter((item): item is AttributeValues => !!item)
+          .map((key) => fromDynamo(key) as EntityPrimaryKey<EM, E>) || [];
+
+      return { unprocessedItems };
+    })();
+  }
+
+  function transactionGet(primaryKey: EntityPrimaryKey<EM, E>, options?: EntityTransactionGetOptions<EntityKey<E>>): GetTransaction<E> {
+    const { projectionExpression, attributeNames } = buildGetProjectionExpression(entity, options?.attributes);
+
+    const commandInput: GetTransaction<E> = {
+      ...entity,
+      Get: {
+        TableName: tableName,
+        Key: convertPrimaryKeyToAttributeValues(entity, primaryKey),
         ProjectionExpression: projectionExpression,
         ExpressionAttributeNames: attributeNames,
         ...options?.extraInput,
-      };
+      },
+    };
 
-      if (options?.return === 'input') {
-        return commandInput;
-      }
+    return commandInput;
+  }
 
-      return (async () => {
-        const result = await this.ddb.getItem(commandInput);
+  function transactionUpdate(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>, options?: EntityTransactionUpdateOptions<E>): WriteTransaction<E> {
+    const { updateExpression, conditionExpression, attributeNames, attributeValues } = buildUpdateConditionExpression(props, options?.condition);
 
-        if (!result.Item) {
-          throw new NotFoundError();
-        }
-
-        if (options?.return === 'output') {
-          return result;
-        }
-
-        return this.convertAttributeValuesToEntity(result.Item);
-      })();
-    }
-
-    public static update<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>): Promise<InstanceType<T>>;
-    public static update<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static update<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'output' }): Promise<UpdateItemCommandOutput>;
-    public static update<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options: EntityUpdateOptions<T> & { return: 'input' }): UpdateItemCommandInput;
-    public static update<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options?: EntityUpdateOptions<T>): Promise<InstanceType<T> | UpdateItemCommandOutput> | UpdateItemCommandInput {
-      const { updateExpression, conditionExpression, attributeNames, attributeValues } = buildUpdateConditionExpression(props, options?.condition);
-
-      const commandInput: UpdateItemCommandInput = {
-        TableName: this.tableName,
-        Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
-        ReturnValues: mapReturnValues(options?.returnValues),
+    const commandInput: WriteTransaction<E> = {
+      ...entity,
+      Update: {
+        TableName: tableName,
+        Key: convertPrimaryKeyToAttributeValues(entity, primaryKey),
+        ReturnValuesOnConditionCheckFailure: mapReturnValuesLimited(options?.returnValuesOnFailure),
         UpdateExpression: updateExpression,
         ConditionExpression: conditionExpression,
         ExpressionAttributeNames: attributeNames,
         ExpressionAttributeValues: attributeValues,
         ...options?.extraInput,
-      };
+      },
+    };
 
-      if (options?.return === 'input') {
-        return commandInput;
-      }
+    return commandInput;
+  }
 
-      return (async () => {
-        const result = await this.ddb.updateItem(commandInput);
+  function transactionPut(item: InstanceType<E>, options?: EntityTransactionPutOptions<E>): WriteTransaction<E> {
+    const overwrite = options?.overwrite ?? true;
+    const partitionKey = Dynamode.storage.getTableMetadata(tableName).partitionKey as EntityKey<E>;
+    const overwriteCondition = overwrite ? undefined : condition().attribute(partitionKey).not().exists();
+    const { conditionExpression, attributeNames, attributeValues } = buildPutConditionExpression(overwriteCondition, options?.condition);
 
-        if (options?.return === 'output') {
-          return result;
-        }
-
-        return this.convertAttributeValuesToEntity(result.Attributes || {});
-      })();
-    }
-
-    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>): Promise<InstanceType<T>>;
-    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'output' }): Promise<PutItemCommandOutput>;
-    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'input' }): PutItemCommandInput;
-    public static put<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityPutOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
-      const overwrite = options?.overwrite ?? true;
-      const partitionKey = Dynamode.storage.getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
-      const overwriteCondition = overwrite ? undefined : this.condition().attribute(partitionKey).not().exists();
-      const dynamoItem = this.convertEntityToAttributeValues(item);
-      const { conditionExpression, attributeNames, attributeValues } = buildPutConditionExpression(overwriteCondition, options?.condition);
-
-      const commandInput: PutItemCommandInput = {
-        TableName: this.tableName,
-        Item: dynamoItem,
+    const commandInput: WriteTransaction<E> = {
+      ...entity,
+      Put: {
+        TableName: tableName,
+        Item: convertEntityToAttributeValues(entity, item),
+        ReturnValuesOnConditionCheckFailure: mapReturnValuesLimited(options?.returnValuesOnFailure),
         ConditionExpression: conditionExpression,
         ExpressionAttributeNames: attributeNames,
         ExpressionAttributeValues: attributeValues,
         ...options?.extraInput,
-      };
+      },
+    };
 
-      if (options?.return === 'input') {
-        return commandInput;
-      }
+    return commandInput;
+  }
 
-      return (async () => {
-        const result = await this.ddb.putItem(commandInput);
+  function transactionCreate(item: InstanceType<E>, options?: EntityTransactionPutOptions<E>): WriteTransaction<E> {
+    const overwrite = options?.overwrite ?? false;
+    return transactionPut(item, { ...options, overwrite });
+  }
 
-        if (options?.return === 'output') {
-          return result;
-        }
+  function transactionDelete(primaryKey: EntityPrimaryKey<EM, E>, options?: EntityTransactionDeleteOptions<E>): WriteTransaction<E> {
+    const { conditionExpression, attributeNames, attributeValues } = buildDeleteConditionExpression(options?.condition);
 
-        return this.convertAttributeValuesToEntity(dynamoItem);
-      })();
-    }
-
-    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>): Promise<InstanceType<T>>;
-    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'output' }): Promise<PutItemCommandOutput>;
-    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options: EntityPutOptions<T> & { return: 'input' }): PutItemCommandInput;
-    public static create<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityPutOptions<T>): Promise<InstanceType<T> | PutItemCommandOutput> | PutItemCommandInput {
-      const overwrite = options?.overwrite ?? false;
-      return this.put(item, { ...options, overwrite } as any);
-    }
-
-    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): Promise<InstanceType<T> | null>;
-    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'default' }): Promise<InstanceType<T> | null>;
-    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'output' }): Promise<DeleteItemCommandOutput>;
-    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options: EntityDeleteOptions<T> & { return: 'input' }): DeleteItemCommandInput;
-    public static delete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityDeleteOptions<T>): Promise<InstanceType<T> | null | DeleteItemCommandOutput> | DeleteItemCommandInput {
-      const throwErrorIfNotExists = options?.throwErrorIfNotExists ?? false;
-      const partitionKey = Dynamode.storage.getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
-      const notExistsCondition = throwErrorIfNotExists ? this.condition().attribute(partitionKey).exists() : undefined;
-      const { conditionExpression, attributeNames, attributeValues } = buildDeleteConditionExpression(notExistsCondition, options?.condition);
-
-      const commandInput: DeleteItemCommandInput = {
-        TableName: this.tableName,
-        Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
-        ReturnValues: mapReturnValuesLimited(options?.returnValues),
+    const commandInput: WriteTransaction<E> = {
+      ...entity,
+      Delete: {
+        TableName: tableName,
+        Key: convertPrimaryKeyToAttributeValues(entity, primaryKey),
         ConditionExpression: conditionExpression,
         ExpressionAttributeNames: attributeNames,
         ExpressionAttributeValues: attributeValues,
         ...options?.extraInput,
-      };
+      },
+    };
 
-      if (options?.return === 'input') {
-        return commandInput;
-      }
+    return commandInput;
+  }
 
-      return (async () => {
-        const result = await this.ddb.deleteItem(commandInput);
+  function transactionCondition(primaryKey: EntityPrimaryKey<EM, E>, conditionInstance: Condition<E>): WriteTransaction<E> {
+    const expressionBuilder = new ExpressionBuilder();
+    const conditionExpression = expressionBuilder.run(conditionInstance['operators']);
 
-        if (options?.return === 'output') {
-          return result;
-        }
+    const commandInput: WriteTransaction<E> = {
+      ...entity,
+      ConditionCheck: {
+        TableName: tableName,
+        Key: convertPrimaryKeyToAttributeValues(entity, primaryKey),
+        ConditionExpression: conditionExpression,
+        ExpressionAttributeNames: expressionBuilder.attributeNames,
+        ExpressionAttributeValues: expressionBuilder.attributeValues,
+      },
+    };
 
-        return result.Attributes ? this.convertAttributeValuesToEntity(result.Attributes) : null;
-      })();
-    }
+    return commandInput;
+  }
 
-    public static batchGet<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>): Promise<EntityBatchGetOutput<T, EntityPrimaryKey<T>>>;
-    public static batchGet<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchGetOptions<T> & { return: 'default' }): Promise<InstanceType<T>>;
-    public static batchGet<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchGetOptions<T> & { return: 'output' }): Promise<BatchGetItemCommandOutput>;
-    public static batchGet<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchGetOptions<T> & { return: 'input' }): BatchGetItemCommandInput;
-    public static batchGet<T extends typeof Entity>(
-      this: T,
-      primaryKeys: Array<EntityPrimaryKey<T>>,
-      options?: EntityBatchGetOptions<T>,
-    ): Promise<EntityBatchGetOutput<T, EntityPrimaryKey<T>> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
-      const { projectionExpression, attributeNames } = buildGetProjectionExpression(options?.attributes);
+  return {
+    query,
+    scan,
+    condition,
 
-      const commandInput: BatchGetItemCommandInput = {
-        RequestItems: {
-          [this.tableName]: {
-            Keys: primaryKeys.map((primaryKey) => this.convertPrimaryKeyToAttributeValues(primaryKey)),
-            ConsistentRead: options?.consistent || false,
-            ProjectionExpression: projectionExpression,
-            ExpressionAttributeNames: attributeNames,
-          },
-        },
-        ...options?.extraInput,
-      };
+    get,
+    update,
+    put,
+    create,
+    delete: _delete,
 
-      if (options?.return === 'input') {
-        return commandInput;
-      }
+    batchGet,
+    batchPut,
+    batchDelete,
 
-      return (async () => {
-        const result = await this.ddb.batchGetItem(commandInput);
-
-        if (options?.return === 'output') {
-          return result;
-        }
-
-        const items = result.Responses?.[this.tableName] || [];
-        const unprocessedKeys = result.UnprocessedKeys?.[this.tableName]?.Keys?.map((key) => fromDynamo(key) as EntityPrimaryKey<T>) || [];
-
-        return { items: items.map((item) => this.convertAttributeValuesToEntity(item)), unprocessedKeys };
-      })();
-    }
-
-    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>): Promise<EntityBatchPutOutput<T>>;
-    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'default' }): Promise<EntityBatchPutOutput<T>>;
-    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
-    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options: EntityBatchPutOptions & { return: 'input' }): BatchWriteItemCommandInput;
-    public static batchPut<T extends typeof Entity>(this: T, items: Array<InstanceType<T>>, options?: EntityBatchPutOptions): Promise<EntityBatchPutOutput<T> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
-      const dynamoItems = items.map((item) => this.convertEntityToAttributeValues(item));
-      const commandInput: BatchWriteItemCommandInput = {
-        RequestItems: {
-          [this.tableName]: dynamoItems.map((dynamoItem) => ({
-            PutRequest: {
-              Item: dynamoItem,
-            },
-          })),
-        },
-        ...options?.extraInput,
-      };
-
-      if (options?.return === 'input') {
-        return commandInput;
-      }
-
-      return (async () => {
-        const result = await this.ddb.batchWriteItem(commandInput);
-
-        if (options?.return === 'output') {
-          return result;
-        }
-
-        const unprocessedItems =
-          result.UnprocessedItems?.[this.tableName]
-            ?.map((request) => request.PutRequest?.Item)
-            ?.filter((item): item is AttributeValues => !!item)
-            ?.map((item) => this.convertAttributeValuesToEntity(item)) || [];
-
-        return { items: dynamoItems.map((dynamoItem) => this.convertAttributeValuesToEntity(dynamoItem)), unprocessedItems };
-      })();
-    }
-
-    public static batchDelete<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<T>>>;
-    public static batchDelete<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchDeleteOptions & { return: 'default' }): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<T>>>;
-    public static batchDelete<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchDeleteOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
-    public static batchDelete<T extends typeof Entity>(this: T, primaryKeys: Array<EntityPrimaryKey<T>>, options: EntityBatchDeleteOptions & { return: 'input' }): BatchWriteItemCommandInput;
-    public static batchDelete<T extends typeof Entity>(
-      this: T,
-      primaryKeys: Array<EntityPrimaryKey<T>>,
-      options?: EntityBatchDeleteOptions,
-    ): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<T>> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
-      const commandInput: BatchWriteItemCommandInput = {
-        RequestItems: {
-          [this.tableName]: primaryKeys.map((primaryKey) => ({
-            DeleteRequest: {
-              Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
-            },
-          })),
-        },
-        ...options?.extraInput,
-      };
-
-      if (options?.return === 'input') {
-        return commandInput;
-      }
-
-      return (async () => {
-        const result = await this.ddb.batchWriteItem(commandInput);
-
-        if (options?.return === 'output') {
-          return result;
-        }
-
-        const unprocessedItems =
-          result.UnprocessedItems?.[this.tableName]
-            ?.map((request) => request.DeleteRequest?.Key)
-            ?.filter((item): item is AttributeValues => !!item)
-            .map((key) => fromDynamo(key) as EntityPrimaryKey<T>) || [];
-
-        return { unprocessedItems };
-      })();
-    }
-
-    public static transactionGet<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityTransactionGetOptions<T>): GetTransaction<T> {
-      const { projectionExpression, attributeNames } = buildGetProjectionExpression(options?.attributes);
-
-      const commandInput: GetTransaction<T> = {
-        ...this,
-        Get: {
-          TableName: this.tableName,
-          Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
-          ProjectionExpression: projectionExpression,
-          ExpressionAttributeNames: attributeNames,
-          ...options?.extraInput,
-        },
-      };
-
-      return commandInput;
-    }
-
-    public static transactionUpdate<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, props: UpdateProps<T>, options?: EntityTransactionUpdateOptions<T>): WriteTransaction<T> {
-      const { updateExpression, conditionExpression, attributeNames, attributeValues } = buildUpdateConditionExpression(props, options?.condition);
-
-      const commandInput: WriteTransaction<T> = {
-        ...this,
-        Update: {
-          TableName: this.tableName,
-          Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
-          ReturnValuesOnConditionCheckFailure: mapReturnValuesLimited(options?.returnValuesOnFailure),
-          UpdateExpression: updateExpression,
-          ConditionExpression: conditionExpression,
-          ExpressionAttributeNames: attributeNames,
-          ExpressionAttributeValues: attributeValues,
-          ...options?.extraInput,
-        },
-      };
-
-      return commandInput;
-    }
-
-    public static transactionPut<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityTransactionPutOptions<T>): WriteTransaction<T> {
-      const overwrite = options?.overwrite ?? true;
-      const partitionKey = Dynamode.storage.getTableMetadata(this.tableName).partitionKey as EntityKey<T>;
-      const overwriteCondition = overwrite ? undefined : this.condition().attribute(partitionKey).not().exists();
-      const { conditionExpression, attributeNames, attributeValues } = buildPutConditionExpression(overwriteCondition, options?.condition);
-
-      const commandInput: WriteTransaction<T> = {
-        ...this,
-        Put: {
-          TableName: this.tableName,
-          Item: this.convertEntityToAttributeValues(item),
-          ReturnValuesOnConditionCheckFailure: mapReturnValuesLimited(options?.returnValuesOnFailure),
-          ConditionExpression: conditionExpression,
-          ExpressionAttributeNames: attributeNames,
-          ExpressionAttributeValues: attributeValues,
-          ...options?.extraInput,
-        },
-      };
-
-      return commandInput;
-    }
-
-    public static transactionCreate<T extends typeof Entity>(this: T, item: InstanceType<T>, options?: EntityTransactionPutOptions<T>): WriteTransaction<T> {
-      const overwrite = options?.overwrite ?? false;
-      return this.transactionPut(item, { ...options, overwrite });
-    }
-
-    public static transactionDelete<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, options?: EntityTransactionDeleteOptions<T>): WriteTransaction<T> {
-      const { conditionExpression, attributeNames, attributeValues } = buildDeleteConditionExpression(options?.condition);
-
-      const commandInput: WriteTransaction<T> = {
-        ...this,
-        Delete: {
-          TableName: this.tableName,
-          Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
-          ConditionExpression: conditionExpression,
-          ExpressionAttributeNames: attributeNames,
-          ExpressionAttributeValues: attributeValues,
-          ...options?.extraInput,
-        },
-      };
-
-      return commandInput;
-    }
-
-    public static transactionCondition<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>, conditionInstance: Condition<T>): WriteTransaction<T> {
-      const expressionBuilder = new ExpressionBuilder();
-      const conditionExpression = expressionBuilder.run(conditionInstance['operators']);
-
-      const commandInput: WriteTransaction<T> = {
-        ...this,
-        ConditionCheck: {
-          TableName: this.tableName,
-          Key: this.convertPrimaryKeyToAttributeValues(primaryKey),
-          ConditionExpression: conditionExpression,
-          ExpressionAttributeNames: expressionBuilder.attributeNames,
-          ExpressionAttributeValues: expressionBuilder.attributeValues,
-        },
-      };
-
-      return commandInput;
-    }
-
-    public static convertAttributeValuesToEntity<T extends typeof Entity>(this: T, dynamoItem: AttributeValues): InstanceType<T> {
-      const object = fromDynamo(dynamoItem);
-      const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
-      const { createdAt, updatedAt } = Dynamode.storage.getTableMetadata(this.tableName);
-
-      if (createdAt) object[createdAt] = new Date(object[createdAt] as string | number);
-      if (updatedAt) object[updatedAt] = new Date(object[updatedAt] as string | number);
-
-      Object.entries(attributes).forEach(([propertyName, metadata]) => {
-        let value = object[propertyName];
-
-        if (value && typeof value === 'object' && metadata.type === Map) {
-          value = new Map(Object.entries(value));
-        }
-
-        object[propertyName] = this.truncateValue(propertyName as EntityKey<T>, value);
-      });
-
-      return new this(object) as InstanceType<T>;
-    }
-
-    public static convertEntityToAttributeValues<T extends typeof Entity>(this: T, item: InstanceType<T>): AttributeValues {
-      const dynamoObject: GenericObject = {};
-      const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
-
-      Object.keys(attributes).forEach((propertyName) => {
-        let value: unknown = item[propertyName as keyof InstanceType<T>];
-
-        if (value instanceof Date) {
-          if (attributes[propertyName].type === String) {
-            value = value.toISOString();
-          } else if (attributes[propertyName].type === Number) {
-            value = value.getTime();
-          } else {
-            throw new DefaultError();
-          }
-        }
-
-        dynamoObject[propertyName] = this.prefixSuffixValue(propertyName as EntityKey<T>, value);
-      });
-
-      return objectToDynamo(dynamoObject);
-    }
-
-    public static convertAttributeValuesToPrimaryKey<T extends typeof Entity>(this: T, dynamoItem: AttributeValues): EntityPrimaryKey<T> {
-      const object = fromDynamo(dynamoItem);
-      const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(this.tableName);
-
-      if (partitionKey) {
-        object[partitionKey] = this.truncateValue(partitionKey as EntityKey<T>, object[partitionKey]);
-      }
-      if (sortKey) {
-        object[sortKey] = this.truncateValue(sortKey as EntityKey<T>, object[sortKey]);
-      }
-
-      return object as EntityPrimaryKey<T>;
-    }
-
-    public static convertPrimaryKeyToAttributeValues<T extends typeof Entity>(this: T, primaryKey: EntityPrimaryKey<T>): AttributeValues {
-      const dynamoObject: GenericObject = {};
-      const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(this.tableName);
-
-      if (partitionKey) {
-        dynamoObject[partitionKey] = this.prefixSuffixValue(partitionKey as EntityKey<T>, (<any>primaryKey)[partitionKey]);
-      }
-      if (sortKey) {
-        dynamoObject[sortKey] = this.prefixSuffixValue(sortKey as EntityKey<T>, (<any>primaryKey)[sortKey]);
-      }
-
-      return objectToDynamo(dynamoObject);
-    }
-
-    public static truncateValue<T extends typeof Entity>(this: T, key: EntityKey<T>, value: unknown): unknown {
-      if (typeof value !== 'string') {
-        return value;
-      }
-
-      const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
-      const separator = Dynamode.separator.get();
-      const prefix = attributes[String(key)].prefix || '';
-      const suffix = attributes[String(key)].suffix || '';
-
-      return value.replace(`${prefix}${separator}`, '').replace(`${separator}${suffix}`, '');
-    }
-
-    public static prefixSuffixValue<T extends typeof Entity>(this: T, key: EntityKey<T>, value: unknown): unknown {
-      if (typeof value !== 'string') {
-        return value;
-      }
-
-      const attributes = Dynamode.storage.getEntityAttributes(this.tableName, this.name);
-      const separator = Dynamode.separator.get();
-      const prefix = attributes[String(key)].prefix || '';
-      const suffix = attributes[String(key)].suffix || '';
-
-      return [prefix, value, suffix].filter((p) => p).join(separator);
-    }
+    transactionGet,
+    transactionUpdate,
+    transactionPut,
+    transactionCreate,
+    transactionDelete,
+    transactionCondition,
   };
 }

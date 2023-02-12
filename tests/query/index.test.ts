@@ -1,35 +1,13 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { QueryInput } from '@aws-sdk/client-dynamodb';
-import { gsiPartitionKey, gsiSortKey, lsiSortKey, primaryPartitionKey } from '@lib/decorators';
+import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
 import { Dynamode } from '@lib/dynamode';
-import Entity from '@lib/entity';
+import * as entityHelpers from '@lib/entity/helpers';
 import Query from '@lib/query';
 import { BASE_OPERATOR } from '@lib/utils';
 import * as utils from '@lib/utils/helpers';
 
-const ddbQueryMock = vi.fn();
-
-//TODO: FIX this and instead use tests/mocks.ts
-//ts-ignore
-class MockEntity extends Entity<{
-  partitionKey: 'key';
-  indexes: { GSI: { partitionKey: 'gsiPartitionKey'; sortKey: 'gsiSortKey' }; LSI: { sortKey: 'lsiSortKey' } };
-}>('tableName') {
-  static ddb = { query: ddbQueryMock } as any;
-
-  @primaryPartitionKey(String)
-  key: string;
-
-  @gsiPartitionKey(String, 'GSI')
-  gsiPartitionKey: string;
-
-  @gsiSortKey(String, 'GSI')
-  gsiSortKey: string;
-
-  @lsiSortKey(String, 'LSI')
-  lsiSortKey: string;
-}
+import { MockEntity, MockEntityRegistry, mockInstance, TEST_TABLE_NAME, TestTableKeys } from '../mocks';
 
 vi.mock('@lib/utils/ExpressionBuilder', () => {
   const ExpressionBuilder = vi.fn(() => ({
@@ -42,14 +20,13 @@ vi.mock('@lib/utils/ExpressionBuilder', () => {
 
 describe('Query', () => {
   test('Should be able to initialize retriever', async () => {
-    const query1 = MockEntity.query();
+    const query1 = MockEntityRegistry.query();
     expect(query1['operators']).toEqual([]);
     expect(query1['entity']).toEqual(MockEntity);
     expect(query1['logicalOperator']).toEqual(BASE_OPERATOR.and);
     expect(query1['keyOperators']).toEqual([]);
 
-    // FIX this
-    const query2 = new Query(MockEntity as any);
+    const query2 = new Query<TestTableKeys, typeof MockEntity>(MockEntity);
     expect(query2['operators']).toEqual([]);
     expect(query2['entity']).toEqual(MockEntity);
     expect(query2['logicalOperator']).toEqual(BASE_OPERATOR.and);
@@ -57,7 +34,7 @@ describe('Query', () => {
   });
 
   describe('partitionKey', () => {
-    const query = MockEntity.query();
+    const query = MockEntityRegistry.query();
     const maybePushKeyLogicalOperatorSpy = vi.spyOn(query, 'maybePushKeyLogicalOperator' as any);
     const setAssociatedIndexNameSpy = vi.spyOn(query, 'setAssociatedIndexName' as any);
 
@@ -66,7 +43,7 @@ describe('Query', () => {
     });
 
     test('Should call side effect methods', async () => {
-      query.partitionKey('key');
+      query.partitionKey('partitionKey');
       expect(maybePushKeyLogicalOperatorSpy).toBeCalled();
       expect(setAssociatedIndexNameSpy).toBeCalled();
     });
@@ -75,14 +52,14 @@ describe('Query', () => {
       const eqSpy = vi.spyOn(query, 'eq' as any);
 
       test('Should call eq method on keyOperators', async () => {
-        query.partitionKey('key').eq('value');
-        expect(eqSpy).toBeCalledWith(query['keyOperators'], 'key', 'value');
+        query.partitionKey('partitionKey').eq('value');
+        expect(eqSpy).toBeCalledWith(query['keyOperators'], 'partitionKey', 'value');
       });
     });
   });
 
   describe('sortKey', () => {
-    const query = MockEntity.query();
+    const query = MockEntityRegistry.query();
     const maybePushKeyLogicalOperatorSpy = vi.spyOn(query, 'maybePushKeyLogicalOperator' as any);
     const setAssociatedIndexNameSpy = vi.spyOn(query, 'setAssociatedIndexName' as any);
 
@@ -91,7 +68,7 @@ describe('Query', () => {
     });
 
     test('Should call side effect methods', async () => {
-      query.sortKey('key');
+      query.sortKey('sortKey');
       expect(maybePushKeyLogicalOperatorSpy).toBeCalled();
       expect(setAssociatedIndexNameSpy).toBeCalled();
     });
@@ -100,8 +77,8 @@ describe('Query', () => {
       const eqSpy = vi.spyOn(query, 'eq' as any);
 
       test('Should call eq method on keyOperators', async () => {
-        query.sortKey('key').eq('value');
-        expect(eqSpy).toBeCalledWith(query['keyOperators'], 'key', 'value');
+        query.sortKey('sortKey').eq('value');
+        expect(eqSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
       });
     });
 
@@ -109,8 +86,8 @@ describe('Query', () => {
       const neSpy = vi.spyOn(query, 'ne' as any);
 
       test('Should call ne method on keyOperators', async () => {
-        query.sortKey('key').ne('value');
-        expect(neSpy).toBeCalledWith(query['keyOperators'], 'key', 'value');
+        query.sortKey('sortKey').ne('value');
+        expect(neSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
       });
     });
 
@@ -118,8 +95,8 @@ describe('Query', () => {
       const ltSpy = vi.spyOn(query, 'lt' as any);
 
       test('Should call lt method on keyOperators', async () => {
-        query.sortKey('key').lt('value');
-        expect(ltSpy).toBeCalledWith(query['keyOperators'], 'key', 'value');
+        query.sortKey('sortKey').lt('value');
+        expect(ltSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
       });
     });
 
@@ -127,8 +104,8 @@ describe('Query', () => {
       const leSpy = vi.spyOn(query, 'le' as any);
 
       test('Should call le method on keyOperators', async () => {
-        query.sortKey('key').le('value');
-        expect(leSpy).toBeCalledWith(query['keyOperators'], 'key', 'value');
+        query.sortKey('sortKey').le('value');
+        expect(leSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
       });
     });
 
@@ -136,8 +113,8 @@ describe('Query', () => {
       const gtSpy = vi.spyOn(query, 'gt' as any);
 
       test('Should call gt method on keyOperators', async () => {
-        query.sortKey('key').gt('value');
-        expect(gtSpy).toBeCalledWith(query['keyOperators'], 'key', 'value');
+        query.sortKey('sortKey').gt('value');
+        expect(gtSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
       });
     });
 
@@ -145,8 +122,8 @@ describe('Query', () => {
       const geSpy = vi.spyOn(query, 'ge' as any);
 
       test('Should call ge method on keyOperators', async () => {
-        query.sortKey('key').ge('value');
-        expect(geSpy).toBeCalledWith(query['keyOperators'], 'key', 'value');
+        query.sortKey('sortKey').ge('value');
+        expect(geSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
       });
     });
 
@@ -154,8 +131,8 @@ describe('Query', () => {
       const beginsWithSpy = vi.spyOn(query, 'beginsWith' as any);
 
       test('Should call beginsWith method on keyOperators', async () => {
-        query.sortKey('key').beginsWith('value');
-        expect(beginsWithSpy).toBeCalledWith(query['keyOperators'], 'key', 'value');
+        query.sortKey('sortKey').beginsWith('value');
+        expect(beginsWithSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
       });
     });
 
@@ -163,15 +140,15 @@ describe('Query', () => {
       const betweenSpy = vi.spyOn(query, 'between' as any);
 
       test('Should call between method on keyOperators', async () => {
-        query.sortKey('key').between('value1', 'value2');
-        expect(betweenSpy).toBeCalledWith(query['keyOperators'], 'key', 'value1', 'value2');
+        query.sortKey('sortKey').between('value1', 'value2');
+        expect(betweenSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value1', 'value2');
       });
     });
   });
 
   describe('sort', () => {
     test('Should set ScanIndexForward on query input', async () => {
-      const query = MockEntity.query();
+      const query = MockEntityRegistry.query();
       query.sort('ascending');
       expect(query['input']['ScanIndexForward']).toEqual(true);
 
@@ -181,28 +158,28 @@ describe('Query', () => {
   });
 
   describe('run', () => {
-    let query = MockEntity.query();
+    let query = MockEntityRegistry.query();
+    const ddbQueryMock = vi.fn();
+
     let buildQueryInputSpy = vi.spyOn(query, 'buildQueryInput' as any);
     let validateQueryInputSpy = vi.spyOn(query, 'validateQueryInput' as any);
-    let convertAttributeValuesToEntitySpy = vi.spyOn(MockEntity, 'convertAttributeValuesToEntity');
-    let convertAttributeValuesToPrimaryKeySpy = vi.spyOn(MockEntity, 'convertAttributeValuesToPrimaryKey');
+    let convertAttributeValuesToEntitySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToEntity');
+    let convertAttributeValuesToPrimaryKeySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToPrimaryKey');
     let timeoutSpy = vi.spyOn(utils, 'timeout');
 
-    const mockEntityInstance = new MockEntity();
-
     const queryInput: QueryInput = {
-      TableName: 'tableName',
-      KeyConditionExpression: '#key = :value',
-      ExpressionAttributeNames: { '#key': 'key' },
+      TableName: TEST_TABLE_NAME,
+      KeyConditionExpression: 'partitionKey = :value',
       ExpressionAttributeValues: { ':value': { S: 'value' } },
     };
 
     beforeEach(() => {
-      query = MockEntity.query();
+      query = MockEntityRegistry.query();
+      vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ query: ddbQueryMock } as any as DynamoDB);
       buildQueryInputSpy = vi.spyOn(query, 'buildQueryInput' as any).mockImplementation(() => (query['input'] = queryInput));
       validateQueryInputSpy = vi.spyOn(query, 'validateQueryInput' as any).mockReturnValue(undefined);
-      convertAttributeValuesToEntitySpy = vi.spyOn(MockEntity, 'convertAttributeValuesToEntity').mockReturnValue(mockEntityInstance);
-      convertAttributeValuesToPrimaryKeySpy = vi.spyOn(MockEntity, 'convertAttributeValuesToPrimaryKey').mockReturnValue({ key: 'lastValue' });
+      convertAttributeValuesToEntitySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToEntity').mockReturnValue(mockInstance);
+      convertAttributeValuesToPrimaryKeySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToPrimaryKey').mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
       timeoutSpy = vi.spyOn(utils, 'timeout').mockImplementation(async () => undefined);
     });
 
@@ -262,23 +239,23 @@ describe('Query', () => {
 
       test('Should return items with values returned', async () => {
         ddbQueryMock.mockImplementationOnce(() => {
-          return { Items: [{ key: 'value' }], LastEvaluatedKey: { key: 'lastValue' }, Count: 1, ScannedCount: 100 };
+          return { Items: [{ key: 'value' }], LastEvaluatedKey: { partitionKey: 'lastValue', sortKey: 'lastValue' }, Count: 1, ScannedCount: 100 };
         });
-        convertAttributeValuesToEntitySpy.mockReturnValue(mockEntityInstance);
-        convertAttributeValuesToPrimaryKeySpy.mockReturnValue({ key: 'lastValue' });
+        convertAttributeValuesToEntitySpy.mockReturnValue(mockInstance);
+        convertAttributeValuesToPrimaryKeySpy.mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
 
         await expect(query.run({ return: 'default' })).resolves.toEqual({
-          items: [mockEntityInstance],
-          lastKey: { key: 'lastValue' },
+          items: [mockInstance],
+          lastKey: { partitionKey: 'lastValue', sortKey: 'lastValue' },
           count: 1,
           scannedCount: 100,
         });
 
         expect(timeoutSpy).not.toBeCalled();
         expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(1);
-        expect(convertAttributeValuesToEntitySpy).toBeCalledWith({ key: 'value' });
+        expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, { key: 'value' });
         expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledTimes(1);
-        expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledWith({ key: 'lastValue' });
+        expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledWith(MockEntity, { partitionKey: 'lastValue', sortKey: 'lastValue' });
       });
 
       test('Should return items with "all: true" option', async () => {
@@ -293,19 +270,19 @@ describe('Query', () => {
             return { Items: [{ key: 'value3' }], Count: 1, ScannedCount: 1 };
           });
 
-        convertAttributeValuesToEntitySpy.mockReturnValue(mockEntityInstance);
+        convertAttributeValuesToEntitySpy.mockReturnValue(mockInstance);
 
         await expect(query.run({ all: true })).resolves.toEqual({
-          items: [mockEntityInstance, mockEntityInstance, mockEntityInstance],
+          items: [mockInstance, mockInstance, mockInstance],
           count: 3,
           scannedCount: 5,
         });
 
         expect(timeoutSpy).toBeCalledTimes(3);
         expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(3);
-        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, { key: 'value1' });
-        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, { key: 'value2' });
-        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(3, { key: 'value3' });
+        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, { key: 'value1' });
+        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, MockEntity, { key: 'value2' });
+        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(3, MockEntity, { key: 'value3' });
         expect(convertAttributeValuesToPrimaryKeySpy).not.toBeCalled();
       });
 
@@ -318,11 +295,11 @@ describe('Query', () => {
             return { Items: [{ key: 'value2' }], LastEvaluatedKey: { key: 'value2' }, Count: 1, ScannedCount: 2 };
           });
 
-        convertAttributeValuesToEntitySpy.mockReturnValue(mockEntityInstance);
-        convertAttributeValuesToPrimaryKeySpy.mockImplementation((lastKey) => lastKey);
+        convertAttributeValuesToEntitySpy.mockReturnValue(mockInstance);
+        convertAttributeValuesToPrimaryKeySpy.mockImplementation((entity, lastKey) => lastKey as any);
 
         await expect(query.run({ all: true, max: 2 })).resolves.toEqual({
-          items: [mockEntityInstance, mockEntityInstance],
+          items: [mockInstance, mockInstance],
           lastKey: { key: 'value2' },
           count: 2,
           scannedCount: 4,
@@ -330,20 +307,20 @@ describe('Query', () => {
 
         expect(timeoutSpy).toBeCalledTimes(2);
         expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(2);
-        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, { key: 'value1' });
-        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, { key: 'value2' });
+        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, { key: 'value1' });
+        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, MockEntity, { key: 'value2' });
         expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledTimes(1);
-        expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledWith({ key: 'value2' });
+        expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledWith(MockEntity, { key: 'value2' });
       });
     });
   });
 
   describe('buildQueryInput', () => {
     test('Should successfully build query input without extraInput', async () => {
-      const query = MockEntity.query();
+      const query = MockEntityRegistry.query();
       query['buildQueryInput']();
 
-      expect(query['input']['TableName']).toEqual('tableName');
+      expect(query['input']['TableName']).toEqual(TEST_TABLE_NAME);
       expect(query['input']['KeyConditionExpression']).toEqual('keyConditionExpression');
       expect(query['input']['FilterExpression']).toEqual('filterExpression');
       expect(query['input']['ExpressionAttributeNames']).toEqual({
@@ -355,10 +332,10 @@ describe('Query', () => {
     });
 
     test('Should successfully build query input with extraInput', async () => {
-      const query = MockEntity.query();
+      const query = MockEntityRegistry.query();
       query['buildQueryInput']({ IndexName: 'indexName', ExpressionAttributeValues: { attributeValues: { S: 'overriddenValue' } } });
 
-      expect(query['input']['TableName']).toEqual('tableName');
+      expect(query['input']['TableName']).toEqual(TEST_TABLE_NAME);
       expect(query['input']['KeyConditionExpression']).toEqual('keyConditionExpression');
       expect(query['input']['FilterExpression']).toEqual('filterExpression');
       expect(query['input']['ExpressionAttributeNames']).toEqual({
@@ -375,7 +352,7 @@ describe('Query', () => {
 
   describe('maybePushKeyLogicalOperator', () => {
     test('Should push a logical operator if key operators are not empty', async () => {
-      const query = MockEntity.query();
+      const query = MockEntityRegistry.query();
       query['keyOperators'].push(BASE_OPERATOR.add);
       query['maybePushKeyLogicalOperator']();
 
@@ -383,7 +360,7 @@ describe('Query', () => {
     });
 
     test('Should not push a logical operator if key operators are empty', async () => {
-      const query = MockEntity.query();
+      const query = MockEntityRegistry.query();
       query['maybePushKeyLogicalOperator']();
 
       expect(query['keyOperators']).toEqual([]);
@@ -391,26 +368,26 @@ describe('Query', () => {
   });
 
   describe('setAssociatedIndexName', () => {
-    const getEntityAttributesSpy = vi.spyOn(Dynamode.storage, 'getEntityAttributes' as any);
+    const getEntityAttributesSpy = vi.spyOn(Dynamode.storage, 'getEntityAttributes');
 
     beforeEach(() => {
       vi.restoreAllMocks();
     });
 
     test('Should set proper IndexName on query input for primary partitionKey', async () => {
-      const query = MockEntity.query();
-      getEntityAttributesSpy.mockReturnValue({ key: {} });
-      query['setAssociatedIndexName']('key');
+      const query = MockEntityRegistry.query();
+      getEntityAttributesSpy.mockReturnValue({ partitionKey: {} });
+      query['setAssociatedIndexName']('partitionKey');
 
       expect(query['input']['IndexName']).toEqual(undefined);
     });
 
     test('Should set proper IndexName on query input for an attribute associated with index', async () => {
-      const query = MockEntity.query();
-      getEntityAttributesSpy.mockReturnValue({ gsiPartitionKey: { indexName: 'indexName' } });
-      query['setAssociatedIndexName']('gsiPartitionKey');
+      const query = MockEntityRegistry.query();
+      getEntityAttributesSpy.mockReturnValue({ GSI_1_PK: { indexName: 'GSI_1_NAME' } });
+      query['setAssociatedIndexName']('GSI_1_PK');
 
-      expect(query['input']['IndexName']).toEqual('indexName');
+      expect(query['input']['IndexName']).toEqual('GSI_1_NAME');
     });
   });
 });

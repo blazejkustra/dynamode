@@ -1,7 +1,7 @@
 import Condition, { AttributeType } from '@lib/condition';
-import { attribute, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, register, suffix, updatedAt } from '@lib/decorators';
+import { attribute, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, suffix, updatedAt } from '@lib/decorators';
 import Dynamode from '@lib/dynamode/index';
-import Entity from '@lib/entity';
+import { Entity } from '@lib/entity';
 import Query from '@lib/query';
 import Scan from '@lib/scan';
 import transactionGet from '@lib/transactionGet';
@@ -16,7 +16,7 @@ declare global {
   interface File {}
 }
 
-const decorators = { attribute, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, register, suffix, updatedAt };
+const decorators = { attribute, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, suffix, updatedAt };
 
 export {
   //Condition

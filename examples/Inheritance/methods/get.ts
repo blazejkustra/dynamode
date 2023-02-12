@@ -1,9 +1,9 @@
-import { EntityOne, EntityThree, EntityTwo } from '../model';
+import { EntityOneRegistry, EntityThreeRegistry, EntityTwoRegistry } from '../model';
 
 async function get() {
-  const model1Get = await EntityOne.get({ propPk: 'propPk', propSk: 101 });
-  const model2Get = await EntityTwo.get({ propPk: 'propPk', propSk: 102 });
-  const model3Get = await EntityThree.get({ propPk: 'propPk', propSk: 103 });
+  const model1Get = await EntityOneRegistry.get({ propPk: 'propPk', propSk: 101 });
+  const model2Get = await EntityTwoRegistry.get({ propPk: 'propPk', propSk: 102 });
+  const model3Get = await EntityThreeRegistry.get({ propPk: 'propPk', propSk: 103 });
 
   console.log();
   console.log('OUTPUT:');

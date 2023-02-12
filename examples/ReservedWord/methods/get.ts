@@ -1,7 +1,7 @@
-import { EntityReservedWord } from '../model';
+import { EntityReservedWordRegistry } from '../model';
 
 async function get() {
-  const userGet = await EntityReservedWord.get({ COLUMN: 'pk1', OBJECT: 'sk1' });
+  const userGet = await EntityReservedWordRegistry.get({ COLUMN: 'pk1', OBJECT: 'sk1' });
 
   console.log();
   console.log('OUTPUT:');

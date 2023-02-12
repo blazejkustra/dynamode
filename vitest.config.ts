@@ -3,6 +3,12 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [tsconfigPaths()],
+  optimizeDeps: {
+    disabled: false, // https://github.com/vitejs/vite/issues/9703
+  },
+  build: {
+    commonjsOptions: { include: [] },
+  },
   test: {
     include: ['tests/**/*.test.ts'],
     exclude: ['**.json'],

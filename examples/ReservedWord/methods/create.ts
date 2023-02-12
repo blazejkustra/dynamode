@@ -1,7 +1,7 @@
-import { EntityReservedWord } from '../model';
+import { EntityReservedWord, EntityReservedWordRegistry } from '../model';
 
 async function create() {
-  const entityReservedWord = await EntityReservedWord.create(
+  const entityReservedWord = await EntityReservedWordRegistry.create(
     new EntityReservedWord({
       COLUMN: 'pk1',
       OBJECT: 'sk1',

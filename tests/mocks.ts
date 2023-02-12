@@ -1,11 +1,11 @@
 import { attribute, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, updatedAt } from '@lib/decorators';
 import { Dynamode } from '@lib/dynamode';
-import Entity from '@lib/entity';
+import { Entity, register } from '@lib/entity';
 
 Dynamode.ddb.local();
 export const ddb = Dynamode.ddb.get();
 
-type TestTableKeys = {
+export type TestTableKeys = {
   partitionKey: 'partitionKey';
   sortKey: 'sortKey';
   indexes: {
@@ -29,10 +29,12 @@ type TestTableProps = {
   updatedAt?: Date;
 };
 
-const TEST_TABLE_NAME = 'test-table';
+export const TEST_TABLE_NAME = 'test-table';
 const PREFIX = 'prefix';
 
-export class TestTable extends Entity<TestTableKeys>(TEST_TABLE_NAME) {
+export class TestTable extends Entity {
+  public static tableName = TEST_TABLE_NAME;
+
   // Primary key
   @prefix(PREFIX)
   @primaryPartitionKey(String)
@@ -89,7 +91,6 @@ export type MockEntityProps = TestTableProps & {
   boolean: boolean;
 };
 
-// @register(ddb)
 export class MockEntity extends TestTable {
   @attribute(String)
   string: string;
@@ -138,4 +139,18 @@ export class MockEntity extends TestTable {
     console.log('staticMethod');
   }
 }
-MockEntity.get({ partitionKey: 's', sortKey: '' });
+
+export const MockEntityRegistry = register<TestTableKeys, typeof MockEntity>(MockEntity, TEST_TABLE_NAME);
+
+export const mockInstance = new MockEntity({
+  partitionKey: 'PK',
+  sortKey: 'SK',
+  string: 'string',
+  object: {
+    required: 2,
+  },
+  map: new Map([['1', '2']]),
+  set: new Set(['1', '2', '3']),
+  array: ['1', '2'],
+  boolean: true,
+});

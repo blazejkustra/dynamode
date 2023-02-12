@@ -1,5 +1,6 @@
 import { QueryInput } from '@aws-sdk/client-dynamodb';
-import type { Entity, ReturnOption } from '@lib/entity/types';
+import { Entity } from '@lib/entity';
+import type { ReturnOption } from '@lib/entity/types';
 import { AttributeNames, AttributeValues, GenericObject } from '@lib/utils';
 
 export interface QueryRunOptions {
@@ -10,8 +11,8 @@ export interface QueryRunOptions {
   max?: number;
 }
 
-export interface QueryRunOutput<T extends Entity<T>> {
-  items: Array<InstanceType<T>>;
+export interface QueryRunOutput<E extends typeof Entity> {
+  items: Array<InstanceType<E>>;
   count: number;
   scannedCount: number;
   lastKey?: GenericObject;

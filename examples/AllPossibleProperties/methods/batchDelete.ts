@@ -1,7 +1,7 @@
-import { AllPossibleProperties } from '../model';
+import { AllPossiblePropertiesRegistry } from '../model';
 
 async function batchDelete() {
-  const modelBatchDelete = await AllPossibleProperties.batchDelete(
+  const modelBatchDelete = await AllPossiblePropertiesRegistry.batchDelete(
     [
       { partitionKey: 'pk1', sortKey: 'sk1' },
       { partitionKey: 'pk2', sortKey: 'sk2' },

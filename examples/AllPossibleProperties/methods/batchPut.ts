@@ -1,7 +1,7 @@
-import { AllPossibleProperties } from '../model';
+import { AllPossibleProperties, AllPossiblePropertiesRegistry } from '../model';
 
 async function batchPut() {
-  const modelBatchPut = await AllPossibleProperties.batchPut([
+  const modelBatchPut = await AllPossiblePropertiesRegistry.batchPut([
     new AllPossibleProperties({
       partitionKey: 'pk1',
       sortKey: 'sk1',
