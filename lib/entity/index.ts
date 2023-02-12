@@ -14,12 +14,6 @@ import {
 } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import { Dynamode } from '@lib/dynamode';
-import Query from '@lib/query';
-import Scan from '@lib/scan';
-import { GetTransaction } from '@lib/transactionGet/types';
-import { WriteTransaction } from '@lib/transactionWrite/types';
-import { AttributeValues, ExpressionBuilder, fromDynamo, NotFoundError } from '@lib/utils';
-
 import {
   buildDeleteConditionExpression,
   buildGetProjectionExpression,
@@ -30,7 +24,7 @@ import {
   convertPrimaryKeyToAttributeValues,
   mapReturnValues,
   mapReturnValuesLimited,
-} from './helpers';
+} from '@lib/entity/helpers';
 import {
   EntityBatchDeleteOptions,
   EntityBatchDeleteOutput,
@@ -50,18 +44,24 @@ import {
   EntityTransactionUpdateOptions,
   EntityUpdateOptions,
   UpdateProps,
-} from './types';
+} from '@lib/entity/types';
+import Query from '@lib/query';
+import Scan from '@lib/scan';
+import { GetTransaction } from '@lib/transactionGet/types';
+import { WriteTransaction } from '@lib/transactionWrite/types';
+import { AttributeValues, ExpressionBuilder, fromDynamo, NotFoundError } from '@lib/utils';
 
 export class Entity {
   public static tableName: string;
   public readonly dynamodeEntity: string;
 
-  constructor(...args: any[]) {
-    console.log(args);
-  }
+  // eslint-disable-next-line unused-imports/no-unused-vars, @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
+  constructor(...args: unknown[]) {}
 }
 
 export function register<EM extends EntityMetadata, E extends typeof Entity>(entity: E, tableName: string) {
+  entity.tableName = tableName;
+
   function condition(): Condition<E> {
     return new Condition(entity);
   }
@@ -105,7 +105,7 @@ export function register<EM extends EntityMetadata, E extends typeof Entity>(ent
         return result;
       }
 
-      return convertAttributeValuesToEntity(result.Item, entity);
+      return convertAttributeValuesToEntity(entity, result.Item);
     })();
   }
 
@@ -138,7 +138,7 @@ export function register<EM extends EntityMetadata, E extends typeof Entity>(ent
         return result;
       }
 
-      return convertAttributeValuesToEntity(result.Attributes || {}, entity);
+      return convertAttributeValuesToEntity(entity, result.Attributes || {});
     })();
   }
 
@@ -178,7 +178,7 @@ export function register<EM extends EntityMetadata, E extends typeof Entity>(ent
         return result;
       }
 
-      return convertAttributeValuesToEntity(dynamoItem, entity);
+      return convertAttributeValuesToEntity(entity, dynamoItem);
     })();
   }
 
@@ -222,7 +222,7 @@ export function register<EM extends EntityMetadata, E extends typeof Entity>(ent
         return result;
       }
 
-      return result.Attributes ? convertAttributeValuesToEntity(result.Attributes, entity) : null;
+      return result.Attributes ? convertAttributeValuesToEntity(entity, result.Attributes) : null;
     })();
   }
 
@@ -259,7 +259,7 @@ export function register<EM extends EntityMetadata, E extends typeof Entity>(ent
       const items = result.Responses?.[tableName] || [];
       const unprocessedKeys = result.UnprocessedKeys?.[tableName]?.Keys?.map((key) => fromDynamo(key) as EntityPrimaryKey<EM, E>) || [];
 
-      return { items: items.map((item) => convertAttributeValuesToEntity(item, entity)), unprocessedKeys };
+      return { items: items.map((item) => convertAttributeValuesToEntity(entity, item)), unprocessedKeys };
     })();
   }
 
@@ -295,9 +295,9 @@ export function register<EM extends EntityMetadata, E extends typeof Entity>(ent
         result.UnprocessedItems?.[tableName]
           ?.map((request) => request.PutRequest?.Item)
           ?.filter((item): item is AttributeValues => !!item)
-          ?.map((item) => convertAttributeValuesToEntity(item, entity)) || [];
+          ?.map((item) => convertAttributeValuesToEntity(entity, item)) || [];
 
-      return { items: dynamoItems.map((dynamoItem) => convertAttributeValuesToEntity(dynamoItem, entity)), unprocessedItems };
+      return { items: dynamoItems.map((dynamoItem) => convertAttributeValuesToEntity(entity, dynamoItem)), unprocessedItems };
     })();
   }
 

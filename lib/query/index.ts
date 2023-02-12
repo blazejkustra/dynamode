@@ -5,9 +5,7 @@ import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } fr
 import { EntityKey, EntityMetadata, EntityPartitionKeys, EntitySortKeys, EntityValue } from '@lib/entity/types';
 import type { QueryRunOptions, QueryRunOutput } from '@lib/query/types';
 import RetrieverBase from '@lib/retriever';
-import { AttributeValues, ExpressionBuilder, isNotEmptyString, Operators, timeout } from '@lib/utils';
-
-import { BASE_OPERATOR } from './../utils/constants';
+import { AttributeValues, BASE_OPERATOR, ExpressionBuilder, isNotEmptyString, Operators, timeout } from '@lib/utils';
 
 export default class Query<EM extends EntityMetadata, E extends typeof Entity> extends RetrieverBase<EM, E> {
   protected declare input: QueryInput;
@@ -60,7 +58,7 @@ export default class Query<EM extends EntityMetadata, E extends typeof Entity> e
       } while (all && !!lastKey && count < max);
 
       return {
-        items: items.map((item) => convertAttributeValuesToEntity(item, this.entity)),
+        items: items.map((item) => convertAttributeValuesToEntity(this.entity, item)),
         lastKey: lastKey && convertAttributeValuesToPrimaryKey(this.entity, lastKey),
         count,
         scannedCount,

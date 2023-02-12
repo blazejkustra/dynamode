@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { primaryPartitionKey } from '@lib/decorators';
-import Entity from '@lib/entity';
+import { Entity } from '@lib/entity';
 import * as entityHelpers from '@lib/entity/helpers';
 import RetrieverBase from '@lib/retriever';
 import { BASE_OPERATOR } from '@lib/utils';

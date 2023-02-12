@@ -34,7 +34,7 @@ export default function transactionGet<E extends typeof Entity>(transactions: Ar
       .map((item, idx) => {
         const tableName = transactions[idx].Get.TableName;
         if (item && tableName) {
-          return convertAttributeValuesToEntity(item, tableName);
+          return convertAttributeValuesToEntity(tableName, item);
         }
       })
       .filter((entity): entity is InstanceType<E> => !!entity);

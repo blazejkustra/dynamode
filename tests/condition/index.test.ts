@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from 'vitest';
 import Condition from '@lib/condition';
 import { AttributeType } from '@lib/condition/types';
 import { attribute } from '@lib/decorators';
-import Entity from '@lib/entity';
+import { Entity } from '@lib/entity';
 import { BASE_OPERATOR, OPERATORS } from '@lib/utils';
 
 //FIX this and instead use tests/mocks.ts

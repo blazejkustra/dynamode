@@ -154,9 +154,9 @@ export function mapReturnValuesLimited(returnValues?: ReturnValuesLimited): Dyna
   )[returnValues];
 }
 
-export function convertAttributeValuesToEntity<E extends typeof Entity>(dynamoItem: AttributeValues, entity: E): InstanceType<E>;
-export function convertAttributeValuesToEntity<E extends typeof Entity>(dynamoItem: AttributeValues, tableName: string): InstanceType<E> | undefined;
-export function convertAttributeValuesToEntity<E extends typeof Entity>(dynamoItem: AttributeValues, tableNameOrEntity: E | string): InstanceType<E> | undefined {
+export function convertAttributeValuesToEntity<E extends typeof Entity>(entity: E, dynamoItem: AttributeValues): InstanceType<E>;
+export function convertAttributeValuesToEntity<E extends typeof Entity>(tableName: string, dynamoItem: AttributeValues): InstanceType<E> | undefined;
+export function convertAttributeValuesToEntity<E extends typeof Entity>(tableNameOrEntity: E | string, dynamoItem: AttributeValues): InstanceType<E> | undefined {
   let entityConstructor: E;
 
   if (typeof tableNameOrEntity === 'string') {

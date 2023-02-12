@@ -2,9 +2,8 @@ import { RequireAtLeastOne, ValueOf } from 'type-fest';
 
 import { BatchGetItemCommandInput, BatchWriteItemCommandInput, ConditionCheck, Delete, DeleteItemCommandInput, Get, GetItemCommandInput, Put, PutItemCommandInput, Update, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
+import { Entity } from '@lib/entity';
 import { AttributeNames, AttributeValues, FlattenObject } from '@lib/utils';
-
-import { Entity } from '.';
 
 // Return types
 

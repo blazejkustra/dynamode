@@ -27,7 +27,7 @@ export default function transactionWrite<E extends typeof Entity>(transactions: 
         const item = transaction?.Put?.Item;
         const tableName = transaction?.Put?.TableName;
         if (item && tableName) {
-          return convertAttributeValuesToEntity(item, tableName);
+          return convertAttributeValuesToEntity(tableName, item);
         }
       })
       .filter((entity): entity is InstanceType<E> => !!entity);

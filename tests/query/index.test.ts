@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { QueryInput } from '@aws-sdk/client-dynamodb';
 import { gsiPartitionKey, gsiSortKey, lsiSortKey, primaryPartitionKey } from '@lib/decorators';
 import { Dynamode } from '@lib/dynamode';
-import Entity from '@lib/entity';
+import { Entity } from '@lib/entity';
 import Query from '@lib/query';
 import { BASE_OPERATOR } from '@lib/utils';
 import * as utils from '@lib/utils/helpers';
