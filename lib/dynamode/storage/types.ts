@@ -1,4 +1,4 @@
-import type { Entity } from '@lib/entity/types';
+import { Entity } from '@lib/entity';
 
 export type IndexAttributeType = StringConstructor | NumberConstructor;
 export type TimestampAttributeType = StringConstructor | NumberConstructor;
@@ -28,7 +28,7 @@ export type LsiMetadata = {
 };
 
 export type EntityMetadata = {
-  entityConstructor?: Entity<any>;
+  entityConstructor?: typeof Entity;
   attributes?: { [attributeName: string]: AttributeMetadata<AttributeType> };
 };
 

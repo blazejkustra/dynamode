@@ -1,15 +1,16 @@
 import { QueryInput, ScanInput } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
-import { buildProjectionExpression } from '@lib/entity/helpers';
-import type { Entity, EntityKey, EntityPrimaryKey } from '@lib/entity/types';
+import { Entity } from '@lib/entity';
+import { buildProjectionExpression, convertPrimaryKeyToAttributeValues } from '@lib/entity/helpers';
+import { EntityKey, EntityMetadata, EntityPrimaryKey } from '@lib/entity/types';
 import { AttributeNames, AttributeValues } from '@lib/utils';
 
-export default class RetrieverBase<T extends Entity<T>> extends Condition<T> {
+export default class RetrieverBase<E extends typeof Entity, EM extends EntityMetadata> extends Condition<E> {
   protected input: QueryInput | ScanInput;
   protected attributeNames: AttributeNames = {};
   protected attributeValues: AttributeValues = {};
 
-  constructor(entity: T) {
+  constructor(entity: E) {
     super(entity);
     this.input = {
       TableName: entity.tableName,
@@ -21,9 +22,9 @@ export default class RetrieverBase<T extends Entity<T>> extends Condition<T> {
     return this;
   }
 
-  public startAt(key?: EntityPrimaryKey<T>) {
+  public startAt(key?: EntityPrimaryKey<E, EM>) {
     if (key) {
-      this.input.ExclusiveStartKey = this.entity.convertPrimaryKeyToAttributeValues(key);
+      this.input.ExclusiveStartKey = convertPrimaryKeyToAttributeValues(this.entity, key);
     }
 
     return this;
@@ -39,8 +40,8 @@ export default class RetrieverBase<T extends Entity<T>> extends Condition<T> {
     return this;
   }
 
-  public attributes(attributes: Array<EntityKey<T>>) {
-    this.input.ProjectionExpression = buildProjectionExpression(attributes, this.attributeNames);
+  public attributes(attributes: Array<EntityKey<E>>) {
+    this.input.ProjectionExpression = buildProjectionExpression(this.entity, attributes, this.attributeNames);
     return this;
   }
 }

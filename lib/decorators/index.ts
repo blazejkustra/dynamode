@@ -2,7 +2,7 @@ import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import type { DecoratorOptions } from '@lib/decorators/types';
 import { Dynamode } from '@lib/dynamode';
 import type { AttributeMetadata, AttributeType, IndexAttributeType, TimestampAttributeType } from '@lib/dynamode/storage/types';
-import type { Entity } from '@lib/entity/types';
+import { Entity } from '@lib/entity';
 
 // export function dependsOn<T>(value: T) {
 //   return (Entity: T, propertyName: string) => {
@@ -10,9 +10,10 @@ import type { Entity } from '@lib/entity/types';
 //   };
 // }
 
+// TODO: implement
 export function register(value: DynamoDB) {
-  return <T extends Entity<T>>(Class: T) => {
-    Class.ddb = value;
+  return <E extends typeof Entity>(Class: E) => {
+    // Class.ddb = value;
     return Class;
   };
 }

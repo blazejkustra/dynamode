@@ -138,4 +138,3 @@ export class MockEntity extends TestTable {
     console.log('staticMethod');
   }
 }
-MockEntity.get({ partitionKey: 's', sortKey: '' });

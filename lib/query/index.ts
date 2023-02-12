@@ -1,26 +1,28 @@
 import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import { Dynamode } from '@lib/dynamode';
-import type { Entity, EntityKey, EntityPartitionKeys, EntitySortKeys, EntityValue } from '@lib/entity/types';
+import { Entity } from '@lib/entity';
+import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } from '@lib/entity/helpers';
+import { EntityKey, EntityMetadata, EntityPartitionKeys, EntitySortKeys, EntityValue } from '@lib/entity/types';
 import type { QueryRunOptions, QueryRunOutput } from '@lib/query/types';
 import RetrieverBase from '@lib/retriever';
 import { AttributeValues, ExpressionBuilder, isNotEmptyString, Operators, timeout } from '@lib/utils';
 
 import { BASE_OPERATOR } from './../utils/constants';
 
-export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
+export default class Query<E extends typeof Entity, EM extends EntityMetadata> extends RetrieverBase<E, EM> {
   protected declare input: QueryInput;
   protected keyOperators: Operators = [];
 
-  constructor(entity: T) {
+  constructor(entity: E) {
     super(entity);
   }
 
-  public run(): Promise<QueryRunOutput<T>>;
-  public run(options: Omit<QueryRunOptions, 'return'>): Promise<QueryRunOutput<T>>;
-  public run(options: QueryRunOptions & { return: 'default' }): Promise<QueryRunOutput<T>>;
+  public run(): Promise<QueryRunOutput<E>>;
+  public run(options: Omit<QueryRunOptions, 'return'>): Promise<QueryRunOutput<E>>;
+  public run(options: QueryRunOptions & { return: 'default' }): Promise<QueryRunOutput<E>>;
   public run(options: QueryRunOptions & { return: 'output' }): Promise<QueryCommandOutput>;
   public run(options: QueryRunOptions & { return: 'input' }): QueryInput;
-  public run(options?: QueryRunOptions): Promise<QueryRunOutput<T> | QueryCommandOutput> | QueryInput {
+  public run(options?: QueryRunOptions): Promise<QueryRunOutput<E> | QueryCommandOutput> | QueryInput {
     this.buildQueryInput(options?.extraInput);
     this.validateQueryInput();
 
@@ -30,7 +32,7 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
 
     return (async () => {
       if (options?.return === 'output') {
-        const result = await this.entity.ddb.query(this.input);
+        const result = await Dynamode.ddb.get().query(this.input);
         return result;
       }
 
@@ -44,7 +46,7 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
       let lastKey: AttributeValues | undefined = undefined;
 
       do {
-        const result = await this.entity.ddb.query(this.input);
+        const result = await Dynamode.ddb.get().query(this.input);
         if (all) {
           await timeout(delay);
         }
@@ -58,36 +60,36 @@ export default class Query<T extends Entity<T>> extends RetrieverBase<T> {
       } while (all && !!lastKey && count < max);
 
       return {
-        items: items.map((item) => this.entity.convertAttributeValuesToEntity(item)),
-        lastKey: lastKey && this.entity.convertAttributeValuesToPrimaryKey(lastKey),
+        items: items.map((item) => convertAttributeValuesToEntity(item, this.entity)),
+        lastKey: lastKey && convertAttributeValuesToPrimaryKey(this.entity, lastKey),
         count,
         scannedCount,
       };
     })();
   }
 
-  public partitionKey<Q extends Query<T>, K extends EntityKey<T> & EntityPartitionKeys<T>>(this: Q, key: K) {
+  public partitionKey<Q extends Query<E, EM>, K extends EntityKey<E> & EntityPartitionKeys<EM>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
     this.setAssociatedIndexName(String(key));
 
     return {
-      eq: (value: EntityValue<T, K>): Q => this.eq(this.keyOperators, key, value),
+      eq: (value: EntityValue<E, K>): Q => this.eq(this.keyOperators, key, value),
     };
   }
 
-  public sortKey<Q extends Query<T>, K extends EntityKey<T> & EntitySortKeys<T>>(this: Q, key: K) {
+  public sortKey<Q extends Query<E, EM>, K extends EntityKey<E> & EntitySortKeys<EM>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
     this.setAssociatedIndexName(String(key));
 
     return {
-      eq: (value: EntityValue<T, K>): Q => this.eq(this.keyOperators, key, value),
-      ne: (value: EntityValue<T, K>): Q => this.ne(this.keyOperators, key, value),
-      lt: (value: EntityValue<T, K>): Q => this.lt(this.keyOperators, key, value),
-      le: (value: EntityValue<T, K>): Q => this.le(this.keyOperators, key, value),
-      gt: (value: EntityValue<T, K>): Q => this.gt(this.keyOperators, key, value),
-      ge: (value: EntityValue<T, K>): Q => this.ge(this.keyOperators, key, value),
-      beginsWith: (value: EntityValue<T, K>): Q => this.beginsWith(this.keyOperators, key, value),
-      between: (value1: EntityValue<T, K>, value2: EntityValue<T, K>): Q => this.between(this.keyOperators, key, value1, value2),
+      eq: (value: EntityValue<E, K>): Q => this.eq(this.keyOperators, key, value),
+      ne: (value: EntityValue<E, K>): Q => this.ne(this.keyOperators, key, value),
+      lt: (value: EntityValue<E, K>): Q => this.lt(this.keyOperators, key, value),
+      le: (value: EntityValue<E, K>): Q => this.le(this.keyOperators, key, value),
+      gt: (value: EntityValue<E, K>): Q => this.gt(this.keyOperators, key, value),
+      ge: (value: EntityValue<E, K>): Q => this.ge(this.keyOperators, key, value),
+      beginsWith: (value: EntityValue<E, K>): Q => this.beginsWith(this.keyOperators, key, value),
+      between: (value1: EntityValue<E, K>, value2: EntityValue<E, K>): Q => this.between(this.keyOperators, key, value1, value2),
     };
   }
 

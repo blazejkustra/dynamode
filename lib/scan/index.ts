@@ -1,24 +1,27 @@
 import { ScanCommandOutput, ScanInput } from '@aws-sdk/client-dynamodb';
-import type { Entity, EntityIndexNames } from '@lib/entity/types';
+import { Dynamode } from '@lib/dynamode';
+import { Entity } from '@lib/entity';
+import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } from '@lib/entity/helpers';
+import { EntityIndexNames, EntityMetadata } from '@lib/entity/types';
 import RetrieverBase from '@lib/retriever';
 import type { ScanRunOptions, ScanRunOutput } from '@lib/scan/types';
 import { isNotEmptyString } from '@lib/utils';
 
 import { ExpressionBuilder } from './../utils/ExpressionBuilder';
 
-export default class Scan<T extends Entity<T>> extends RetrieverBase<T> {
+export default class Scan<E extends typeof Entity, EM extends EntityMetadata> extends RetrieverBase<E, EM> {
   protected declare input: ScanInput;
 
-  constructor(entity: T) {
+  constructor(entity: E) {
     super(entity);
   }
 
-  public run(): Promise<ScanRunOutput<T>>;
-  public run(options: Omit<ScanRunOptions, 'return'>): Promise<ScanRunOutput<T>>;
-  public run(options: ScanRunOptions & { return: 'default' }): Promise<ScanRunOutput<T>>;
+  public run(): Promise<ScanRunOutput<E>>;
+  public run(options: Omit<ScanRunOptions, 'return'>): Promise<ScanRunOutput<E>>;
+  public run(options: ScanRunOptions & { return: 'default' }): Promise<ScanRunOutput<E>>;
   public run(options: ScanRunOptions & { return: 'output' }): Promise<ScanCommandOutput>;
   public run(options: ScanRunOptions & { return: 'input' }): ScanInput;
-  public run(options?: ScanRunOptions): Promise<ScanRunOutput<T> | ScanCommandOutput> | ScanInput {
+  public run(options?: ScanRunOptions): Promise<ScanRunOutput<E> | ScanCommandOutput> | ScanInput {
     this.buildScanInput(options?.extraInput);
     this.validateScanInput();
 
@@ -27,7 +30,7 @@ export default class Scan<T extends Entity<T>> extends RetrieverBase<T> {
     }
 
     return (async () => {
-      const result = await this.entity.ddb.scan(this.input);
+      const result = await Dynamode.ddb.get().scan(this.input);
 
       if (options?.return === 'output') {
         return result;
@@ -36,15 +39,15 @@ export default class Scan<T extends Entity<T>> extends RetrieverBase<T> {
       const items = result.Items || [];
 
       return {
-        items: items.map((item) => this.entity.convertAttributeValuesToEntity(item)),
+        items: items.map((item) => convertAttributeValuesToEntity(item, this.entity)),
         count: result.Count || 0,
         scannedCount: result.ScannedCount || 0,
-        lastKey: result.LastEvaluatedKey ? this.entity.convertAttributeValuesToPrimaryKey(result.LastEvaluatedKey) : undefined,
+        lastKey: result.LastEvaluatedKey ? convertAttributeValuesToPrimaryKey(this.entity, result.LastEvaluatedKey) : undefined,
       };
     })();
   }
 
-  public indexName(name: EntityIndexNames<T>) {
+  public indexName(name: EntityIndexNames<EM>) {
     this.input.IndexName = String(name);
     return this;
   }
