@@ -1,6 +1,7 @@
 import type { DecoratorOptions } from '@lib/decorators/types';
 import { Dynamode } from '@lib/dynamode';
 import type { AttributeMetadata, AttributeType, IndexAttributeType, TimestampAttributeType } from '@lib/dynamode/storage/types';
+import { Entity } from '@lib/entity';
 
 // export function dependsOn<T>(value: T) {
 //   return (Entity: T, propertyName: string) => {
@@ -9,16 +10,16 @@ import type { AttributeMetadata, AttributeType, IndexAttributeType, TimestampAtt
 // }
 
 // TODO: implement
-// export function register(_value: DynamoDB) {
-//   return <E extends typeof Entity>(Class: E) => {
-//     // Class.ddb = value;
-//     return Class;
-//   };
-// }
+export function registerTable(tableName: string) {
+  return <E extends typeof Entity>(Class: E) => {
+    Class.tableName = tableName;
+    return Class;
+  };
+}
 
 export function prefix(value: string) {
   return <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => {
-    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
+    const tableName = (<any>Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<AttributeType> = { prefix: value, propertyName };
 
@@ -28,7 +29,7 @@ export function prefix(value: string) {
 
 export function suffix(value: string) {
   return <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => {
-    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
+    const tableName = (<any>Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<AttributeType> = { suffix: value, propertyName };
 
@@ -45,7 +46,7 @@ export function attribute(type: SetConstructor): <T extends Partial<Record<K, Se
 export function attribute(type: MapConstructor): <T extends Partial<Record<K, Map<unknown, unknown>>>, K extends string>(Entity: T, propertyName: K) => void;
 export function attribute(type: AttributeType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
-    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
+    const tableName = Entity.constructor.tableName;
     const entityName = Entity.constructor.name;
     const attributeMetadata: AttributeMetadata<AttributeType> = { propertyName, type, role: 'attribute', ...options };
 
@@ -58,7 +59,7 @@ export function primaryPartitionKey(type: StringConstructor, options?: Decorator
 export function primaryPartitionKey(type: NumberConstructor): <T extends Record<K, number>, K extends string>(Entity: T, propertyName: K) => void;
 export function primaryPartitionKey(type: IndexAttributeType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
-    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
+    const tableName = Entity.constructor.tableName;
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<IndexAttributeType> = { type, propertyName, role: 'partitionKey', ...options };
 
@@ -72,7 +73,7 @@ export function primarySortKey(type: StringConstructor, options?: DecoratorOptio
 export function primarySortKey(type: NumberConstructor): <T extends Record<K, number>, K extends string>(Entity: T, propertyName: K) => void;
 export function primarySortKey(type: IndexAttributeType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
-    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
+    const tableName = Entity.constructor.tableName;
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<IndexAttributeType> = { type, propertyName, role: 'sortKey', ...options };
 
@@ -86,7 +87,7 @@ export function gsiPartitionKey(type: StringConstructor, indexName: string, opti
 export function gsiPartitionKey(type: NumberConstructor, indexName: string): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void;
 export function gsiPartitionKey(type: IndexAttributeType, indexName: string, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
-    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
+    const tableName = Entity.constructor.tableName;
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<IndexAttributeType> = { type, propertyName, indexName, role: 'gsiPartitionKey', ...options };
 
@@ -100,7 +101,7 @@ export function gsiSortKey(type: StringConstructor, indexName: string, options?:
 export function gsiSortKey(type: NumberConstructor, indexName: string): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void;
 export function gsiSortKey(type: IndexAttributeType, indexName: string, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
-    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
+    const tableName = Entity.constructor.tableName;
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<IndexAttributeType> = { type, propertyName, indexName, role: 'gsiSortKey', ...options };
 
@@ -114,7 +115,7 @@ export function lsiSortKey(type: StringConstructor, indexName: string, options?:
 export function lsiSortKey(type: NumberConstructor, indexName: string): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void;
 export function lsiSortKey(type: IndexAttributeType, indexName: string, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
-    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
+    const tableName = Entity.constructor.tableName;
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<IndexAttributeType> = { type, propertyName, indexName, role: 'lsiSortKey', ...options };
 
@@ -128,7 +129,7 @@ export function createdAt(type: StringConstructor, options?: DecoratorOptions): 
 export function createdAt(type: NumberConstructor): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void;
 export function createdAt(type: TimestampAttributeType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
-    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
+    const tableName = Entity.constructor.tableName;
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<TimestampAttributeType> = { type, propertyName, role: 'createdAt', ...options };
 
@@ -142,7 +143,7 @@ export function updatedAt(type: StringConstructor, options?: DecoratorOptions): 
 export function updatedAt(type: NumberConstructor): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void;
 export function updatedAt(type: TimestampAttributeType, options?: DecoratorOptions) {
   return (Entity: any, propertyName: string) => {
-    const tableName = Object.getPrototypeOf(Entity.constructor).tableName;
+    const tableName = Entity.constructor.tableName;
     const entityName = Entity.constructor.name;
     const metadata: AttributeMetadata<TimestampAttributeType> = { type, propertyName, role: 'createdAt', ...options };
 

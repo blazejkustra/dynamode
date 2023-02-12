@@ -20,7 +20,6 @@ type UserProps = {
 
 const USERS_TABLE = 'users';
 
-// @register(ddb)
 export class User extends Entity {
   @primaryPartitionKey(String)
   partitionKey: string;

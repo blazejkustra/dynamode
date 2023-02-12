@@ -68,7 +68,7 @@ export default class Query<EM extends EntityMetadata, E extends typeof Entity> e
 
   public partitionKey<Q extends Query<EM, E>, K extends EntityKey<E> & EntityPartitionKeys<EM>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
-    this.setAssociatedIndexName(String(key));
+    this.setAssociatedIndexName(key);
 
     return {
       eq: (value: EntityValue<E, K>): Q => this.eq(this.keyOperators, key, value),
@@ -77,7 +77,7 @@ export default class Query<EM extends EntityMetadata, E extends typeof Entity> e
 
   public sortKey<Q extends Query<EM, E>, K extends EntityKey<E> & EntitySortKeys<EM>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
-    this.setAssociatedIndexName(String(key));
+    this.setAssociatedIndexName(key);
 
     return {
       eq: (value: EntityValue<E, K>): Q => this.eq(this.keyOperators, key, value),
@@ -124,9 +124,10 @@ export default class Query<EM extends EntityMetadata, E extends typeof Entity> e
     }
   }
 
-  private setAssociatedIndexName(key: string) {
+  private setAssociatedIndexName<K extends EntityKey<E> & EntityPartitionKeys<EM>>(key: K) {
     const attributes = Dynamode.storage.getEntityAttributes(this.entity.tableName, this.entity.name);
     const { indexName } = attributes[key];
+
     if (indexName) {
       this.input.IndexName = indexName;
     }

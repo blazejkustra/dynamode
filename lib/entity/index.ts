@@ -53,14 +53,16 @@ import { AttributeValues, ExpressionBuilder, fromDynamo, NotFoundError } from '@
 
 export class Entity {
   public static tableName: string;
-  public readonly dynamodeEntity: string;
+  // TODO: try to make it readonly
+  public dynamodeEntity: string;
 
   // eslint-disable-next-line unused-imports/no-unused-vars, @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
   constructor(...args: unknown[]) {}
 }
 
 export function register<EM extends EntityMetadata, E extends typeof Entity>(entity: E, tableName: string) {
-  entity.tableName = tableName;
+  Dynamode.storage.addEntityAttributeMetadata(tableName, 'Entity', 'dynamodeEntity', { propertyName: 'dynamodeEntity', type: String, role: 'dynamodeEntity' });
+  entity.prototype.dynamodeEntity = entity.name;
 
   function condition(): Condition<E> {
     return new Condition(entity);

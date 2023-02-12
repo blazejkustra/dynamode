@@ -39,7 +39,6 @@ type AllPossiblePropertiesProps = {
 const TABLE_NAME = 'all-possible-properties';
 const PREFIX = 'prefix';
 
-// @register(ddb)
 export class AllPossibleProperties extends Entity {
   // Primary key
   @prefix(PREFIX)

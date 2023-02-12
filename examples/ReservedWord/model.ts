@@ -27,7 +27,6 @@ type ReservedWordProps = {
 
 const TABLE_NAME = 'reservedWord';
 
-// @register(ddb)
 export class EntityReservedWord extends Entity {
   // Primary key
   @primaryPartitionKey(String)
