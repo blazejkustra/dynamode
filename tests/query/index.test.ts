@@ -19,7 +19,21 @@ vi.mock('@lib/utils/ExpressionBuilder', () => {
 });
 
 describe('Query', () => {
-  test('Should be able to initialize retriever', async () => {
+  let query = MockEntityRegistry.query();
+  let maybePushKeyLogicalOperatorSpy = vi.spyOn(query, 'maybePushKeyLogicalOperator' as any);
+  let setAssociatedIndexNameSpy = vi.spyOn(query, 'setAssociatedIndexName' as any);
+
+  beforeEach(() => {
+    query = MockEntityRegistry.query();
+    maybePushKeyLogicalOperatorSpy = vi.spyOn(query, 'maybePushKeyLogicalOperator' as any);
+    setAssociatedIndexNameSpy = vi.spyOn(query, 'setAssociatedIndexName' as any);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  test('Should be able to initialize query', async () => {
     const query1 = MockEntityRegistry.query();
     expect(query1['operators']).toEqual([]);
     expect(query1['entity']).toEqual(MockEntity);
@@ -33,132 +47,7 @@ describe('Query', () => {
     expect(query2['keyOperators']).toEqual([]);
   });
 
-  describe('partitionKey', () => {
-    const query = MockEntityRegistry.query();
-    const maybePushKeyLogicalOperatorSpy = vi.spyOn(query, 'maybePushKeyLogicalOperator' as any);
-    const setAssociatedIndexNameSpy = vi.spyOn(query, 'setAssociatedIndexName' as any);
-
-    beforeEach(() => {
-      vi.restoreAllMocks();
-    });
-
-    test('Should call side effect methods', async () => {
-      query.partitionKey('partitionKey');
-      expect(maybePushKeyLogicalOperatorSpy).toBeCalled();
-      expect(setAssociatedIndexNameSpy).toBeCalled();
-    });
-
-    describe('eq', () => {
-      const eqSpy = vi.spyOn(query, 'eq' as any);
-
-      test('Should call eq method on keyOperators', async () => {
-        query.partitionKey('partitionKey').eq('value');
-        expect(eqSpy).toBeCalledWith(query['keyOperators'], 'partitionKey', 'value');
-      });
-    });
-  });
-
-  describe('sortKey', () => {
-    const query = MockEntityRegistry.query();
-    const maybePushKeyLogicalOperatorSpy = vi.spyOn(query, 'maybePushKeyLogicalOperator' as any);
-    const setAssociatedIndexNameSpy = vi.spyOn(query, 'setAssociatedIndexName' as any);
-
-    beforeEach(() => {
-      vi.restoreAllMocks();
-    });
-
-    test('Should call side effect methods', async () => {
-      query.sortKey('sortKey');
-      expect(maybePushKeyLogicalOperatorSpy).toBeCalled();
-      expect(setAssociatedIndexNameSpy).toBeCalled();
-    });
-
-    describe('eq', () => {
-      const eqSpy = vi.spyOn(query, 'eq' as any);
-
-      test('Should call eq method on keyOperators', async () => {
-        query.sortKey('sortKey').eq('value');
-        expect(eqSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
-      });
-    });
-
-    describe('ne', () => {
-      const neSpy = vi.spyOn(query, 'ne' as any);
-
-      test('Should call ne method on keyOperators', async () => {
-        query.sortKey('sortKey').ne('value');
-        expect(neSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
-      });
-    });
-
-    describe('lt', () => {
-      const ltSpy = vi.spyOn(query, 'lt' as any);
-
-      test('Should call lt method on keyOperators', async () => {
-        query.sortKey('sortKey').lt('value');
-        expect(ltSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
-      });
-    });
-
-    describe('le', () => {
-      const leSpy = vi.spyOn(query, 'le' as any);
-
-      test('Should call le method on keyOperators', async () => {
-        query.sortKey('sortKey').le('value');
-        expect(leSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
-      });
-    });
-
-    describe('gt', () => {
-      const gtSpy = vi.spyOn(query, 'gt' as any);
-
-      test('Should call gt method on keyOperators', async () => {
-        query.sortKey('sortKey').gt('value');
-        expect(gtSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
-      });
-    });
-
-    describe('ge', () => {
-      const geSpy = vi.spyOn(query, 'ge' as any);
-
-      test('Should call ge method on keyOperators', async () => {
-        query.sortKey('sortKey').ge('value');
-        expect(geSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
-      });
-    });
-
-    describe('beginsWith', () => {
-      const beginsWithSpy = vi.spyOn(query, 'beginsWith' as any);
-
-      test('Should call beginsWith method on keyOperators', async () => {
-        query.sortKey('sortKey').beginsWith('value');
-        expect(beginsWithSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
-      });
-    });
-
-    describe('between', () => {
-      const betweenSpy = vi.spyOn(query, 'between' as any);
-
-      test('Should call between method on keyOperators', async () => {
-        query.sortKey('sortKey').between('value1', 'value2');
-        expect(betweenSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value1', 'value2');
-      });
-    });
-  });
-
-  describe('sort', () => {
-    test('Should set ScanIndexForward on query input', async () => {
-      const query = MockEntityRegistry.query();
-      query.sort('ascending');
-      expect(query['input']['ScanIndexForward']).toEqual(true);
-
-      query.sort('descending');
-      expect(query['input']['ScanIndexForward']).toEqual(false);
-    });
-  });
-
   describe('run', () => {
-    let query = MockEntityRegistry.query();
     const ddbQueryMock = vi.fn();
 
     let buildQueryInputSpy = vi.spyOn(query, 'buildQueryInput' as any);
@@ -174,17 +63,12 @@ describe('Query', () => {
     };
 
     beforeEach(() => {
-      query = MockEntityRegistry.query();
       vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ query: ddbQueryMock } as any as DynamoDB);
       buildQueryInputSpy = vi.spyOn(query, 'buildQueryInput' as any).mockImplementation(() => (query['input'] = queryInput));
       validateQueryInputSpy = vi.spyOn(query, 'validateQueryInput' as any).mockReturnValue(undefined);
       convertAttributeValuesToEntitySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToEntity').mockReturnValue(mockInstance);
       convertAttributeValuesToPrimaryKeySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToPrimaryKey').mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
       timeoutSpy = vi.spyOn(utils, 'timeout').mockImplementation(async () => undefined);
-    });
-
-    afterEach(() => {
-      vi.restoreAllMocks();
     });
 
     test('Should build and validate query input', async () => {
@@ -315,44 +199,114 @@ describe('Query', () => {
     });
   });
 
-  describe('buildQueryInput', () => {
-    test('Should successfully build query input without extraInput', async () => {
-      const query = MockEntityRegistry.query();
-      query['buildQueryInput']();
-
-      expect(query['input']['TableName']).toEqual(TEST_TABLE_NAME);
-      expect(query['input']['KeyConditionExpression']).toEqual('keyConditionExpression');
-      expect(query['input']['FilterExpression']).toEqual('filterExpression');
-      expect(query['input']['ExpressionAttributeNames']).toEqual({
-        attributeNames: 'value',
-      });
-      expect(query['input']['ExpressionAttributeValues']).toEqual({
-        attributeValues: 'value',
-      });
+  describe('partitionKey', () => {
+    beforeEach(() => {
+      vi.restoreAllMocks();
     });
 
-    test('Should successfully build query input with extraInput', async () => {
-      const query = MockEntityRegistry.query();
-      query['buildQueryInput']({ IndexName: 'indexName', ExpressionAttributeValues: { attributeValues: { S: 'overriddenValue' } } });
+    test('Should call side effect methods', async () => {
+      query.partitionKey('partitionKey');
+      expect(maybePushKeyLogicalOperatorSpy).toBeCalled();
+      expect(setAssociatedIndexNameSpy).toBeCalled();
+    });
 
-      expect(query['input']['TableName']).toEqual(TEST_TABLE_NAME);
-      expect(query['input']['KeyConditionExpression']).toEqual('keyConditionExpression');
-      expect(query['input']['FilterExpression']).toEqual('filterExpression');
-      expect(query['input']['ExpressionAttributeNames']).toEqual({
-        attributeNames: 'value',
+    describe('eq', () => {
+      test('Should call eq method on keyOperators', async () => {
+        const eqSpy = vi.spyOn(query, 'eq' as any);
+        query.partitionKey('partitionKey').eq('value');
+        expect(eqSpy).toBeCalledWith(query['keyOperators'], 'partitionKey', 'value');
       });
-      expect(query['input']['ExpressionAttributeValues']).toEqual({ attributeValues: { S: 'overriddenValue' } });
-      expect(query['input']['IndexName']).toEqual('indexName');
     });
   });
 
-  describe('validateQueryInput', () => {
-    test.todo('Should successfully validate query input');
+  describe('sortKey', () => {
+    beforeEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    test('Should call side effect methods', async () => {
+      query.sortKey('sortKey');
+      expect(maybePushKeyLogicalOperatorSpy).toBeCalled();
+      expect(setAssociatedIndexNameSpy).toBeCalled();
+    });
+
+    describe('eq', () => {
+      test('Should call eq method on keyOperators', async () => {
+        const eqSpy = vi.spyOn(query, 'eq' as any);
+        query.sortKey('sortKey').eq('value');
+        expect(eqSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
+      });
+    });
+
+    describe('ne', () => {
+      test('Should call ne method on keyOperators', async () => {
+        const neSpy = vi.spyOn(query, 'ne' as any);
+        query.sortKey('sortKey').ne('value');
+        expect(neSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
+      });
+    });
+
+    describe('lt', () => {
+      test('Should call lt method on keyOperators', async () => {
+        const ltSpy = vi.spyOn(query, 'lt' as any);
+        query.sortKey('sortKey').lt('value');
+        expect(ltSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
+      });
+    });
+
+    describe('le', () => {
+      test('Should call le method on keyOperators', async () => {
+        const leSpy = vi.spyOn(query, 'le' as any);
+        query.sortKey('sortKey').le('value');
+        expect(leSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
+      });
+    });
+
+    describe('gt', () => {
+      test('Should call gt method on keyOperators', async () => {
+        const gtSpy = vi.spyOn(query, 'gt' as any);
+        query.sortKey('sortKey').gt('value');
+        expect(gtSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
+      });
+    });
+
+    describe('ge', () => {
+      test('Should call ge method on keyOperators', async () => {
+        const geSpy = vi.spyOn(query, 'ge' as any);
+        query.sortKey('sortKey').ge('value');
+        expect(geSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
+      });
+    });
+
+    describe('beginsWith', () => {
+      test('Should call beginsWith method on keyOperators', async () => {
+        const beginsWithSpy = vi.spyOn(query, 'beginsWith' as any);
+        query.sortKey('sortKey').beginsWith('value');
+        expect(beginsWithSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value');
+      });
+    });
+
+    describe('between', () => {
+      test('Should call between method on keyOperators', async () => {
+        const betweenSpy = vi.spyOn(query, 'between' as any);
+        query.sortKey('sortKey').between('value1', 'value2');
+        expect(betweenSpy).toBeCalledWith(query['keyOperators'], 'sortKey', 'value1', 'value2');
+      });
+    });
+  });
+
+  describe('sort', () => {
+    test('Should set ScanIndexForward on query input', async () => {
+      query.sort('ascending');
+      expect(query['input'].ScanIndexForward).toEqual(true);
+
+      query.sort('descending');
+      expect(query['input'].ScanIndexForward).toEqual(false);
+    });
   });
 
   describe('maybePushKeyLogicalOperator', () => {
     test('Should push a logical operator if key operators are not empty', async () => {
-      const query = MockEntityRegistry.query();
       query['keyOperators'].push(BASE_OPERATOR.add);
       query['maybePushKeyLogicalOperator']();
 
@@ -360,7 +314,6 @@ describe('Query', () => {
     });
 
     test('Should not push a logical operator if key operators are empty', async () => {
-      const query = MockEntityRegistry.query();
       query['maybePushKeyLogicalOperator']();
 
       expect(query['keyOperators']).toEqual([]);
@@ -375,19 +328,50 @@ describe('Query', () => {
     });
 
     test('Should set proper IndexName on query input for primary partitionKey', async () => {
-      const query = MockEntityRegistry.query();
       getEntityAttributesSpy.mockReturnValue({ partitionKey: {} });
       query['setAssociatedIndexName']('partitionKey');
 
-      expect(query['input']['IndexName']).toEqual(undefined);
+      expect(query['input'].IndexName).toEqual(undefined);
     });
 
     test('Should set proper IndexName on query input for an attribute associated with index', async () => {
-      const query = MockEntityRegistry.query();
       getEntityAttributesSpy.mockReturnValue({ GSI_1_PK: { indexName: 'GSI_1_NAME' } });
       query['setAssociatedIndexName']('GSI_1_PK');
 
-      expect(query['input']['IndexName']).toEqual('GSI_1_NAME');
+      expect(query['input'].IndexName).toEqual('GSI_1_NAME');
     });
+  });
+
+  describe('buildQueryInput', () => {
+    test('Should successfully build query input without extraInput', async () => {
+      query['buildQueryInput']();
+
+      expect(query['input'].TableName).toEqual(TEST_TABLE_NAME);
+      expect(query['input'].KeyConditionExpression).toEqual('keyConditionExpression');
+      expect(query['input'].FilterExpression).toEqual('filterExpression');
+      expect(query['input'].ExpressionAttributeNames).toEqual({
+        attributeNames: 'value',
+      });
+      expect(query['input'].ExpressionAttributeValues).toEqual({
+        attributeValues: 'value',
+      });
+    });
+
+    test('Should successfully build query input with extraInput', async () => {
+      query['buildQueryInput']({ IndexName: 'indexName', ExpressionAttributeValues: { attributeValues: { S: 'overriddenValue' } } });
+
+      expect(query['input'].TableName).toEqual(TEST_TABLE_NAME);
+      expect(query['input'].KeyConditionExpression).toEqual('keyConditionExpression');
+      expect(query['input'].FilterExpression).toEqual('filterExpression');
+      expect(query['input'].ExpressionAttributeNames).toEqual({
+        attributeNames: 'value',
+      });
+      expect(query['input'].ExpressionAttributeValues).toEqual({ attributeValues: { S: 'overriddenValue' } });
+      expect(query['input'].IndexName).toEqual('indexName');
+    });
+  });
+
+  describe('validateQueryInput', () => {
+    test.todo('Should successfully validate query input');
   });
 });

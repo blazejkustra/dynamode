@@ -96,6 +96,21 @@ export default class Query<EM extends EntityMetadata, E extends typeof Entity> e
     return this;
   }
 
+  private maybePushKeyLogicalOperator(): void {
+    if (this.keyOperators.length > 0) {
+      this.keyOperators.push(BASE_OPERATOR.space, BASE_OPERATOR.and, BASE_OPERATOR.space);
+    }
+  }
+
+  private setAssociatedIndexName<K extends EntityKey<E> & EntityPartitionKeys<EM>>(key: K) {
+    const attributes = Dynamode.storage.getEntityAttributes(this.entity.tableName, this.entity.name);
+    const { indexName } = attributes[key];
+
+    if (indexName) {
+      this.input.IndexName = indexName;
+    }
+  }
+
   private buildQueryInput(extraInput?: Partial<QueryInput>): void {
     const expressionBuilder = new ExpressionBuilder({ attributeNames: this.attributeNames, attributeValues: this.attributeValues });
     const keyConditionExpression = expressionBuilder.run(this.keyOperators);
@@ -116,20 +131,5 @@ export default class Query<EM extends EntityMetadata, E extends typeof Entity> e
     // ValidationException: Invalid FilterExpression: The BETWEEN operator requires upper bound to be greater than or equal to lower bound; lower bound operand: AttributeValue: {S:5}, upper bound operand: AttributeValue: {S:100}
     // Index validation
     console.log('validateQueryInput');
-  }
-
-  private maybePushKeyLogicalOperator(): void {
-    if (this.keyOperators.length > 0) {
-      this.keyOperators.push(BASE_OPERATOR.space, BASE_OPERATOR.and, BASE_OPERATOR.space);
-    }
-  }
-
-  private setAssociatedIndexName<K extends EntityKey<E> & EntityPartitionKeys<EM>>(key: K) {
-    const attributes = Dynamode.storage.getEntityAttributes(this.entity.tableName, this.entity.name);
-    const { indexName } = attributes[key];
-
-    if (indexName) {
-      this.input.IndexName = indexName;
-    }
   }
 }
