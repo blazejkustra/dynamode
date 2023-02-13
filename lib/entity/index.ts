@@ -60,7 +60,7 @@ export class Entity {
   constructor(...args: unknown[]) {}
 }
 
-export function register<EM extends EntityMetadata, E extends typeof Entity>(entity: E, tableName: string) {
+export function register<EM extends EntityMetadata = EntityMetadata, E extends typeof Entity = typeof Entity>(entity: E, tableName: string) {
   Dynamode.storage.addEntityAttributeMetadata(tableName, 'Entity', 'dynamodeEntity', { propertyName: 'dynamodeEntity', type: String, role: 'dynamodeEntity' });
   entity.prototype.dynamodeEntity = entity.name;
 
@@ -463,3 +463,38 @@ export function register<EM extends EntityMetadata, E extends typeof Entity>(ent
     transactionCondition,
   };
 }
+
+// const ddb = new Dynamode.DynamoDB();
+// const dynamode = new Dynamode.Client(ddb);
+
+// class UserTable extends Entity {}
+
+// export type UserTableMetadata = {
+//   partitionKey: 'partitionKey';
+//   sortKey: 'sortKey';
+//   indexes: {
+//     GSI_1_NAME: {
+//       partitionKey: 'GSI_1_PK';
+//       sortKey: 'GSI_1_SK';
+//     };
+//     LSI_1_NAME: {
+//       sortKey: 'LSI_1_SK';
+//     };
+//   };
+// };
+
+// const userTable = dynamode.registerTable(UserTable).metadata<UserTableMetadata>('user-table');
+
+// userTable.create();
+// userTable.validate();
+// userTable.registerEntity();
+
+// class User extends UserTable {}
+
+// const userTableManager = userTable.entityManager(UserTable);
+// userTableManager.get();
+// userTableManager.update();
+
+// const userManager = userTable.entityManager(User);
+// userManager.get();
+// userManager.update();

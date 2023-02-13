@@ -4,7 +4,7 @@ import * as entityHelpers from '@lib/entity/helpers';
 import RetrieverBase from '@lib/retriever';
 import { BASE_OPERATOR } from '@lib/utils';
 
-import { MockEntity, TEST_TABLE_NAME, TestTableKeys } from '../mocks';
+import { MockEntity, TEST_TABLE_NAME, TestTableKeys } from '../../mocks';
 
 describe('RetrieverBase', () => {
   let retriever = new RetrieverBase<TestTableKeys, typeof MockEntity>(MockEntity);

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { AttributeType } from '@lib/condition/types';
 import { BASE_OPERATOR, OPERATORS } from '@lib/utils';
 
-import { MockEntity, MockEntityRegistry } from '../mocks';
+import { MockEntity, MockEntityRegistry } from '../../mocks';
 
 describe('Condition', () => {
   let condition = MockEntityRegistry.condition();

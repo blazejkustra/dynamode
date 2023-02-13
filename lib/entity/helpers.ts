@@ -1,5 +1,4 @@
 import { ReturnValue as DynamoReturnValue, ReturnValuesOnConditionCheckFailure as DynamoReturnValueOnFailure } from '@aws-sdk/client-dynamodb';
-import Condition from '@lib/condition';
 import { Dynamode } from '@lib/dynamode';
 import { Entity } from '@lib/entity';
 import type {
@@ -14,6 +13,7 @@ import type {
   ReturnValuesLimited,
   UpdateProps,
 } from '@lib/entity/types';
+import Condition from '@lib/condition';
 import {
   AttributeNames,
   AttributeValues,
