@@ -2,16 +2,37 @@ import { TransactGetItemsCommandInput, TransactGetItemsOutput } from '@aws-sdk/c
 import { Dynamode } from '@lib/dynamode';
 import { Entity } from '@lib/entity';
 import { convertAttributeValuesToEntity } from '@lib/entity/helpers';
-import type { GetTransaction, TransactionGetOptions, TransactionGetOutput } from '@lib/transactionGet/types';
+import type { TransactionGetInput, TransactionGetOptions, TransactionGetOutput } from '@lib/transactionGet/types';
 import { NotFoundError } from '@lib/utils';
 
-export default function transactionGet<E extends typeof Entity>(transactions: Array<GetTransaction<E>>): Promise<TransactionGetOutput<E>>;
-export default function transactionGet<E extends typeof Entity>(transactions: Array<GetTransaction<E>>, options: TransactionGetOptions & { return: 'default' }): Promise<TransactionGetOutput<E>>;
-export default function transactionGet<E extends typeof Entity>(transactions: Array<GetTransaction<E>>, options: TransactionGetOptions & { return: 'output' }): Promise<TransactGetItemsOutput>;
-export default function transactionGet<E extends typeof Entity>(transactions: Array<GetTransaction<E>>, options: TransactionGetOptions & { return: 'input' }): TransactGetItemsCommandInput;
-export default function transactionGet<E extends typeof Entity>(transactions: Array<GetTransaction<E>>, options?: TransactionGetOptions): Promise<TransactionGetOutput<E> | TransactGetItemsOutput> | TransactGetItemsCommandInput {
+export default function transactionGet<E extends Array<typeof Entity>>(transactions: TransactionGetInput<[...E]>): Promise<TransactionGetOutput<[...E]>>;
+export default function transactionGet<E extends Array<typeof Entity>>(
+  transactions: TransactionGetInput<[...E]>,
+  options: TransactionGetOptions & {
+    return?: 'default';
+    throwOnNotFound?: true;
+  },
+): Promise<TransactionGetOutput<[...E]>>;
+export default function transactionGet<E extends Array<typeof Entity>>(
+  transactions: TransactionGetInput<[...E]>,
+  options: TransactionGetOptions & {
+    return?: 'default';
+    throwOnNotFound: false;
+  },
+): Promise<TransactionGetOutput<[...E], undefined>>;
+export default function transactionGet<E extends Array<typeof Entity>>(transactions: TransactionGetInput<[...E]>, options: TransactionGetOptions & { return: 'output' }): Promise<TransactGetItemsOutput>;
+export default function transactionGet<E extends Array<typeof Entity>>(transactions: TransactionGetInput<[...E]>, options: TransactionGetOptions & { return: 'input' }): TransactGetItemsCommandInput;
+export default function transactionGet<E extends Array<typeof Entity>>(
+  transactions: TransactionGetInput<[...E]>,
+  options?: TransactionGetOptions,
+): Promise<TransactionGetOutput<[...E]> | TransactionGetOutput<[...E], undefined> | TransactGetItemsOutput> | TransactGetItemsCommandInput {
   const throwOnNotFound = options?.throwOnNotFound ?? true;
-  const commandInput: TransactGetItemsCommandInput = { TransactItems: transactions, ...options?.extraInput };
+  const commandInput: TransactGetItemsCommandInput = {
+    TransactItems: transactions.map((transaction) => ({
+      Get: transaction.get,
+    })),
+    ...options?.extraInput,
+  };
 
   if (options?.return === 'input') {
     return commandInput;
@@ -19,25 +40,25 @@ export default function transactionGet<E extends typeof Entity>(transactions: Ar
 
   return (async () => {
     const result = await Dynamode.ddb.get().transactGetItems(commandInput);
-    const responses = result.Responses || [];
-    const items = responses.map((response) => response.Item);
-
-    if (throwOnNotFound && items.includes(undefined)) {
-      throw new NotFoundError();
-    }
 
     if (options?.return === 'output') {
       return result;
     }
 
-    const entities = items
-      .map((item, idx) => {
-        const tableName = transactions[idx].Get.TableName;
-        if (item && tableName) {
-          return convertAttributeValuesToEntity(tableName, item);
-        }
-      })
-      .filter((entity): entity is InstanceType<E> => !!entity);
+    const responses = result.Responses || [];
+    const items = responses.map((response) => response.Item);
+
+    const entities = transactions.map((transaction, idx) => {
+      const item = items[idx];
+
+      if (throwOnNotFound && !item) {
+        throw new NotFoundError();
+      }
+
+      if (item) {
+        return convertAttributeValuesToEntity(transaction.entity, item);
+      }
+    }) as [...TransactionGetOutput<E>['items']];
 
     return {
       items: entities,

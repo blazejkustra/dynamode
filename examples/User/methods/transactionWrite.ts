@@ -3,16 +3,18 @@ import { User, UserRegistry } from '../model';
 
 async function transaction() {
   const transactions = await transactionWrite([
-    UserRegistry.transactionUpdate(
+    UserRegistry.transaction.update(
       { partitionKey: 'pk1', sortKey: 'sk1' },
       {
         set: {
           age: 18,
         },
       },
-      { condition: UserRegistry.condition().attribute('partitionKey').eq('pk1') },
+      {
+        condition: UserRegistry.condition().attribute('partitionKey').eq('pk1'),
+      },
     ),
-    UserRegistry.transactionPut(
+    UserRegistry.transaction.put(
       new User({
         partitionKey: 'pk2',
         sortKey: 'sk2',
@@ -25,7 +27,7 @@ async function transaction() {
         },
       }),
     ),
-    UserRegistry.transactionCreate(
+    UserRegistry.transaction.create(
       new User({
         partitionKey: 'pk3',
         sortKey: 'sk3',
@@ -38,8 +40,8 @@ async function transaction() {
         },
       }),
     ),
-    UserRegistry.transactionDelete({ partitionKey: 'pk4', sortKey: 'sk4' }),
-    UserRegistry.transactionCondition({ partitionKey: 'pk5', sortKey: 'sk5' }, UserRegistry.condition().attribute('partitionKey').eq('pk5')),
+    UserRegistry.transaction.delete({ partitionKey: 'pk4', sortKey: 'sk4' }),
+    UserRegistry.transaction.condition({ partitionKey: 'pk5', sortKey: 'sk5' }, UserRegistry.condition().attribute('partitionKey').eq('pk5')),
   ]);
 
   console.log();

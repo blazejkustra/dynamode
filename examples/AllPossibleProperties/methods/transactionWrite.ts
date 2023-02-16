@@ -4,16 +4,18 @@ import { AllPossibleProperties, AllPossiblePropertiesRegistry } from '../model';
 async function transaction() {
   const transactions = await transactionWrite(
     [
-      AllPossiblePropertiesRegistry.transactionUpdate(
+      AllPossiblePropertiesRegistry.transaction.update(
         { partitionKey: 'pk1', sortKey: 'sk1' },
         {
           add: {
             set: new Set(['5']),
           },
         },
-        { condition: AllPossiblePropertiesRegistry.condition().attribute('partitionKey').eq('pk1') },
+        {
+          condition: AllPossiblePropertiesRegistry.condition().attribute('partitionKey').eq('pk1'),
+        },
       ),
-      AllPossiblePropertiesRegistry.transactionPut(
+      AllPossiblePropertiesRegistry.transaction.put(
         new AllPossibleProperties({
           partitionKey: 'pk2',
           sortKey: 'sk2',
@@ -27,7 +29,7 @@ async function transaction() {
           boolean: true,
         }),
       ),
-      AllPossiblePropertiesRegistry.transactionCreate(
+      AllPossiblePropertiesRegistry.transaction.create(
         new AllPossibleProperties({
           partitionKey: 'pk3',
           sortKey: 'sk3',
@@ -41,8 +43,11 @@ async function transaction() {
           boolean: true,
         }),
       ),
-      AllPossiblePropertiesRegistry.transactionDelete({ partitionKey: 'pk2', sortKey: 'sk2' }),
-      AllPossiblePropertiesRegistry.transactionCondition({ partitionKey: 'pk1', sortKey: 'sk1' }, AllPossiblePropertiesRegistry.condition().attribute('partitionKey').eq('pk1')),
+      AllPossiblePropertiesRegistry.transaction.delete({
+        partitionKey: 'pk2',
+        sortKey: 'sk2',
+      }),
+      AllPossiblePropertiesRegistry.transaction.condition({ partitionKey: 'pk1', sortKey: 'sk1' }, AllPossiblePropertiesRegistry.condition().attribute('partitionKey').eq('pk1')),
     ],
     { return: 'default' },
   );

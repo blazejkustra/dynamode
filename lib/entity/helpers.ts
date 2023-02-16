@@ -1,4 +1,5 @@
 import { ReturnValue as DynamoReturnValue, ReturnValuesOnConditionCheckFailure as DynamoReturnValueOnFailure } from '@aws-sdk/client-dynamodb';
+import Condition from '@lib/condition';
 import { Dynamode } from '@lib/dynamode';
 import { Entity } from '@lib/entity';
 import type {
@@ -13,7 +14,6 @@ import type {
   ReturnValuesLimited,
   UpdateProps,
 } from '@lib/entity/types';
-import Condition from '@lib/condition';
 import {
   AttributeNames,
   AttributeValues,
@@ -29,7 +29,6 @@ import {
   objectToDynamo,
   Operators,
   UPDATE_OPERATORS,
-  valueFromDynamo,
 } from '@lib/utils';
 
 export function buildProjectionExpression<E extends typeof Entity>(entity: E, attributes: Array<EntityKey<E>>, attributeNames: AttributeNames): string {
@@ -38,7 +37,9 @@ export function buildProjectionExpression<E extends typeof Entity>(entity: E, at
   }
 
   const uniqueAttributes = Array.from(new Set([...attributes, 'dynamodeEntity']));
-  const operators: Operators = uniqueAttributes.map((attribute) => ({ key: String(attribute) }));
+  const operators: Operators = uniqueAttributes.map((attribute) => ({
+    key: String(attribute),
+  }));
   return new ExpressionBuilder({ attributeNames }).run(insertBetween(operators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]));
 }
 
@@ -70,7 +71,15 @@ export function buildUpdateConditionExpression<E extends typeof Entity>(props: U
 export function buildUpdateConditions<E extends typeof Entity>(props: UpdateProps<E>): Operators {
   const operators: Operators = [];
 
-  if (isNotEmpty({ ...(props.set || {}), ...(props.setIfNotExists || {}), ...(props.listAppend || {}), ...(props.increment || {}), ...(props.decrement || {}) })) {
+  if (
+    isNotEmpty({
+      ...(props.set || {}),
+      ...(props.setIfNotExists || {}),
+      ...(props.listAppend || {}),
+      ...(props.increment || {}),
+      ...(props.decrement || {}),
+    })
+  ) {
     const setOperators: Operators = [
       ...Object.entries(props.set || {}).flatMap(([key, value]) => UPDATE_OPERATORS.set(key, value)),
       ...Object.entries(props.setIfNotExists || {}).flatMap(([key, value]) => UPDATE_OPERATORS.setIfNotExists(key, value)),
@@ -154,31 +163,10 @@ export function mapReturnValuesLimited(returnValues?: ReturnValuesLimited): Dyna
   )[returnValues];
 }
 
-export function convertAttributeValuesToEntity<E extends typeof Entity>(entity: E, dynamoItem: AttributeValues): InstanceType<E>;
-export function convertAttributeValuesToEntity<E extends typeof Entity>(tableName: string, dynamoItem: AttributeValues): InstanceType<E> | undefined;
-export function convertAttributeValuesToEntity<E extends typeof Entity>(tableNameOrEntity: E | string, dynamoItem: AttributeValues): InstanceType<E> | undefined {
-  let entityConstructor: E;
-
-  if (typeof tableNameOrEntity === 'string') {
-    const tableName = tableNameOrEntity;
-    const entityName = valueFromDynamo(dynamoItem.dynamodeEntity);
-
-    if (typeof entityName !== 'string') {
-      throw new DefaultError();
-    }
-
-    entityConstructor = Dynamode.storage.getEntityMetadata(tableName, entityName).entityConstructor as E;
-
-    if (!entityConstructor) {
-      throw new DefaultError();
-    }
-  } else {
-    entityConstructor = tableNameOrEntity;
-  }
-
+export function convertAttributeValuesToEntity<E extends typeof Entity>(entity: E, dynamoItem: AttributeValues): InstanceType<E> {
   const object = fromDynamo(dynamoItem);
-  const attributes = Dynamode.storage.getEntityAttributes(entityConstructor.tableName, entityConstructor.name);
-  const { createdAt, updatedAt } = Dynamode.storage.getTableMetadata(entityConstructor.tableName);
+  const attributes = Dynamode.storage.getEntityAttributes(entity.tableName, entity.name);
+  const { createdAt, updatedAt } = Dynamode.storage.getTableMetadata(entity.tableName);
 
   if (createdAt) {
     object[createdAt] = new Date(object[createdAt] as string | number);
@@ -194,10 +182,10 @@ export function convertAttributeValuesToEntity<E extends typeof Entity>(tableNam
       value = new Map(Object.entries(value));
     }
 
-    object[propertyName] = truncateValue(entityConstructor, propertyName as EntityKey<E>, value);
+    object[propertyName] = truncateValue(entity, propertyName as EntityKey<E>, value);
   });
 
-  return new entityConstructor(object) as InstanceType<E>;
+  return new entity(object) as InstanceType<E>;
 }
 
 export function convertEntityToAttributeValues<E extends typeof Entity>(entity: E, item: InstanceType<E>): AttributeValues {

@@ -2,15 +2,32 @@ import { ConditionCheck, Delete, Put, TransactWriteItemsCommandInput, Update } f
 import { Entity } from '@lib/entity';
 import type { ReturnOption } from '@lib/entity/types';
 
-export type WriteTransaction<E extends typeof Entity> = { Update?: Update; Put?: Put; Delete?: Delete; ConditionCheck?: ConditionCheck } & E;
+export type TransactionUpdate<E extends typeof Entity> = {
+  entity: E;
+  update: Update;
+};
+export type TransactionPut<E extends typeof Entity> = { entity: E; put: Put };
+export type TransactionWriteDelete<E extends typeof Entity> = {
+  entity: E;
+  delete: Delete;
+};
+export type TransactionCondition<E extends typeof Entity> = {
+  entity: E;
+  condition: ConditionCheck;
+};
+export type TransactionWrite<E extends typeof Entity> = TransactionUpdate<E> | TransactionPut<E> | TransactionWriteDelete<E> | TransactionCondition<E>;
+
+export type TransactionWriteInput<TW extends Array<TransactionWrite<typeof Entity>>> = { readonly [K in keyof TW]: TW[K] };
 
 export interface TransactionWriteOptions {
-  extraInput?: Partial<TransactWriteItemsCommandInput>;
   return?: ReturnOption;
+  extraInput?: Partial<TransactWriteItemsCommandInput>;
   idempotencyKey?: string;
 }
 
-export interface TransactionWriteOutput<E extends typeof Entity> {
-  items: Array<InstanceType<E>>;
+export interface TransactionWriteOutput<TW extends Array<TransactionWrite<typeof Entity>>> {
+  items: {
+    [K in keyof TW]: TW[K] extends TransactionPut<infer E> ? InstanceType<E> : undefined;
+  };
   count: number;
 }

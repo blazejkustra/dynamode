@@ -4,7 +4,7 @@ import { KeyValue, KeyValueRegistry } from '../model';
 async function transaction() {
   const transactions = await transactionWrite(
     [
-      KeyValueRegistry.transactionUpdate(
+      KeyValueRegistry.transaction.update(
         { key: 'key1' },
         {
           set: {
@@ -13,20 +13,20 @@ async function transaction() {
           increment: {},
         },
       ),
-      KeyValueRegistry.transactionPut(
+      KeyValueRegistry.transaction.put(
         new KeyValue({
           key: 'key2',
           value: { test: '' },
         }),
       ),
-      KeyValueRegistry.transactionCreate(
+      KeyValueRegistry.transaction.create(
         new KeyValue({
           key: 'key3',
           value: { test: '' },
         }),
       ),
-      KeyValueRegistry.transactionDelete({ key: 'key4' }),
-      KeyValueRegistry.transactionCondition({ key: 'key5' }, KeyValueRegistry.condition().attribute('key').eq('key5')),
+      KeyValueRegistry.transaction.delete({ key: 'key4' }),
+      KeyValueRegistry.transaction.condition({ key: 'key5' }, KeyValueRegistry.condition().attribute('key').eq('key5')),
     ],
     { return: 'default' },
   );

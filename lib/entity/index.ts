@@ -47,8 +47,8 @@ import {
 } from '@lib/entity/types';
 import Query from '@lib/query';
 import Scan from '@lib/scan';
-import { GetTransaction } from '@lib/transactionGet/types';
-import { WriteTransaction } from '@lib/transactionWrite/types';
+import { TransactionGet } from '@lib/transactionGet/types';
+import { TransactionCondition, TransactionPut, TransactionUpdate, TransactionWriteDelete } from '@lib/transactionWrite/types';
 import { AttributeValues, ExpressionBuilder, fromDynamo, NotFoundError } from '@lib/utils';
 
 export class Entity {
@@ -99,12 +99,12 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     return (async () => {
       const result = await Dynamode.ddb.get().getItem(commandInput);
 
-      if (!result.Item) {
-        throw new NotFoundError();
-      }
-
       if (options?.return === 'output') {
         return result;
+      }
+
+      if (!result.Item) {
+        throw new NotFoundError();
       }
 
       return convertAttributeValuesToEntity(entity, result.Item);
@@ -261,7 +261,10 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
       const items = result.Responses?.[tableName] || [];
       const unprocessedKeys = result.UnprocessedKeys?.[tableName]?.Keys?.map((key) => fromDynamo(key) as EntityPrimaryKey<EM, E>) || [];
 
-      return { items: items.map((item) => convertAttributeValuesToEntity(entity, item)), unprocessedKeys };
+      return {
+        items: items.map((item) => convertAttributeValuesToEntity(entity, item)),
+        unprocessedKeys,
+      };
     })();
   }
 
@@ -299,7 +302,10 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
           ?.filter((item): item is AttributeValues => !!item)
           ?.map((item) => convertAttributeValuesToEntity(entity, item)) || [];
 
-      return { items: dynamoItems.map((dynamoItem) => convertAttributeValuesToEntity(entity, dynamoItem)), unprocessedItems };
+      return {
+        items: dynamoItems.map((dynamoItem) => convertAttributeValuesToEntity(entity, dynamoItem)),
+        unprocessedItems,
+      };
     })();
   }
 
@@ -340,12 +346,12 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     })();
   }
 
-  function transactionGet(primaryKey: EntityPrimaryKey<EM, E>, options?: EntityTransactionGetOptions<EntityKey<E>>): GetTransaction<E> {
+  function transactionGet(primaryKey: EntityPrimaryKey<EM, E>, options?: EntityTransactionGetOptions<EntityKey<E>>): TransactionGet<E> {
     const { projectionExpression, attributeNames } = buildGetProjectionExpression(entity, options?.attributes);
 
-    const commandInput: GetTransaction<E> = {
-      ...entity,
-      Get: {
+    const commandInput: TransactionGet<E> = {
+      entity,
+      get: {
         TableName: tableName,
         Key: convertPrimaryKeyToAttributeValues(entity, primaryKey),
         ProjectionExpression: projectionExpression,
@@ -357,12 +363,12 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     return commandInput;
   }
 
-  function transactionUpdate(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>, options?: EntityTransactionUpdateOptions<E>): WriteTransaction<E> {
+  function transactionUpdate(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>, options?: EntityTransactionUpdateOptions<E>): TransactionUpdate<E> {
     const { updateExpression, conditionExpression, attributeNames, attributeValues } = buildUpdateConditionExpression(props, options?.condition);
 
-    const commandInput: WriteTransaction<E> = {
-      ...entity,
-      Update: {
+    const commandInput: TransactionUpdate<E> = {
+      entity,
+      update: {
         TableName: tableName,
         Key: convertPrimaryKeyToAttributeValues(entity, primaryKey),
         ReturnValuesOnConditionCheckFailure: mapReturnValuesLimited(options?.returnValuesOnFailure),
@@ -377,15 +383,15 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     return commandInput;
   }
 
-  function transactionPut(item: InstanceType<E>, options?: EntityTransactionPutOptions<E>): WriteTransaction<E> {
+  function transactionPut(item: InstanceType<E>, options?: EntityTransactionPutOptions<E>): TransactionPut<E> {
     const overwrite = options?.overwrite ?? true;
     const partitionKey = Dynamode.storage.getTableMetadata(tableName).partitionKey as EntityKey<E>;
     const overwriteCondition = overwrite ? undefined : condition().attribute(partitionKey).not().exists();
     const { conditionExpression, attributeNames, attributeValues } = buildPutConditionExpression(overwriteCondition, options?.condition);
 
-    const commandInput: WriteTransaction<E> = {
-      ...entity,
-      Put: {
+    const commandInput: TransactionPut<E> = {
+      entity,
+      put: {
         TableName: tableName,
         Item: convertEntityToAttributeValues(entity, item),
         ReturnValuesOnConditionCheckFailure: mapReturnValuesLimited(options?.returnValuesOnFailure),
@@ -399,17 +405,17 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     return commandInput;
   }
 
-  function transactionCreate(item: InstanceType<E>, options?: EntityTransactionPutOptions<E>): WriteTransaction<E> {
+  function transactionCreate(item: InstanceType<E>, options?: EntityTransactionPutOptions<E>): TransactionPut<E> {
     const overwrite = options?.overwrite ?? false;
     return transactionPut(item, { ...options, overwrite });
   }
 
-  function transactionDelete(primaryKey: EntityPrimaryKey<EM, E>, options?: EntityTransactionDeleteOptions<E>): WriteTransaction<E> {
+  function transactionDelete(primaryKey: EntityPrimaryKey<EM, E>, options?: EntityTransactionDeleteOptions<E>): TransactionWriteDelete<E> {
     const { conditionExpression, attributeNames, attributeValues } = buildDeleteConditionExpression(options?.condition);
 
-    const commandInput: WriteTransaction<E> = {
-      ...entity,
-      Delete: {
+    const commandInput: TransactionWriteDelete<E> = {
+      entity,
+      delete: {
         TableName: tableName,
         Key: convertPrimaryKeyToAttributeValues(entity, primaryKey),
         ConditionExpression: conditionExpression,
@@ -422,13 +428,13 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     return commandInput;
   }
 
-  function transactionCondition(primaryKey: EntityPrimaryKey<EM, E>, conditionInstance: Condition<E>): WriteTransaction<E> {
+  function transactionCondition(primaryKey: EntityPrimaryKey<EM, E>, conditionInstance: Condition<E>): TransactionCondition<E> {
     const expressionBuilder = new ExpressionBuilder();
     const conditionExpression = expressionBuilder.run(conditionInstance['operators']);
 
-    const commandInput: WriteTransaction<E> = {
-      ...entity,
-      ConditionCheck: {
+    const commandInput: TransactionCondition<E> = {
+      entity,
+      condition: {
         TableName: tableName,
         Key: convertPrimaryKeyToAttributeValues(entity, primaryKey),
         ConditionExpression: conditionExpression,
@@ -455,12 +461,14 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     batchPut,
     batchDelete,
 
-    transactionGet,
-    transactionUpdate,
-    transactionPut,
-    transactionCreate,
-    transactionDelete,
-    transactionCondition,
+    transaction: {
+      get: transactionGet,
+      update: transactionUpdate,
+      put: transactionPut,
+      create: transactionCreate,
+      delete: transactionDelete,
+      condition: transactionCondition,
+    },
   };
 }
 
