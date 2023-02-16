@@ -44,7 +44,12 @@ export default class DynamodeStorage {
     entityMetadata.entityConstructor = entityMetadata.entityConstructor || value;
   }
 
-  public addEntityAttributeMetadata(tableName: string, entityName: string, propertyName: string, value: AttributeMetadata<AttributeType>) {
+  public addEntityAttributeMetadata(
+    tableName: string,
+    entityName: string,
+    propertyName: string,
+    value: AttributeMetadata<AttributeType>,
+  ) {
     const attributeMetadata = this.getEntityAttributeMetadata(tableName, entityName, propertyName);
     if (value.propertyName) attributeMetadata.propertyName = value.propertyName;
     if (value.type) attributeMetadata.type = value.type;

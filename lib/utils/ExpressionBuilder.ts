@@ -1,4 +1,13 @@
-import { AttributeNames, AttributeValues, DefaultError, isNotEmpty, Operators, RESERVED_WORDS, splitListPathReference, valueToDynamo } from '@lib/utils';
+import {
+  AttributeNames,
+  AttributeValues,
+  DefaultError,
+  isNotEmpty,
+  Operators,
+  RESERVED_WORDS,
+  splitListPathReference,
+  valueToDynamo,
+} from '@lib/utils';
 
 interface ExpressionBuilderProps {
   attributeNames?: AttributeNames;

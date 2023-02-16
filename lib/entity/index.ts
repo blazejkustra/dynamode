@@ -48,7 +48,12 @@ import {
 import Query from '@lib/query';
 import Scan from '@lib/scan';
 import { TransactionGet } from '@lib/transactionGet/types';
-import { TransactionCondition, TransactionPut, TransactionUpdate, TransactionWriteDelete } from '@lib/transactionWrite/types';
+import {
+  TransactionCondition,
+  TransactionPut,
+  TransactionUpdate,
+  TransactionWriteDelete,
+} from '@lib/transactionWrite/types';
 import { AttributeValues, ExpressionBuilder, fromDynamo, NotFoundError } from '@lib/utils';
 
 export class Entity {
@@ -60,8 +65,15 @@ export class Entity {
   constructor(...args: unknown[]) {}
 }
 
-export function register<EM extends EntityMetadata = EntityMetadata, E extends typeof Entity = typeof Entity>(entity: E, tableName: string) {
-  Dynamode.storage.addEntityAttributeMetadata(tableName, 'Entity', 'dynamodeEntity', { propertyName: 'dynamodeEntity', type: String, role: 'dynamodeEntity' });
+export function register<EM extends EntityMetadata = EntityMetadata, E extends typeof Entity = typeof Entity>(
+  entity: E,
+  tableName: string,
+) {
+  Dynamode.storage.addEntityAttributeMetadata(tableName, 'Entity', 'dynamodeEntity', {
+    propertyName: 'dynamodeEntity',
+    type: String,
+    role: 'dynamodeEntity',
+  });
   entity.prototype.dynamodeEntity = entity.name;
 
   function condition(): Condition<E> {
@@ -77,10 +89,22 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
   }
 
   function get(primaryKey: EntityPrimaryKey<EM, E>): Promise<InstanceType<E>>;
-  function get(primaryKey: EntityPrimaryKey<EM, E>, options: EntityGetOptions<E> & { return: 'default' }): Promise<InstanceType<E>>;
-  function get(primaryKey: EntityPrimaryKey<EM, E>, options: EntityGetOptions<E> & { return: 'output' }): Promise<GetItemCommandOutput>;
-  function get(primaryKey: EntityPrimaryKey<EM, E>, options: EntityGetOptions<E> & { return: 'input' }): GetItemCommandInput;
-  function get(primaryKey: EntityPrimaryKey<EM, E>, options?: EntityGetOptions<E>): Promise<InstanceType<E> | GetItemCommandOutput> | GetItemCommandInput {
+  function get(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    options: EntityGetOptions<E> & { return: 'default' },
+  ): Promise<InstanceType<E>>;
+  function get(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    options: EntityGetOptions<E> & { return: 'output' },
+  ): Promise<GetItemCommandOutput>;
+  function get(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    options: EntityGetOptions<E> & { return: 'input' },
+  ): GetItemCommandInput;
+  function get(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    options?: EntityGetOptions<E>,
+  ): Promise<InstanceType<E> | GetItemCommandOutput> | GetItemCommandInput {
     const { projectionExpression, attributeNames } = buildGetProjectionExpression(entity, options?.attributes);
 
     const commandInput: GetItemCommandInput = {
@@ -112,11 +136,30 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
   }
 
   function update(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>): Promise<InstanceType<E>>;
-  function update(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>, options: EntityUpdateOptions<E> & { return: 'default' }): Promise<InstanceType<E>>;
-  function update(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>, options: EntityUpdateOptions<E> & { return: 'output' }): Promise<UpdateItemCommandOutput>;
-  function update(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>, options: EntityUpdateOptions<E> & { return: 'input' }): UpdateItemCommandInput;
-  function update(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>, options?: EntityUpdateOptions<E>): Promise<InstanceType<E> | UpdateItemCommandOutput> | UpdateItemCommandInput {
-    const { updateExpression, conditionExpression, attributeNames, attributeValues } = buildUpdateConditionExpression(props, options?.condition);
+  function update(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    props: UpdateProps<E>,
+    options: EntityUpdateOptions<E> & { return: 'default' },
+  ): Promise<InstanceType<E>>;
+  function update(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    props: UpdateProps<E>,
+    options: EntityUpdateOptions<E> & { return: 'output' },
+  ): Promise<UpdateItemCommandOutput>;
+  function update(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    props: UpdateProps<E>,
+    options: EntityUpdateOptions<E> & { return: 'input' },
+  ): UpdateItemCommandInput;
+  function update(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    props: UpdateProps<E>,
+    options?: EntityUpdateOptions<E>,
+  ): Promise<InstanceType<E> | UpdateItemCommandOutput> | UpdateItemCommandInput {
+    const { updateExpression, conditionExpression, attributeNames, attributeValues } = buildUpdateConditionExpression(
+      props,
+      options?.condition,
+    );
 
     const commandInput: UpdateItemCommandInput = {
       TableName: tableName,
@@ -146,9 +189,15 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
 
   function put(item: InstanceType<E>): Promise<InstanceType<E>>;
   function put(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'default' }): Promise<InstanceType<E>>;
-  function put(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'output' }): Promise<PutItemCommandOutput>;
+  function put(
+    item: InstanceType<E>,
+    options: EntityPutOptions<E> & { return: 'output' },
+  ): Promise<PutItemCommandOutput>;
   function put(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'input' }): PutItemCommandInput;
-  function put(item: InstanceType<E>, options?: EntityPutOptions<E>): Promise<InstanceType<E> | PutItemCommandOutput> | PutItemCommandInput {
+  function put(
+    item: InstanceType<E>,
+    options?: EntityPutOptions<E>,
+  ): Promise<InstanceType<E> | PutItemCommandOutput> | PutItemCommandInput {
     const overwrite = options?.overwrite ?? true;
     const partitionKey = Dynamode.storage.getTableMetadata(tableName).partitionKey;
     const overwriteCondition = overwrite
@@ -158,7 +207,10 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
           .not()
           .exists();
     const dynamoItem = convertEntityToAttributeValues(entity, item);
-    const { conditionExpression, attributeNames, attributeValues } = buildPutConditionExpression(overwriteCondition, options?.condition);
+    const { conditionExpression, attributeNames, attributeValues } = buildPutConditionExpression(
+      overwriteCondition,
+      options?.condition,
+    );
 
     const commandInput: PutItemCommandInput = {
       TableName: tableName,
@@ -185,23 +237,47 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
   }
 
   function create(item: InstanceType<E>): Promise<InstanceType<E>>;
-  function create(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'default' }): Promise<InstanceType<E>>;
-  function create(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'output' }): Promise<PutItemCommandOutput>;
+  function create(
+    item: InstanceType<E>,
+    options: EntityPutOptions<E> & { return: 'default' },
+  ): Promise<InstanceType<E>>;
+  function create(
+    item: InstanceType<E>,
+    options: EntityPutOptions<E> & { return: 'output' },
+  ): Promise<PutItemCommandOutput>;
   function create(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'input' }): PutItemCommandInput;
-  function create(item: InstanceType<E>, options?: EntityPutOptions<E>): Promise<InstanceType<E> | PutItemCommandOutput> | PutItemCommandInput {
+  function create(
+    item: InstanceType<E>,
+    options?: EntityPutOptions<E>,
+  ): Promise<InstanceType<E> | PutItemCommandOutput> | PutItemCommandInput {
     const overwrite = options?.overwrite ?? false;
     return put(item, { ...options, overwrite } as any);
   }
 
   function _delete(primaryKey: EntityPrimaryKey<EM, E>): Promise<InstanceType<E> | null>;
-  function _delete(primaryKey: EntityPrimaryKey<EM, E>, options: EntityDeleteOptions<E> & { return: 'default' }): Promise<InstanceType<E> | null>;
-  function _delete(primaryKey: EntityPrimaryKey<EM, E>, options: EntityDeleteOptions<E> & { return: 'output' }): Promise<DeleteItemCommandOutput>;
-  function _delete(primaryKey: EntityPrimaryKey<EM, E>, options: EntityDeleteOptions<E> & { return: 'input' }): DeleteItemCommandInput;
-  function _delete(primaryKey: EntityPrimaryKey<EM, E>, options?: EntityDeleteOptions<E>): Promise<InstanceType<E> | null | DeleteItemCommandOutput> | DeleteItemCommandInput {
+  function _delete(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    options: EntityDeleteOptions<E> & { return: 'default' },
+  ): Promise<InstanceType<E> | null>;
+  function _delete(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    options: EntityDeleteOptions<E> & { return: 'output' },
+  ): Promise<DeleteItemCommandOutput>;
+  function _delete(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    options: EntityDeleteOptions<E> & { return: 'input' },
+  ): DeleteItemCommandInput;
+  function _delete(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    options?: EntityDeleteOptions<E>,
+  ): Promise<InstanceType<E> | null | DeleteItemCommandOutput> | DeleteItemCommandInput {
     const throwErrorIfNotExists = options?.throwErrorIfNotExists ?? false;
     const partitionKey = Dynamode.storage.getTableMetadata(tableName).partitionKey as EntityKey<E>;
     const notExistsCondition = throwErrorIfNotExists ? condition().attribute(partitionKey).exists() : undefined;
-    const { conditionExpression, attributeNames, attributeValues } = buildDeleteConditionExpression(notExistsCondition, options?.condition);
+    const { conditionExpression, attributeNames, attributeValues } = buildDeleteConditionExpression(
+      notExistsCondition,
+      options?.condition,
+    );
 
     const commandInput: DeleteItemCommandInput = {
       TableName: tableName,
@@ -229,10 +305,22 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
   }
 
   function batchGet(primaryKeys: Array<EntityPrimaryKey<EM, E>>): Promise<EntityBatchGetOutput<EM, E>>;
-  function batchGet(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options: EntityBatchGetOptions<E> & { return: 'default' }): Promise<EntityBatchGetOutput<EM, E>>;
-  function batchGet(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options: EntityBatchGetOptions<E> & { return: 'output' }): Promise<BatchGetItemCommandOutput>;
-  function batchGet(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options: EntityBatchGetOptions<E> & { return: 'input' }): BatchGetItemCommandInput;
-  function batchGet(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options?: EntityBatchGetOptions<E>): Promise<EntityBatchGetOutput<EM, E> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
+  function batchGet(
+    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    options: EntityBatchGetOptions<E> & { return: 'default' },
+  ): Promise<EntityBatchGetOutput<EM, E>>;
+  function batchGet(
+    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    options: EntityBatchGetOptions<E> & { return: 'output' },
+  ): Promise<BatchGetItemCommandOutput>;
+  function batchGet(
+    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    options: EntityBatchGetOptions<E> & { return: 'input' },
+  ): BatchGetItemCommandInput;
+  function batchGet(
+    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    options?: EntityBatchGetOptions<E>,
+  ): Promise<EntityBatchGetOutput<EM, E> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
     const { projectionExpression, attributeNames } = buildGetProjectionExpression(entity, options?.attributes);
 
     const commandInput: BatchGetItemCommandInput = {
@@ -259,7 +347,8 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
       }
 
       const items = result.Responses?.[tableName] || [];
-      const unprocessedKeys = result.UnprocessedKeys?.[tableName]?.Keys?.map((key) => fromDynamo(key) as EntityPrimaryKey<EM, E>) || [];
+      const unprocessedKeys =
+        result.UnprocessedKeys?.[tableName]?.Keys?.map((key) => fromDynamo(key) as EntityPrimaryKey<EM, E>) || [];
 
       return {
         items: items.map((item) => convertAttributeValuesToEntity(entity, item)),
@@ -269,10 +358,22 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
   }
 
   function batchPut(items: Array<InstanceType<E>>): Promise<EntityBatchPutOutput<E>>;
-  function batchPut(items: Array<InstanceType<E>>, options: EntityBatchPutOptions & { return: 'default' }): Promise<EntityBatchPutOutput<E>>;
-  function batchPut(items: Array<InstanceType<E>>, options: EntityBatchPutOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
-  function batchPut(items: Array<InstanceType<E>>, options: EntityBatchPutOptions & { return: 'input' }): BatchWriteItemCommandInput;
-  function batchPut(items: Array<InstanceType<E>>, options?: EntityBatchPutOptions): Promise<EntityBatchPutOutput<E> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
+  function batchPut(
+    items: Array<InstanceType<E>>,
+    options: EntityBatchPutOptions & { return: 'default' },
+  ): Promise<EntityBatchPutOutput<E>>;
+  function batchPut(
+    items: Array<InstanceType<E>>,
+    options: EntityBatchPutOptions & { return: 'output' },
+  ): Promise<BatchWriteItemCommandOutput>;
+  function batchPut(
+    items: Array<InstanceType<E>>,
+    options: EntityBatchPutOptions & { return: 'input' },
+  ): BatchWriteItemCommandInput;
+  function batchPut(
+    items: Array<InstanceType<E>>,
+    options?: EntityBatchPutOptions,
+  ): Promise<EntityBatchPutOutput<E> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
     const dynamoItems = items.map((item) => convertEntityToAttributeValues(entity, item));
     const commandInput: BatchWriteItemCommandInput = {
       RequestItems: {
@@ -309,11 +410,27 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     })();
   }
 
-  function batchDelete(primaryKeys: Array<EntityPrimaryKey<EM, E>>): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<EM, E>>>;
-  function batchDelete(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options: EntityBatchDeleteOptions & { return: 'default' }): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<EM, E>>>;
-  function batchDelete(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options: EntityBatchDeleteOptions & { return: 'output' }): Promise<BatchWriteItemCommandOutput>;
-  function batchDelete(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options: EntityBatchDeleteOptions & { return: 'input' }): BatchWriteItemCommandInput;
-  function batchDelete(primaryKeys: Array<EntityPrimaryKey<EM, E>>, options?: EntityBatchDeleteOptions): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<EM, E>> | BatchWriteItemCommandOutput> | BatchWriteItemCommandInput {
+  function batchDelete(
+    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+  ): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<EM, E>>>;
+  function batchDelete(
+    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    options: EntityBatchDeleteOptions & { return: 'default' },
+  ): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<EM, E>>>;
+  function batchDelete(
+    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    options: EntityBatchDeleteOptions & { return: 'output' },
+  ): Promise<BatchWriteItemCommandOutput>;
+  function batchDelete(
+    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    options: EntityBatchDeleteOptions & { return: 'input' },
+  ): BatchWriteItemCommandInput;
+  function batchDelete(
+    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    options?: EntityBatchDeleteOptions,
+  ):
+    | Promise<EntityBatchDeleteOutput<EntityPrimaryKey<EM, E>> | BatchWriteItemCommandOutput>
+    | BatchWriteItemCommandInput {
     const commandInput: BatchWriteItemCommandInput = {
       RequestItems: {
         [tableName]: primaryKeys.map((primaryKey) => ({
@@ -346,7 +463,10 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     })();
   }
 
-  function transactionGet(primaryKey: EntityPrimaryKey<EM, E>, options?: EntityTransactionGetOptions<EntityKey<E>>): TransactionGet<E> {
+  function transactionGet(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    options?: EntityTransactionGetOptions<EntityKey<E>>,
+  ): TransactionGet<E> {
     const { projectionExpression, attributeNames } = buildGetProjectionExpression(entity, options?.attributes);
 
     const commandInput: TransactionGet<E> = {
@@ -363,8 +483,15 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     return commandInput;
   }
 
-  function transactionUpdate(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>, options?: EntityTransactionUpdateOptions<E>): TransactionUpdate<E> {
-    const { updateExpression, conditionExpression, attributeNames, attributeValues } = buildUpdateConditionExpression(props, options?.condition);
+  function transactionUpdate(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    props: UpdateProps<E>,
+    options?: EntityTransactionUpdateOptions<E>,
+  ): TransactionUpdate<E> {
+    const { updateExpression, conditionExpression, attributeNames, attributeValues } = buildUpdateConditionExpression(
+      props,
+      options?.condition,
+    );
 
     const commandInput: TransactionUpdate<E> = {
       entity,
@@ -387,7 +514,10 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     const overwrite = options?.overwrite ?? true;
     const partitionKey = Dynamode.storage.getTableMetadata(tableName).partitionKey as EntityKey<E>;
     const overwriteCondition = overwrite ? undefined : condition().attribute(partitionKey).not().exists();
-    const { conditionExpression, attributeNames, attributeValues } = buildPutConditionExpression(overwriteCondition, options?.condition);
+    const { conditionExpression, attributeNames, attributeValues } = buildPutConditionExpression(
+      overwriteCondition,
+      options?.condition,
+    );
 
     const commandInput: TransactionPut<E> = {
       entity,
@@ -410,7 +540,10 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     return transactionPut(item, { ...options, overwrite });
   }
 
-  function transactionDelete(primaryKey: EntityPrimaryKey<EM, E>, options?: EntityTransactionDeleteOptions<E>): TransactionWriteDelete<E> {
+  function transactionDelete(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    options?: EntityTransactionDeleteOptions<E>,
+  ): TransactionWriteDelete<E> {
     const { conditionExpression, attributeNames, attributeValues } = buildDeleteConditionExpression(options?.condition);
 
     const commandInput: TransactionWriteDelete<E> = {
@@ -428,7 +561,10 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     return commandInput;
   }
 
-  function transactionCondition(primaryKey: EntityPrimaryKey<EM, E>, conditionInstance: Condition<E>): TransactionCondition<E> {
+  function transactionCondition(
+    primaryKey: EntityPrimaryKey<EM, E>,
+    conditionInstance: Condition<E>,
+  ): TransactionCondition<E> {
     const expressionBuilder = new ExpressionBuilder();
     const conditionExpression = expressionBuilder.run(conditionInstance['operators']);
 

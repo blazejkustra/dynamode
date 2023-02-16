@@ -14,7 +14,11 @@ type EmptyEntry<T> = { key: ''; value: T };
 type ExcludedTypes = Date | Set<unknown> | Map<unknown, unknown>;
 
 // Transforms entries to one flattened type
-type CollapseEntries<T extends Entry> = { [E in T as E['key']]: E['value'] } extends infer V ? { [K in keyof V]: V[K] } : never;
+type CollapseEntries<T extends Entry> = {
+  [E in T as E['key']]: E['value'];
+} extends infer V
+  ? { [K in keyof V]: V[K] }
+  : never;
 
 // Transforms array type to object
 type CreateArrayEntry<T, I> = OmitItself<T extends Array<unknown> ? { [k: `__${bigint}__`]: T[number] } : T, I>;
@@ -36,7 +40,11 @@ type CreateObjectEntries<T, I> = T extends infer U
             ? E extends Entry
               ?
                   | {
-                      key: E['key'] extends '' ? K : E['key'] extends `__${bigint}__` ? `${K}[${bigint}]` : `${K}.${E['key']}`;
+                      key: E['key'] extends ''
+                        ? K
+                        : E['key'] extends `__${bigint}__`
+                        ? `${K}[${bigint}]`
+                        : `${K}.${E['key']}`;
                       value: E['value'];
                     }
                   | {

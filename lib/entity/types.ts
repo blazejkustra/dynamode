@@ -1,6 +1,18 @@
 import { RequireAtLeastOne, ValueOf } from 'type-fest';
 
-import { BatchGetItemCommandInput, BatchWriteItemCommandInput, ConditionCheck, Delete, DeleteItemCommandInput, Get, GetItemCommandInput, Put, PutItemCommandInput, Update, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
+import {
+  BatchGetItemCommandInput,
+  BatchWriteItemCommandInput,
+  ConditionCheck,
+  Delete,
+  DeleteItemCommandInput,
+  Get,
+  GetItemCommandInput,
+  Put,
+  PutItemCommandInput,
+  Update,
+  UpdateItemCommandInput,
+} from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import { Entity } from '@lib/entity';
 import { AttributeNames, AttributeValues, FlattenObject } from '@lib/utils';
@@ -31,7 +43,10 @@ type Indexes<EM extends EntityMetadata> = EM['indexes'];
 
 // Entity types
 
-export type EntityPrimaryKey<EM extends EntityMetadata, E extends typeof Entity> = Pick<InstanceType<E>, Extract<keyof InstanceType<E>, SortKey<EM> extends string ? PartitionKey<EM> | SortKey<EM> : PartitionKey<EM>>>;
+export type EntityPrimaryKey<EM extends EntityMetadata, E extends typeof Entity> = Pick<
+  InstanceType<E>,
+  Extract<keyof InstanceType<E>, SortKey<EM> extends string ? PartitionKey<EM> | SortKey<EM> : PartitionKey<EM>>
+>;
 
 export type EntityProperties<E extends typeof Entity> = Partial<FlattenObject<InstanceType<E>>>;
 export type EntityKey<E extends typeof Entity> = keyof EntityProperties<E>;
@@ -40,8 +55,22 @@ export type EntityValue<E extends typeof Entity, K extends EntityKey<E>> = Flatt
 export type EntityIndexNames<EM extends EntityMetadata> = keyof Indexes<EM>;
 export type EntityPartitionKeys<EM extends EntityMetadata> =
   | PartitionKey<EM>
-  | ValueOf<{ [K in keyof Indexes<EM>]: Indexes<EM> extends EntityIndexesMetadata ? (Indexes<EM>[K]['partitionKey'] extends string ? Indexes<EM>[K]['partitionKey'] : never) : never }>;
-export type EntitySortKeys<EM extends EntityMetadata> = SortKey<EM> | ValueOf<{ [K in keyof Indexes<EM>]: Indexes<EM> extends EntityIndexesMetadata ? (Indexes<EM>[K]['sortKey'] extends string ? Indexes<EM>[K]['sortKey'] : never) : never }>;
+  | ValueOf<{
+      [K in keyof Indexes<EM>]: Indexes<EM> extends EntityIndexesMetadata
+        ? Indexes<EM>[K]['partitionKey'] extends string
+          ? Indexes<EM>[K]['partitionKey']
+          : never
+        : never;
+    }>;
+export type EntitySortKeys<EM extends EntityMetadata> =
+  | SortKey<EM>
+  | ValueOf<{
+      [K in keyof Indexes<EM>]: Indexes<EM> extends EntityIndexesMetadata
+        ? Indexes<EM>[K]['sortKey'] extends string
+          ? Indexes<EM>[K]['sortKey']
+          : never
+        : never;
+    }>;
 
 // Entity.get
 
@@ -165,7 +194,9 @@ export interface EntityBatchDeleteOptions {
   return?: ReturnOption;
 }
 
-export type EntityTransactionInput<E, Command extends Get | Update | Put | Delete | ConditionCheck> = Command & { entity: E };
+export type EntityTransactionInput<E, Command extends Get | Update | Put | Delete | ConditionCheck> = Command & {
+  entity: E;
+};
 
 // Entity.transactionGet
 

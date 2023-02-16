@@ -25,7 +25,8 @@ export default class Condition<E extends typeof Entity> {
       gt: (value: EntityValue<E, K>): C => this.gt(this.operators, key, value),
       ge: (value: EntityValue<E, K>): C => this.ge(this.operators, key, value),
       beginsWith: (value: EntityValue<E, K>): C => this.beginsWith(this.operators, key, value),
-      between: (value1: EntityValue<E, K>, value2: EntityValue<E, K>): C => this.between(this.operators, key, value1, value2),
+      between: (value1: EntityValue<E, K>, value2: EntityValue<E, K>): C =>
+        this.between(this.operators, key, value1, value2),
       contains: (value: EntityValue<E, K>): C => {
         const processedValue = value;
 
@@ -37,7 +38,9 @@ export default class Condition<E extends typeof Entity> {
         //   processedValue = Array.from(value)[0];
         // }
 
-        this.operators.push(...OPERATORS.contains(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, processedValue)));
+        this.operators.push(
+          ...OPERATORS.contains(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, processedValue)),
+        );
         return this;
       },
       in: (values: Array<EntityValue<E, K>>): C => {
@@ -97,7 +100,9 @@ export default class Condition<E extends typeof Entity> {
           //   processedValue = Array.from(value)[0];
           // }
 
-          this.operators.push(...OPERATORS.notContains(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, processedValue)));
+          this.operators.push(
+            ...OPERATORS.notContains(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, processedValue)),
+          );
 
           return this;
         },
@@ -179,8 +184,19 @@ export default class Condition<E extends typeof Entity> {
     return this;
   }
 
-  protected between<K extends EntityKey<E>>(operators: Operators, key: K, v1: EntityValue<E, K>, v2: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.between(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, v1), prefixSuffixValue(this.entity, key as EntityKey<E>, v2)));
+  protected between<K extends EntityKey<E>>(
+    operators: Operators,
+    key: K,
+    v1: EntityValue<E, K>,
+    v2: EntityValue<E, K>,
+  ): this {
+    operators.push(
+      ...OPERATORS.between(
+        String(key),
+        prefixSuffixValue(this.entity, key as EntityKey<E>, v1),
+        prefixSuffixValue(this.entity, key as EntityKey<E>, v2),
+      ),
+    );
     return this;
   }
 

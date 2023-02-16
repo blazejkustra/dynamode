@@ -87,7 +87,8 @@ export default class Query<EM extends EntityMetadata, E extends typeof Entity> e
       gt: (value: EntityValue<E, K>): Q => this.gt(this.keyOperators, key, value),
       ge: (value: EntityValue<E, K>): Q => this.ge(this.keyOperators, key, value),
       beginsWith: (value: EntityValue<E, K>): Q => this.beginsWith(this.keyOperators, key, value),
-      between: (value1: EntityValue<E, K>, value2: EntityValue<E, K>): Q => this.between(this.keyOperators, key, value1, value2),
+      between: (value1: EntityValue<E, K>, value2: EntityValue<E, K>): Q =>
+        this.between(this.keyOperators, key, value1, value2),
     };
   }
 
@@ -112,7 +113,10 @@ export default class Query<EM extends EntityMetadata, E extends typeof Entity> e
   }
 
   private buildQueryInput(extraInput?: Partial<QueryInput>): void {
-    const expressionBuilder = new ExpressionBuilder({ attributeNames: this.attributeNames, attributeValues: this.attributeValues });
+    const expressionBuilder = new ExpressionBuilder({
+      attributeNames: this.attributeNames,
+      attributeValues: this.attributeValues,
+    });
     const keyConditionExpression = expressionBuilder.run(this.keyOperators);
     const filterExpression = expressionBuilder.run(this.operators);
 

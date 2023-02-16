@@ -2,8 +2,24 @@ import { Entity } from '@lib/entity';
 
 export type IndexAttributeType = StringConstructor | NumberConstructor;
 export type TimestampAttributeType = StringConstructor | NumberConstructor;
-export type AttributeType = StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor | ArrayConstructor | SetConstructor | MapConstructor;
-export type AttributeRole = 'partitionKey' | 'sortKey' | 'gsiPartitionKey' | 'gsiSortKey' | 'lsiSortKey' | 'createdAt' | 'updatedAt' | 'attribute' | 'dynamodeEntity';
+export type AttributeType =
+  | StringConstructor
+  | NumberConstructor
+  | BooleanConstructor
+  | ObjectConstructor
+  | ArrayConstructor
+  | SetConstructor
+  | MapConstructor;
+export type AttributeRole =
+  | 'partitionKey'
+  | 'sortKey'
+  | 'gsiPartitionKey'
+  | 'gsiSortKey'
+  | 'lsiSortKey'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'attribute'
+  | 'dynamodeEntity';
 
 export type AttributeMetadata<Type> = {
   propertyName?: string;
@@ -48,6 +64,8 @@ export type TablesMetadata = {
     updatedAt?: string;
 
     entities?: EntitiesMetadata;
-    tableAttributes?: { [attributeName: string]: AttributeMetadata<AttributeType> };
+    tableAttributes?: {
+      [attributeName: string]: AttributeMetadata<AttributeType>;
+    };
   };
 };

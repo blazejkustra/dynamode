@@ -42,7 +42,9 @@ export default class Scan<EM extends EntityMetadata, E extends typeof Entity> ex
         items: items.map((item) => convertAttributeValuesToEntity(this.entity, item)),
         count: result.Count || 0,
         scannedCount: result.ScannedCount || 0,
-        lastKey: result.LastEvaluatedKey ? convertAttributeValuesToPrimaryKey(this.entity, result.LastEvaluatedKey) : undefined,
+        lastKey: result.LastEvaluatedKey
+          ? convertAttributeValuesToPrimaryKey(this.entity, result.LastEvaluatedKey)
+          : undefined,
       };
     })();
   }
@@ -63,7 +65,10 @@ export default class Scan<EM extends EntityMetadata, E extends typeof Entity> ex
   }
 
   private buildScanInput(extraInput?: Partial<ScanInput>) {
-    const expressionBuilder = new ExpressionBuilder({ attributeNames: this.attributeNames, attributeValues: this.attributeValues });
+    const expressionBuilder = new ExpressionBuilder({
+      attributeNames: this.attributeNames,
+      attributeValues: this.attributeValues,
+    });
     const conditionExpression = expressionBuilder.run(this.operators);
 
     this.input = {

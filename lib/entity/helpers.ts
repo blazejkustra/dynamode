@@ -1,4 +1,7 @@
-import { ReturnValue as DynamoReturnValue, ReturnValuesOnConditionCheckFailure as DynamoReturnValueOnFailure } from '@aws-sdk/client-dynamodb';
+import {
+  ReturnValue as DynamoReturnValue,
+  ReturnValuesOnConditionCheckFailure as DynamoReturnValueOnFailure,
+} from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import { Dynamode } from '@lib/dynamode';
 import { Entity } from '@lib/entity';
@@ -31,7 +34,11 @@ import {
   UPDATE_OPERATORS,
 } from '@lib/utils';
 
-export function buildProjectionExpression<E extends typeof Entity>(entity: E, attributes: Array<EntityKey<E>>, attributeNames: AttributeNames): string {
+export function buildProjectionExpression<E extends typeof Entity>(
+  entity: E,
+  attributes: Array<EntityKey<E>>,
+  attributeNames: AttributeNames,
+): string {
   if (duplicatesInArray(attributes)) {
     throw new DefaultError();
   }
@@ -40,10 +47,15 @@ export function buildProjectionExpression<E extends typeof Entity>(entity: E, at
   const operators: Operators = uniqueAttributes.map((attribute) => ({
     key: String(attribute),
   }));
-  return new ExpressionBuilder({ attributeNames }).run(insertBetween(operators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]));
+  return new ExpressionBuilder({ attributeNames }).run(
+    insertBetween(operators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]),
+  );
 }
 
-export function buildGetProjectionExpression<E extends typeof Entity>(entity: E, attributes?: Array<EntityKey<E>>): BuildGetProjectionExpression {
+export function buildGetProjectionExpression<E extends typeof Entity>(
+  entity: E,
+  attributes?: Array<EntityKey<E>>,
+): BuildGetProjectionExpression {
   if (!attributes) {
     return {};
   }
@@ -56,7 +68,10 @@ export function buildGetProjectionExpression<E extends typeof Entity>(entity: E,
   };
 }
 
-export function buildUpdateConditionExpression<E extends typeof Entity>(props: UpdateProps<E>, optionsCondition?: Condition<E>): BuildUpdateConditionExpression {
+export function buildUpdateConditionExpression<E extends typeof Entity>(
+  props: UpdateProps<E>,
+  optionsCondition?: Condition<E>,
+): BuildUpdateConditionExpression {
   const expressionsBuilder = new ExpressionBuilder();
   const operators = buildUpdateConditions(props);
 
@@ -82,37 +97,62 @@ export function buildUpdateConditions<E extends typeof Entity>(props: UpdateProp
   ) {
     const setOperators: Operators = [
       ...Object.entries(props.set || {}).flatMap(([key, value]) => UPDATE_OPERATORS.set(key, value)),
-      ...Object.entries(props.setIfNotExists || {}).flatMap(([key, value]) => UPDATE_OPERATORS.setIfNotExists(key, value)),
+      ...Object.entries(props.setIfNotExists || {}).flatMap(([key, value]) =>
+        UPDATE_OPERATORS.setIfNotExists(key, value),
+      ),
       ...Object.entries(props.listAppend || {}).flatMap(([key, value]) => UPDATE_OPERATORS.listAppend(key, value)),
       ...Object.entries(props.increment || {}).flatMap(([key, value]) => UPDATE_OPERATORS.increment(key, value)),
       ...Object.entries(props.decrement || {}).flatMap(([key, value]) => UPDATE_OPERATORS.decrement(key, value)),
     ];
 
-    operators.push(BASE_OPERATOR.set, BASE_OPERATOR.space, ...insertBetween(setOperators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]));
+    operators.push(
+      BASE_OPERATOR.set,
+      BASE_OPERATOR.space,
+      ...insertBetween(setOperators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]),
+    );
   }
 
   if (props.add && isNotEmpty(props.add)) {
-    const addOperators: Operators = Object.entries(props.add).flatMap(([key, value]) => UPDATE_OPERATORS.add(key, value));
+    const addOperators: Operators = Object.entries(props.add).flatMap(([key, value]) =>
+      UPDATE_OPERATORS.add(key, value),
+    );
     if (operators.length) operators.push(BASE_OPERATOR.space);
-    operators.push(BASE_OPERATOR.add, BASE_OPERATOR.space, ...insertBetween(addOperators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]));
+    operators.push(
+      BASE_OPERATOR.add,
+      BASE_OPERATOR.space,
+      ...insertBetween(addOperators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]),
+    );
   }
 
   if (props.delete && isNotEmpty(props.delete)) {
-    const deleteOperators: Operators = Object.entries(props.delete).flatMap(([key, value]) => UPDATE_OPERATORS.delete(key, value));
+    const deleteOperators: Operators = Object.entries(props.delete).flatMap(([key, value]) =>
+      UPDATE_OPERATORS.delete(key, value),
+    );
     if (operators.length) operators.push(BASE_OPERATOR.space);
-    operators.push(BASE_OPERATOR.delete, BASE_OPERATOR.space, ...insertBetween(deleteOperators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]));
+    operators.push(
+      BASE_OPERATOR.delete,
+      BASE_OPERATOR.space,
+      ...insertBetween(deleteOperators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]),
+    );
   }
 
   if (isNotEmptyArray(props.remove)) {
     const removeOperators: Operators = props.remove.flatMap((key) => UPDATE_OPERATORS.remove(String(key)));
     if (operators.length) operators.push(BASE_OPERATOR.space);
-    operators.push(BASE_OPERATOR.remove, BASE_OPERATOR.space, ...insertBetween(removeOperators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]));
+    operators.push(
+      BASE_OPERATOR.remove,
+      BASE_OPERATOR.space,
+      ...insertBetween(removeOperators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]),
+    );
   }
 
   return operators;
 }
 
-export function buildPutConditionExpression<E extends typeof Entity>(overwriteCondition?: Condition<E>, optionsCondition?: Condition<E>): BuildPutConditionExpression {
+export function buildPutConditionExpression<E extends typeof Entity>(
+  overwriteCondition?: Condition<E>,
+  optionsCondition?: Condition<E>,
+): BuildPutConditionExpression {
   const expressionsBuilder = new ExpressionBuilder();
   const conditions = overwriteCondition?.condition(optionsCondition) || optionsCondition?.condition(overwriteCondition);
 
@@ -123,7 +163,10 @@ export function buildPutConditionExpression<E extends typeof Entity>(overwriteCo
   };
 }
 
-export function buildDeleteConditionExpression<E extends typeof Entity>(notExistsCondition?: Condition<E>, optionsCondition?: Condition<E>): BuildDeleteConditionExpression {
+export function buildDeleteConditionExpression<E extends typeof Entity>(
+  notExistsCondition?: Condition<E>,
+  optionsCondition?: Condition<E>,
+): BuildDeleteConditionExpression {
   const expressionsBuilder = new ExpressionBuilder();
   const conditions = notExistsCondition?.condition(optionsCondition) || optionsCondition?.condition(notExistsCondition);
 
@@ -163,7 +206,10 @@ export function mapReturnValuesLimited(returnValues?: ReturnValuesLimited): Dyna
   )[returnValues];
 }
 
-export function convertAttributeValuesToEntity<E extends typeof Entity>(entity: E, dynamoItem: AttributeValues): InstanceType<E> {
+export function convertAttributeValuesToEntity<E extends typeof Entity>(
+  entity: E,
+  dynamoItem: AttributeValues,
+): InstanceType<E> {
   const object = fromDynamo(dynamoItem);
   const attributes = Dynamode.storage.getEntityAttributes(entity.tableName, entity.name);
   const { createdAt, updatedAt } = Dynamode.storage.getTableMetadata(entity.tableName);
@@ -188,7 +234,10 @@ export function convertAttributeValuesToEntity<E extends typeof Entity>(entity: 
   return new entity(object) as InstanceType<E>;
 }
 
-export function convertEntityToAttributeValues<E extends typeof Entity>(entity: E, item: InstanceType<E>): AttributeValues {
+export function convertEntityToAttributeValues<E extends typeof Entity>(
+  entity: E,
+  item: InstanceType<E>,
+): AttributeValues {
   const dynamoObject: GenericObject = {};
   const attributes = Dynamode.storage.getEntityAttributes(entity.tableName, entity.name);
 
@@ -211,7 +260,10 @@ export function convertEntityToAttributeValues<E extends typeof Entity>(entity: 
   return objectToDynamo(dynamoObject);
 }
 
-export function convertAttributeValuesToPrimaryKey<EM extends EntityMetadata, E extends typeof Entity>(entity: E, dynamoItem: AttributeValues): EntityPrimaryKey<EM, E> {
+export function convertAttributeValuesToPrimaryKey<EM extends EntityMetadata, E extends typeof Entity>(
+  entity: E,
+  dynamoItem: AttributeValues,
+): EntityPrimaryKey<EM, E> {
   const object = fromDynamo(dynamoItem);
   const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(entity.tableName);
 
@@ -225,12 +277,19 @@ export function convertAttributeValuesToPrimaryKey<EM extends EntityMetadata, E 
   return object as EntityPrimaryKey<EM, E>;
 }
 
-export function convertPrimaryKeyToAttributeValues<EM extends EntityMetadata, E extends typeof Entity>(entity: E, primaryKey: EntityPrimaryKey<EM, E>): AttributeValues {
+export function convertPrimaryKeyToAttributeValues<EM extends EntityMetadata, E extends typeof Entity>(
+  entity: E,
+  primaryKey: EntityPrimaryKey<EM, E>,
+): AttributeValues {
   const dynamoObject: GenericObject = {};
   const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(entity.tableName);
 
   if (partitionKey) {
-    dynamoObject[partitionKey] = prefixSuffixValue(entity, partitionKey as EntityKey<E>, (<any>primaryKey)[partitionKey]);
+    dynamoObject[partitionKey] = prefixSuffixValue(
+      entity,
+      partitionKey as EntityKey<E>,
+      (<any>primaryKey)[partitionKey],
+    );
   }
   if (sortKey) {
     dynamoObject[sortKey] = prefixSuffixValue(entity, sortKey as EntityKey<E>, (<any>primaryKey)[sortKey]);

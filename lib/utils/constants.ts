@@ -649,25 +649,68 @@ export const BASE_OPERATOR = {
 
 export const OPERATORS = {
   /** parenthesis */
-  parenthesis: (operatorStructure: Operators): Operators => [BASE_OPERATOR.leftParenthesis, ...operatorStructure, BASE_OPERATOR.rightParenthesis],
+  parenthesis: (operatorStructure: Operators): Operators => [
+    BASE_OPERATOR.leftParenthesis,
+    ...operatorStructure,
+    BASE_OPERATOR.rightParenthesis,
+  ],
 
   /** $K = $V */
-  eq: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.eq, BASE_OPERATOR.space, { value, key }],
+  eq: (key: string, value: unknown): Operators => [
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.eq,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
   /** $K <> $V */
-  ne: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.ne, BASE_OPERATOR.space, { value, key }],
+  ne: (key: string, value: unknown): Operators => [
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.ne,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
   /** $K < $V */
-  lt: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.lt, BASE_OPERATOR.space, { value, key }],
+  lt: (key: string, value: unknown): Operators => [
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.lt,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
   /** $K <= $V */
-  le: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.le, BASE_OPERATOR.space, { value, key }],
+  le: (key: string, value: unknown): Operators => [
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.le,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
   /** $K > $V */
-  gt: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.gt, BASE_OPERATOR.space, { value, key }],
+  gt: (key: string, value: unknown): Operators => [
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.gt,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
   /** $K >= $V */
-  ge: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.ge, BASE_OPERATOR.space, { value, key }],
+  ge: (key: string, value: unknown): Operators => [
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.ge,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
 
   /** attribute_exists($K) */
   attributeExists: (key: string): Operators => [BASE_OPERATOR.attributeExists, ...OPERATORS.parenthesis([{ key }])],
   /** contains($K, $V) */
-  contains: (key: string, value: unknown): Operators => [BASE_OPERATOR.contains, ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }])],
+  contains: (key: string, value: unknown): Operators => [
+    BASE_OPERATOR.contains,
+    ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
+  ],
   /** $K IN $V, $V, $V */
   in: (key: string, values: unknown[]): Operators => [
     { key },
@@ -692,16 +735,33 @@ export const OPERATORS = {
     { value: value2, key },
   ],
   /** attribute_type($K, $V) */
-  attributeType: (key: string, value: unknown): Operators => [BASE_OPERATOR.attributeType, ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }])],
+  attributeType: (key: string, value: unknown): Operators => [
+    BASE_OPERATOR.attributeType,
+    ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
+  ],
   /** begins_with($K, $V) */
-  beginsWith: (key: string, value: unknown): Operators => [BASE_OPERATOR.beginsWith, ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }])],
+  beginsWith: (key: string, value: unknown): Operators => [
+    BASE_OPERATOR.beginsWith,
+    ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
+  ],
 
   /** attribute_not_exists($K) */
-  attributeNotExists: (key: string): Operators => [BASE_OPERATOR.attributeNotExists, ...OPERATORS.parenthesis([{ key }])],
+  attributeNotExists: (key: string): Operators => [
+    BASE_OPERATOR.attributeNotExists,
+    ...OPERATORS.parenthesis([{ key }]),
+  ],
   /** NOT contains($K, $V) */
-  notContains: (key: string, value: unknown): Operators => [BASE_OPERATOR.not, BASE_OPERATOR.space, ...OPERATORS.contains(key, value)],
+  notContains: (key: string, value: unknown): Operators => [
+    BASE_OPERATOR.not,
+    BASE_OPERATOR.space,
+    ...OPERATORS.contains(key, value),
+  ],
   /** NOT ($K IN $V, $V, $V) */
-  notIn: (key: string, values: unknown[]): Operators => [BASE_OPERATOR.not, BASE_OPERATOR.space, ...OPERATORS.parenthesis(OPERATORS.in(key, values))],
+  notIn: (key: string, values: unknown[]): Operators => [
+    BASE_OPERATOR.not,
+    BASE_OPERATOR.space,
+    ...OPERATORS.parenthesis(OPERATORS.in(key, values)),
+  ],
   /** NOT $K = $V */
   notEq: (key: string, value: unknown): Operators => OPERATORS.ne(key, value),
   /** NOT $K <> $V */
@@ -716,22 +776,70 @@ export const OPERATORS = {
   notGe: (key: string, value: unknown): Operators => OPERATORS.lt(key, value),
 
   /** size($K) = $V */
-  sizeEq: (key: string, value: unknown): Operators => [BASE_OPERATOR.size, ...OPERATORS.parenthesis([{ key }]), BASE_OPERATOR.space, BASE_OPERATOR.eq, BASE_OPERATOR.space, { value, key }],
+  sizeEq: (key: string, value: unknown): Operators => [
+    BASE_OPERATOR.size,
+    ...OPERATORS.parenthesis([{ key }]),
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.eq,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
   /** size($K) <> $V */
-  sizeNe: (key: string, value: unknown): Operators => [BASE_OPERATOR.size, ...OPERATORS.parenthesis([{ key }]), BASE_OPERATOR.space, BASE_OPERATOR.ne, BASE_OPERATOR.space, { value, key }],
+  sizeNe: (key: string, value: unknown): Operators => [
+    BASE_OPERATOR.size,
+    ...OPERATORS.parenthesis([{ key }]),
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.ne,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
   /** size($K) < $V */
-  sizeLt: (key: string, value: unknown): Operators => [BASE_OPERATOR.size, ...OPERATORS.parenthesis([{ key }]), BASE_OPERATOR.space, BASE_OPERATOR.lt, BASE_OPERATOR.space, { value, key }],
+  sizeLt: (key: string, value: unknown): Operators => [
+    BASE_OPERATOR.size,
+    ...OPERATORS.parenthesis([{ key }]),
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.lt,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
   /** size($K) <= $V */
-  sizeLe: (key: string, value: unknown): Operators => [BASE_OPERATOR.size, ...OPERATORS.parenthesis([{ key }]), BASE_OPERATOR.space, BASE_OPERATOR.le, BASE_OPERATOR.space, { value, key }],
+  sizeLe: (key: string, value: unknown): Operators => [
+    BASE_OPERATOR.size,
+    ...OPERATORS.parenthesis([{ key }]),
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.le,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
   /** size($K) > $V */
-  sizeGt: (key: string, value: unknown): Operators => [BASE_OPERATOR.size, ...OPERATORS.parenthesis([{ key }]), BASE_OPERATOR.space, BASE_OPERATOR.gt, BASE_OPERATOR.space, { value, key }],
+  sizeGt: (key: string, value: unknown): Operators => [
+    BASE_OPERATOR.size,
+    ...OPERATORS.parenthesis([{ key }]),
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.gt,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
   /** size($K) >= $V */
-  sizeGe: (key: string, value: unknown): Operators => [BASE_OPERATOR.size, ...OPERATORS.parenthesis([{ key }]), BASE_OPERATOR.space, BASE_OPERATOR.ge, BASE_OPERATOR.space, { value, key }],
+  sizeGe: (key: string, value: unknown): Operators => [
+    BASE_OPERATOR.size,
+    ...OPERATORS.parenthesis([{ key }]),
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.ge,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
 };
 
 export const UPDATE_OPERATORS = {
   /** $K = $V */
-  set: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.eq, BASE_OPERATOR.space, { value, key }],
+  set: (key: string, value: unknown): Operators => [
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.eq,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
   /** $K = if_not_exists($K, $V) */
   setIfNotExists: (key: string, value: unknown): Operators => [
     { key },
@@ -751,9 +859,29 @@ export const UPDATE_OPERATORS = {
     ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
   ],
   /** $K = $K + $V */
-  increment: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.eq, BASE_OPERATOR.space, { key }, BASE_OPERATOR.space, BASE_OPERATOR.plus, BASE_OPERATOR.space, { value, key }],
+  increment: (key: string, value: unknown): Operators => [
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.eq,
+    BASE_OPERATOR.space,
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.plus,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
   /** $K = $K - $V */
-  decrement: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, BASE_OPERATOR.eq, BASE_OPERATOR.space, { key }, BASE_OPERATOR.space, BASE_OPERATOR.minus, BASE_OPERATOR.space, { value, key }],
+  decrement: (key: string, value: unknown): Operators => [
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.eq,
+    BASE_OPERATOR.space,
+    { key },
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.minus,
+    BASE_OPERATOR.space,
+    { value, key },
+  ],
   /** $K $V */
   add: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, { value, key }],
   /** $K $V */

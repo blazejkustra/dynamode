@@ -5,7 +5,9 @@ import { convertAttributeValuesToEntity } from '@lib/entity/helpers';
 import type { TransactionGetInput, TransactionGetOptions, TransactionGetOutput } from '@lib/transactionGet/types';
 import { NotFoundError } from '@lib/utils';
 
-export default function transactionGet<E extends Array<typeof Entity>>(transactions: TransactionGetInput<[...E]>): Promise<TransactionGetOutput<[...E]>>;
+export default function transactionGet<E extends Array<typeof Entity>>(
+  transactions: TransactionGetInput<[...E]>,
+): Promise<TransactionGetOutput<[...E]>>;
 export default function transactionGet<E extends Array<typeof Entity>>(
   transactions: TransactionGetInput<[...E]>,
   options: TransactionGetOptions & {
@@ -20,12 +22,20 @@ export default function transactionGet<E extends Array<typeof Entity>>(
     throwOnNotFound: false;
   },
 ): Promise<TransactionGetOutput<[...E], undefined>>;
-export default function transactionGet<E extends Array<typeof Entity>>(transactions: TransactionGetInput<[...E]>, options: TransactionGetOptions & { return: 'output' }): Promise<TransactGetItemsOutput>;
-export default function transactionGet<E extends Array<typeof Entity>>(transactions: TransactionGetInput<[...E]>, options: TransactionGetOptions & { return: 'input' }): TransactGetItemsCommandInput;
+export default function transactionGet<E extends Array<typeof Entity>>(
+  transactions: TransactionGetInput<[...E]>,
+  options: TransactionGetOptions & { return: 'output' },
+): Promise<TransactGetItemsOutput>;
+export default function transactionGet<E extends Array<typeof Entity>>(
+  transactions: TransactionGetInput<[...E]>,
+  options: TransactionGetOptions & { return: 'input' },
+): TransactGetItemsCommandInput;
 export default function transactionGet<E extends Array<typeof Entity>>(
   transactions: TransactionGetInput<[...E]>,
   options?: TransactionGetOptions,
-): Promise<TransactionGetOutput<[...E]> | TransactionGetOutput<[...E], undefined> | TransactGetItemsOutput> | TransactGetItemsCommandInput {
+):
+  | Promise<TransactionGetOutput<[...E]> | TransactionGetOutput<[...E], undefined> | TransactGetItemsOutput>
+  | TransactGetItemsCommandInput {
   const throwOnNotFound = options?.throwOnNotFound ?? true;
   const commandInput: TransactGetItemsCommandInput = {
     TransactItems: transactions.map((transaction) => ({

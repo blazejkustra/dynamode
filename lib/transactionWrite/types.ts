@@ -15,9 +15,15 @@ export type TransactionCondition<E extends typeof Entity> = {
   entity: E;
   condition: ConditionCheck;
 };
-export type TransactionWrite<E extends typeof Entity> = TransactionUpdate<E> | TransactionPut<E> | TransactionWriteDelete<E> | TransactionCondition<E>;
+export type TransactionWrite<E extends typeof Entity> =
+  | TransactionUpdate<E>
+  | TransactionPut<E>
+  | TransactionWriteDelete<E>
+  | TransactionCondition<E>;
 
-export type TransactionWriteInput<TW extends Array<TransactionWrite<typeof Entity>>> = { readonly [K in keyof TW]: TW[K] };
+export type TransactionWriteInput<TW extends Array<TransactionWrite<typeof Entity>>> = {
+  readonly [K in keyof TW]: TW[K];
+};
 
 export interface TransactionWriteOptions {
   return?: ReturnOption;
