@@ -1,4 +1,14 @@
-import { attribute, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, updatedAt } from '@lib/decorators';
+import {
+  attribute,
+  createdAt,
+  gsiPartitionKey,
+  gsiSortKey,
+  lsiSortKey,
+  prefix,
+  primaryPartitionKey,
+  primarySortKey,
+  updatedAt,
+} from '@lib/decorators';
 import { Dynamode } from '@lib/dynamode';
 import { Entity, register } from '@lib/entity';
 
@@ -77,6 +87,11 @@ export class TestTable extends Entity {
     this.updatedAt = props.updatedAt || new Date();
   }
 }
+
+export const testTableInstance = new TestTable({
+  partitionKey: 'PK',
+  sortKey: 'SK',
+});
 
 export type MockEntityProps = TestTableProps & {
   string: string;

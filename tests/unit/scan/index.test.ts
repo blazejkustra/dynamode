@@ -58,8 +58,12 @@ describe('Scan', () => {
       vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ scan: ddbScanMock } as any as DynamoDB);
       buildScanInputSpy = vi.spyOn(scan, 'buildScanInput' as any).mockImplementation(() => (scan['input'] = scanInput));
       validateScanInputSpy = vi.spyOn(scan, 'validateScanInput' as any).mockReturnValue(undefined);
-      convertAttributeValuesToEntitySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToEntity').mockReturnValue(mockInstance);
-      convertAttributeValuesToPrimaryKeySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToPrimaryKey').mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
+      convertAttributeValuesToEntitySpy = vi
+        .spyOn(entityHelpers, 'convertAttributeValuesToEntity')
+        .mockReturnValue(mockInstance);
+      convertAttributeValuesToPrimaryKeySpy = vi
+        .spyOn(entityHelpers, 'convertAttributeValuesToPrimaryKey')
+        .mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
     });
 
     test('Should build and validate scan input', async () => {
@@ -109,7 +113,12 @@ describe('Scan', () => {
 
     test('Should return items with values returned for return = "output"', async () => {
       ddbScanMock.mockImplementationOnce(() => {
-        return { Items: [{ key: 'value' }], LastEvaluatedKey: { partitionKey: 'lastValue', sortKey: 'lastValue' }, Count: 1, ScannedCount: 100 };
+        return {
+          Items: [{ key: 'value' }],
+          LastEvaluatedKey: { partitionKey: 'lastValue', sortKey: 'lastValue' },
+          Count: 1,
+          ScannedCount: 100,
+        };
       });
       convertAttributeValuesToEntitySpy.mockReturnValue(mockInstance);
       convertAttributeValuesToPrimaryKeySpy.mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
@@ -124,7 +133,10 @@ describe('Scan', () => {
       expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(1);
       expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, { key: 'value' });
       expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledTimes(1);
-      expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledWith(MockEntity, { partitionKey: 'lastValue', sortKey: 'lastValue' });
+      expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledWith(MockEntity, {
+        partitionKey: 'lastValue',
+        sortKey: 'lastValue',
+      });
     });
   });
 
@@ -167,7 +179,10 @@ describe('Scan', () => {
     });
 
     test('Should successfully build scan input with extraInput', async () => {
-      scan['buildScanInput']({ IndexName: 'indexName', ExpressionAttributeValues: { attributeValues: { S: 'overriddenValue' } } });
+      scan['buildScanInput']({
+        IndexName: 'indexName',
+        ExpressionAttributeValues: { attributeValues: { S: 'overriddenValue' } },
+      });
 
       expect(scan['input'].TableName).toEqual(TEST_TABLE_NAME);
       expect(scan['input'].FilterExpression).toEqual('filterExpression');

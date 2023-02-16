@@ -100,19 +100,35 @@ describe('Dynamode', () => {
         type: String,
         role: 'partitionKey',
       });
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').propertyName).toEqual('propertyName');
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').indexName).toEqual('indexName');
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').prefix).toEqual('prefix');
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').suffix).toEqual('suffix');
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').type).toEqual(String);
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').role).toEqual('partitionKey');
+      expect(
+        storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').propertyName,
+      ).toEqual('propertyName');
+      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').indexName).toEqual(
+        'indexName',
+      );
+      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').prefix).toEqual(
+        'prefix',
+      );
+      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').suffix).toEqual(
+        'suffix',
+      );
+      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').type).toEqual(
+        String,
+      );
+      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').role).toEqual(
+        'partitionKey',
+      );
 
       storage.addEntityAttributeMetadata(TEST_TABLE_NAME, ParentEntity.name, 'parentPropertyName', {
         propertyName: 'parentPropertyName',
         type: Number,
       });
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ParentEntity.name, 'parentPropertyName').propertyName).toEqual('parentPropertyName');
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ParentEntity.name, 'parentPropertyName').type).toEqual(Number);
+      expect(
+        storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ParentEntity.name, 'parentPropertyName').propertyName,
+      ).toEqual('parentPropertyName');
+      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ParentEntity.name, 'parentPropertyName').type).toEqual(
+        Number,
+      );
     });
 
     test('getEntityAttributes', async () => {
@@ -164,7 +180,9 @@ describe('Dynamode', () => {
     });
 
     test('getEntityMetadata', async () => {
-      expect(storage.getEntityMetadata(TEST_TABLE_NAME, ChildEntity.name)).toEqual(storage.tables[TEST_TABLE_NAME].entities?.[ChildEntity.name]);
+      expect(storage.getEntityMetadata(TEST_TABLE_NAME, ChildEntity.name)).toEqual(
+        storage.tables[TEST_TABLE_NAME].entities?.[ChildEntity.name],
+      );
     });
   });
 });

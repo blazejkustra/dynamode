@@ -15,43 +15,102 @@ describe('Constants', () => {
   describe('OPERATORS', () => {
     test('parenthesis', async () => {
       expect(OPERATORS.parenthesis([])).toEqual([{ expression: '(' }, { expression: ')' }]);
-      expect(OPERATORS.parenthesis([BASE_OPERATOR.and])).toEqual([{ expression: '(' }, { expression: 'AND' }, { expression: ')' }]);
+      expect(OPERATORS.parenthesis([BASE_OPERATOR.and])).toEqual([
+        { expression: '(' },
+        { expression: 'AND' },
+        { expression: ')' },
+      ]);
     });
 
     test('eq', async () => {
-      expect(OPERATORS.eq('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: '=' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.eq('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: '=' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('ne', async () => {
-      expect(OPERATORS.ne('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: '<>' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.ne('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: '<>' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('lt', async () => {
-      expect(OPERATORS.lt('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: '<' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.lt('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: '<' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('le', async () => {
-      expect(OPERATORS.le('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: '<=' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.le('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: '<=' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('gt', async () => {
-      expect(OPERATORS.gt('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: '>' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.gt('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: '>' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('ge', async () => {
-      expect(OPERATORS.ge('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: '>=' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.ge('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: '>=' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('attributeExists', async () => {
-      expect(OPERATORS.attributeExists('key')).toEqual([{ expression: 'attribute_exists' }, { expression: '(' }, { key: 'key' }, { expression: ')' }]);
+      expect(OPERATORS.attributeExists('key')).toEqual([
+        { expression: 'attribute_exists' },
+        { expression: '(' },
+        { key: 'key' },
+        { expression: ')' },
+      ]);
     });
 
     test('contains', async () => {
-      expect(OPERATORS.contains('key', 'value')).toEqual([{ expression: 'contains' }, { expression: '(' }, { key: 'key' }, { expression: ',' }, { expression: ' ' }, { value: 'value', key: 'key' }, { expression: ')' }]);
+      expect(OPERATORS.contains('key', 'value')).toEqual([
+        { expression: 'contains' },
+        { expression: '(' },
+        { key: 'key' },
+        { expression: ',' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+        { expression: ')' },
+      ]);
     });
 
     test('in', async () => {
-      expect(OPERATORS.in('key', ['value1'])).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: 'IN' }, { expression: ' ' }, { value: 'value1', key: 'key' }]);
+      expect(OPERATORS.in('key', ['value1'])).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: 'IN' },
+        { expression: ' ' },
+        { value: 'value1', key: 'key' },
+      ]);
       expect(OPERATORS.in('key', ['value1', 'value2', 'value3'])).toEqual([
         { key: 'key' },
         { expression: ' ' },
@@ -82,15 +141,36 @@ describe('Constants', () => {
     });
 
     test('attributeType', async () => {
-      expect(OPERATORS.attributeType('key', 'value')).toEqual([{ expression: 'attribute_type' }, { expression: '(' }, { key: 'key' }, { expression: ',' }, { expression: ' ' }, { value: 'value', key: 'key' }, { expression: ')' }]);
+      expect(OPERATORS.attributeType('key', 'value')).toEqual([
+        { expression: 'attribute_type' },
+        { expression: '(' },
+        { key: 'key' },
+        { expression: ',' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+        { expression: ')' },
+      ]);
     });
 
     test('beginsWith', async () => {
-      expect(OPERATORS.beginsWith('key', 'value')).toEqual([{ expression: 'begins_with' }, { expression: '(' }, { key: 'key' }, { expression: ',' }, { expression: ' ' }, { value: 'value', key: 'key' }, { expression: ')' }]);
+      expect(OPERATORS.beginsWith('key', 'value')).toEqual([
+        { expression: 'begins_with' },
+        { expression: '(' },
+        { key: 'key' },
+        { expression: ',' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+        { expression: ')' },
+      ]);
     });
 
     test('attributeNotExists', async () => {
-      expect(OPERATORS.attributeNotExists('key')).toEqual([{ expression: 'attribute_not_exists' }, { expression: '(' }, { key: 'key' }, { expression: ')' }]);
+      expect(OPERATORS.attributeNotExists('key')).toEqual([
+        { expression: 'attribute_not_exists' },
+        { expression: '(' },
+        { key: 'key' },
+        { expression: ')' },
+      ]);
     });
 
     test('notContains', async () => {
@@ -139,57 +219,153 @@ describe('Constants', () => {
     });
 
     test('notEq', async () => {
-      expect(OPERATORS.notEq('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: '<>' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.notEq('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: '<>' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('notNe', async () => {
-      expect(OPERATORS.notNe('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: '=' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.notNe('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: '=' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('notLt', async () => {
-      expect(OPERATORS.notLt('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: '>=' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.notLt('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: '>=' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('notLe', async () => {
-      expect(OPERATORS.notLe('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: '>' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.notLe('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: '>' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('notGt', async () => {
-      expect(OPERATORS.notGt('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: '<=' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.notGt('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: '<=' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('notGe', async () => {
-      expect(OPERATORS.notGe('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: '<' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.notGe('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: '<' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('sizeEq', async () => {
-      expect(OPERATORS.sizeEq('key', 'value')).toEqual([{ expression: 'size' }, { expression: '(' }, { key: 'key' }, { expression: ')' }, { expression: ' ' }, { expression: '=' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.sizeEq('key', 'value')).toEqual([
+        { expression: 'size' },
+        { expression: '(' },
+        { key: 'key' },
+        { expression: ')' },
+        { expression: ' ' },
+        { expression: '=' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('sizeNe', async () => {
-      expect(OPERATORS.sizeNe('key', 'value')).toEqual([{ expression: 'size' }, { expression: '(' }, { key: 'key' }, { expression: ')' }, { expression: ' ' }, { expression: '<>' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.sizeNe('key', 'value')).toEqual([
+        { expression: 'size' },
+        { expression: '(' },
+        { key: 'key' },
+        { expression: ')' },
+        { expression: ' ' },
+        { expression: '<>' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('sizeLt', async () => {
-      expect(OPERATORS.sizeLt('key', 'value')).toEqual([{ expression: 'size' }, { expression: '(' }, { key: 'key' }, { expression: ')' }, { expression: ' ' }, { expression: '<' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.sizeLt('key', 'value')).toEqual([
+        { expression: 'size' },
+        { expression: '(' },
+        { key: 'key' },
+        { expression: ')' },
+        { expression: ' ' },
+        { expression: '<' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('sizeLe', async () => {
-      expect(OPERATORS.sizeLe('key', 'value')).toEqual([{ expression: 'size' }, { expression: '(' }, { key: 'key' }, { expression: ')' }, { expression: ' ' }, { expression: '<=' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.sizeLe('key', 'value')).toEqual([
+        { expression: 'size' },
+        { expression: '(' },
+        { key: 'key' },
+        { expression: ')' },
+        { expression: ' ' },
+        { expression: '<=' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('sizeGt', async () => {
-      expect(OPERATORS.sizeGt('key', 'value')).toEqual([{ expression: 'size' }, { expression: '(' }, { key: 'key' }, { expression: ')' }, { expression: ' ' }, { expression: '>' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.sizeGt('key', 'value')).toEqual([
+        { expression: 'size' },
+        { expression: '(' },
+        { key: 'key' },
+        { expression: ')' },
+        { expression: ' ' },
+        { expression: '>' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('sizeGe', async () => {
-      expect(OPERATORS.sizeGe('key', 'value')).toEqual([{ expression: 'size' }, { expression: '(' }, { key: 'key' }, { expression: ')' }, { expression: ' ' }, { expression: '>=' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(OPERATORS.sizeGe('key', 'value')).toEqual([
+        { expression: 'size' },
+        { expression: '(' },
+        { key: 'key' },
+        { expression: ')' },
+        { expression: ' ' },
+        { expression: '>=' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
   });
 
   describe('UPDATE_OPERATORS', () => {
     test('set', async () => {
-      expect(UPDATE_OPERATORS.set('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { expression: '=' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(UPDATE_OPERATORS.set('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { expression: '=' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('setIfNotExists', async () => {
@@ -253,11 +429,19 @@ describe('Constants', () => {
     });
 
     test('add', async () => {
-      expect(UPDATE_OPERATORS.add('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(UPDATE_OPERATORS.add('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('delete', async () => {
-      expect(UPDATE_OPERATORS.delete('key', 'value')).toEqual([{ key: 'key' }, { expression: ' ' }, { value: 'value', key: 'key' }]);
+      expect(UPDATE_OPERATORS.delete('key', 'value')).toEqual([
+        { key: 'key' },
+        { expression: ' ' },
+        { value: 'value', key: 'key' },
+      ]);
     });
 
     test('remove', async () => {

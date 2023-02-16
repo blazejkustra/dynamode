@@ -64,10 +64,16 @@ describe('Query', () => {
 
     beforeEach(() => {
       vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ query: ddbQueryMock } as any as DynamoDB);
-      buildQueryInputSpy = vi.spyOn(query, 'buildQueryInput' as any).mockImplementation(() => (query['input'] = queryInput));
+      buildQueryInputSpy = vi
+        .spyOn(query, 'buildQueryInput' as any)
+        .mockImplementation(() => (query['input'] = queryInput));
       validateQueryInputSpy = vi.spyOn(query, 'validateQueryInput' as any).mockReturnValue(undefined);
-      convertAttributeValuesToEntitySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToEntity').mockReturnValue(mockInstance);
-      convertAttributeValuesToPrimaryKeySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToPrimaryKey').mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
+      convertAttributeValuesToEntitySpy = vi
+        .spyOn(entityHelpers, 'convertAttributeValuesToEntity')
+        .mockReturnValue(mockInstance);
+      convertAttributeValuesToPrimaryKeySpy = vi
+        .spyOn(entityHelpers, 'convertAttributeValuesToPrimaryKey')
+        .mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
       timeoutSpy = vi.spyOn(utils, 'timeout').mockImplementation(async () => undefined);
     });
 
@@ -123,10 +129,18 @@ describe('Query', () => {
 
       test('Should return items with values returned', async () => {
         ddbQueryMock.mockImplementationOnce(() => {
-          return { Items: [{ key: 'value' }], LastEvaluatedKey: { partitionKey: 'lastValue', sortKey: 'lastValue' }, Count: 1, ScannedCount: 100 };
+          return {
+            Items: [{ key: 'value' }],
+            LastEvaluatedKey: { partitionKey: 'lastValue', sortKey: 'lastValue' },
+            Count: 1,
+            ScannedCount: 100,
+          };
         });
         convertAttributeValuesToEntitySpy.mockReturnValue(mockInstance);
-        convertAttributeValuesToPrimaryKeySpy.mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
+        convertAttributeValuesToPrimaryKeySpy.mockReturnValue({
+          partitionKey: 'lastValue',
+          sortKey: 'lastValue',
+        } as any);
 
         await expect(query.run({ return: 'default' })).resolves.toEqual({
           items: [mockInstance],
@@ -139,7 +153,10 @@ describe('Query', () => {
         expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(1);
         expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, { key: 'value' });
         expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledTimes(1);
-        expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledWith(MockEntity, { partitionKey: 'lastValue', sortKey: 'lastValue' });
+        expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledWith(MockEntity, {
+          partitionKey: 'lastValue',
+          sortKey: 'lastValue',
+        });
       });
 
       test('Should return items with "all: true" option', async () => {
@@ -310,7 +327,12 @@ describe('Query', () => {
       query['keyOperators'].push(BASE_OPERATOR.add);
       query['maybePushKeyLogicalOperator']();
 
-      expect(query['keyOperators']).toEqual([BASE_OPERATOR.add, BASE_OPERATOR.space, BASE_OPERATOR.and, BASE_OPERATOR.space]);
+      expect(query['keyOperators']).toEqual([
+        BASE_OPERATOR.add,
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.and,
+        BASE_OPERATOR.space,
+      ]);
     });
 
     test('Should not push a logical operator if key operators are empty', async () => {
@@ -358,7 +380,10 @@ describe('Query', () => {
     });
 
     test('Should successfully build query input with extraInput', async () => {
-      query['buildQueryInput']({ IndexName: 'indexName', ExpressionAttributeValues: { attributeValues: { S: 'overriddenValue' } } });
+      query['buildQueryInput']({
+        IndexName: 'indexName',
+        ExpressionAttributeValues: { attributeValues: { S: 'overriddenValue' } },
+      });
 
       expect(query['input'].TableName).toEqual(TEST_TABLE_NAME);
       expect(query['input'].KeyConditionExpression).toEqual('keyConditionExpression');

@@ -8,6 +8,7 @@ import { NotFoundError } from '@lib/utils';
 export default function transactionGet<E extends Array<typeof Entity>>(
   transactions: TransactionGetInput<[...E]>,
 ): Promise<TransactionGetOutput<[...E]>>;
+
 export default function transactionGet<E extends Array<typeof Entity>>(
   transactions: TransactionGetInput<[...E]>,
   options: TransactionGetOptions & {
@@ -15,6 +16,7 @@ export default function transactionGet<E extends Array<typeof Entity>>(
     throwOnNotFound?: true;
   },
 ): Promise<TransactionGetOutput<[...E]>>;
+
 export default function transactionGet<E extends Array<typeof Entity>>(
   transactions: TransactionGetInput<[...E]>,
   options: TransactionGetOptions & {
@@ -22,14 +24,17 @@ export default function transactionGet<E extends Array<typeof Entity>>(
     throwOnNotFound: false;
   },
 ): Promise<TransactionGetOutput<[...E], undefined>>;
+
 export default function transactionGet<E extends Array<typeof Entity>>(
   transactions: TransactionGetInput<[...E]>,
   options: TransactionGetOptions & { return: 'output' },
 ): Promise<TransactGetItemsOutput>;
+
 export default function transactionGet<E extends Array<typeof Entity>>(
   transactions: TransactionGetInput<[...E]>,
   options: TransactionGetOptions & { return: 'input' },
 ): TransactGetItemsCommandInput;
+
 export default function transactionGet<E extends Array<typeof Entity>>(
   transactions: TransactionGetInput<[...E]>,
   options?: TransactionGetOptions,

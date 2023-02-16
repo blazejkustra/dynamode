@@ -1,6 +1,16 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { duplicatesInArray, insertBetween, isEmpty, isNotEmpty, isNotEmptyArray, isNotEmptyString, mergeObjects, splitListPathReference, timeout } from '@lib/utils';
+import {
+  duplicatesInArray,
+  insertBetween,
+  isEmpty,
+  isNotEmpty,
+  isNotEmptyArray,
+  isNotEmptyString,
+  mergeObjects,
+  splitListPathReference,
+  timeout,
+} from '@lib/utils';
 
 describe('Helpers', () => {
   describe('duplicatesInArray', () => {

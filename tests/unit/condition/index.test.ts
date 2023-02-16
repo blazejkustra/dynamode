@@ -265,7 +265,9 @@ describe('Condition', () => {
           test('Should push in expression', async () => {
             condition.attribute('partitionKey').not().in(['value1', 'value2']);
 
-            expect(condition['operators']).toEqual([...OPERATORS.notIn('partitionKey', ['prefix#value1', 'prefix#value2'])]);
+            expect(condition['operators']).toEqual([
+              ...OPERATORS.notIn('partitionKey', ['prefix#value1', 'prefix#value2']),
+            ]);
           });
 
           test('Should push in expression without prefix', async () => {
@@ -299,7 +301,11 @@ describe('Condition', () => {
       innerCondition['operators'].push(BASE_OPERATOR.attributeExists);
 
       condition.parenthesis(innerCondition);
-      expect(condition['operators']).toEqual([BASE_OPERATOR.leftParenthesis, ...innerCondition['operators'], BASE_OPERATOR.rightParenthesis]);
+      expect(condition['operators']).toEqual([
+        BASE_OPERATOR.leftParenthesis,
+        ...innerCondition['operators'],
+        BASE_OPERATOR.rightParenthesis,
+      ]);
     });
 
     test('Should add parenthesis if defined condition is passed as argument + should add logical operator', async () => {
@@ -309,7 +315,15 @@ describe('Condition', () => {
       innerCondition['operators'].push(BASE_OPERATOR.attributeExists);
 
       condition.parenthesis(innerCondition);
-      expect(condition['operators']).toEqual([BASE_OPERATOR.contains, BASE_OPERATOR.space, BASE_OPERATOR.and, BASE_OPERATOR.space, BASE_OPERATOR.leftParenthesis, ...innerCondition['operators'], BASE_OPERATOR.rightParenthesis]);
+      expect(condition['operators']).toEqual([
+        BASE_OPERATOR.contains,
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.and,
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.leftParenthesis,
+        ...innerCondition['operators'],
+        BASE_OPERATOR.rightParenthesis,
+      ]);
     });
   });
 
@@ -326,7 +340,11 @@ describe('Condition', () => {
       innerCondition['operators'].push(BASE_OPERATOR.attributeExists);
 
       condition.group(innerCondition);
-      expect(condition['operators']).toEqual([BASE_OPERATOR.leftParenthesis, ...innerCondition['operators'], BASE_OPERATOR.rightParenthesis]);
+      expect(condition['operators']).toEqual([
+        BASE_OPERATOR.leftParenthesis,
+        ...innerCondition['operators'],
+        BASE_OPERATOR.rightParenthesis,
+      ]);
     });
 
     test('Should add parenthesis if defined condition is passed as argument + should add logical operator', async () => {
@@ -336,7 +354,15 @@ describe('Condition', () => {
       innerCondition['operators'].push(BASE_OPERATOR.attributeExists);
 
       condition.group(innerCondition);
-      expect(condition['operators']).toEqual([BASE_OPERATOR.contains, BASE_OPERATOR.space, BASE_OPERATOR.and, BASE_OPERATOR.space, BASE_OPERATOR.leftParenthesis, ...innerCondition['operators'], BASE_OPERATOR.rightParenthesis]);
+      expect(condition['operators']).toEqual([
+        BASE_OPERATOR.contains,
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.and,
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.leftParenthesis,
+        ...innerCondition['operators'],
+        BASE_OPERATOR.rightParenthesis,
+      ]);
     });
   });
 
@@ -363,7 +389,13 @@ describe('Condition', () => {
       otherCondition['operators'].push(BASE_OPERATOR.attributeExists);
 
       condition.condition(otherCondition);
-      expect(condition['operators']).toEqual([BASE_OPERATOR.contains, BASE_OPERATOR.space, BASE_OPERATOR.and, BASE_OPERATOR.space, ...otherCondition['operators']]);
+      expect(condition['operators']).toEqual([
+        BASE_OPERATOR.contains,
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.and,
+        BASE_OPERATOR.space,
+        ...otherCondition['operators'],
+      ]);
     });
   });
 
@@ -391,13 +423,25 @@ describe('Condition', () => {
     test('Should push equality expression', async () => {
       condition['eq'](condition['operators'], 'partitionKey', 'value');
 
-      expect(condition['operators']).toEqual([{ key: 'partitionKey' }, BASE_OPERATOR.space, BASE_OPERATOR.eq, BASE_OPERATOR.space, { key: 'partitionKey', value: 'prefix#value' }]);
+      expect(condition['operators']).toEqual([
+        { key: 'partitionKey' },
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.eq,
+        BASE_OPERATOR.space,
+        { key: 'partitionKey', value: 'prefix#value' },
+      ]);
     });
 
     test('Should push equality expression without prefix', async () => {
       condition['eq'](condition['operators'], 'string', 'value');
 
-      expect(condition['operators']).toEqual([{ key: 'string' }, BASE_OPERATOR.space, BASE_OPERATOR.eq, BASE_OPERATOR.space, { key: 'string', value: 'value' }]);
+      expect(condition['operators']).toEqual([
+        { key: 'string' },
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.eq,
+        BASE_OPERATOR.space,
+        { key: 'string', value: 'value' },
+      ]);
     });
   });
 
@@ -405,13 +449,25 @@ describe('Condition', () => {
     test('Should push negated equality expression', async () => {
       condition['ne'](condition['operators'], 'partitionKey', 'value');
 
-      expect(condition['operators']).toEqual([{ key: 'partitionKey' }, BASE_OPERATOR.space, BASE_OPERATOR.ne, BASE_OPERATOR.space, { key: 'partitionKey', value: 'prefix#value' }]);
+      expect(condition['operators']).toEqual([
+        { key: 'partitionKey' },
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.ne,
+        BASE_OPERATOR.space,
+        { key: 'partitionKey', value: 'prefix#value' },
+      ]);
     });
 
     test('Should push negated equality expression without prefix', async () => {
       condition['ne'](condition['operators'], 'string', 'value');
 
-      expect(condition['operators']).toEqual([{ key: 'string' }, BASE_OPERATOR.space, BASE_OPERATOR.ne, BASE_OPERATOR.space, { key: 'string', value: 'value' }]);
+      expect(condition['operators']).toEqual([
+        { key: 'string' },
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.ne,
+        BASE_OPERATOR.space,
+        { key: 'string', value: 'value' },
+      ]);
     });
   });
 
@@ -419,13 +475,25 @@ describe('Condition', () => {
     test('Should push less than expression', async () => {
       condition['lt'](condition['operators'], 'partitionKey', 'value');
 
-      expect(condition['operators']).toEqual([{ key: 'partitionKey' }, BASE_OPERATOR.space, BASE_OPERATOR.lt, BASE_OPERATOR.space, { key: 'partitionKey', value: 'prefix#value' }]);
+      expect(condition['operators']).toEqual([
+        { key: 'partitionKey' },
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.lt,
+        BASE_OPERATOR.space,
+        { key: 'partitionKey', value: 'prefix#value' },
+      ]);
     });
 
     test('Should push less than expression without prefix', async () => {
       condition['lt'](condition['operators'], 'string', 'value');
 
-      expect(condition['operators']).toEqual([{ key: 'string' }, BASE_OPERATOR.space, BASE_OPERATOR.lt, BASE_OPERATOR.space, { key: 'string', value: 'value' }]);
+      expect(condition['operators']).toEqual([
+        { key: 'string' },
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.lt,
+        BASE_OPERATOR.space,
+        { key: 'string', value: 'value' },
+      ]);
     });
   });
 
@@ -433,13 +501,25 @@ describe('Condition', () => {
     test('Should push less than or equal expression', async () => {
       condition['le'](condition['operators'], 'partitionKey', 'value');
 
-      expect(condition['operators']).toEqual([{ key: 'partitionKey' }, BASE_OPERATOR.space, BASE_OPERATOR.le, BASE_OPERATOR.space, { key: 'partitionKey', value: 'prefix#value' }]);
+      expect(condition['operators']).toEqual([
+        { key: 'partitionKey' },
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.le,
+        BASE_OPERATOR.space,
+        { key: 'partitionKey', value: 'prefix#value' },
+      ]);
     });
 
     test('Should push less than or equal expression without prefix', async () => {
       condition['le'](condition['operators'], 'string', 'value');
 
-      expect(condition['operators']).toEqual([{ key: 'string' }, BASE_OPERATOR.space, BASE_OPERATOR.le, BASE_OPERATOR.space, { key: 'string', value: 'value' }]);
+      expect(condition['operators']).toEqual([
+        { key: 'string' },
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.le,
+        BASE_OPERATOR.space,
+        { key: 'string', value: 'value' },
+      ]);
     });
   });
 
@@ -447,13 +527,25 @@ describe('Condition', () => {
     test('Should push greater than expression', async () => {
       condition['gt'](condition['operators'], 'partitionKey', 'value');
 
-      expect(condition['operators']).toEqual([{ key: 'partitionKey' }, BASE_OPERATOR.space, BASE_OPERATOR.gt, BASE_OPERATOR.space, { key: 'partitionKey', value: 'prefix#value' }]);
+      expect(condition['operators']).toEqual([
+        { key: 'partitionKey' },
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.gt,
+        BASE_OPERATOR.space,
+        { key: 'partitionKey', value: 'prefix#value' },
+      ]);
     });
 
     test('Should push greater than expression without prefix', async () => {
       condition['gt'](condition['operators'], 'string', 'value');
 
-      expect(condition['operators']).toEqual([{ key: 'string' }, BASE_OPERATOR.space, BASE_OPERATOR.gt, BASE_OPERATOR.space, { key: 'string', value: 'value' }]);
+      expect(condition['operators']).toEqual([
+        { key: 'string' },
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.gt,
+        BASE_OPERATOR.space,
+        { key: 'string', value: 'value' },
+      ]);
     });
   });
 
@@ -461,13 +553,25 @@ describe('Condition', () => {
     test('Should push greater than or equal expression', async () => {
       condition['ge'](condition['operators'], 'partitionKey', 'value');
 
-      expect(condition['operators']).toEqual([{ key: 'partitionKey' }, BASE_OPERATOR.space, BASE_OPERATOR.ge, BASE_OPERATOR.space, { key: 'partitionKey', value: 'prefix#value' }]);
+      expect(condition['operators']).toEqual([
+        { key: 'partitionKey' },
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.ge,
+        BASE_OPERATOR.space,
+        { key: 'partitionKey', value: 'prefix#value' },
+      ]);
     });
 
     test('Should push greater than or equal expression without prefix', async () => {
       condition['ge'](condition['operators'], 'string', 'value');
 
-      expect(condition['operators']).toEqual([{ key: 'string' }, BASE_OPERATOR.space, BASE_OPERATOR.ge, BASE_OPERATOR.space, { key: 'string', value: 'value' }]);
+      expect(condition['operators']).toEqual([
+        { key: 'string' },
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.ge,
+        BASE_OPERATOR.space,
+        { key: 'string', value: 'value' },
+      ]);
     });
   });
 
@@ -504,7 +608,12 @@ describe('Condition', () => {
       condition['operators'].push(BASE_OPERATOR.add);
       condition['maybePushLogicalOperator']();
 
-      expect(condition['operators']).toEqual([BASE_OPERATOR.add, BASE_OPERATOR.space, BASE_OPERATOR.and, BASE_OPERATOR.space]);
+      expect(condition['operators']).toEqual([
+        BASE_OPERATOR.add,
+        BASE_OPERATOR.space,
+        BASE_OPERATOR.and,
+        BASE_OPERATOR.space,
+      ]);
     });
 
     test('Should not push a logical operator if operators are empty', async () => {

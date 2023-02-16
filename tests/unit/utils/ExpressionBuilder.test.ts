@@ -50,7 +50,9 @@ describe('ExpressionBuilder', () => {
 
     test('Should substitute name for reserved word (nested keys with array)', async () => {
       const expressionBuilder = new ExpressionBuilder();
-      expect(expressionBuilder.substituteName('absolute[1].ATOMIC[123][0].nonReserved[0]')).toEqual('#absolute[1].#ATOMIC[123][0].nonReserved[0]');
+      expect(expressionBuilder.substituteName('absolute[1].ATOMIC[123][0].nonReserved[0]')).toEqual(
+        '#absolute[1].#ATOMIC[123][0].nonReserved[0]',
+      );
       expect(expressionBuilder.attributeNames).toEqual({ '#absolute': 'absolute', '#ATOMIC': 'ATOMIC' });
     });
   });
@@ -84,8 +86,12 @@ describe('ExpressionBuilder', () => {
 
     test('Should work for nested attributes with suffix and nested arrays', async () => {
       const expressionBuilder = new ExpressionBuilder();
-      expect(expressionBuilder.substituteValue('key[0].key[1][2].key[3]', 'value')).toEqual(':key_index0_key_index1_index2_key_index3');
-      expect(expressionBuilder.substituteValue('key[0].key[1][2].key[3]', 'anotherValue')).toEqual(':key_index0_key_index1_index2_key_index3__1');
+      expect(expressionBuilder.substituteValue('key[0].key[1][2].key[3]', 'value')).toEqual(
+        ':key_index0_key_index1_index2_key_index3',
+      );
+      expect(expressionBuilder.substituteValue('key[0].key[1][2].key[3]', 'anotherValue')).toEqual(
+        ':key_index0_key_index1_index2_key_index3__1',
+      );
       expect(expressionBuilder.attributeValues).toEqual({
         ':key_index0_key_index1_index2_key_index3': 'value',
         ':key_index0_key_index1_index2_key_index3__1': 'anotherValue',
@@ -105,7 +111,13 @@ describe('ExpressionBuilder', () => {
 
     test('Should connect strings with no keys and values', async () => {
       const expressionBuilder = new ExpressionBuilder();
-      const operators: Operators = [{ expression: 'one' }, BASE_OPERATOR.space, { expression: 'two' }, BASE_OPERATOR.space, { expression: 'three' }];
+      const operators: Operators = [
+        { expression: 'one' },
+        BASE_OPERATOR.space,
+        { expression: 'two' },
+        BASE_OPERATOR.space,
+        { expression: 'three' },
+      ];
 
       expect(expressionBuilder.run(operators)).toEqual('one two three');
       expect(expressionBuilder.attributeNames).toEqual(undefined);
@@ -115,7 +127,13 @@ describe('ExpressionBuilder', () => {
     test('Should connect strings with custom keys and values', async () => {
       const expressionBuilder = new ExpressionBuilder();
       const operators: Operators = [
-        ...OPERATORS.parenthesis([...OPERATORS.eq('key', 'value'), BASE_OPERATOR.space, BASE_OPERATOR.and, BASE_OPERATOR.space, ...OPERATORS.contains('array', 1)]),
+        ...OPERATORS.parenthesis([
+          ...OPERATORS.eq('key', 'value'),
+          BASE_OPERATOR.space,
+          BASE_OPERATOR.and,
+          BASE_OPERATOR.space,
+          ...OPERATORS.contains('array', 1),
+        ]),
         BASE_OPERATOR.space,
         BASE_OPERATOR.or,
         BASE_OPERATOR.space,
@@ -126,8 +144,15 @@ describe('ExpressionBuilder', () => {
         ...OPERATORS.sizeLe('key', 100),
       ];
 
-      expect(expressionBuilder.run(operators)).toEqual('(#key = :key AND contains(#array, :array)) OR attribute_exists(#key.key1.#list[0].#key.#ATOMIC) OR size(#key) <= :key__1');
-      expect(expressionBuilder.attributeNames).toEqual({ '#key': 'key', '#array': 'array', '#list': 'list', '#ATOMIC': 'ATOMIC' });
+      expect(expressionBuilder.run(operators)).toEqual(
+        '(#key = :key AND contains(#array, :array)) OR attribute_exists(#key.key1.#list[0].#key.#ATOMIC) OR size(#key) <= :key__1',
+      );
+      expect(expressionBuilder.attributeNames).toEqual({
+        '#key': 'key',
+        '#array': 'array',
+        '#list': 'list',
+        '#ATOMIC': 'ATOMIC',
+      });
       expect(expressionBuilder.attributeValues).toEqual({ ':key': 'value', ':array': 1, ':key__1': 100 });
     });
 

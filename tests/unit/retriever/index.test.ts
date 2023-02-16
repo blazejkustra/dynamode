@@ -32,14 +32,23 @@ describe('RetrieverBase', () => {
 
   describe('startAt', () => {
     const convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityHelpers, 'convertPrimaryKeyToAttributeValues');
-    convertPrimaryKeyToAttributeValuesSpy.mockImplementation(() => ({ partitionKey: { S: 'partitionKey' }, sortKey: { S: 'sortKey' } }));
+    convertPrimaryKeyToAttributeValuesSpy.mockImplementation(() => ({
+      partitionKey: { S: 'partitionKey' },
+      sortKey: { S: 'sortKey' },
+    }));
     beforeEach(async () => convertPrimaryKeyToAttributeValuesSpy.mockReset);
 
     test('Should set ExclusiveStartKey on query/scan input', async () => {
       retriever.startAt({ partitionKey: 'partitionKey', sortKey: 'sortKey' });
 
-      expect(retriever['input']['ExclusiveStartKey']).toEqual({ partitionKey: { S: 'partitionKey' }, sortKey: { S: 'sortKey' } });
-      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, { partitionKey: 'partitionKey', sortKey: 'sortKey' });
+      expect(retriever['input']['ExclusiveStartKey']).toEqual({
+        partitionKey: { S: 'partitionKey' },
+        sortKey: { S: 'sortKey' },
+      });
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, {
+        partitionKey: 'partitionKey',
+        sortKey: 'sortKey',
+      });
     });
 
     test('Should not set ExclusiveStartKey on query/scan input when undefined is passed', async () => {
