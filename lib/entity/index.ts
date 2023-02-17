@@ -50,9 +50,9 @@ import Scan from '@lib/scan';
 import { TransactionGet } from '@lib/transactionGet/types';
 import {
   TransactionCondition,
+  TransactionDelete,
   TransactionPut,
   TransactionUpdate,
-  TransactionWriteDelete,
 } from '@lib/transactionWrite/types';
 import { AttributeValues, ExpressionBuilder, fromDynamo, NotFoundError } from '@lib/utils';
 
@@ -543,10 +543,10 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
   function transactionDelete(
     primaryKey: EntityPrimaryKey<EM, E>,
     options?: EntityTransactionDeleteOptions<E>,
-  ): TransactionWriteDelete<E> {
+  ): TransactionDelete<E> {
     const { conditionExpression, attributeNames, attributeValues } = buildDeleteConditionExpression(options?.condition);
 
-    const commandInput: TransactionWriteDelete<E> = {
+    const commandInput: TransactionDelete<E> = {
       entity,
       delete: {
         TableName: tableName,

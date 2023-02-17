@@ -12,18 +12,22 @@ import type {
 export default function transactionWrite<TW extends Array<TransactionWrite<typeof Entity>>>(
   transactions: TransactionWriteInput<[...TW]>,
 ): Promise<TransactionWriteOutput<[...TW]>>;
+
 export default function transactionWrite<TW extends Array<TransactionWrite<typeof Entity>>>(
   transactions: TransactionWriteInput<[...TW]>,
   options: TransactionWriteOptions & { return: 'default' },
 ): Promise<TransactionWriteOutput<[...TW]>>;
+
 export default function transactionWrite<TW extends Array<TransactionWrite<typeof Entity>>>(
   transactions: TransactionWriteInput<[...TW]>,
   options: TransactionWriteOptions & { return: 'output' },
 ): Promise<TransactWriteItemsOutput>;
+
 export default function transactionWrite<TW extends Array<TransactionWrite<typeof Entity>>>(
   transactions: TransactionWriteInput<[...TW]>,
   options: TransactionWriteOptions & { return: 'input' },
 ): TransactWriteItemsCommandInput;
+
 export default function transactionWrite<TW extends Array<TransactionWrite<typeof Entity>>>(
   transactions: TransactionWriteInput<[...TW]>,
   options?: TransactionWriteOptions,

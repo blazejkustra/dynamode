@@ -7,7 +7,7 @@ export type TransactionUpdate<E extends typeof Entity> = {
   update: Update;
 };
 export type TransactionPut<E extends typeof Entity> = { entity: E; put: Put };
-export type TransactionWriteDelete<E extends typeof Entity> = {
+export type TransactionDelete<E extends typeof Entity> = {
   entity: E;
   delete: Delete;
 };
@@ -18,7 +18,7 @@ export type TransactionCondition<E extends typeof Entity> = {
 export type TransactionWrite<E extends typeof Entity> =
   | TransactionUpdate<E>
   | TransactionPut<E>
-  | TransactionWriteDelete<E>
+  | TransactionDelete<E>
   | TransactionCondition<E>;
 
 export type TransactionWriteInput<TW extends Array<TransactionWrite<typeof Entity>>> = {
