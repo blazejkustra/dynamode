@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
-import { Dynamode } from '@lib/dynamode';
+import Dynamode from '@lib/dynamode/index';
 import * as entityHelpers from '@lib/entity/helpers';
 import Query from '@lib/query';
 import { BASE_OPERATOR } from '@lib/utils';

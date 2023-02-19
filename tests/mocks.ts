@@ -1,15 +1,5 @@
-import {
-  attribute,
-  createdAt,
-  gsiPartitionKey,
-  gsiSortKey,
-  lsiSortKey,
-  prefix,
-  primaryPartitionKey,
-  primarySortKey,
-  updatedAt,
-} from '@lib/decorators';
-import { Dynamode } from '@lib/dynamode';
+import { attribute } from '@lib/decorators';
+import Dynamode from '@lib/dynamode/index';
 import { Entity, register } from '@lib/entity';
 
 Dynamode.ddb.local();
@@ -46,28 +36,28 @@ export class TestTable extends Entity {
   public static tableName = TEST_TABLE_NAME;
 
   // Primary key
-  @prefix(PREFIX)
-  @primaryPartitionKey(String)
+  @attribute.prefix(PREFIX)
+  @attribute.partitionKey.string()
   partitionKey: string;
 
-  @primarySortKey(String)
+  @attribute.sortKey.string()
   sortKey: string;
 
   // Indexes
-  @gsiPartitionKey(String, 'GSI_1_NAME')
+  @attribute.gsi.partitionKey.string({ indexName: 'GSI_1_NAME' })
   GSI_1_PK?: string;
 
-  @gsiSortKey(Number, 'GSI_1_NAME')
+  @attribute.gsi.sortKey.number({ indexName: 'GSI_1_NAME' })
   GSI_1_SK?: number;
 
-  @lsiSortKey(Number, 'LSI_1_NAME')
+  @attribute.lsi.sortKey.number({ indexName: 'LSI_1_NAME' })
   LSI_1_SK?: number;
 
   // Timestamps
-  @createdAt(String)
+  @attribute.date.string({ as: 'createdAt' })
   createdAt: Date;
 
-  @updatedAt(Number)
+  @attribute.date.number({ as: 'updatedAt' })
   updatedAt: Date;
 
   constructor(props: TestTableProps) {
@@ -107,28 +97,28 @@ export type MockEntityProps = TestTableProps & {
 };
 
 export class MockEntity extends TestTable {
-  @attribute(String)
+  @attribute.string()
   string: string;
 
-  @attribute(Object)
+  @attribute.object()
   object: {
     optional?: string;
     required: number;
   };
 
-  @attribute(Array)
+  @attribute.array()
   array?: string[];
 
-  @attribute(Map)
+  @attribute.map()
   map: Map<string, string>;
 
-  @attribute(Set)
+  @attribute.set()
   set: Set<string>;
 
-  @attribute(Number)
+  @attribute.number()
   number?: number;
 
-  @attribute(Boolean)
+  @attribute.boolean()
   boolean: boolean;
 
   unsaved: string;

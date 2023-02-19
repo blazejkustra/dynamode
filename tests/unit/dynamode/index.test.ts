@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
 import { convertToAttr, convertToNative, marshall, unmarshall } from '@aws-sdk/util-dynamodb';
-import { Dynamode } from '@lib/dynamode';
+import Dynamode from '@lib/dynamode/index';
 import { Entity } from '@lib/entity';
 
 import { TEST_TABLE_NAME } from '../../mocks';
