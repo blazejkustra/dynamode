@@ -1,19 +1,6 @@
-import { attribute } from '../../dist/decorators';
-import { Entity, register } from '../../dist/entity';
-
-type AllPossiblePropertiesKeys = {
-  partitionKey: 'partitionKey';
-  sortKey: 'sortKey';
-  indexes: {
-    GSI_1_NAME: {
-      partitionKey: 'GSI_1_PK';
-      sortKey: 'GSI_1_SK';
-    };
-    LSI_1_NAME: {
-      sortKey: 'LSI_1_SK';
-    };
-  };
-};
+import attribute from '../../dist/decorators';
+import Entity from '../../dist/entity';
+import { tableManager } from '../../dist/table';
 
 type AllPossiblePropertiesProps = {
   partitionKey: string;
@@ -59,10 +46,10 @@ export class AllPossibleProperties extends Entity {
   LSI_1_SK?: number;
 
   // Timestamps
-  @attribute.date.string({ as: 'createdAt' })
+  @attribute.date.string()
   createdAt: Date;
 
-  @attribute.date.number({ as: 'updatedAt' })
+  @attribute.date.number()
   updatedAt: Date;
 
   @attribute.string()
@@ -125,8 +112,17 @@ export class AllPossibleProperties extends Entity {
     console.log('staticMethod');
   }
 }
-
-export const AllPossiblePropertiesRegistry = register<AllPossiblePropertiesKeys, typeof AllPossibleProperties>(
-  AllPossibleProperties,
-  TABLE_NAME,
-);
+export const AllPossiblePropertiesManager = tableManager(AllPossibleProperties).metadata({
+  tableName: TABLE_NAME,
+  partitionKey: 'partitionKey',
+  sortKey: 'sortKey',
+  indexes: {
+    GSI_1_NAME: {
+      partitionKey: 'GSI_1_PK',
+      sortKey: 'GSI_1_SK',
+    },
+    LSI_1_NAME: {
+      sortKey: 'LSI_1_SK',
+    },
+  },
+});

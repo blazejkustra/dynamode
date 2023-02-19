@@ -1,13 +1,13 @@
 import { transactionGet } from '../../../dist';
-import { AllPossiblePropertiesRegistry } from '../model';
+import { AllPossiblePropertiesManager } from '../model';
 
 async function transaction() {
   const transactions = await transactionGet([
-    AllPossiblePropertiesRegistry.transaction.get({
+    AllPossiblePropertiesManager.transaction.get({
       partitionKey: 'pk1',
       sortKey: 'sk1',
     }),
-    AllPossiblePropertiesRegistry.transaction.get({
+    AllPossiblePropertiesManager.transaction.get({
       partitionKey: 'pk1',
       sortKey: 'sk1',
     }),

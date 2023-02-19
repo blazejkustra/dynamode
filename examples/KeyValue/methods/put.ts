@@ -1,7 +1,7 @@
-import { KeyValue, KeyValueRegistry } from '../model';
+import { KeyValue, keyValueManager } from '../model';
 
 async function put() {
-  const item = await KeyValueRegistry.put(
+  const item = await keyValueManager.put(
     new KeyValue({
       key: 'key1',
       value: { test: 123 },

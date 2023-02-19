@@ -1,8 +1,11 @@
 import { transactionGet } from '../../../dist';
-import { KeyValueRegistry } from '../model';
+import { keyValueManager } from '../model';
 
 async function transaction() {
-  const transactions = await transactionGet([KeyValueRegistry.transaction.get({ key: 'key1' }), KeyValueRegistry.transaction.get({ key: 'key2' })]);
+  const transactions = await transactionGet([
+    keyValueManager.transaction.get({ key: 'key1' }),
+    keyValueManager.transaction.get({ key: 'key2' }),
+  ]);
 
   console.log();
   console.log('OUTPUT:');

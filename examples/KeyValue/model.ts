@@ -1,9 +1,6 @@
-import { attribute } from '../../dist/decorators';
-import { Entity, register } from '../../dist/entity';
-
-type KeyValueKeys = {
-  partitionKey: 'key';
-};
+import attribute from '../../dist/decorators';
+import Entity from '../../dist/entity';
+import { tableManager } from '../../dist/table';
 
 type KeyValueProps = {
   key: string;
@@ -27,4 +24,9 @@ export class KeyValue extends Entity {
   }
 }
 
-export const KeyValueRegistry = register<KeyValueKeys, typeof KeyValue>(KeyValue, TABLE_NAME);
+export const keyValueManager = tableManager(KeyValue)
+  .metadata({
+    tableName: TABLE_NAME,
+    partitionKey: 'key',
+  })
+  .tableEntityManager();

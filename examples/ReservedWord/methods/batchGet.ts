@@ -1,7 +1,7 @@
-import { EntityReservedWordRegistry } from '../model';
+import { reservedWordManager } from '../model';
 
 async function batchGet() {
-  const entityReservedWordBatchGet = await EntityReservedWordRegistry.batchGet([
+  const entityReservedWordBatchGet = await reservedWordManager.batchGet([
     { COLUMN: 'pk1', OBJECT: 'sk1' },
     { COLUMN: 'pk2', OBJECT: 'sk2' },
   ]);

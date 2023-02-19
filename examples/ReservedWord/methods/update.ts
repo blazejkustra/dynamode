@@ -1,7 +1,7 @@
-import { EntityReservedWordRegistry } from '../model';
+import { reservedWordManager } from '../model';
 
 async function update() {
-  const entityReservedWordUpdate = await EntityReservedWordRegistry.update(
+  const entityReservedWordUpdate = await reservedWordManager.update(
     { COLUMN: 'pk1', OBJECT: 'sk1' },
     {
       add: {

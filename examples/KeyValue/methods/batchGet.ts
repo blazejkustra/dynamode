@@ -1,7 +1,7 @@
-import { KeyValueRegistry } from '../model';
+import { keyValueManager } from '../model';
 
 async function batchGet() {
-  const modelBatchGet = await KeyValueRegistry.batchGet([{ key: 'key1' }, { key: 'key2' }]);
+  const modelBatchGet = await keyValueManager.batchGet([{ key: 'key1' }, { key: 'key2' }]);
 
   console.log();
   console.log('OUTPUT:');

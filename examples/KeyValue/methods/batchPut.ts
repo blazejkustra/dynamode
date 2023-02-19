@@ -1,7 +1,7 @@
-import { KeyValue, KeyValueRegistry } from '../model';
+import { KeyValue, keyValueManager } from '../model';
 
 async function batchPut() {
-  const modelBatchPut = await KeyValueRegistry.batchPut([
+  const modelBatchPut = await keyValueManager.batchPut([
     new KeyValue({
       key: 'key1',
       value: { test: 123 },

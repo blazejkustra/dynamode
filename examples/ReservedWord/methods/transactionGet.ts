@@ -1,8 +1,11 @@
 import { transactionGet } from '../../../dist';
-import { EntityReservedWordRegistry } from '../model';
+import { reservedWordManager } from '../model';
 
 async function transaction() {
-  const transactions = await transactionGet([EntityReservedWordRegistry.transactionGet({ COLUMN: 'pk1', OBJECT: 'sk1' }), EntityReservedWordRegistry.transactionGet({ COLUMN: 'pk2', OBJECT: 'sk2' })]);
+  const transactions = await transactionGet([
+    reservedWordManager.transactionGet({ COLUMN: 'pk1', OBJECT: 'sk1' }),
+    reservedWordManager.transactionGet({ COLUMN: 'pk2', OBJECT: 'sk2' }),
+  ]);
 
   console.log();
   console.log('OUTPUT:');

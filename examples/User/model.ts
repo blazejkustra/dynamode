@@ -1,10 +1,6 @@
-import { attribute } from '../../dist/decorators';
-import { Entity, register } from '../../dist/entity';
-
-type UserKeys = {
-  partitionKey: 'partitionKey';
-  sortKey: 'sortKey';
-};
+import attribute from '../../dist/decorators';
+import Entity from '../../dist/entity';
+import { tableManager } from '../../dist/table';
 
 type UserProps = {
   partitionKey: string;
@@ -60,4 +56,10 @@ export class User extends Entity {
   }
 }
 
-export const UserRegistry = register<UserKeys, typeof User>(User, USERS_TABLE);
+export const userManager = tableManager(User)
+  .metadata({
+    tableName: USERS_TABLE,
+    partitionKey: 'partitionKey',
+    sortKey: 'sortKey',
+  })
+  .tableEntityManager();

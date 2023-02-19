@@ -1,7 +1,7 @@
-import { UserRegistry } from '../model';
+import { userManager } from '../model';
 
 async function deleteFn() {
-  const userDelete = await UserRegistry.delete({ partitionKey: 'pk1', sortKey: 'sk1' });
+  const userDelete = await userManager.delete({ partitionKey: 'pk1', sortKey: 'sk1' });
 
   console.log();
   console.log('OUTPUT:');

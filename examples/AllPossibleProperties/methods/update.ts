@@ -1,7 +1,7 @@
-import { AllPossiblePropertiesRegistry } from '../model';
+import { AllPossiblePropertiesManager } from '../model';
 
 async function update() {
-  const userUpdate = await AllPossiblePropertiesRegistry.update(
+  const userUpdate = await AllPossiblePropertiesManager.update(
     { partitionKey: 'pk1', sortKey: 'sk1' },
     {
       add: {

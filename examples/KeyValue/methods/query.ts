@@ -1,7 +1,7 @@
-import { KeyValueRegistry } from '../model';
+import { keyValueManager } from '../model';
 
 async function query() {
-  const userQuery = await KeyValueRegistry.query().partitionKey('key').eq('key1').run();
+  const userQuery = await keyValueManager.query().partitionKey('key').eq('key1').run();
 
   console.log();
   console.log('OUTPUT:');

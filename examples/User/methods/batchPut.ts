@@ -1,7 +1,7 @@
-import { User, UserRegistry } from '../model';
+import { User, userManager } from '../model';
 
 async function batchPut() {
-  const userBatchPut = await UserRegistry.batchPut([
+  const userBatchPut = await userManager.batchPut([
     new User({
       partitionKey: 'pk1',
       sortKey: 'sk1',

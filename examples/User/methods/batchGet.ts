@@ -1,7 +1,7 @@
-import { UserRegistry } from '../model';
+import { userManager } from '../model';
 
 async function batchGet() {
-  const userBatchGet = await UserRegistry.batchGet([
+  const userBatchGet = await userManager.batchGet([
     { partitionKey: 'pk1', sortKey: 'sk1' },
     { partitionKey: 'pk2', sortKey: 'sk2' },
   ]);

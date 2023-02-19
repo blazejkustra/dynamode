@@ -1,15 +1,6 @@
-import { attribute } from '../../dist/decorators';
-import { Entity, register } from '../../dist/entity';
-
-type TableKeys = {
-  partitionKey: 'propPk';
-  sortKey: 'propSk';
-  indexes: {
-    LSI_NAME: {
-      sortKey: 'index';
-    };
-  };
-};
+import attribute from '../../dist/decorators';
+import Entity from '../../dist/entity';
+import { tableManager } from '../../dist/table';
 
 type TableProps = {
   propPk: string;
@@ -83,6 +74,17 @@ export class EntityThree extends BaseTable {
   }
 }
 
-export const EntityOneRegistry = register<TableKeys, typeof EntityOne>(EntityOne, TABLE_NAME);
-export const EntityTwoRegistry = register<TableKeys, typeof EntityTwo>(EntityTwo, TABLE_NAME);
-export const EntityThreeRegistry = register<TableKeys, typeof EntityThree>(EntityThree, TABLE_NAME);
+export const baseTable = tableManager(BaseTable).metadata({
+  tableName: TABLE_NAME,
+  partitionKey: 'propPk',
+  sortKey: 'propSk',
+  indexes: {
+    LSI_NAME: {
+      sortKey: 'index',
+    },
+  },
+});
+
+export const EntityOneManager = baseTable.entityManager(EntityOne);
+export const EntityTwoManager = baseTable.entityManager(EntityTwo);
+export const EntityThreeManager = baseTable.entityManager(EntityThree);

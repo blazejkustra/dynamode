@@ -1,10 +1,22 @@
-import { AllPossiblePropertiesRegistry } from '../model';
+import { AllPossiblePropertiesManager } from '../model';
 
 async function query() {
-  const userQuery = await AllPossiblePropertiesRegistry.query()
+  const userQuery = await AllPossiblePropertiesManager.query()
     .partitionKey('partitionKey')
     .eq('pk1')
-    .condition(AllPossiblePropertiesRegistry.condition().attribute('number').le(2).or.parenthesis(AllPossiblePropertiesRegistry.condition().attribute('GSI_1_PK').not().eq('user').and.attribute('string').beginsWith('kustra.blazej')))
+    .condition(
+      AllPossiblePropertiesManager.condition()
+        .attribute('number')
+        .le(2)
+        .or.parenthesis(
+          AllPossiblePropertiesManager.condition()
+            .attribute('GSI_1_PK')
+            .not()
+            .eq('user')
+            .and.attribute('string')
+            .beginsWith('kustra.blazej'),
+        ),
+    )
     .run();
 
   console.log();

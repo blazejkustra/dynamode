@@ -1,19 +1,6 @@
-import { attribute } from '../../dist/decorators';
-import { Entity, register } from '../../dist/entity';
-
-type ReservedWordKeys = {
-  partitionKey: 'COLUMN';
-  sortKey: 'OBJECT';
-  indexes: {
-    OTHER: {
-      partitionKey: 'COPY';
-      sortKey: 'DEFAULT';
-    };
-    PRIMARY: {
-      sortKey: 'old';
-    };
-  };
-};
+import attribute from '../../dist/decorators';
+import Entity from '../../dist/entity';
+import { tableManager } from '../../dist/table';
 
 type ReservedWordProps = {
   COLUMN: string;
@@ -46,10 +33,10 @@ export class EntityReservedWord extends Entity {
   old?: number;
 
   // Timestamps
-  @attribute.date.string({ as: 'createdAt' })
+  @attribute.date.string()
   DAY: Date;
 
-  @attribute.date.number({ as: 'updatedAt' })
+  @attribute.date.number()
   DATE: Date;
 
   constructor(props: ReservedWordProps) {
@@ -69,7 +56,19 @@ export class EntityReservedWord extends Entity {
   }
 }
 
-export const EntityReservedWordRegistry = register<ReservedWordKeys, typeof EntityReservedWord>(
-  EntityReservedWord,
-  TABLE_NAME,
-);
+export const reservedWordManager = tableManager(EntityReservedWord)
+  .metadata({
+    tableName: TABLE_NAME,
+    partitionKey: 'COLUMN',
+    sortKey: 'OBJECT',
+    indexes: {
+      OTHER: {
+        partitionKey: 'COPY',
+        sortKey: 'DEFAULT',
+      },
+      PRIMARY: {
+        sortKey: 'old',
+      },
+    },
+  })
+  .tableEntityManager();

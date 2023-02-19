@@ -1,7 +1,7 @@
-import { KeyValueRegistry } from '../model';
+import { keyValueManager } from '../model';
 
 async function deleteFn() {
-  const modelDelete = await KeyValueRegistry.delete({ key: 'key1' });
+  const modelDelete = await keyValueManager.delete({ key: 'key1' });
 
   console.log();
   console.log('OUTPUT:');

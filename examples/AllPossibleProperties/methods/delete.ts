@@ -1,7 +1,7 @@
-import { AllPossiblePropertiesRegistry } from '../model';
+import { AllPossiblePropertiesManager } from '../model';
 
 async function deleteFn() {
-  const modelDelete = await AllPossiblePropertiesRegistry.delete({ partitionKey: 'pk1', sortKey: 'sk1' });
+  const modelDelete = await AllPossiblePropertiesManager.delete({ partitionKey: 'pk1', sortKey: 'sk1' });
 
   console.log();
   console.log('OUTPUT:');
