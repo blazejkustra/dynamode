@@ -47,7 +47,10 @@ async function transaction() {
         partitionKey: 'pk2',
         sortKey: 'sk2',
       }),
-      AllPossiblePropertiesRegistry.transaction.condition({ partitionKey: 'pk1', sortKey: 'sk1' }, AllPossiblePropertiesRegistry.condition().attribute('partitionKey').eq('pk1')),
+      AllPossiblePropertiesRegistry.transaction.condition(
+        { partitionKey: 'pk1', sortKey: 'sk1' },
+        AllPossiblePropertiesRegistry.condition().attribute('partitionKey').eq('pk1'),
+      ),
     ],
     { return: 'default' },
   );

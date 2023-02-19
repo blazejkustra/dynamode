@@ -16,9 +16,7 @@ export default class Scan<EM extends EntityMetadata, E extends typeof Entity> ex
     super(entity);
   }
 
-  public run(): Promise<ScanRunOutput<E>>;
-  public run(options: Omit<ScanRunOptions, 'return'>): Promise<ScanRunOutput<E>>;
-  public run(options: ScanRunOptions & { return: 'default' }): Promise<ScanRunOutput<E>>;
+  public run(options?: ScanRunOptions & { return?: 'default' }): Promise<ScanRunOutput<E>>;
   public run(options: ScanRunOptions & { return: 'output' }): Promise<ScanCommandOutput>;
   public run(options: ScanRunOptions & { return: 'input' }): ScanInput;
   public run(options?: ScanRunOptions): Promise<ScanRunOutput<E> | ScanCommandOutput> | ScanInput {

@@ -64,7 +64,6 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 * [ ] Change decorators so that they are used like @attribute.partitionKey(...) etc 
 * [ ] Allow passing empty objects to Entity.update
-* [ ] Fix that you can't pass options object without { return: 'default' }
 * [ ] Make possible to query different types of entities
 * [ ] Add dependsOn to global settings to throw/warn when updating
 * [ ] Add dynamoDB streams support

@@ -88,19 +88,21 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     return new Scan(entity);
   }
 
-  function get(primaryKey: EntityPrimaryKey<EM, E>): Promise<InstanceType<E>>;
   function get(
     primaryKey: EntityPrimaryKey<EM, E>,
-    options: EntityGetOptions<E> & { return: 'default' },
+    options?: EntityGetOptions<E> & { return?: 'default' },
   ): Promise<InstanceType<E>>;
+
   function get(
     primaryKey: EntityPrimaryKey<EM, E>,
     options: EntityGetOptions<E> & { return: 'output' },
   ): Promise<GetItemCommandOutput>;
+
   function get(
     primaryKey: EntityPrimaryKey<EM, E>,
     options: EntityGetOptions<E> & { return: 'input' },
   ): GetItemCommandInput;
+
   function get(
     primaryKey: EntityPrimaryKey<EM, E>,
     options?: EntityGetOptions<E>,
@@ -135,22 +137,24 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     })();
   }
 
-  function update(primaryKey: EntityPrimaryKey<EM, E>, props: UpdateProps<E>): Promise<InstanceType<E>>;
   function update(
     primaryKey: EntityPrimaryKey<EM, E>,
     props: UpdateProps<E>,
-    options: EntityUpdateOptions<E> & { return: 'default' },
+    options?: EntityUpdateOptions<E> & { return?: 'default' },
   ): Promise<InstanceType<E>>;
+
   function update(
     primaryKey: EntityPrimaryKey<EM, E>,
     props: UpdateProps<E>,
     options: EntityUpdateOptions<E> & { return: 'output' },
   ): Promise<UpdateItemCommandOutput>;
+
   function update(
     primaryKey: EntityPrimaryKey<EM, E>,
     props: UpdateProps<E>,
     options: EntityUpdateOptions<E> & { return: 'input' },
   ): UpdateItemCommandInput;
+
   function update(
     primaryKey: EntityPrimaryKey<EM, E>,
     props: UpdateProps<E>,
@@ -187,13 +191,14 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     })();
   }
 
-  function put(item: InstanceType<E>): Promise<InstanceType<E>>;
-  function put(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'default' }): Promise<InstanceType<E>>;
+  function put(item: InstanceType<E>, options?: EntityPutOptions<E> & { return?: 'default' }): Promise<InstanceType<E>>;
+
   function put(
     item: InstanceType<E>,
     options: EntityPutOptions<E> & { return: 'output' },
   ): Promise<PutItemCommandOutput>;
   function put(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'input' }): PutItemCommandInput;
+
   function put(
     item: InstanceType<E>,
     options?: EntityPutOptions<E>,
@@ -236,16 +241,17 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     })();
   }
 
-  function create(item: InstanceType<E>): Promise<InstanceType<E>>;
   function create(
     item: InstanceType<E>,
-    options: EntityPutOptions<E> & { return: 'default' },
+    options?: EntityPutOptions<E> & { return?: 'default' },
   ): Promise<InstanceType<E>>;
+
   function create(
     item: InstanceType<E>,
     options: EntityPutOptions<E> & { return: 'output' },
   ): Promise<PutItemCommandOutput>;
   function create(item: InstanceType<E>, options: EntityPutOptions<E> & { return: 'input' }): PutItemCommandInput;
+
   function create(
     item: InstanceType<E>,
     options?: EntityPutOptions<E>,
@@ -254,19 +260,21 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     return put(item, { ...options, overwrite } as any);
   }
 
-  function _delete(primaryKey: EntityPrimaryKey<EM, E>): Promise<InstanceType<E> | null>;
   function _delete(
     primaryKey: EntityPrimaryKey<EM, E>,
-    options: EntityDeleteOptions<E> & { return: 'default' },
+    options?: EntityDeleteOptions<E> & { return?: 'default' },
   ): Promise<InstanceType<E> | null>;
+
   function _delete(
     primaryKey: EntityPrimaryKey<EM, E>,
     options: EntityDeleteOptions<E> & { return: 'output' },
   ): Promise<DeleteItemCommandOutput>;
+
   function _delete(
     primaryKey: EntityPrimaryKey<EM, E>,
     options: EntityDeleteOptions<E> & { return: 'input' },
   ): DeleteItemCommandInput;
+
   function _delete(
     primaryKey: EntityPrimaryKey<EM, E>,
     options?: EntityDeleteOptions<E>,
@@ -304,19 +312,21 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     })();
   }
 
-  function batchGet(primaryKeys: Array<EntityPrimaryKey<EM, E>>): Promise<EntityBatchGetOutput<EM, E>>;
   function batchGet(
     primaryKeys: Array<EntityPrimaryKey<EM, E>>,
-    options: EntityBatchGetOptions<E> & { return: 'default' },
+    options?: EntityBatchGetOptions<E> & { return?: 'default' },
   ): Promise<EntityBatchGetOutput<EM, E>>;
+
   function batchGet(
     primaryKeys: Array<EntityPrimaryKey<EM, E>>,
     options: EntityBatchGetOptions<E> & { return: 'output' },
   ): Promise<BatchGetItemCommandOutput>;
+
   function batchGet(
     primaryKeys: Array<EntityPrimaryKey<EM, E>>,
     options: EntityBatchGetOptions<E> & { return: 'input' },
   ): BatchGetItemCommandInput;
+
   function batchGet(
     primaryKeys: Array<EntityPrimaryKey<EM, E>>,
     options?: EntityBatchGetOptions<E>,
@@ -357,19 +367,21 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     })();
   }
 
-  function batchPut(items: Array<InstanceType<E>>): Promise<EntityBatchPutOutput<E>>;
   function batchPut(
     items: Array<InstanceType<E>>,
-    options: EntityBatchPutOptions & { return: 'default' },
+    options?: EntityBatchPutOptions & { return?: 'default' },
   ): Promise<EntityBatchPutOutput<E>>;
+
   function batchPut(
     items: Array<InstanceType<E>>,
     options: EntityBatchPutOptions & { return: 'output' },
   ): Promise<BatchWriteItemCommandOutput>;
+
   function batchPut(
     items: Array<InstanceType<E>>,
     options: EntityBatchPutOptions & { return: 'input' },
   ): BatchWriteItemCommandInput;
+
   function batchPut(
     items: Array<InstanceType<E>>,
     options?: EntityBatchPutOptions,
@@ -412,19 +424,19 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
 
   function batchDelete(
     primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    options?: EntityBatchDeleteOptions & { return?: 'default' },
   ): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<EM, E>>>;
-  function batchDelete(
-    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
-    options: EntityBatchDeleteOptions & { return: 'default' },
-  ): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<EM, E>>>;
+
   function batchDelete(
     primaryKeys: Array<EntityPrimaryKey<EM, E>>,
     options: EntityBatchDeleteOptions & { return: 'output' },
   ): Promise<BatchWriteItemCommandOutput>;
+
   function batchDelete(
     primaryKeys: Array<EntityPrimaryKey<EM, E>>,
     options: EntityBatchDeleteOptions & { return: 'input' },
   ): BatchWriteItemCommandInput;
+
   function batchDelete(
     primaryKeys: Array<EntityPrimaryKey<EM, E>>,
     options?: EntityBatchDeleteOptions,

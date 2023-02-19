@@ -15,9 +15,7 @@ export default class Query<EM extends EntityMetadata, E extends typeof Entity> e
     super(entity);
   }
 
-  public run(): Promise<QueryRunOutput<E>>;
-  public run(options: Omit<QueryRunOptions, 'return'>): Promise<QueryRunOutput<E>>;
-  public run(options: QueryRunOptions & { return: 'default' }): Promise<QueryRunOutput<E>>;
+  public run(options?: QueryRunOptions & { return?: 'default' }): Promise<QueryRunOutput<E>>;
   public run(options: QueryRunOptions & { return: 'output' }): Promise<QueryCommandOutput>;
   public run(options: QueryRunOptions & { return: 'input' }): QueryInput;
   public run(options?: QueryRunOptions): Promise<QueryRunOutput<E> | QueryCommandOutput> | QueryInput {
