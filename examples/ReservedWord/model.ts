@@ -1,4 +1,4 @@
-import { createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, primaryPartitionKey, primarySortKey, updatedAt } from '../../dist/decorators';
+import { attribute } from '../../dist/decorators';
 import { Entity, register } from '../../dist/entity';
 
 type ReservedWordKeys = {
@@ -29,27 +29,27 @@ const TABLE_NAME = 'reservedWord';
 
 export class EntityReservedWord extends Entity {
   // Primary key
-  @primaryPartitionKey(String)
+  @attribute.partitionKey.string()
   COLUMN: string;
 
-  @primarySortKey(String)
+  @attribute.sortKey.string()
   OBJECT: string;
 
   // Indexes
-  @gsiPartitionKey(String, 'OTHER')
+  @attribute.gsi.partitionKey.string({ indexName: 'OTHER' })
   COPY?: string;
 
-  @gsiSortKey(Number, 'OTHER')
+  @attribute.gsi.sortKey.number({ indexName: 'OTHER' })
   DEFAULT?: number;
 
-  @lsiSortKey(Number, 'PRIMARY')
+  @attribute.lsi.sortKey.number({ indexName: 'PRIMARY' })
   old?: number;
 
   // Timestamps
-  @createdAt(String)
+  @attribute.date.string({ as: 'createdAt' })
   DAY: Date;
 
-  @updatedAt(Number)
+  @attribute.date.number({ as: 'updatedAt' })
   DATE: Date;
 
   constructor(props: ReservedWordProps) {
@@ -69,4 +69,7 @@ export class EntityReservedWord extends Entity {
   }
 }
 
-export const EntityReservedWordRegistry = register<ReservedWordKeys, typeof EntityReservedWord>(EntityReservedWord, TABLE_NAME);
+export const EntityReservedWordRegistry = register<ReservedWordKeys, typeof EntityReservedWord>(
+  EntityReservedWord,
+  TABLE_NAME,
+);

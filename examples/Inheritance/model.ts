@@ -1,4 +1,4 @@
-import { attribute, lsiSortKey, primaryPartitionKey, primarySortKey } from '../../dist/decorators';
+import { attribute } from '../../dist/decorators';
 import { Entity, register } from '../../dist/entity';
 
 type TableKeys = {
@@ -20,13 +20,13 @@ type TableProps = {
 const TABLE_NAME = 'inheritance';
 
 class BaseTable extends Entity {
-  @primaryPartitionKey(String)
+  @attribute.partitionKey.string()
   propPk: string;
 
-  @primarySortKey(Number)
+  @attribute.sortKey.number()
   propSk: number;
 
-  @lsiSortKey(String, 'LSI_NAME')
+  @attribute.lsi.sortKey.string({ indexName: 'LSI_NAME' })
   index: string;
 
   constructor(props: TableProps) {
@@ -43,7 +43,7 @@ type EntityOneProps = TableProps & {
 };
 
 export class EntityOne extends BaseTable {
-  @attribute(Object)
+  @attribute.object()
   one: { [k: string]: number };
 
   constructor(props: EntityOneProps) {
@@ -58,7 +58,7 @@ type EntityTwoProps = EntityOneProps & {
 };
 
 export class EntityTwo extends EntityOne {
-  @attribute(Object)
+  @attribute.object()
   two: { [k: string]: string };
 
   constructor(props: EntityTwoProps) {
@@ -73,7 +73,7 @@ type EntityThreeProps = TableProps & {
 };
 
 export class EntityThree extends BaseTable {
-  @attribute(Object)
+  @attribute.object()
   otherProperty: { [k: string]: number };
 
   constructor(props: EntityThreeProps) {

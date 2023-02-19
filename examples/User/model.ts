@@ -1,4 +1,4 @@
-import { attribute, primaryPartitionKey, primarySortKey } from '../../dist/decorators';
+import { attribute } from '../../dist/decorators';
 import { Entity, register } from '../../dist/entity';
 
 type UserKeys = {
@@ -21,25 +21,25 @@ type UserProps = {
 const USERS_TABLE = 'users';
 
 export class User extends Entity {
-  @primaryPartitionKey(String)
+  @attribute.partitionKey.string()
   partitionKey: string;
 
-  @primarySortKey(String)
+  @attribute.sortKey.string()
   sortKey: string;
 
-  @attribute(String)
+  @attribute.string()
   username: string;
 
-  @attribute(String)
+  @attribute.string()
   email: string;
 
-  @attribute(Number)
+  @attribute.number()
   age: number;
 
-  @attribute(Array)
+  @attribute.array()
   friends: string[];
 
-  @attribute(Object)
+  @attribute.object()
   config: {
     isAdmin: boolean;
   };

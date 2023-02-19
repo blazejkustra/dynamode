@@ -1,4 +1,4 @@
-import { attribute, primaryPartitionKey } from '../../dist/decorators';
+import { attribute } from '../../dist/decorators';
 import { Entity, register } from '../../dist/entity';
 
 type KeyValueKeys = {
@@ -13,10 +13,10 @@ type KeyValueProps = {
 const TABLE_NAME = 'key-value';
 
 export class KeyValue extends Entity {
-  @primaryPartitionKey(String)
+  @attribute.partitionKey.string()
   key: string;
 
-  @attribute(Object)
+  @attribute.object()
   value: Record<string, unknown>;
 
   constructor(props: KeyValueProps) {
