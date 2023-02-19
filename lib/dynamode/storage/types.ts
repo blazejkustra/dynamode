@@ -2,6 +2,7 @@ import { Entity } from '@lib/entity';
 
 export type IndexAttributeType = StringConstructor | NumberConstructor;
 export type TimestampAttributeType = StringConstructor | NumberConstructor;
+
 export type AttributeType =
   | StringConstructor
   | NumberConstructor
@@ -9,19 +10,22 @@ export type AttributeType =
   | ObjectConstructor
   | ArrayConstructor
   | SetConstructor
-  | MapConstructor;
+  | MapConstructor
+  | DateConstructor;
+
 export type AttributeRole =
   | 'partitionKey'
   | 'sortKey'
   | 'gsiPartitionKey'
   | 'gsiSortKey'
   | 'lsiSortKey'
+  | 'date'
   | 'createdAt'
   | 'updatedAt'
   | 'attribute'
   | 'dynamodeEntity';
 
-export type AttributeMetadata<Type> = {
+export type AttributeMetadata<Type extends AttributeType> = {
   propertyName?: string;
   indexName?: string;
   prefix?: string;

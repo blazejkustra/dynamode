@@ -62,14 +62,13 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 ### Consider
 
-* [ ] Change decorators so that they are used like @attribute.partitionKey(...) etc 
+* [ ] add array type to attribute.array decorator
 * [ ] Allow passing empty objects to Entity.update
 * [ ] Make possible to query different types of entities
 * [ ] Add dependsOn to global settings to throw/warn when updating
 * [ ] Add dynamoDB streams support
 * [ ] Add PartiQL support
 * [ ] CLI tool to create/update table/index
-* [ ] Type entity return type better https://github.com/Polymer/polymer-decorators/issues/80
 * [ ] Fix Condition, Query and Scan methods to work only on specific properties (between, contains etc shouldn't work for array as an example)
 * [ ] convert all Date attributes to String/Number not only updatedAt and createdAt
 

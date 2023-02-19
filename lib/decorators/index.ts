@@ -1,285 +1,273 @@
-import type { DecoratorOptions } from '@lib/decorators/types';
-import { Dynamode } from '@lib/dynamode';
-import type {
-  AttributeMetadata,
-  AttributeType,
-  IndexAttributeType,
-  TimestampAttributeType,
-} from '@lib/dynamode/storage/types';
+import type { DateDecoratorOptions, IndexDecoratorOptions, PrefixSuffixOptions } from '@lib/decorators/types';
+import Dynamode from '@lib/dynamode/index';
+import type { AttributeMetadata, AttributeRole, AttributeType } from '@lib/dynamode/storage/types';
 import { Entity } from '@lib/entity';
 
-// export function dependsOn<T>(value: T) {
-//   return (Entity: T, propertyName: string) => {
-//     console.log('test', value);
-//   };
-// }
+import { DefaultError } from './../utils/errors';
 
-// TODO: implement
-export function registerTable(tableName: string) {
-  return <E extends typeof Entity>(Class: E) => {
-    Class.tableName = tableName;
-    return Class;
-  };
-}
-
-export function prefix(value: string) {
-  return <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => {
-    const tableName = (<any>Entity.constructor).tableName;
-    const entityName = Entity.constructor.name;
-    const metadata: AttributeMetadata<AttributeType> = {
-      prefix: value,
-      propertyName,
-    };
-
-    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-  };
-}
-
-export function suffix(value: string) {
-  return <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => {
-    const tableName = (<any>Entity.constructor).tableName;
-    const entityName = Entity.constructor.name;
-    const metadata: AttributeMetadata<AttributeType> = {
-      suffix: value,
-      propertyName,
-    };
-
-    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-  };
-}
-
-export function attribute(
-  type: StringConstructor,
-  options?: DecoratorOptions,
-): <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function attribute(
-  type: NumberConstructor,
-): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function attribute(
-  type: BooleanConstructor,
-): <T extends Partial<Record<K, boolean>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function attribute(
-  type: ObjectConstructor,
-): <T extends Partial<Record<K, Record<string, unknown>>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function attribute(
-  type: ArrayConstructor,
-): <T extends Partial<Record<K, Array<unknown>>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function attribute(
-  type: SetConstructor,
-): <T extends Partial<Record<K, Set<string | number>>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function attribute(
-  type: MapConstructor,
-): <T extends Partial<Record<K, Map<unknown, unknown>>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function attribute(type: AttributeType, options?: DecoratorOptions) {
+function decorateAttribute(
+  type: AttributeType,
+  role: AttributeRole,
+  options?: PrefixSuffixOptions | IndexDecoratorOptions,
+): (Entity: any, propertyName: string) => void {
   return (Entity: any, propertyName: string) => {
     const tableName = Entity.constructor.tableName;
     const entityName = Entity.constructor.name;
+
+    const prefix = options && 'prefix' in options ? options.prefix : undefined;
+    const suffix = options && 'suffix' in options ? options.suffix : undefined;
+    const indexName = options && 'indexName' in options ? options.indexName : undefined;
+
     const attributeMetadata: AttributeMetadata<AttributeType> = {
       propertyName,
       type,
-      role: 'attribute',
-      ...options,
+      role,
+      indexName,
+      prefix,
+      suffix,
     };
+
+    switch (role) {
+      case 'partitionKey': {
+        Dynamode.storage.addPrimaryPartitionKeyMetadata(tableName, propertyName);
+        break;
+      }
+
+      case 'sortKey': {
+        Dynamode.storage.addPrimarySortKeyMetadata(tableName, propertyName);
+        break;
+      }
+
+      case 'lsiSortKey': {
+        if (!indexName) {
+          throw new DefaultError();
+        }
+
+        Dynamode.storage.addLsiSortKeyMetadata(tableName, indexName, propertyName);
+        break;
+      }
+
+      case 'gsiPartitionKey': {
+        if (!indexName) {
+          throw new DefaultError();
+        }
+
+        Dynamode.storage.addGsiPartitionKeyMetadata(tableName, indexName, propertyName);
+        break;
+      }
+
+      case 'gsiSortKey': {
+        if (!indexName) {
+          throw new DefaultError();
+        }
+
+        Dynamode.storage.addGsiSortKeyMetadata(tableName, indexName, propertyName);
+        break;
+      }
+
+      case 'createdAt': {
+        Dynamode.storage.addCreatedAtMetadata(tableName, propertyName);
+        break;
+      }
+
+      case 'updatedAt': {
+        Dynamode.storage.addUpdatedAtMetadata(tableName, propertyName);
+        break;
+      }
+
+      case 'attribute': {
+        break;
+      }
+
+      default: {
+        throw new DefaultError();
+      }
+    }
 
     Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, attributeMetadata);
     Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
-export function primaryPartitionKey(
-  type: StringConstructor,
-  options?: DecoratorOptions,
-): <T extends Record<K, string>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function primaryPartitionKey(
-  type: NumberConstructor,
-): <T extends Record<K, number>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function primaryPartitionKey(type: IndexAttributeType, options?: DecoratorOptions) {
-  return (Entity: any, propertyName: string) => {
-    const tableName = Entity.constructor.tableName;
+function prefix(value: string) {
+  return <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => {
+    const tableName = (<any>Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const metadata: AttributeMetadata<IndexAttributeType> = {
-      type,
+    const metadata: AttributeMetadata<AttributeType> = {
       propertyName,
-      role: 'partitionKey',
-      ...options,
+      prefix: value,
     };
 
-    Dynamode.storage.addPrimaryPartitionKeyMetadata(tableName, propertyName);
     Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
-export function primarySortKey(
-  type: StringConstructor,
-  options?: DecoratorOptions,
-): <T extends Record<K, string>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function primarySortKey(
-  type: NumberConstructor,
-): <T extends Record<K, number>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function primarySortKey(type: IndexAttributeType, options?: DecoratorOptions) {
-  return (Entity: any, propertyName: string) => {
-    const tableName = Entity.constructor.tableName;
+function suffix(value: string) {
+  return <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => {
+    const tableName = (<any>Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const metadata: AttributeMetadata<IndexAttributeType> = {
-      type,
+    const metadata: AttributeMetadata<AttributeType> = {
       propertyName,
-      role: 'sortKey',
-      ...options,
+      suffix: value,
     };
 
-    Dynamode.storage.addPrimarySortKeyMetadata(tableName, propertyName);
     Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
   };
 }
 
-export function gsiPartitionKey(
-  type: StringConstructor,
-  indexName: string,
-  options?: DecoratorOptions,
-): <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function gsiPartitionKey(
-  type: NumberConstructor,
-  indexName: string,
-): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function gsiPartitionKey(type: IndexAttributeType, indexName: string, options?: DecoratorOptions) {
-  return (Entity: any, propertyName: string) => {
-    const tableName = Entity.constructor.tableName;
-    const entityName = Entity.constructor.name;
-    const metadata: AttributeMetadata<IndexAttributeType> = {
-      type,
-      propertyName,
-      indexName,
-      role: 'gsiPartitionKey',
-      ...options,
-    };
-
-    Dynamode.storage.addGsiPartitionKeyMetadata(tableName, indexName, propertyName);
-    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
-  };
+function stringPartitionKey(
+  options?: PrefixSuffixOptions,
+): <T extends Record<K, string>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(String, 'partitionKey', options);
 }
 
-export function gsiSortKey(
-  type: StringConstructor,
-  indexName: string,
-  options?: DecoratorOptions,
-): <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function gsiSortKey(
-  type: NumberConstructor,
-  indexName: string,
-): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function gsiSortKey(type: IndexAttributeType, indexName: string, options?: DecoratorOptions) {
-  return (Entity: any, propertyName: string) => {
-    const tableName = Entity.constructor.tableName;
-    const entityName = Entity.constructor.name;
-    const metadata: AttributeMetadata<IndexAttributeType> = {
-      type,
-      propertyName,
-      indexName,
-      role: 'gsiSortKey',
-      ...options,
-    };
-
-    Dynamode.storage.addGsiSortKeyMetadata(tableName, indexName, propertyName);
-    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
-  };
+function numberPartitionKey(): <T extends Record<K, number>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(Number, 'partitionKey');
 }
 
-export function lsiSortKey(
-  type: StringConstructor,
-  indexName: string,
-  options?: DecoratorOptions,
-): <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function lsiSortKey(
-  type: NumberConstructor,
-  indexName: string,
-): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function lsiSortKey(type: IndexAttributeType, indexName: string, options?: DecoratorOptions) {
-  return (Entity: any, propertyName: string) => {
-    const tableName = Entity.constructor.tableName;
-    const entityName = Entity.constructor.name;
-    const metadata: AttributeMetadata<IndexAttributeType> = {
-      type,
-      propertyName,
-      indexName,
-      role: 'lsiSortKey',
-      ...options,
-    };
-
-    Dynamode.storage.addLsiSortKeyMetadata(tableName, indexName, propertyName);
-    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
-  };
+function stringSortKey(
+  options?: PrefixSuffixOptions,
+): <T extends Record<K, string>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(String, 'sortKey', options);
 }
 
-export function createdAt(
-  type: StringConstructor,
-  options?: DecoratorOptions,
-): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function createdAt(
-  type: NumberConstructor,
-): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void;
-
-export function createdAt(type: TimestampAttributeType, options?: DecoratorOptions) {
-  return (Entity: any, propertyName: string) => {
-    const tableName = Entity.constructor.tableName;
-    const entityName = Entity.constructor.name;
-    const metadata: AttributeMetadata<TimestampAttributeType> = {
-      type,
-      propertyName,
-      role: 'createdAt',
-      ...options,
-    };
-
-    Dynamode.storage.addCreatedAtMetadata(tableName, propertyName);
-    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
-  };
+function numberSortKey(): <T extends Record<K, number>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(Number, 'sortKey');
 }
 
-export function updatedAt(
-  type: StringConstructor,
-  options?: DecoratorOptions,
-): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void;
+function stringGsiPartitionKey(
+  options: IndexDecoratorOptions & PrefixSuffixOptions,
+): <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(String, 'gsiPartitionKey', options);
+}
 
-export function updatedAt(
-  type: NumberConstructor,
-): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void;
+function numberGsiPartitionKey(
+  options: IndexDecoratorOptions,
+): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(Number, 'gsiPartitionKey', options);
+}
 
-export function updatedAt(type: TimestampAttributeType, options?: DecoratorOptions) {
-  return (Entity: any, propertyName: string) => {
-    const tableName = Entity.constructor.tableName;
-    const entityName = Entity.constructor.name;
-    const metadata: AttributeMetadata<TimestampAttributeType> = {
-      type,
-      propertyName,
-      role: 'createdAt',
-      ...options,
-    };
+function stringGsiSortKey(
+  options: IndexDecoratorOptions & PrefixSuffixOptions,
+): <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(String, 'gsiSortKey', options);
+}
 
-    Dynamode.storage.addUpdatedAtMetadata(tableName, propertyName);
-    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
-    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
+function numberGsiSortKey(
+  options: IndexDecoratorOptions,
+): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(Number, 'gsiSortKey', options);
+}
+
+function stringLsiSortKey(
+  options: IndexDecoratorOptions & PrefixSuffixOptions,
+): <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(String, 'lsiSortKey', options);
+}
+
+function numberLsiSortKey(
+  options: IndexDecoratorOptions,
+): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(Number, 'lsiSortKey', options);
+}
+
+function stringDate(
+  options: DateDecoratorOptions & PrefixSuffixOptions,
+): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(String, options?.as || 'date', options);
+}
+
+function numberDate(
+  options: DateDecoratorOptions,
+): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(Number, options?.as || 'date');
+}
+
+function string(
+  options?: PrefixSuffixOptions,
+): <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(String, 'attribute', options);
+}
+
+function number(): <T extends Partial<Record<K, number>>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(Number, 'attribute');
+}
+
+function boolean(): <T extends Partial<Record<K, boolean>>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(Boolean, 'attribute');
+}
+
+function object(): <T extends Partial<Record<K, Record<string, unknown>>>, K extends string>(
+  Entity: T,
+  propertyName: K,
+) => void {
+  return decorateAttribute(Object, 'attribute');
+}
+
+function array(): <T extends Partial<Record<K, Array<unknown>>>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(Array, 'attribute');
+}
+
+function set(): <T extends Partial<Record<K, Set<string | number>>>, K extends string>(
+  Entity: T,
+  propertyName: K,
+) => void {
+  return decorateAttribute(Set, 'attribute');
+}
+
+function map(): <T extends Partial<Record<K, Map<unknown, unknown>>>, K extends string>(
+  Entity: T,
+  propertyName: K,
+) => void {
+  return decorateAttribute(Map, 'attribute');
+}
+
+export const attribute = {
+  string,
+  number,
+  boolean,
+  object,
+  array,
+  set,
+  map,
+
+  date: {
+    string: stringDate,
+    number: numberDate,
+  },
+  partitionKey: {
+    string: stringPartitionKey,
+    number: numberPartitionKey,
+  },
+  sortKey: {
+    string: stringSortKey,
+    number: numberSortKey,
+  },
+  gsi: {
+    partitionKey: {
+      string: stringGsiPartitionKey,
+      number: numberGsiPartitionKey,
+    },
+    sortKey: {
+      string: stringGsiSortKey,
+      number: numberGsiSortKey,
+    },
+  },
+  lsi: {
+    sortKey: {
+      string: stringLsiSortKey,
+      number: numberLsiSortKey,
+    },
+  },
+
+  prefix,
+  suffix,
+};
+
+// TODO: implement
+export function registerTable(tableName: string) {
+  return <E extends typeof Entity>(Class: E) => {
+    Class.tableName = tableName;
+    return Class;
   };
 }
