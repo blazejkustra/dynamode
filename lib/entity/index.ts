@@ -627,17 +627,17 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
 //   };
 // };
 
-// const userTable = dynamode.registerTable(UserTable).metadata<UserTableMetadata>('user-table');
+// const userTable = dynamode.tableManager(UserTable).tableName('user-table').metadata<UserTableMetadata>();
 
 // userTable.create();
 // userTable.validate();
-// userTable.registerEntity();
-
-// class User extends UserTable {}
+// userTable.entityManager();
 
 // const userTableManager = userTable.entityManager(UserTable);
 // userTableManager.get();
 // userTableManager.update();
+
+// class User extends UserTable {}
 
 // const userManager = userTable.entityManager(User);
 // userManager.get();
