@@ -3,7 +3,7 @@ import {
   ReturnValuesOnConditionCheckFailure as DynamoReturnValueOnFailure,
 } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
-import { Dynamode } from '@lib/dynamode';
+import Dynamode from '@lib/dynamode/index';
 import { Entity } from '@lib/entity';
 import type {
   BuildDeleteConditionExpression,

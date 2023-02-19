@@ -1,5 +1,5 @@
 import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
-import { Dynamode } from '@lib/dynamode';
+import Dynamode from '@lib/dynamode/index';
 import { Entity } from '@lib/entity';
 import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } from '@lib/entity/helpers';
 import { EntityKey, EntityMetadata, EntityPartitionKeys, EntitySortKeys, EntityValue } from '@lib/entity/types';

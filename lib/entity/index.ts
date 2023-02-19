@@ -13,7 +13,7 @@ import {
   UpdateItemCommandOutput,
 } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
-import { Dynamode } from '@lib/dynamode';
+import Dynamode from '@lib/dynamode/index';
 import {
   buildDeleteConditionExpression,
   buildGetProjectionExpression,

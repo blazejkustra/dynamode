@@ -1,5 +1,5 @@
 import { ScanCommandOutput, ScanInput } from '@aws-sdk/client-dynamodb';
-import { Dynamode } from '@lib/dynamode';
+import Dynamode from '@lib/dynamode/index';
 import { Entity } from '@lib/entity';
 import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } from '@lib/entity/helpers';
 import { EntityIndexNames, EntityMetadata } from '@lib/entity/types';
