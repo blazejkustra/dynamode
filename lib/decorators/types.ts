@@ -6,7 +6,3 @@ export interface PrefixSuffixOptions {
 export interface IndexDecoratorOptions {
   indexName: string;
 }
-
-export interface DateDecoratorOptions {
-  as?: 'createdAt' | 'updatedAt';
-}

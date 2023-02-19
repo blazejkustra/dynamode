@@ -1,15 +1,15 @@
 import { ScanCommandOutput, ScanInput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
-import { Entity } from '@lib/entity';
+import Entity from '@lib/entity';
 import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } from '@lib/entity/helpers';
-import { EntityIndexNames, EntityMetadata } from '@lib/entity/types';
 import RetrieverBase from '@lib/retriever';
 import type { ScanRunOptions, ScanRunOutput } from '@lib/scan/types';
+import { Metadata, TableIndexNames } from '@lib/table/types';
 import { isNotEmptyString } from '@lib/utils';
 
 import { ExpressionBuilder } from './../utils/ExpressionBuilder';
 
-export default class Scan<EM extends EntityMetadata, E extends typeof Entity> extends RetrieverBase<EM, E> {
+export default class Scan<M extends Metadata<E>, E extends typeof Entity> extends RetrieverBase<M, E> {
   protected declare input: ScanInput;
 
   constructor(entity: E) {
@@ -47,7 +47,7 @@ export default class Scan<EM extends EntityMetadata, E extends typeof Entity> ex
     })();
   }
 
-  public indexName(name: EntityIndexNames<EM>) {
+  public indexName(name: TableIndexNames<M>) {
     this.input.IndexName = String(name);
     return this;
   }

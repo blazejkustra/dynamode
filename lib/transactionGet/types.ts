@@ -1,5 +1,5 @@
 import { Get, TransactGetItemsCommandInput } from '@aws-sdk/client-dynamodb';
-import { Entity } from '@lib/entity';
+import Entity from '@lib/entity';
 import type { ReturnOption } from '@lib/entity/types';
 
 export interface TransactionGet<E extends typeof Entity> {

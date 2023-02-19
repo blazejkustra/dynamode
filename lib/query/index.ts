@@ -1,13 +1,14 @@
 import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
-import { Entity } from '@lib/entity';
+import Entity from '@lib/entity';
 import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } from '@lib/entity/helpers';
-import { EntityKey, EntityMetadata, EntityPartitionKeys, EntitySortKeys, EntityValue } from '@lib/entity/types';
+import { EntityKey, EntityValue } from '@lib/entity/types';
 import type { QueryRunOptions, QueryRunOutput } from '@lib/query/types';
 import RetrieverBase from '@lib/retriever';
+import { Metadata, TablePartitionKeys, TableSortKeys } from '@lib/table/types';
 import { AttributeValues, BASE_OPERATOR, ExpressionBuilder, isNotEmptyString, Operators, timeout } from '@lib/utils';
 
-export default class Query<EM extends EntityMetadata, E extends typeof Entity> extends RetrieverBase<EM, E> {
+export default class Query<M extends Metadata<E>, E extends typeof Entity> extends RetrieverBase<M, E> {
   protected declare input: QueryInput;
   protected keyOperators: Operators = [];
 
@@ -64,7 +65,7 @@ export default class Query<EM extends EntityMetadata, E extends typeof Entity> e
     })();
   }
 
-  public partitionKey<Q extends Query<EM, E>, K extends EntityKey<E> & EntityPartitionKeys<EM>>(this: Q, key: K) {
+  public partitionKey<Q extends Query<M, E>, K extends EntityKey<E> & TablePartitionKeys<M>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
     this.setAssociatedIndexName(key);
 
@@ -73,7 +74,7 @@ export default class Query<EM extends EntityMetadata, E extends typeof Entity> e
     };
   }
 
-  public sortKey<Q extends Query<EM, E>, K extends EntityKey<E> & EntitySortKeys<EM>>(this: Q, key: K) {
+  public sortKey<Q extends Query<M, E>, K extends EntityKey<E> & TableSortKeys<M>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
     this.setAssociatedIndexName(key);
 
@@ -101,9 +102,9 @@ export default class Query<EM extends EntityMetadata, E extends typeof Entity> e
     }
   }
 
-  private setAssociatedIndexName<K extends EntityKey<E> & EntityPartitionKeys<EM>>(key: K) {
-    const attributes = Dynamode.storage.getEntityAttributes(this.entity.tableName, this.entity.name);
-    const { indexName } = attributes[key];
+  private setAssociatedIndexName<K extends EntityKey<E> & TablePartitionKeys<M>>(key: K) {
+    const attributes = Dynamode.storage.getEntityAttributes(this.entity.name);
+    const { indexName } = attributes[key as string];
 
     if (indexName) {
       this.input.IndexName = indexName;

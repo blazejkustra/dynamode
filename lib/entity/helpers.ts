@@ -4,19 +4,18 @@ import {
 } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import Dynamode from '@lib/dynamode/index';
-import { Entity } from '@lib/entity';
+import Entity from '@lib/entity';
 import type {
   BuildDeleteConditionExpression,
   BuildGetProjectionExpression,
   BuildPutConditionExpression,
   BuildUpdateConditionExpression,
   EntityKey,
-  EntityMetadata,
-  EntityPrimaryKey,
   ReturnValues,
   ReturnValuesLimited,
   UpdateProps,
 } from '@lib/entity/types';
+import { Metadata, TablePrimaryKey } from '@lib/table/types';
 import {
   AttributeNames,
   AttributeValues,
@@ -211,8 +210,8 @@ export function convertAttributeValuesToEntity<E extends typeof Entity>(
   dynamoItem: AttributeValues,
 ): InstanceType<E> {
   const object = fromDynamo(dynamoItem);
-  const attributes = Dynamode.storage.getEntityAttributes(entity.tableName, entity.name);
-  const { createdAt, updatedAt } = Dynamode.storage.getTableMetadata(entity.tableName);
+  const attributes = Dynamode.storage.getEntityAttributes(entity.name);
+  const { createdAt, updatedAt } = Dynamode.storage.getEntityMetadata(entity.name);
 
   if (createdAt) {
     object[createdAt] = new Date(object[createdAt] as string | number);
@@ -239,7 +238,7 @@ export function convertEntityToAttributeValues<E extends typeof Entity>(
   item: InstanceType<E>,
 ): AttributeValues {
   const dynamoObject: GenericObject = {};
-  const attributes = Dynamode.storage.getEntityAttributes(entity.tableName, entity.name);
+  const attributes = Dynamode.storage.getEntityAttributes(entity.name);
 
   Object.keys(attributes).forEach((propertyName) => {
     let value: unknown = item[propertyName as keyof InstanceType<E>];
@@ -260,12 +259,12 @@ export function convertEntityToAttributeValues<E extends typeof Entity>(
   return objectToDynamo(dynamoObject);
 }
 
-export function convertAttributeValuesToPrimaryKey<EM extends EntityMetadata, E extends typeof Entity>(
+export function convertAttributeValuesToPrimaryKey<M extends Metadata<E>, E extends typeof Entity>(
   entity: E,
   dynamoItem: AttributeValues,
-): EntityPrimaryKey<EM, E> {
+): TablePrimaryKey<M, E> {
   const object = fromDynamo(dynamoItem);
-  const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(entity.tableName);
+  const { partitionKey, sortKey } = Dynamode.storage.getEntityMetadata(entity.name);
 
   if (partitionKey) {
     object[partitionKey] = truncateValue(entity, partitionKey as EntityKey<E>, object[partitionKey]);
@@ -274,15 +273,15 @@ export function convertAttributeValuesToPrimaryKey<EM extends EntityMetadata, E 
     object[sortKey] = truncateValue(entity, sortKey as EntityKey<E>, object[sortKey]);
   }
 
-  return object as EntityPrimaryKey<EM, E>;
+  return object as TablePrimaryKey<M, E>;
 }
 
-export function convertPrimaryKeyToAttributeValues<EM extends EntityMetadata, E extends typeof Entity>(
+export function convertPrimaryKeyToAttributeValues<M extends Metadata<E>, E extends typeof Entity>(
   entity: E,
-  primaryKey: EntityPrimaryKey<EM, E>,
+  primaryKey: TablePrimaryKey<M, E>,
 ): AttributeValues {
   const dynamoObject: GenericObject = {};
-  const { partitionKey, sortKey } = Dynamode.storage.getTableMetadata(entity.tableName);
+  const { partitionKey, sortKey } = Dynamode.storage.getEntityMetadata(entity.name);
 
   if (partitionKey) {
     dynamoObject[partitionKey] = prefixSuffixValue(
@@ -303,7 +302,7 @@ export function prefixSuffixValue<E extends typeof Entity>(entity: E, key: Entit
     return value;
   }
 
-  const attributes = Dynamode.storage.getEntityAttributes(entity.tableName, entity.name);
+  const attributes = Dynamode.storage.getEntityAttributes(entity.name);
   const separator = Dynamode.separator.get();
   const prefix = attributes[String(key)].prefix || '';
   const suffix = attributes[String(key)].suffix || '';
@@ -316,7 +315,7 @@ export function truncateValue<E extends typeof Entity>(entity: E, key: EntityKey
     return value;
   }
 
-  const attributes = Dynamode.storage.getEntityAttributes(entity.tableName, entity.name);
+  const attributes = Dynamode.storage.getEntityAttributes(entity.name);
   const separator = Dynamode.separator.get();
   const prefix = attributes[String(key)].prefix || '';
   const suffix = attributes[String(key)].suffix || '';

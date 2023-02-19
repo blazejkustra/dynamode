@@ -1,136 +1,112 @@
-import type { AttributeMetadata, AttributeType, EntityMetadata, TablesMetadata } from '@lib/dynamode/storage/types';
+import type {
+  AttributeMetadata,
+  AttributesMetadata,
+  EntitiesMetadata,
+  EntityMetadata,
+  TableMetadata,
+  TablesMetadata,
+} from '@lib/dynamode/storage/types';
+import Entity from '@lib/entity';
+import { Metadata } from '@lib/table/types';
 import { mergeObjects } from '@lib/utils';
+
+import { DefaultError } from './../../utils/errors';
 
 export default class DynamodeStorage {
   public tables: TablesMetadata = {};
+  public entities: EntitiesMetadata = {};
 
-  public addPrimaryPartitionKeyMetadata(tableName: string, propertyName: string) {
-    const table = this.getTableMetadata(tableName);
-    table.partitionKey = propertyName;
+  public registerTable(tableEntity: typeof Entity, metadata: Metadata): void {
+    const tableMetadata: TableMetadata = {
+      tableEntity,
+      metadata,
+      attributes: {},
+    };
+
+    if (this.tables[metadata.tableName]) {
+      throw new DefaultError();
+    }
+
+    this.tables[metadata.tableName] = tableMetadata;
   }
 
-  public addPrimarySortKeyMetadata(tableName: string, propertyName: string) {
-    const table = this.getTableMetadata(tableName);
-    table.sortKey = propertyName;
+  public registerEntity(entity: typeof Entity, tableName: string): void {
+    const existingEntityMetadata = this.entities[entity.name];
+    const entityMetadata: EntityMetadata = {
+      entity,
+      tableName,
+      attributes: existingEntityMetadata?.attributes || {},
+    };
+
+    if (!this.tables[tableName]) {
+      throw new DefaultError('2');
+    }
+
+    if (existingEntityMetadata?.entity || existingEntityMetadata?.tableName) {
+      throw new DefaultError('1');
+    }
+
+    this.entities[entity.name] = entityMetadata;
   }
 
-  public addCreatedAtMetadata(tableName: string, propertyName: string) {
-    const table = this.getTableMetadata(tableName);
-    table.createdAt = propertyName;
+  public registerAttribute(entityName: string, propertyName: string, value: AttributeMetadata): void {
+    if (!this.entities[entityName]) {
+      this.entities[entityName] = { attributes: {} } as EntityMetadata;
+    }
+
+    if (this.entities[entityName].attributes[propertyName]) {
+      throw new DefaultError();
+    }
+
+    this.entities[entityName].attributes[propertyName] = value;
   }
 
-  public addUpdatedAtMetadata(tableName: string, propertyName: string) {
-    const table = this.getTableMetadata(tableName);
-    table.updatedAt = propertyName;
+  public updateAttributePrefix(entityName: string, propertyName: string, value: string): void {
+    const attributeMetadata = this.entities[entityName].attributes[propertyName];
+    attributeMetadata.prefix = value;
   }
 
-  public addGsiPartitionKeyMetadata(tableName: string, indexName: string, propertyName: string) {
-    const globalSecondaryIndexes = this.getGsiMetadata(tableName, indexName);
-    globalSecondaryIndexes.partitionKey = propertyName;
+  public updateAttributeSuffix(entityName: string, propertyName: string, value: string): void {
+    const attributeMetadata = this.entities[entityName].attributes[propertyName];
+    attributeMetadata.suffix = value;
   }
 
-  public addGsiSortKeyMetadata(tableName: string, indexName: string, propertyName: string) {
-    const globalSecondaryIndexes = this.getGsiMetadata(tableName, indexName);
-    globalSecondaryIndexes.sortKey = propertyName;
-  }
+  public getEntityAttributes(entityName: string): AttributesMetadata {
+    const entitiesAttributes: AttributesMetadata[] = [];
+    let constructor = this.entities[entityName]?.entity;
 
-  public addLsiSortKeyMetadata(tableName: string, indexName: string, propertyName: string) {
-    const localSecondaryIndexes = this.getLsiMetadata(tableName, indexName);
-    localSecondaryIndexes.sortKey = propertyName;
-  }
-
-  public addEntityConstructor(tableName: string, entityName: string, value: EntityMetadata['entityConstructor']) {
-    const entityMetadata = this.getEntityMetadata(tableName, entityName);
-    entityMetadata.entityConstructor = entityMetadata.entityConstructor || value;
-  }
-
-  public addEntityAttributeMetadata(
-    tableName: string,
-    entityName: string,
-    propertyName: string,
-    value: AttributeMetadata<AttributeType>,
-  ) {
-    const attributeMetadata = this.getEntityAttributeMetadata(tableName, entityName, propertyName);
-    if (value.propertyName) attributeMetadata.propertyName = value.propertyName;
-    if (value.type) attributeMetadata.type = value.type;
-    if (value.prefix) attributeMetadata.prefix = value.prefix;
-    if (value.suffix) attributeMetadata.suffix = value.suffix;
-    if (value.indexName) attributeMetadata.indexName = value.indexName;
-    if (value.role) attributeMetadata.role = value.role;
-  }
-
-  public getEntityAttributes(tableName: string, entityName: string) {
-    const entitiesMetadata: EntityMetadata[] = [];
-    let constructor = this.getEntityMetadata(tableName, entityName).entityConstructor;
     while (constructor) {
-      const entityMetadata = this.getEntityMetadata(tableName, constructor.name);
-      entitiesMetadata.push(entityMetadata);
+      if (!constructor.name || !this.entities[constructor.name]) {
+        break;
+      }
+
+      const attributes = this.entities[constructor.name].attributes;
+      entitiesAttributes.push(attributes);
       constructor = Object.getPrototypeOf(constructor);
     }
-    return mergeObjects(...entitiesMetadata.reverse()).attributes || {};
+
+    return mergeObjects(...entitiesAttributes.reverse());
   }
 
-  public getGsiMetadata(tableName: string, indexName: string) {
-    const tableMetadata = this.getTableMetadata(tableName);
-
-    if (!tableMetadata.globalSecondaryIndexes) {
-      tableMetadata.globalSecondaryIndexes = {};
+  public getEntityTableName(entityName: string): string {
+    if (!this.entities[entityName]) {
+      throw new DefaultError();
     }
 
-    if (!tableMetadata.globalSecondaryIndexes[indexName]) {
-      tableMetadata.globalSecondaryIndexes[indexName] = {};
-    }
-
-    return tableMetadata.globalSecondaryIndexes[indexName];
+    return this.entities[entityName].tableName;
   }
 
-  public getLsiMetadata(tableName: string, indexName: string) {
-    const tableMetadata = this.getTableMetadata(tableName);
-
-    if (!tableMetadata.localSecondaryIndexes) {
-      tableMetadata.localSecondaryIndexes = {};
+  public getEntityMetadata(entityName: string): Metadata {
+    if (!this.entities[entityName]) {
+      throw new DefaultError();
     }
 
-    if (!tableMetadata.localSecondaryIndexes[indexName]) {
-      tableMetadata.localSecondaryIndexes[indexName] = {};
-    }
+    const { tableName } = this.entities[entityName];
 
-    return tableMetadata.localSecondaryIndexes[indexName];
-  }
-
-  public getTableMetadata(tableName: string) {
     if (!this.tables[tableName]) {
-      this.tables[tableName] = {};
+      throw new DefaultError();
     }
 
-    return this.tables[tableName];
-  }
-
-  public getEntityAttributeMetadata(tableName: string, entityName: string, attributeName: string) {
-    const entityMetadata = this.getEntityMetadata(tableName, entityName);
-
-    if (!entityMetadata.attributes) {
-      entityMetadata.attributes = {};
-    }
-
-    if (!entityMetadata.attributes[attributeName]) {
-      entityMetadata.attributes[attributeName] = {};
-    }
-
-    return entityMetadata.attributes[attributeName];
-  }
-
-  public getEntityMetadata(tableName: string, entityName: string) {
-    const table = this.getTableMetadata(tableName);
-
-    if (!table.entities) {
-      table.entities = {};
-    }
-
-    if (!table.entities[entityName]) {
-      table.entities[entityName] = {};
-    }
-
-    return table.entities[entityName];
+    return this.tables[tableName].metadata;
   }
 }

@@ -1,7 +1,7 @@
 import Condition, { AttributeType } from '@lib/condition';
-import { attribute, registerTable } from '@lib/decorators';
+import attribute from '@lib/decorators';
 import Dynamode from '@lib/dynamode/index';
-import { Entity } from '@lib/entity';
+import Entity from '@lib/entity';
 import Query from '@lib/query';
 import Scan from '@lib/scan';
 import transactionGet from '@lib/transactionGet';
@@ -23,7 +23,6 @@ export {
 
   //decorators
   attribute,
-  registerTable,
 
   //Entity
   Entity,

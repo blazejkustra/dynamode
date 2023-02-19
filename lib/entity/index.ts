@@ -35,8 +35,6 @@ import {
   EntityDeleteOptions,
   EntityGetOptions,
   EntityKey,
-  EntityMetadata,
-  EntityPrimaryKey,
   EntityPutOptions,
   EntityTransactionDeleteOptions,
   EntityTransactionGetOptions,
@@ -47,6 +45,7 @@ import {
 } from '@lib/entity/types';
 import Query from '@lib/query';
 import Scan from '@lib/scan';
+import { Metadata, TablePrimaryKey } from '@lib/table/types';
 import { TransactionGet } from '@lib/transactionGet/types';
 import {
   TransactionCondition,
@@ -54,10 +53,8 @@ import {
   TransactionPut,
   TransactionUpdate,
 } from '@lib/transactionWrite/types';
-import { AttributeValues, ExpressionBuilder, fromDynamo, NotFoundError } from '@lib/utils';
-
-export class Entity {
-  public static tableName: string;
+import { AttributeValues, DYNAMODE_ENTITY, ExpressionBuilder, fromDynamo, NotFoundError } from '@lib/utils';
+export default class Entity {
   // TODO: try to make it readonly
   public dynamodeEntity: string;
 
@@ -65,46 +62,44 @@ export class Entity {
   constructor(...args: unknown[]) {}
 }
 
-export function register<EM extends EntityMetadata = EntityMetadata, E extends typeof Entity = typeof Entity>(
-  entity: E,
-  tableName: string,
-) {
-  Dynamode.storage.addEntityAttributeMetadata(tableName, 'Entity', 'dynamodeEntity', {
-    propertyName: 'dynamodeEntity',
-    type: String,
-    role: 'dynamodeEntity',
-  });
+Dynamode.storage.registerAttribute(Entity.name, DYNAMODE_ENTITY, {
+  propertyName: DYNAMODE_ENTITY,
+  type: String,
+  role: DYNAMODE_ENTITY,
+});
+
+export function entityManager<M extends Metadata<E>, E extends typeof Entity>(entity: E, tableName: string) {
   entity.prototype.dynamodeEntity = entity.name;
 
   function condition(): Condition<E> {
     return new Condition(entity);
   }
 
-  function query(): Query<EM, E> {
+  function query(): Query<M, E> {
     return new Query(entity);
   }
 
-  function scan(): Scan<EM, E> {
+  function scan(): Scan<M, E> {
     return new Scan(entity);
   }
 
   function get(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     options?: EntityGetOptions<E> & { return?: 'default' },
   ): Promise<InstanceType<E>>;
 
   function get(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     options: EntityGetOptions<E> & { return: 'output' },
   ): Promise<GetItemCommandOutput>;
 
   function get(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     options: EntityGetOptions<E> & { return: 'input' },
   ): GetItemCommandInput;
 
   function get(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     options?: EntityGetOptions<E>,
   ): Promise<InstanceType<E> | GetItemCommandOutput> | GetItemCommandInput {
     const { projectionExpression, attributeNames } = buildGetProjectionExpression(entity, options?.attributes);
@@ -138,25 +133,25 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
   }
 
   function update(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     props: UpdateProps<E>,
     options?: EntityUpdateOptions<E> & { return?: 'default' },
   ): Promise<InstanceType<E>>;
 
   function update(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     props: UpdateProps<E>,
     options: EntityUpdateOptions<E> & { return: 'output' },
   ): Promise<UpdateItemCommandOutput>;
 
   function update(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     props: UpdateProps<E>,
     options: EntityUpdateOptions<E> & { return: 'input' },
   ): UpdateItemCommandInput;
 
   function update(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     props: UpdateProps<E>,
     options?: EntityUpdateOptions<E>,
   ): Promise<InstanceType<E> | UpdateItemCommandOutput> | UpdateItemCommandInput {
@@ -204,13 +199,9 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     options?: EntityPutOptions<E>,
   ): Promise<InstanceType<E> | PutItemCommandOutput> | PutItemCommandInput {
     const overwrite = options?.overwrite ?? true;
-    const partitionKey = Dynamode.storage.getTableMetadata(tableName).partitionKey;
-    const overwriteCondition = overwrite
-      ? undefined
-      : condition()
-          .attribute(partitionKey as EntityKey<E>)
-          .not()
-          .exists();
+    const partitionKey = Dynamode.storage.getEntityMetadata(entity.name).partitionKey as EntityKey<E>;
+
+    const overwriteCondition = overwrite ? undefined : condition().attribute(partitionKey).not().exists();
     const dynamoItem = convertEntityToAttributeValues(entity, item);
     const { conditionExpression, attributeNames, attributeValues } = buildPutConditionExpression(
       overwriteCondition,
@@ -261,26 +252,26 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
   }
 
   function _delete(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     options?: EntityDeleteOptions<E> & { return?: 'default' },
   ): Promise<InstanceType<E> | null>;
 
   function _delete(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     options: EntityDeleteOptions<E> & { return: 'output' },
   ): Promise<DeleteItemCommandOutput>;
 
   function _delete(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     options: EntityDeleteOptions<E> & { return: 'input' },
   ): DeleteItemCommandInput;
 
   function _delete(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     options?: EntityDeleteOptions<E>,
   ): Promise<InstanceType<E> | null | DeleteItemCommandOutput> | DeleteItemCommandInput {
     const throwErrorIfNotExists = options?.throwErrorIfNotExists ?? false;
-    const partitionKey = Dynamode.storage.getTableMetadata(tableName).partitionKey as EntityKey<E>;
+    const partitionKey = Dynamode.storage.getEntityMetadata(entity.name).partitionKey as EntityKey<E>;
     const notExistsCondition = throwErrorIfNotExists ? condition().attribute(partitionKey).exists() : undefined;
     const { conditionExpression, attributeNames, attributeValues } = buildDeleteConditionExpression(
       notExistsCondition,
@@ -313,24 +304,24 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
   }
 
   function batchGet(
-    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    primaryKeys: Array<TablePrimaryKey<M, E>>,
     options?: EntityBatchGetOptions<E> & { return?: 'default' },
-  ): Promise<EntityBatchGetOutput<EM, E>>;
+  ): Promise<EntityBatchGetOutput<M, E>>;
 
   function batchGet(
-    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    primaryKeys: Array<TablePrimaryKey<M, E>>,
     options: EntityBatchGetOptions<E> & { return: 'output' },
   ): Promise<BatchGetItemCommandOutput>;
 
   function batchGet(
-    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    primaryKeys: Array<TablePrimaryKey<M, E>>,
     options: EntityBatchGetOptions<E> & { return: 'input' },
   ): BatchGetItemCommandInput;
 
   function batchGet(
-    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    primaryKeys: Array<TablePrimaryKey<M, E>>,
     options?: EntityBatchGetOptions<E>,
-  ): Promise<EntityBatchGetOutput<EM, E> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
+  ): Promise<EntityBatchGetOutput<M, E> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
     const { projectionExpression, attributeNames } = buildGetProjectionExpression(entity, options?.attributes);
 
     const commandInput: BatchGetItemCommandInput = {
@@ -358,7 +349,7 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
 
       const items = result.Responses?.[tableName] || [];
       const unprocessedKeys =
-        result.UnprocessedKeys?.[tableName]?.Keys?.map((key) => fromDynamo(key) as EntityPrimaryKey<EM, E>) || [];
+        result.UnprocessedKeys?.[tableName]?.Keys?.map((key) => fromDynamo(key) as TablePrimaryKey<M, E>) || [];
 
       return {
         items: items.map((item) => convertAttributeValuesToEntity(entity, item)),
@@ -423,25 +414,25 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
   }
 
   function batchDelete(
-    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    primaryKeys: Array<TablePrimaryKey<M, E>>,
     options?: EntityBatchDeleteOptions & { return?: 'default' },
-  ): Promise<EntityBatchDeleteOutput<EntityPrimaryKey<EM, E>>>;
+  ): Promise<EntityBatchDeleteOutput<TablePrimaryKey<M, E>>>;
 
   function batchDelete(
-    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    primaryKeys: Array<TablePrimaryKey<M, E>>,
     options: EntityBatchDeleteOptions & { return: 'output' },
   ): Promise<BatchWriteItemCommandOutput>;
 
   function batchDelete(
-    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    primaryKeys: Array<TablePrimaryKey<M, E>>,
     options: EntityBatchDeleteOptions & { return: 'input' },
   ): BatchWriteItemCommandInput;
 
   function batchDelete(
-    primaryKeys: Array<EntityPrimaryKey<EM, E>>,
+    primaryKeys: Array<TablePrimaryKey<M, E>>,
     options?: EntityBatchDeleteOptions,
   ):
-    | Promise<EntityBatchDeleteOutput<EntityPrimaryKey<EM, E>> | BatchWriteItemCommandOutput>
+    | Promise<EntityBatchDeleteOutput<TablePrimaryKey<M, E>> | BatchWriteItemCommandOutput>
     | BatchWriteItemCommandInput {
     const commandInput: BatchWriteItemCommandInput = {
       RequestItems: {
@@ -469,14 +460,14 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
         result.UnprocessedItems?.[tableName]
           ?.map((request) => request.DeleteRequest?.Key)
           ?.filter((item): item is AttributeValues => !!item)
-          .map((key) => fromDynamo(key) as EntityPrimaryKey<EM, E>) || [];
+          .map((key) => fromDynamo(key) as TablePrimaryKey<M, E>) || [];
 
       return { unprocessedItems };
     })();
   }
 
   function transactionGet(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     options?: EntityTransactionGetOptions<EntityKey<E>>,
   ): TransactionGet<E> {
     const { projectionExpression, attributeNames } = buildGetProjectionExpression(entity, options?.attributes);
@@ -496,7 +487,7 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
   }
 
   function transactionUpdate(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     props: UpdateProps<E>,
     options?: EntityTransactionUpdateOptions<E>,
   ): TransactionUpdate<E> {
@@ -524,7 +515,7 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
 
   function transactionPut(item: InstanceType<E>, options?: EntityTransactionPutOptions<E>): TransactionPut<E> {
     const overwrite = options?.overwrite ?? true;
-    const partitionKey = Dynamode.storage.getTableMetadata(tableName).partitionKey as EntityKey<E>;
+    const partitionKey = Dynamode.storage.getEntityMetadata(entity.name).partitionKey as EntityKey<E>;
     const overwriteCondition = overwrite ? undefined : condition().attribute(partitionKey).not().exists();
     const { conditionExpression, attributeNames, attributeValues } = buildPutConditionExpression(
       overwriteCondition,
@@ -553,7 +544,7 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
   }
 
   function transactionDelete(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     options?: EntityTransactionDeleteOptions<E>,
   ): TransactionDelete<E> {
     const { conditionExpression, attributeNames, attributeValues } = buildDeleteConditionExpression(options?.condition);
@@ -574,7 +565,7 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
   }
 
   function transactionCondition(
-    primaryKey: EntityPrimaryKey<EM, E>,
+    primaryKey: TablePrimaryKey<M, E>,
     conditionInstance: Condition<E>,
   ): TransactionCondition<E> {
     const expressionBuilder = new ExpressionBuilder();
@@ -619,38 +610,3 @@ export function register<EM extends EntityMetadata = EntityMetadata, E extends t
     },
   };
 }
-
-// const ddb = new Dynamode.DynamoDB();
-// const dynamode = new Dynamode.Client(ddb);
-
-// class UserTable extends Entity {}
-
-// export type UserTableMetadata = {
-//   partitionKey: 'partitionKey';
-//   sortKey: 'sortKey';
-//   indexes: {
-//     GSI_1_NAME: {
-//       partitionKey: 'GSI_1_PK';
-//       sortKey: 'GSI_1_SK';
-//     };
-//     LSI_1_NAME: {
-//       sortKey: 'LSI_1_SK';
-//     };
-//   };
-// };
-
-// const userTable = dynamode.tableManager(UserTable).tableName('user-table').metadata<UserTableMetadata>();
-
-// userTable.create();
-// userTable.validate();
-// userTable.entityManager();
-
-// const userTableManager = userTable.entityManager(UserTable);
-// userTableManager.get();
-// userTableManager.update();
-
-// class User extends UserTable {}
-
-// const userManager = userTable.entityManager(User);
-// userManager.get();
-// userManager.update();

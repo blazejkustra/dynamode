@@ -1,4 +1,7 @@
 import { insertBetween } from '@lib/utils';
+
+export const DYNAMODE_ENTITY = 'dynamodeEntity';
+
 export const RESERVED_WORDS = new Set([
   'ABORT',
   'ABSOLUTE',

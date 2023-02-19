@@ -1,11 +1,13 @@
 import { QueryInput, ScanInput } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
-import { Entity } from '@lib/entity';
+import Dynamode from '@lib/dynamode/index';
+import Entity from '@lib/entity';
 import { buildProjectionExpression, convertPrimaryKeyToAttributeValues } from '@lib/entity/helpers';
-import { EntityKey, EntityMetadata, EntityPrimaryKey } from '@lib/entity/types';
+import { EntityKey } from '@lib/entity/types';
+import { Metadata, TablePrimaryKey } from '@lib/table/types';
 import { AttributeNames, AttributeValues } from '@lib/utils';
 
-export default class RetrieverBase<EM extends EntityMetadata, E extends typeof Entity> extends Condition<E> {
+export default class RetrieverBase<M extends Metadata<E>, E extends typeof Entity> extends Condition<E> {
   protected input: QueryInput | ScanInput;
   protected attributeNames: AttributeNames = {};
   protected attributeValues: AttributeValues = {};
@@ -13,7 +15,7 @@ export default class RetrieverBase<EM extends EntityMetadata, E extends typeof E
   constructor(entity: E) {
     super(entity);
     this.input = {
-      TableName: entity.tableName,
+      TableName: Dynamode.storage.getEntityTableName(entity.name),
     };
   }
 
@@ -22,7 +24,7 @@ export default class RetrieverBase<EM extends EntityMetadata, E extends typeof E
     return this;
   }
 
-  public startAt(key?: EntityPrimaryKey<EM, E>) {
+  public startAt(key?: TablePrimaryKey<M, E>) {
     if (key) {
       this.input.ExclusiveStartKey = convertPrimaryKeyToAttributeValues(this.entity, key);
     }

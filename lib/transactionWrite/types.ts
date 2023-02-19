@@ -1,5 +1,5 @@
 import { ConditionCheck, Delete, Put, TransactWriteItemsCommandInput, Update } from '@aws-sdk/client-dynamodb';
-import { Entity } from '@lib/entity';
+import Entity from '@lib/entity';
 import type { ReturnOption } from '@lib/entity/types';
 
 export type TransactionUpdate<E extends typeof Entity> = {

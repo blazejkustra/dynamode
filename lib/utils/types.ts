@@ -57,3 +57,12 @@ type CreateObjectEntries<T, I> = T extends infer U
       }[keyof U] // Builds entry for each key
     : EmptyEntry<U>
   : never;
+
+// Narrow utility
+
+type Narrowable = string | number | bigint | boolean;
+export type Narrow<T> =
+  | (T extends Narrowable ? T : never)
+  | {
+      [K in keyof T]: Narrow<T[K]>;
+    };

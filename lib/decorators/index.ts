@@ -1,9 +1,6 @@
-import type { DateDecoratorOptions, IndexDecoratorOptions, PrefixSuffixOptions } from '@lib/decorators/types';
+import type { IndexDecoratorOptions, PrefixSuffixOptions } from '@lib/decorators/types';
 import Dynamode from '@lib/dynamode/index';
 import type { AttributeMetadata, AttributeRole, AttributeType } from '@lib/dynamode/storage/types';
-import { Entity } from '@lib/entity';
-
-import { DefaultError } from './../utils/errors';
 
 function decorateAttribute(
   type: AttributeType,
@@ -11,14 +8,11 @@ function decorateAttribute(
   options?: PrefixSuffixOptions | IndexDecoratorOptions,
 ): (Entity: any, propertyName: string) => void {
   return (Entity: any, propertyName: string) => {
-    const tableName = Entity.constructor.tableName;
     const entityName = Entity.constructor.name;
-
     const prefix = options && 'prefix' in options ? options.prefix : undefined;
     const suffix = options && 'suffix' in options ? options.suffix : undefined;
     const indexName = options && 'indexName' in options ? options.indexName : undefined;
-
-    const attributeMetadata: AttributeMetadata<AttributeType> = {
+    const attributeMetadata: AttributeMetadata = {
       propertyName,
       type,
       role,
@@ -27,91 +21,21 @@ function decorateAttribute(
       suffix,
     };
 
-    switch (role) {
-      case 'partitionKey': {
-        Dynamode.storage.addPrimaryPartitionKeyMetadata(tableName, propertyName);
-        break;
-      }
-
-      case 'sortKey': {
-        Dynamode.storage.addPrimarySortKeyMetadata(tableName, propertyName);
-        break;
-      }
-
-      case 'lsiSortKey': {
-        if (!indexName) {
-          throw new DefaultError();
-        }
-
-        Dynamode.storage.addLsiSortKeyMetadata(tableName, indexName, propertyName);
-        break;
-      }
-
-      case 'gsiPartitionKey': {
-        if (!indexName) {
-          throw new DefaultError();
-        }
-
-        Dynamode.storage.addGsiPartitionKeyMetadata(tableName, indexName, propertyName);
-        break;
-      }
-
-      case 'gsiSortKey': {
-        if (!indexName) {
-          throw new DefaultError();
-        }
-
-        Dynamode.storage.addGsiSortKeyMetadata(tableName, indexName, propertyName);
-        break;
-      }
-
-      case 'createdAt': {
-        Dynamode.storage.addCreatedAtMetadata(tableName, propertyName);
-        break;
-      }
-
-      case 'updatedAt': {
-        Dynamode.storage.addUpdatedAtMetadata(tableName, propertyName);
-        break;
-      }
-
-      case 'attribute': {
-        break;
-      }
-
-      default: {
-        throw new DefaultError();
-      }
-    }
-
-    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, attributeMetadata);
-    Dynamode.storage.addEntityConstructor(tableName, entityName, Entity.constructor);
+    Dynamode.storage.registerAttribute(entityName, propertyName, attributeMetadata);
   };
 }
 
 function prefix(value: string) {
   return <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => {
-    const tableName = (<any>Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const metadata: AttributeMetadata<AttributeType> = {
-      propertyName,
-      prefix: value,
-    };
-
-    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
+    Dynamode.storage.updateAttributePrefix(entityName, propertyName, value);
   };
 }
 
 function suffix(value: string) {
   return <T extends Partial<Record<K, string>>, K extends string>(Entity: T, propertyName: K) => {
-    const tableName = (<any>Entity.constructor).tableName;
     const entityName = Entity.constructor.name;
-    const metadata: AttributeMetadata<AttributeType> = {
-      propertyName,
-      suffix: value,
-    };
-
-    Dynamode.storage.addEntityAttributeMetadata(tableName, entityName, propertyName, metadata);
+    Dynamode.storage.updateAttributeSuffix(entityName, propertyName, value);
   };
 }
 
@@ -172,15 +96,13 @@ function numberLsiSortKey(
 }
 
 function stringDate(
-  options: DateDecoratorOptions & PrefixSuffixOptions,
+  options?: PrefixSuffixOptions,
 ): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void {
-  return decorateAttribute(String, options?.as || 'date', options);
+  return decorateAttribute(String, 'date', options);
 }
 
-function numberDate(
-  options: DateDecoratorOptions,
-): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void {
-  return decorateAttribute(Number, options?.as || 'date');
+function numberDate(): <T extends Partial<Record<K, Date>>, K extends string>(Entity: T, propertyName: K) => void {
+  return decorateAttribute(Number, 'date');
 }
 
 function string(
@@ -222,7 +144,7 @@ function map(): <T extends Partial<Record<K, Map<unknown, unknown>>>, K extends 
   return decorateAttribute(Map, 'attribute');
 }
 
-export const attribute = {
+const attribute = {
   string,
   number,
   boolean,
@@ -264,10 +186,4 @@ export const attribute = {
   suffix,
 };
 
-// TODO: implement
-export function registerTable(tableName: string) {
-  return <E extends typeof Entity>(Class: E) => {
-    Class.tableName = tableName;
-    return Class;
-  };
-}
+export default attribute;

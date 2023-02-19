@@ -1,4 +1,5 @@
-import { Entity } from '@lib/entity';
+import Entity from '@lib/entity';
+import { Metadata } from '@lib/table/types';
 
 export type IndexAttributeType = StringConstructor | NumberConstructor;
 export type TimestampAttributeType = StringConstructor | NumberConstructor;
@@ -25,51 +26,35 @@ export type AttributeRole =
   | 'attribute'
   | 'dynamodeEntity';
 
-export type AttributeMetadata<Type extends AttributeType> = {
-  propertyName?: string;
+export type AttributeMetadata = {
+  propertyName: string;
+  type: AttributeType;
+  role: AttributeRole;
   indexName?: string;
   prefix?: string;
   suffix?: string;
-  type?: Type;
-  role?: AttributeRole;
 };
 
-export type GsiMetadata = {
-  [indexName: string]: {
-    partitionKey?: string;
-    sortKey?: string;
-  };
-};
-
-export type LsiMetadata = {
-  [indexName: string]: {
-    sortKey?: string;
-  };
+export type AttributesMetadata = {
+  [attributeName: string]: AttributeMetadata;
 };
 
 export type EntityMetadata = {
-  entityConstructor?: typeof Entity;
-  attributes?: { [attributeName: string]: AttributeMetadata<AttributeType> };
+  tableName: string;
+  entity: typeof Entity;
+  attributes: AttributesMetadata;
 };
 
 export type EntitiesMetadata = {
   [entityName: string]: EntityMetadata;
 };
 
+export type TableMetadata = {
+  tableEntity: typeof Entity;
+  attributes: AttributesMetadata;
+  metadata: Metadata;
+};
+
 export type TablesMetadata = {
-  [tableName: string]: {
-    partitionKey?: string;
-    sortKey?: string;
-
-    globalSecondaryIndexes?: GsiMetadata;
-    localSecondaryIndexes?: LsiMetadata;
-
-    createdAt?: string;
-    updatedAt?: string;
-
-    entities?: EntitiesMetadata;
-    tableAttributes?: {
-      [attributeName: string]: AttributeMetadata<AttributeType>;
-    };
-  };
+  [tableName: string]: TableMetadata;
 };
