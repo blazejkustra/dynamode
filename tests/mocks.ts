@@ -1,23 +1,10 @@
-import { attribute } from '@lib/decorators';
+import attribute from '@lib/decorators';
 import Dynamode from '@lib/dynamode/index';
-import { Entity, register } from '@lib/entity';
+import Entity from '@lib/entity';
+import { tableManager } from '@lib/table';
 
 Dynamode.ddb.local();
 export const ddb = Dynamode.ddb.get();
-
-export type TestTableKeys = {
-  partitionKey: 'partitionKey';
-  sortKey: 'sortKey';
-  indexes: {
-    GSI_1_NAME: {
-      partitionKey: 'GSI_1_PK';
-      sortKey: 'GSI_1_SK';
-    };
-    LSI_1_NAME: {
-      sortKey: 'LSI_1_SK';
-    };
-  };
-};
 
 type TestTableProps = {
   partitionKey: string;
@@ -33,8 +20,6 @@ export const TEST_TABLE_NAME = 'test-table';
 const PREFIX = 'prefix';
 
 export class TestTable extends Entity {
-  public static tableName = TEST_TABLE_NAME;
-
   // Primary key
   @attribute.prefix(PREFIX)
   @attribute.partitionKey.string()
@@ -54,10 +39,10 @@ export class TestTable extends Entity {
   LSI_1_SK?: number;
 
   // Timestamps
-  @attribute.date.string({ as: 'createdAt' })
+  @attribute.date.string()
   createdAt: Date;
 
-  @attribute.date.number({ as: 'updatedAt' })
+  @attribute.date.number()
   updatedAt: Date;
 
   constructor(props: TestTableProps) {
@@ -77,11 +62,6 @@ export class TestTable extends Entity {
     this.updatedAt = props.updatedAt || new Date();
   }
 }
-
-export const testTableInstance = new TestTable({
-  partitionKey: 'PK',
-  sortKey: 'SK',
-});
 
 export type MockEntityProps = TestTableProps & {
   string: string;
@@ -145,7 +125,36 @@ export class MockEntity extends TestTable {
   }
 }
 
-export const MockEntityRegistry = register<TestTableKeys, typeof MockEntity>(MockEntity, TEST_TABLE_NAME);
+// test code
+
+// const ddb = new Dynamode.DynamoDB();
+// const dynamode = new Dynamode.Client(ddb);
+
+const testTable = tableManager(TestTable).metadata({
+  tableName: TEST_TABLE_NAME,
+  partitionKey: 'partitionKey',
+  sortKey: 'sortKey',
+  indexes: {
+    GSI_1_NAME: {
+      partitionKey: 'GSI_1_PK',
+      sortKey: 'GSI_1_SK',
+    },
+    LSI_1_NAME: {
+      sortKey: 'LSI_1_SK',
+    },
+  },
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+});
+
+export type TestTableMetadata = typeof testTable.tableMetadata;
+
+export const mockEntityManager = testTable.entityManager(MockEntity);
+
+export const testTableInstance = new TestTable({
+  partitionKey: 'PK',
+  sortKey: 'SK',
+});
 
 export const mockInstance = new MockEntity({
   partitionKey: 'PK',

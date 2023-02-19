@@ -6,7 +6,7 @@ import * as entityHelpers from '@lib/entity/helpers';
 import Scan from '@lib/scan';
 import { BASE_OPERATOR } from '@lib/utils';
 
-import { MockEntity, MockEntityRegistry, mockInstance, TEST_TABLE_NAME, TestTableKeys } from '../../mocks';
+import { MockEntity, mockEntityManager, mockInstance, TEST_TABLE_NAME, TestTableKeys } from '../../mocks';
 
 vi.mock('@lib/utils/ExpressionBuilder', () => {
   const ExpressionBuilder = vi.fn(() => ({
@@ -18,10 +18,10 @@ vi.mock('@lib/utils/ExpressionBuilder', () => {
 });
 
 describe('Scan', () => {
-  let scan = MockEntityRegistry.scan();
+  let scan = mockEntityManager.scan();
 
   beforeEach(() => {
-    scan = MockEntityRegistry.scan();
+    scan = mockEntityManager.scan();
   });
 
   afterEach(() => {
@@ -29,7 +29,7 @@ describe('Scan', () => {
   });
 
   test('Should be able to initialize scan', async () => {
-    const scan1 = MockEntityRegistry.scan();
+    const scan1 = mockEntityManager.scan();
     expect(scan1['operators']).toEqual([]);
     expect(scan1['entity']).toEqual(MockEntity);
     expect(scan1['logicalOperator']).toEqual(BASE_OPERATOR.and);

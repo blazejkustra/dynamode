@@ -2,9 +2,29 @@ import { describe, expect, test } from 'vitest';
 
 import { convertToAttr, convertToNative, marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import Dynamode from '@lib/dynamode/index';
-import { Entity } from '@lib/entity';
+import DynamodeStorage from '@lib/dynamode/storage';
 
-import { TEST_TABLE_NAME } from '../../mocks';
+import { MockEntity, TestTable } from '../../mocks';
+
+import { DefaultError } from './../../../lib/utils/errors';
+import { MockEntity, TEST_TABLE_NAME } from './../../mocks';
+
+const metadata: any = {
+  tableName: TEST_TABLE_NAME,
+  partitionKey: 'partitionKey',
+  sortKey: 'sortKey',
+  indexes: {
+    GSI_1_NAME: {
+      partitionKey: 'GSI_1_PK',
+      sortKey: 'GSI_1_SK',
+    },
+    LSI_1_NAME: {
+      sortKey: 'LSI_1_SK',
+    },
+  },
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
 
 describe('Dynamode', () => {
   test('Should be able to use global ddb instance', async () => {
@@ -46,143 +66,154 @@ describe('Dynamode', () => {
     expect(Dynamode.converter.get()).toEqual(customConverter);
   });
 
-  describe('Global DynamodeStorage', () => {
-    const storage = Dynamode.storage;
-    class ParentEntity extends Entity {}
-    class ChildEntity extends ParentEntity {}
+  describe('Global Dynamode storage', () => {
+    const storage = new DynamodeStorage();
 
-    test('addPrimaryPartitionKeyMetadata', async () => {
-      storage.addPrimaryPartitionKeyMetadata(TEST_TABLE_NAME, 'partitionKey');
-      expect(storage.getTableMetadata(TEST_TABLE_NAME).partitionKey).toEqual('partitionKey');
-    });
-
-    test('addPrimarySortKeyMetadata', async () => {
-      storage.addPrimarySortKeyMetadata(TEST_TABLE_NAME, 'sortKey');
-      expect(storage.getTableMetadata(TEST_TABLE_NAME).sortKey).toEqual('sortKey');
-    });
-
-    test('addCreatedAtMetadata', async () => {
-      storage.addCreatedAtMetadata(TEST_TABLE_NAME, 'createdAt');
-      expect(storage.getTableMetadata(TEST_TABLE_NAME).createdAt).toEqual('createdAt');
-    });
-
-    test('addUpdatedAtMetadata', async () => {
-      storage.addUpdatedAtMetadata(TEST_TABLE_NAME, 'updatedAt');
-      expect(storage.getTableMetadata(TEST_TABLE_NAME).updatedAt).toEqual('updatedAt');
-    });
-
-    test('addGsiPartitionKeyMetadata', async () => {
-      storage.addGsiPartitionKeyMetadata(TEST_TABLE_NAME, 'GSI', 'gsiPartitionKey');
-      expect(storage.getGsiMetadata(TEST_TABLE_NAME, 'GSI').partitionKey).toEqual('gsiPartitionKey');
-    });
-
-    test('addGsiSortKeyMetadata', async () => {
-      storage.addGsiSortKeyMetadata(TEST_TABLE_NAME, 'GSI', 'gsiSortKey');
-      expect(storage.getGsiMetadata(TEST_TABLE_NAME, 'GSI').sortKey).toEqual('gsiSortKey');
-    });
-
-    test('addLsiSortKeyMetadata', async () => {
-      storage.addLsiSortKeyMetadata(TEST_TABLE_NAME, 'LSI', 'lsiSortKey');
-      expect(storage.getLsiMetadata(TEST_TABLE_NAME, 'LSI').sortKey).toEqual('lsiSortKey');
-    });
-
-    test('addEntityConstructor', async () => {
-      storage.addEntityConstructor(TEST_TABLE_NAME, ChildEntity.name, ChildEntity);
-      expect(storage.getEntityMetadata(TEST_TABLE_NAME, ChildEntity.name).entityConstructor).toEqual(ChildEntity);
-    });
-
-    test('addEntityAttributeMetadata', async () => {
-      storage.addEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName', {
-        propertyName: 'propertyName',
-        indexName: 'indexName',
-        prefix: 'prefix',
-        suffix: 'suffix',
-        type: String,
-        role: 'partitionKey',
+    describe('registerTable', () => {
+      test('Should successfully register table', async () => {
+        storage.registerTable(TestTable, metadata);
+        expect(storage.tables[TEST_TABLE_NAME].tableEntity).toEqual(TestTable);
+        expect(storage.tables[TEST_TABLE_NAME].metadata).toEqual(metadata);
+        expect(storage.tables[TEST_TABLE_NAME].attributes).toEqual({});
       });
-      expect(
-        storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').propertyName,
-      ).toEqual('propertyName');
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').indexName).toEqual(
-        'indexName',
-      );
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').prefix).toEqual(
-        'prefix',
-      );
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').suffix).toEqual(
-        'suffix',
-      );
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').type).toEqual(
-        String,
-      );
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName').role).toEqual(
-        'partitionKey',
-      );
 
-      storage.addEntityAttributeMetadata(TEST_TABLE_NAME, ParentEntity.name, 'parentPropertyName', {
-        propertyName: 'parentPropertyName',
-        type: Number,
+      test('Should throw an error when table is registered more than once', async () => {
+        expect(() => storage.registerTable(TestTable, metadata)).to.throw(DefaultError);
       });
-      expect(
-        storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ParentEntity.name, 'parentPropertyName').propertyName,
-      ).toEqual('parentPropertyName');
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ParentEntity.name, 'parentPropertyName').type).toEqual(
-        Number,
-      );
     });
 
-    test('getEntityAttributes', async () => {
-      expect(storage.getEntityAttributes(TEST_TABLE_NAME, ChildEntity.name)).toEqual({
-        dynamodeEntity: {
-          propertyName: 'dynamodeEntity',
-          role: 'dynamodeEntity',
-          type: String,
-        },
-        parentPropertyName: {
-          propertyName: 'parentPropertyName',
-          type: Number,
-        },
-        propertyName: {
+    describe('registerEntity', () => {
+      test('Should successfully register entity if no attributes were added before', async () => {
+        storage.registerEntity(MockEntity, TEST_TABLE_NAME);
+        expect(storage.entities[MockEntity.name].entity).toEqual(MockEntity);
+        expect(storage.entities[MockEntity.name].tableName).toEqual(TEST_TABLE_NAME);
+        expect(storage.entities[MockEntity.name].attributes).toEqual({});
+      });
+
+      test('Should successfully register entity if attributes were added before', async () => {
+        class MockEntity2 extends MockEntity {}
+        storage.entities[MockEntity2.name] = { attributes: { attr: {} } } as any;
+
+        storage.registerEntity(MockEntity2, TEST_TABLE_NAME);
+        expect(storage.entities[MockEntity2.name].entity).toEqual(MockEntity2);
+        expect(storage.entities[MockEntity2.name].tableName).toEqual(TEST_TABLE_NAME);
+        expect(storage.entities[MockEntity2.name].attributes).toEqual({ attr: {} });
+      });
+
+      test('Should throw an error when entity is registered more than once', async () => {
+        expect(() => storage.registerEntity(MockEntity, TEST_TABLE_NAME)).to.throw(DefaultError);
+      });
+
+      test("Should throw an error when entity is registered and table isn't", async () => {
+        expect(() => storage.registerEntity(MockEntity, 'unknownTableName')).to.throw(DefaultError);
+      });
+    });
+
+    describe('registerAttribute', () => {
+      test('Should successfully register child class property', async () => {
+        storage.registerAttribute(MockEntity.name, 'propertyName', {
+          propertyName: 'propertyName',
           indexName: 'indexName',
           prefix: 'prefix',
-          propertyName: 'propertyName',
-          role: 'partitionKey',
           suffix: 'suffix',
           type: String,
-        },
+          role: 'partitionKey',
+        });
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].propertyName).toEqual('propertyName');
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].indexName).toEqual('indexName');
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].prefix).toEqual('prefix');
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].suffix).toEqual('suffix');
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].type).toEqual(String);
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].role).toEqual('partitionKey');
       });
 
-      expect(storage.getEntityAttributes(TEST_TABLE_NAME, 'unknownEntityName')).toEqual({});
-    });
+      test('Should successfully register parent class property', async () => {
+        storage.registerAttribute(TestTable.name, 'parentPropertyName', {
+          propertyName: 'parentPropertyName',
+          type: Number,
+          role: 'attribute',
+        });
+        expect(storage.entities[TestTable.name].attributes['parentPropertyName'].propertyName).toEqual(
+          'parentPropertyName',
+        );
+        expect(storage.entities[TestTable.name].attributes['parentPropertyName'].type).toEqual(Number);
+        expect(storage.entities[TestTable.name].attributes['parentPropertyName'].role).toEqual('attribute');
+      });
 
-    test('getGsiMetadata', async () => {
-      expect(storage.getGsiMetadata(TEST_TABLE_NAME, 'GSI').partitionKey).toEqual('gsiPartitionKey');
-      expect(storage.getGsiMetadata(TEST_TABLE_NAME, 'GSI').sortKey).toEqual('gsiSortKey');
-    });
-
-    test('getLsiMetadata', async () => {
-      expect(storage.getLsiMetadata(TEST_TABLE_NAME, 'LSI').sortKey).toEqual('lsiSortKey');
-    });
-
-    test('getTableMetadata', async () => {
-      expect(storage.getTableMetadata(TEST_TABLE_NAME)).toEqual(storage.tables[TEST_TABLE_NAME]);
-    });
-
-    test('getEntityAttributeMetadata', async () => {
-      expect(storage.getEntityAttributeMetadata(TEST_TABLE_NAME, ChildEntity.name, 'propertyName')).toEqual({
-        propertyName: 'propertyName',
-        indexName: 'indexName',
-        prefix: 'prefix',
-        suffix: 'suffix',
-        type: String,
-        role: 'partitionKey',
+      test('Should throw an error when class property is registered more than once', async () => {
+        expect(() =>
+          storage.registerAttribute(TestTable.name, 'parentPropertyName', {
+            propertyName: 'parentPropertyName',
+            type: Number,
+            role: 'attribute',
+          }),
+        ).to.throw(DefaultError);
       });
     });
 
-    test('getEntityMetadata', async () => {
-      expect(storage.getEntityMetadata(TEST_TABLE_NAME, ChildEntity.name)).toEqual(
-        storage.tables[TEST_TABLE_NAME].entities?.[ChildEntity.name],
-      );
+    describe('updateAttributePrefix', () => {
+      test('Should successfully update class property with a prefix', async () => {
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].prefix).toEqual('prefix');
+        storage.updateAttributePrefix(MockEntity.name, 'propertyName', 'PREFIX');
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].prefix).toEqual('PREFIX');
+      });
+    });
+
+    describe('updateAttributeSuffix', () => {
+      test('Should successfully update class property with a suffix', async () => {
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].suffix).toEqual('suffix');
+        storage.updateAttributeSuffix(MockEntity.name, 'propertyName', 'SUFFIX');
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].suffix).toEqual('SUFFIX');
+      });
+    });
+
+    describe('getEntityAttributes', async () => {
+      test('Should successfully get all entity properties (nested properties included)', async () => {
+        expect(storage.getEntityAttributes(MockEntity.name)).toEqual({
+          parentPropertyName: {
+            propertyName: 'parentPropertyName',
+            role: 'attribute',
+            type: Number,
+          },
+          propertyName: {
+            indexName: 'indexName',
+            prefix: 'PREFIX',
+            propertyName: 'propertyName',
+            role: 'partitionKey',
+            suffix: 'SUFFIX',
+            type: String,
+          },
+        });
+      });
+
+      test('Should get no entity properties for unknown entity name', async () => {
+        expect(storage.getEntityAttributes('unknownEntityName')).toEqual({});
+      });
+    });
+
+    describe('getEntityTableName', async () => {
+      test('Should successfully get entity table name', async () => {
+        expect(storage.getEntityTableName(MockEntity.name)).toEqual(TEST_TABLE_NAME);
+      });
+
+      test('Should throw an error if no entity is found', async () => {
+        expect(() => storage.getEntityTableName('unknownEntityName')).to.throw(DefaultError);
+      });
+    });
+
+    describe('getEntityMetadata', async () => {
+      test('Should successfully get entity table metadata', async () => {
+        expect(storage.getEntityMetadata(MockEntity.name)).toEqual(metadata);
+      });
+
+      test('Should throw an error if no entity is found', async () => {
+        expect(() => storage.getEntityMetadata('unknownEntityName')).to.throw(DefaultError);
+      });
+
+      test('Should throw an error if no table is found for entity', async () => {
+        storage.entities['unknownEntityName'] = { tableName: 'unknownTableName' } as any;
+        expect(() => storage.getEntityMetadata('unknownEntityName')).to.throw(DefaultError);
+      });
     });
   });
 });

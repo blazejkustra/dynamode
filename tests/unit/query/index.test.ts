@@ -7,7 +7,7 @@ import Query from '@lib/query';
 import { BASE_OPERATOR } from '@lib/utils';
 import * as utils from '@lib/utils/helpers';
 
-import { MockEntity, MockEntityRegistry, mockInstance, TEST_TABLE_NAME, TestTableKeys } from '../../mocks';
+import { MockEntity, mockEntityManager, mockInstance, TEST_TABLE_NAME, TestTableKeys } from '../../mocks';
 
 vi.mock('@lib/utils/ExpressionBuilder', () => {
   const ExpressionBuilder = vi.fn(() => ({
@@ -19,12 +19,12 @@ vi.mock('@lib/utils/ExpressionBuilder', () => {
 });
 
 describe('Query', () => {
-  let query = MockEntityRegistry.query();
+  let query = mockEntityManager.query();
   let maybePushKeyLogicalOperatorSpy = vi.spyOn(query, 'maybePushKeyLogicalOperator' as any);
   let setAssociatedIndexNameSpy = vi.spyOn(query, 'setAssociatedIndexName' as any);
 
   beforeEach(() => {
-    query = MockEntityRegistry.query();
+    query = mockEntityManager.query();
     maybePushKeyLogicalOperatorSpy = vi.spyOn(query, 'maybePushKeyLogicalOperator' as any);
     setAssociatedIndexNameSpy = vi.spyOn(query, 'setAssociatedIndexName' as any);
   });
@@ -34,7 +34,7 @@ describe('Query', () => {
   });
 
   test('Should be able to initialize query', async () => {
-    const query1 = MockEntityRegistry.query();
+    const query1 = mockEntityManager.query();
     expect(query1['operators']).toEqual([]);
     expect(query1['entity']).toEqual(MockEntity);
     expect(query1['logicalOperator']).toEqual(BASE_OPERATOR.and);

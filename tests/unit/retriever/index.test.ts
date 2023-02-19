@@ -4,13 +4,13 @@ import * as entityHelpers from '@lib/entity/helpers';
 import RetrieverBase from '@lib/retriever';
 import { BASE_OPERATOR } from '@lib/utils';
 
-import { MockEntity, TEST_TABLE_NAME, TestTableKeys } from '../../mocks';
+import { MockEntity, TEST_TABLE_NAME, TestTableMetadata } from '../../mocks';
 
 describe('RetrieverBase', () => {
-  let retriever = new RetrieverBase<TestTableKeys, typeof MockEntity>(MockEntity);
+  let retriever = new RetrieverBase<TestTableMetadata, typeof MockEntity>(MockEntity);
 
   beforeEach(() => {
-    retriever = new RetrieverBase<TestTableKeys, typeof MockEntity>(MockEntity);
+    retriever = new RetrieverBase<TestTableMetadata, typeof MockEntity>(MockEntity);
   });
 
   test('Should be able to initialize retriever', async () => {
