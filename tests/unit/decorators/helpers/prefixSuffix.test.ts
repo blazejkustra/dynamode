@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from 'vitest';
 import { prefix, suffix } from '@lib/decorators/helpers/prefixSuffix';
 import Dynamode from '@lib/dynamode/index';
 
-import { MockEntity, mockInstance } from './../../../mocks';
+import { MockEntity, mockInstance } from '../../../mocks';
 
 describe('Decorators', () => {
   describe('prefix', async () => {
