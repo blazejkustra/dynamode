@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { Dynamode, Entity } from '@lib/dynamode';
-import * as entityHelpers from '@lib/entity/helpers';
+import * as entityConvertHelpers from '@lib/entity/helpers/convert';
 import transactionWrite from '@lib/transactionWrite';
 import {
   TransactionCondition,
@@ -50,11 +50,11 @@ const transactionDelete: TransactionDelete<typeof MockEntity> = {
 
 describe('transactionWrite', () => {
   const ddbTransactWriteItemsMock = vi.fn();
-  let convertAttributeValuesToEntitySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToEntity');
+  let convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
 
   beforeEach(() => {
     convertAttributeValuesToEntitySpy = vi
-      .spyOn(entityHelpers, 'convertAttributeValuesToEntity')
+      .spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity')
       .mockImplementation((_entity, item) => {
         return item as any as Entity;
       });

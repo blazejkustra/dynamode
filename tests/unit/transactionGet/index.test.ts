@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
-import * as entityHelpers from '@lib/entity/helpers';
+import * as entityConvertHelpers from '@lib/entity/helpers/convert';
 import transactionGet from '@lib/transactionGet';
 import { TransactionGet } from '@lib/transactionGet/types';
 import { NotFoundError } from '@lib/utils';
@@ -27,10 +27,10 @@ const transactionGetInputTestTable: TransactionGet<typeof TestTable> = {
 
 describe('transactionGet', () => {
   const ddbTransactGetItemsMock = vi.fn();
-  let convertAttributeValuesToEntitySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToEntity');
+  let convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
 
   beforeEach(() => {
-    convertAttributeValuesToEntitySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToEntity');
+    convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
     vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ transactGetItems: ddbTransactGetItemsMock } as any as DynamoDB);
   });
 
@@ -196,7 +196,7 @@ describe('transactionGet', () => {
         return { Responses: [{ Item: 'mockEntity' }, { Item: undefined }] };
       });
       convertAttributeValuesToEntitySpy = vi
-        .spyOn(entityHelpers, 'convertAttributeValuesToEntity')
+        .spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity')
         .mockReturnValue(mockInstance);
 
       const output1 = await transactionGet([transactionGetInputMockEntity, transactionGetInputTestTable], {

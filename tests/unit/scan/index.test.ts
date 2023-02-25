@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { DynamoDB, ScanInput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
-import * as entityHelpers from '@lib/entity/helpers';
+import * as entityConvertHelpers from '@lib/entity/helpers/convert';
 import Scan from '@lib/scan';
 import { Metadata } from '@lib/table/types';
 import { BASE_OPERATOR } from '@lib/utils';
@@ -46,8 +46,8 @@ describe('Scan', () => {
 
     let buildScanInputSpy = vi.spyOn(scan, 'buildScanInput' as any);
     let validateScanInputSpy = vi.spyOn(scan, 'validateScanInput' as any);
-    let convertAttributeValuesToEntitySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToEntity');
-    let convertAttributeValuesToPrimaryKeySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToPrimaryKey');
+    let convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
+    let convertAttributeValuesToPrimaryKeySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToPrimaryKey');
 
     const scanInput: ScanInput = {
       TableName: TEST_TABLE_NAME,
@@ -60,10 +60,10 @@ describe('Scan', () => {
       buildScanInputSpy = vi.spyOn(scan, 'buildScanInput' as any).mockImplementation(() => (scan['input'] = scanInput));
       validateScanInputSpy = vi.spyOn(scan, 'validateScanInput' as any).mockReturnValue(undefined);
       convertAttributeValuesToEntitySpy = vi
-        .spyOn(entityHelpers, 'convertAttributeValuesToEntity')
+        .spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity')
         .mockReturnValue(mockInstance);
       convertAttributeValuesToPrimaryKeySpy = vi
-        .spyOn(entityHelpers, 'convertAttributeValuesToPrimaryKey')
+        .spyOn(entityConvertHelpers, 'convertAttributeValuesToPrimaryKey')
         .mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
     });
 

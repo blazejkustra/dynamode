@@ -19,12 +19,13 @@ import {
   buildGetProjectionExpression,
   buildPutConditionExpression,
   buildUpdateConditionExpression,
+} from '@lib/entity/helpers/buildExpressions';
+import {
   convertAttributeValuesToEntity,
   convertEntityToAttributeValues,
   convertPrimaryKeyToAttributeValues,
-  mapReturnValues,
-  mapReturnValuesLimited,
-} from '@lib/entity/helpers';
+} from '@lib/entity/helpers/convert';
+import { mapReturnValues, mapReturnValuesLimited } from '@lib/entity/helpers/returnValues';
 import {
   EntityBatchDeleteOptions,
   EntityBatchDeleteOutput,

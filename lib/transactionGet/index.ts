@@ -1,7 +1,7 @@
 import { TransactGetItemsCommandInput, TransactGetItemsOutput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
-import { convertAttributeValuesToEntity } from '@lib/entity/helpers';
+import { convertAttributeValuesToEntity } from '@lib/entity/helpers/convert';
 import type { TransactionGetInput, TransactionGetOptions, TransactionGetOutput } from '@lib/transactionGet/types';
 import { NotFoundError } from '@lib/utils';
 

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import * as entityHelpers from '@lib/entity/helpers';
+import * as entityExpressionsHelpers from '@lib/entity/helpers/buildExpressions';
+import * as entityConvertHelpers from '@lib/entity/helpers/convert';
 import RetrieverBase from '@lib/retriever';
 import { BASE_OPERATOR } from '@lib/utils';
 
@@ -31,7 +32,7 @@ describe('RetrieverBase', () => {
   });
 
   describe('startAt', () => {
-    const convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityHelpers, 'convertPrimaryKeyToAttributeValues');
+    const convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
     convertPrimaryKeyToAttributeValuesSpy.mockImplementation(() => ({
       partitionKey: { S: 'partitionKey' },
       sortKey: { S: 'sortKey' },
@@ -76,7 +77,7 @@ describe('RetrieverBase', () => {
   });
 
   describe('attributes', () => {
-    const buildProjectionExpressionSpy = vi.spyOn(entityHelpers, 'buildProjectionExpression');
+    const buildProjectionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildProjectionExpression');
     buildProjectionExpressionSpy.mockImplementation(() => 'mockedProjectionExpression');
 
     test('Should set ProjectionExpression on query/scan input', async () => {

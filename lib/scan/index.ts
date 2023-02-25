@@ -1,7 +1,7 @@
 import { ScanCommandOutput, ScanInput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
-import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } from '@lib/entity/helpers';
+import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } from '@lib/entity/helpers/convert';
 import RetrieverBase from '@lib/retriever';
 import type { ScanRunOptions, ScanRunOutput } from '@lib/scan/types';
 import { Metadata, TableIndexNames } from '@lib/table/types';

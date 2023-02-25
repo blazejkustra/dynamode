@@ -1,6 +1,6 @@
 import type { AttributeType } from '@lib/condition/types';
 import Entity from '@lib/entity';
-import { prefixSuffixValue } from '@lib/entity/helpers';
+import { prefixSuffixValue } from '@lib/entity/helpers/prefixSuffix';
 import { EntityKey, EntityValue } from '@lib/entity/types';
 import { BASE_OPERATOR, OPERATORS, Operators } from '@lib/utils';
 

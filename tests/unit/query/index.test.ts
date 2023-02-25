@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
-import * as entityHelpers from '@lib/entity/helpers';
+import * as entityConvertHelpers from '@lib/entity/helpers/convert';
 import Query from '@lib/query';
 import { Metadata } from '@lib/table/types';
 import { BASE_OPERATOR } from '@lib/utils';
@@ -53,8 +53,8 @@ describe('Query', () => {
 
     let buildQueryInputSpy = vi.spyOn(query, 'buildQueryInput' as any);
     let validateQueryInputSpy = vi.spyOn(query, 'validateQueryInput' as any);
-    let convertAttributeValuesToEntitySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToEntity');
-    let convertAttributeValuesToPrimaryKeySpy = vi.spyOn(entityHelpers, 'convertAttributeValuesToPrimaryKey');
+    let convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
+    let convertAttributeValuesToPrimaryKeySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToPrimaryKey');
     let timeoutSpy = vi.spyOn(utils, 'timeout');
 
     const queryInput: QueryInput = {
@@ -70,10 +70,10 @@ describe('Query', () => {
         .mockImplementation(() => (query['input'] = queryInput));
       validateQueryInputSpy = vi.spyOn(query, 'validateQueryInput' as any).mockReturnValue(undefined);
       convertAttributeValuesToEntitySpy = vi
-        .spyOn(entityHelpers, 'convertAttributeValuesToEntity')
+        .spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity')
         .mockReturnValue(mockInstance);
       convertAttributeValuesToPrimaryKeySpy = vi
-        .spyOn(entityHelpers, 'convertAttributeValuesToPrimaryKey')
+        .spyOn(entityConvertHelpers, 'convertAttributeValuesToPrimaryKey')
         .mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
       timeoutSpy = vi.spyOn(utils, 'timeout').mockImplementation(async () => undefined);
     });
