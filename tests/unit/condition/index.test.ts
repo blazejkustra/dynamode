@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
+import Condition from '@lib/condition';
 import { AttributeType } from '@lib/condition/types';
 import { BASE_OPERATOR, OPERATORS } from '@lib/utils';
 
@@ -18,11 +19,10 @@ describe('Condition', () => {
     expect(condition1['entity']).toEqual(MockEntity);
     expect(condition1['logicalOperator']).toEqual(BASE_OPERATOR.and);
 
-    //fix it
-    // const condition2 = new Condition(MockEntity);
-    // expect(condition2['operators']).toEqual([]);
-    // expect(condition2['entity']).toEqual(MockEntity);
-    // expect(condition2['logicalOperator']).toEqual(BASE_OPERATOR.and);
+    const condition2 = new Condition(MockEntity);
+    expect(condition2['operators']).toEqual([]);
+    expect(condition2['entity']).toEqual(MockEntity);
+    expect(condition2['logicalOperator']).toEqual(BASE_OPERATOR.and);
   });
 
   describe('attribute', () => {

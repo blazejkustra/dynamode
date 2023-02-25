@@ -52,7 +52,7 @@ export type EntitiesMetadata = {
 export type TableMetadata = {
   tableEntity: typeof Entity;
   attributes: AttributesMetadata;
-  metadata: Metadata;
+  metadata: Metadata<typeof Entity>;
 };
 
 export type TablesMetadata = {

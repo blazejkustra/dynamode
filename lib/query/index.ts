@@ -65,7 +65,7 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
     })();
   }
 
-  public partitionKey<Q extends Query<M, E>, K extends EntityKey<E> & TablePartitionKeys<M>>(this: Q, key: K) {
+  public partitionKey<Q extends Query<M, E>, K extends EntityKey<E> & TablePartitionKeys<M, E>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
     this.setAssociatedIndexName(key);
 
@@ -74,7 +74,7 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
     };
   }
 
-  public sortKey<Q extends Query<M, E>, K extends EntityKey<E> & TableSortKeys<M>>(this: Q, key: K) {
+  public sortKey<Q extends Query<M, E>, K extends EntityKey<E> & TableSortKeys<M, E>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
     this.setAssociatedIndexName(key);
 
@@ -102,7 +102,7 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
     }
   }
 
-  private setAssociatedIndexName<K extends EntityKey<E> & TablePartitionKeys<M>>(key: K) {
+  private setAssociatedIndexName<K extends EntityKey<E> & TablePartitionKeys<M, E>>(key: K) {
     const attributes = Dynamode.storage.getEntityAttributes(this.entity.name);
     const { indexName } = attributes[key as string];
 

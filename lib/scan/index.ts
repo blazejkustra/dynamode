@@ -47,7 +47,7 @@ export default class Scan<M extends Metadata<E>, E extends typeof Entity> extend
     })();
   }
 
-  public indexName(name: TableIndexNames<M>) {
+  public indexName(name: TableIndexNames<M, E>) {
     this.input.IndexName = String(name);
     return this;
   }

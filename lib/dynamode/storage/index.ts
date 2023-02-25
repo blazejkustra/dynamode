@@ -16,7 +16,7 @@ export default class DynamodeStorage {
   public tables: TablesMetadata = {};
   public entities: EntitiesMetadata = {};
 
-  public registerTable(tableEntity: typeof Entity, metadata: Metadata): void {
+  public registerTable(tableEntity: typeof Entity, metadata: Metadata<typeof Entity>): void {
     const tableMetadata: TableMetadata = {
       tableEntity,
       metadata,
@@ -96,7 +96,7 @@ export default class DynamodeStorage {
     return this.entities[entityName].tableName;
   }
 
-  public getEntityMetadata(entityName: string): Metadata {
+  public getEntityMetadata(entityName: string): Metadata<typeof Entity> {
     if (!this.entities[entityName]) {
       throw new DefaultError();
     }

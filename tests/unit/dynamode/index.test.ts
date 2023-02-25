@@ -3,11 +3,9 @@ import { describe, expect, test } from 'vitest';
 import { convertToAttr, convertToNative, marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import DynamodeStorage from '@lib/dynamode/storage';
+import { DefaultError } from '@lib/utils/errors';
 
-import { MockEntity, TestTable } from '../../mocks';
-
-import { DefaultError } from './../../../lib/utils/errors';
-import { MockEntity, TEST_TABLE_NAME } from './../../mocks';
+import { MockEntity, TEST_TABLE_NAME, TestTable } from '../../mocks';
 
 const metadata: any = {
   tableName: TEST_TABLE_NAME,

@@ -4,9 +4,10 @@ import { DynamoDB, ScanInput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import * as entityHelpers from '@lib/entity/helpers';
 import Scan from '@lib/scan';
+import { Metadata } from '@lib/table/types';
 import { BASE_OPERATOR } from '@lib/utils';
 
-import { MockEntity, mockEntityManager, mockInstance, TEST_TABLE_NAME, TestTableKeys } from '../../mocks';
+import { MockEntity, mockEntityManager, mockInstance, TEST_TABLE_NAME } from '../../mocks';
 
 vi.mock('@lib/utils/ExpressionBuilder', () => {
   const ExpressionBuilder = vi.fn(() => ({
@@ -34,7 +35,7 @@ describe('Scan', () => {
     expect(scan1['entity']).toEqual(MockEntity);
     expect(scan1['logicalOperator']).toEqual(BASE_OPERATOR.and);
 
-    const scan2 = new Scan<TestTableKeys, typeof MockEntity>(MockEntity);
+    const scan2 = new Scan<Metadata<typeof MockEntity>, typeof MockEntity>(MockEntity);
     expect(scan2['operators']).toEqual([]);
     expect(scan2['entity']).toEqual(MockEntity);
     expect(scan2['logicalOperator']).toEqual(BASE_OPERATOR.and);

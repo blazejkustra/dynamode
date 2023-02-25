@@ -4,10 +4,11 @@ import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import * as entityHelpers from '@lib/entity/helpers';
 import Query from '@lib/query';
+import { Metadata } from '@lib/table/types';
 import { BASE_OPERATOR } from '@lib/utils';
 import * as utils from '@lib/utils/helpers';
 
-import { MockEntity, mockEntityManager, mockInstance, TEST_TABLE_NAME, TestTableKeys } from '../../mocks';
+import { MockEntity, mockEntityManager, mockInstance, TEST_TABLE_NAME } from '../../mocks';
 
 vi.mock('@lib/utils/ExpressionBuilder', () => {
   const ExpressionBuilder = vi.fn(() => ({
@@ -40,7 +41,7 @@ describe('Query', () => {
     expect(query1['logicalOperator']).toEqual(BASE_OPERATOR.and);
     expect(query1['keyOperators']).toEqual([]);
 
-    const query2 = new Query<TestTableKeys, typeof MockEntity>(MockEntity);
+    const query2 = new Query<Metadata<typeof MockEntity>, typeof MockEntity>(MockEntity);
     expect(query2['operators']).toEqual([]);
     expect(query2['entity']).toEqual(MockEntity);
     expect(query2['logicalOperator']).toEqual(BASE_OPERATOR.and);
@@ -350,14 +351,27 @@ describe('Query', () => {
     });
 
     test('Should set proper IndexName on query input for primary partitionKey', async () => {
-      getEntityAttributesSpy.mockReturnValue({ partitionKey: {} });
+      getEntityAttributesSpy.mockReturnValue({
+        partitionKey: {
+          propertyName: 'partitionKey',
+          role: 'partitionKey',
+          type: String,
+        },
+      });
       query['setAssociatedIndexName']('partitionKey');
 
       expect(query['input'].IndexName).toEqual(undefined);
     });
 
     test('Should set proper IndexName on query input for an attribute associated with index', async () => {
-      getEntityAttributesSpy.mockReturnValue({ GSI_1_PK: { indexName: 'GSI_1_NAME' } });
+      getEntityAttributesSpy.mockReturnValue({
+        GSI_1_PK: {
+          indexName: 'GSI_1_NAME',
+          propertyName: 'GSI_1_PK',
+          role: 'gsiPartitionKey',
+          type: String,
+        },
+      });
       query['setAssociatedIndexName']('GSI_1_PK');
 
       expect(query['input'].IndexName).toEqual('GSI_1_NAME');

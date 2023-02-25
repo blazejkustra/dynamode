@@ -4,14 +4,14 @@ import Entity from '@lib/entity';
 
 // Table metadata types
 
-type TableIndexesMetadata<E extends typeof Entity = typeof Entity> = {
+type TableIndexesMetadata<E extends typeof Entity> = {
   [indexName: string]: {
     partitionKey?: keyof InstanceType<E>;
     sortKey?: keyof InstanceType<E>;
   };
 };
 
-export type Metadata<E extends typeof Entity = typeof Entity> = {
+export type Metadata<E extends typeof Entity> = {
   tableName: string;
 
   partitionKey: keyof InstanceType<E>;
@@ -22,31 +22,31 @@ export type Metadata<E extends typeof Entity = typeof Entity> = {
   updatedAt?: keyof InstanceType<E>;
 };
 
-type SK<M extends Metadata> = M['sortKey'];
-type PK<M extends Metadata> = M['partitionKey'];
-type Ids<M extends Metadata> = M['indexes'];
+type SK<M extends Metadata<E>, E extends typeof Entity> = M['sortKey'];
+type PK<M extends Metadata<E>, E extends typeof Entity> = M['partitionKey'];
+type Idx<M extends Metadata<E>, E extends typeof Entity> = M['indexes'];
 
 export type TablePrimaryKey<M extends Metadata<E>, E extends typeof Entity> = Pick<
   InstanceType<E>,
-  Extract<keyof InstanceType<E>, SK<M> extends string ? PK<M> | SK<M> : PK<M>>
+  Extract<keyof InstanceType<E>, SK<M, E> extends string ? PK<M, E> | SK<M, E> : PK<M, E>>
 >;
 
-export type TableIndexNames<M extends Metadata> = keyof Ids<M>;
-export type TablePartitionKeys<M extends Metadata> =
-  | PK<M>
+export type TableIndexNames<M extends Metadata<E>, E extends typeof Entity> = keyof Idx<M, E>;
+export type TablePartitionKeys<M extends Metadata<E>, E extends typeof Entity> =
+  | PK<M, E>
   | ValueOf<{
-      [K in keyof Ids<M>]: Ids<M> extends TableIndexesMetadata
-        ? Ids<M>[K]['partitionKey'] extends string
-          ? Ids<M>[K]['partitionKey']
+      [K in keyof Idx<M, E>]: Idx<M, E> extends TableIndexesMetadata<E>
+        ? Idx<M, E>[K]['partitionKey'] extends string
+          ? Idx<M, E>[K]['partitionKey']
           : never
         : never;
     }>;
-export type TableSortKeys<M extends Metadata> =
-  | SK<M>
+export type TableSortKeys<M extends Metadata<E>, E extends typeof Entity> =
+  | SK<M, E>
   | ValueOf<{
-      [K in keyof Ids<M>]: Ids<M> extends TableIndexesMetadata
-        ? Ids<M>[K]['sortKey'] extends string
-          ? Ids<M>[K]['sortKey']
+      [K in keyof Idx<M, E>]: Idx<M, E> extends TableIndexesMetadata<E>
+        ? Idx<M, E>[K]['sortKey'] extends string
+          ? Idx<M, E>[K]['sortKey']
           : never
         : never;
     }>;
