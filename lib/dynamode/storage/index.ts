@@ -39,11 +39,11 @@ export default class DynamodeStorage {
     };
 
     if (!this.tables[tableName]) {
-      throw new DefaultError('2');
+      throw new DefaultError();
     }
 
     if (existingEntityMetadata?.entity || existingEntityMetadata?.tableName) {
-      throw new DefaultError('1');
+      throw new DefaultError();
     }
 
     this.entities[entity.name] = entityMetadata;
