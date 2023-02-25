@@ -25,5 +25,15 @@ export function truncateValue<E extends typeof Entity>(entity: E, key: EntityKey
   const prefix = attributes[String(key)].prefix || '';
   const suffix = attributes[String(key)].suffix || '';
 
-  return value.replace(`${prefix}${separator}`, '').replace(`${separator}${suffix}`, '');
+  const valueSections = value.split(separator);
+
+  if (valueSections.at(0) === prefix) {
+    valueSections.shift();
+  }
+
+  if (valueSections.at(-1) === suffix) {
+    valueSections.pop();
+  }
+
+  return valueSections.join(separator);
 }
