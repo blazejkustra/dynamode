@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import * as entityExpressionsHelpers from '@lib/entity/helpers/buildExpressions';
-import * as entityConvertHelpers from '@lib/entity/helpers/convert';
+import * as entityConvertHelpers from '@lib/entity/helpers/converters';
 import RetrieverBase from '@lib/retriever';
 import { BASE_OPERATOR } from '@lib/utils';
 

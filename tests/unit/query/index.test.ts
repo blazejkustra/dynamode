@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
-import * as entityConvertHelpers from '@lib/entity/helpers/convert';
+import * as entityConvertHelpers from '@lib/entity/helpers/converters';
 import Query from '@lib/query';
 import { Metadata } from '@lib/table/types';
 import { BASE_OPERATOR } from '@lib/utils';

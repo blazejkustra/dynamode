@@ -76,7 +76,7 @@ describe('Dynamode', () => {
       });
 
       test('Should throw an error when table is registered more than once', async () => {
-        expect(() => storage.registerTable(TestTable, metadata)).to.throw(DefaultError);
+        expect(() => storage.registerTable(TestTable, metadata)).toThrow(DefaultError);
       });
     });
 
@@ -99,11 +99,11 @@ describe('Dynamode', () => {
       });
 
       test('Should throw an error when entity is registered more than once', async () => {
-        expect(() => storage.registerEntity(MockEntity, TEST_TABLE_NAME)).to.throw(DefaultError);
+        expect(() => storage.registerEntity(MockEntity, TEST_TABLE_NAME)).toThrow(DefaultError);
       });
 
       test("Should throw an error when entity is registered and table isn't", async () => {
-        expect(() => storage.registerEntity(MockEntity, 'unknownTableName')).to.throw(DefaultError);
+        expect(() => storage.registerEntity(MockEntity, 'unknownTableName')).toThrow(DefaultError);
       });
     });
 
@@ -145,7 +145,7 @@ describe('Dynamode', () => {
             type: Number,
             role: 'attribute',
           }),
-        ).to.throw(DefaultError);
+        ).toThrow(DefaultError);
       });
     });
 
@@ -195,7 +195,7 @@ describe('Dynamode', () => {
       });
 
       test('Should throw an error if no entity is found', async () => {
-        expect(() => storage.getEntityTableName('unknownEntityName')).to.throw(DefaultError);
+        expect(() => storage.getEntityTableName('unknownEntityName')).toThrow(DefaultError);
       });
     });
 
@@ -205,12 +205,12 @@ describe('Dynamode', () => {
       });
 
       test('Should throw an error if no entity is found', async () => {
-        expect(() => storage.getEntityMetadata('unknownEntityName')).to.throw(DefaultError);
+        expect(() => storage.getEntityMetadata('unknownEntityName')).toThrow(DefaultError);
       });
 
       test('Should throw an error if no table is found for entity', async () => {
         storage.entities['unknownEntityName'] = { tableName: 'unknownTableName' } as any;
-        expect(() => storage.getEntityMetadata('unknownEntityName')).to.throw(DefaultError);
+        expect(() => storage.getEntityMetadata('unknownEntityName')).toThrow(DefaultError);
       });
     });
   });

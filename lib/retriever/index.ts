@@ -3,7 +3,7 @@ import Condition from '@lib/condition';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import { buildProjectionExpression } from '@lib/entity/helpers/buildExpressions';
-import { convertPrimaryKeyToAttributeValues } from '@lib/entity/helpers/convert';
+import { convertPrimaryKeyToAttributeValues } from '@lib/entity/helpers/converters';
 import { EntityKey } from '@lib/entity/types';
 import { Metadata, TablePrimaryKey } from '@lib/table/types';
 import { AttributeNames, AttributeValues } from '@lib/utils';

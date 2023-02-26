@@ -12,23 +12,23 @@ export function convertAttributeValuesToEntity<E extends typeof Entity>(
 ): InstanceType<E> {
   const object = fromDynamo(dynamoItem);
   const attributes = Dynamode.storage.getEntityAttributes(entity.name);
-  const { createdAt, updatedAt } = Dynamode.storage.getEntityMetadata(entity.name);
 
-  if (createdAt) {
-    object[createdAt] = new Date(object[createdAt] as string | number);
-  }
-  if (updatedAt) {
-    object[updatedAt] = new Date(object[updatedAt] as string | number);
-  }
+  Object.values(attributes).forEach((attribute) => {
+    let value = object[attribute.propertyName];
 
-  Object.entries(attributes).forEach(([propertyName, metadata]) => {
-    let value = object[propertyName];
-
-    if (value && typeof value === 'object' && metadata.type === Map) {
+    if (value && typeof value === 'object' && attribute.type === Map) {
       value = new Map(Object.entries(value));
     }
 
-    object[propertyName] = truncateValue(entity, propertyName as EntityKey<E>, value);
+    if (
+      value &&
+      (typeof value === 'string' || typeof value === 'number') &&
+      ['date', 'createdAt', 'updatedAt'].includes(attribute.role)
+    ) {
+      value = new Date(value);
+    }
+
+    object[attribute.propertyName] = truncateValue(entity, attribute.propertyName as EntityKey<E>, value);
   });
 
   return new entity(object) as InstanceType<E>;
@@ -41,20 +41,30 @@ export function convertEntityToAttributeValues<E extends typeof Entity>(
   const dynamoObject: GenericObject = {};
   const attributes = Dynamode.storage.getEntityAttributes(entity.name);
 
-  Object.keys(attributes).forEach((propertyName) => {
-    let value: unknown = item[propertyName as keyof InstanceType<E>];
+  Object.values(attributes).forEach((attribute) => {
+    let value: unknown = item[attribute.propertyName as keyof InstanceType<E>];
 
     if (value instanceof Date) {
-      if (attributes[propertyName].type === String) {
-        value = value.toISOString();
-      } else if (attributes[propertyName].type === Number) {
-        value = value.getTime();
-      } else {
+      if (attribute.role !== 'date') {
         throw new DefaultError();
+      }
+
+      switch (attribute.type) {
+        case String: {
+          value = value.toISOString();
+          break;
+        }
+        case Number: {
+          value = value.getTime();
+          break;
+        }
+        default: {
+          throw new DefaultError();
+        }
       }
     }
 
-    dynamoObject[propertyName] = prefixSuffixValue(entity, propertyName as EntityKey<E>, value);
+    dynamoObject[attribute.propertyName] = prefixSuffixValue(entity, attribute.propertyName as EntityKey<E>, value);
   });
 
   return objectToDynamo(dynamoObject);
@@ -67,9 +77,8 @@ export function convertAttributeValuesToPrimaryKey<M extends Metadata<E>, E exte
   const object = fromDynamo(dynamoItem);
   const { partitionKey, sortKey } = Dynamode.storage.getEntityMetadata(entity.name);
 
-  if (partitionKey) {
-    object[partitionKey] = truncateValue(entity, partitionKey as EntityKey<E>, object[partitionKey]);
-  }
+  object[partitionKey] = truncateValue(entity, partitionKey as EntityKey<E>, object[partitionKey]);
+
   if (sortKey) {
     object[sortKey] = truncateValue(entity, sortKey as EntityKey<E>, object[sortKey]);
   }
@@ -84,13 +93,8 @@ export function convertPrimaryKeyToAttributeValues<M extends Metadata<E>, E exte
   const dynamoObject: GenericObject = {};
   const { partitionKey, sortKey } = Dynamode.storage.getEntityMetadata(entity.name);
 
-  if (partitionKey) {
-    dynamoObject[partitionKey] = prefixSuffixValue(
-      entity,
-      partitionKey as EntityKey<E>,
-      (<any>primaryKey)[partitionKey],
-    );
-  }
+  dynamoObject[partitionKey] = prefixSuffixValue(entity, partitionKey as EntityKey<E>, (<any>primaryKey)[partitionKey]);
+
   if (sortKey) {
     dynamoObject[sortKey] = prefixSuffixValue(entity, sortKey as EntityKey<E>, (<any>primaryKey)[sortKey]);
   }

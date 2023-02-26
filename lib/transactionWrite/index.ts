@@ -1,7 +1,7 @@
 import { TransactWriteItemsCommandInput, TransactWriteItemsOutput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
-import { convertAttributeValuesToEntity } from '@lib/entity/helpers/convert';
+import { convertAttributeValuesToEntity } from '@lib/entity/helpers/converters';
 import type {
   TransactionWrite,
   TransactionWriteInput,

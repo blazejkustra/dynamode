@@ -1,7 +1,7 @@
 import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
-import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } from '@lib/entity/helpers/convert';
+import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } from '@lib/entity/helpers/converters';
 import { EntityKey, EntityValue } from '@lib/entity/types';
 import type { QueryRunOptions, QueryRunOutput } from '@lib/query/types';
 import RetrieverBase from '@lib/retriever';

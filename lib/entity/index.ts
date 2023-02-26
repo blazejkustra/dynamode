@@ -24,7 +24,7 @@ import {
   convertAttributeValuesToEntity,
   convertEntityToAttributeValues,
   convertPrimaryKeyToAttributeValues,
-} from '@lib/entity/helpers/convert';
+} from '@lib/entity/helpers/converters';
 import { mapReturnValues, mapReturnValuesLimited } from '@lib/entity/helpers/returnValues';
 import {
   EntityBatchDeleteOptions,

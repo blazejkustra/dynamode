@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
-import * as entityConvertHelpers from '@lib/entity/helpers/convert';
+import * as entityConvertHelpers from '@lib/entity/helpers/converters';
 import transactionGet from '@lib/transactionGet';
 import { TransactionGet } from '@lib/transactionGet/types';
 import { NotFoundError } from '@lib/utils';
