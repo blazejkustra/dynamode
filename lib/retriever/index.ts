@@ -2,7 +2,7 @@ import { QueryInput, ScanInput } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
-import { buildProjectionExpression } from '@lib/entity/helpers/buildExpressions';
+import { buildGetProjectionExpression } from '@lib/entity/helpers/buildExpressions';
 import { convertPrimaryKeyToAttributeValues } from '@lib/entity/helpers/converters';
 import { EntityKey } from '@lib/entity/types';
 import { Metadata, TablePrimaryKey } from '@lib/table/types';
@@ -44,7 +44,10 @@ export default class RetrieverBase<M extends Metadata<E>, E extends typeof Entit
   }
 
   public attributes(attributes: Array<EntityKey<E>>) {
-    this.input.ProjectionExpression = buildProjectionExpression(this.entity, attributes, this.attributeNames);
+    this.input.ProjectionExpression = buildGetProjectionExpression(
+      attributes,
+      this.attributeNames,
+    ).projectionExpression;
     return this;
   }
 }

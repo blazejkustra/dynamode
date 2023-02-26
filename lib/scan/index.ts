@@ -5,9 +5,7 @@ import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } fr
 import RetrieverBase from '@lib/retriever';
 import type { ScanRunOptions, ScanRunOutput } from '@lib/scan/types';
 import { Metadata, TableIndexNames } from '@lib/table/types';
-import { isNotEmptyString } from '@lib/utils';
-
-import { ExpressionBuilder } from './../utils/ExpressionBuilder';
+import { ExpressionBuilder, isNotEmptyString } from '@lib/utils';
 
 export default class Scan<M extends Metadata<E>, E extends typeof Entity> extends RetrieverBase<M, E> {
   protected declare input: ScanInput;

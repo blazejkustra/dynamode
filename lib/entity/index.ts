@@ -103,7 +103,7 @@ export function entityManager<M extends Metadata<E>, E extends typeof Entity>(en
     primaryKey: TablePrimaryKey<M, E>,
     options?: EntityGetOptions<E>,
   ): Promise<InstanceType<E> | GetItemCommandOutput> | GetItemCommandInput {
-    const { projectionExpression, attributeNames } = buildGetProjectionExpression(entity, options?.attributes);
+    const { projectionExpression, attributeNames } = buildGetProjectionExpression(options?.attributes);
 
     const commandInput: GetItemCommandInput = {
       TableName: tableName,
@@ -323,7 +323,7 @@ export function entityManager<M extends Metadata<E>, E extends typeof Entity>(en
     primaryKeys: Array<TablePrimaryKey<M, E>>,
     options?: EntityBatchGetOptions<E>,
   ): Promise<EntityBatchGetOutput<M, E> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
-    const { projectionExpression, attributeNames } = buildGetProjectionExpression(entity, options?.attributes);
+    const { projectionExpression, attributeNames } = buildGetProjectionExpression(options?.attributes);
 
     const commandInput: BatchGetItemCommandInput = {
       RequestItems: {
@@ -471,7 +471,7 @@ export function entityManager<M extends Metadata<E>, E extends typeof Entity>(en
     primaryKey: TablePrimaryKey<M, E>,
     options?: EntityTransactionGetOptions<EntityKey<E>>,
   ): TransactionGet<E> {
-    const { projectionExpression, attributeNames } = buildGetProjectionExpression(entity, options?.attributes);
+    const { projectionExpression, attributeNames } = buildGetProjectionExpression(options?.attributes);
 
     const commandInput: TransactionGet<E> = {
       entity,

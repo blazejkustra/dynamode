@@ -8,9 +8,7 @@ import type {
 } from '@lib/dynamode/storage/types';
 import Entity from '@lib/entity';
 import { Metadata } from '@lib/table/types';
-import { mergeObjects } from '@lib/utils';
-
-import { DefaultError } from './../../utils/errors';
+import { DefaultError, mergeObjects } from '@lib/utils';
 
 export default class DynamodeStorage {
   public tables: TablesMetadata = {};

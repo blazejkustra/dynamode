@@ -77,13 +77,15 @@ describe('RetrieverBase', () => {
   });
 
   describe('attributes', () => {
-    const buildProjectionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildProjectionExpression');
-    buildProjectionExpressionSpy.mockImplementation(() => 'mockedProjectionExpression');
+    const buildProjectionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildGetProjectionExpression');
+    buildProjectionExpressionSpy.mockReturnValue({
+      projectionExpression: 'mockedProjectionExpression',
+    });
 
     test('Should set ProjectionExpression on query/scan input', async () => {
       retriever.attributes(['partitionKey', 'array']);
 
-      expect(buildProjectionExpressionSpy).toHaveBeenCalledWith(MockEntity, ['partitionKey', 'array'], {});
+      expect(buildProjectionExpressionSpy).toHaveBeenCalledWith(['partitionKey', 'array'], {});
       expect(retriever['input']['ProjectionExpression']).toEqual('mockedProjectionExpression');
     });
   });

@@ -1,10 +1,9 @@
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
+import { prefixSuffixValue, truncateValue } from '@lib/entity/helpers/prefixSuffix';
 import { EntityKey } from '@lib/entity/types';
 import { Metadata, TablePrimaryKey } from '@lib/table/types';
 import { AttributeValues, DefaultError, fromDynamo, GenericObject, objectToDynamo } from '@lib/utils';
-
-import { prefixSuffixValue, truncateValue } from './prefixSuffix';
 
 export function convertAttributeValuesToEntity<E extends typeof Entity>(
   entity: E,
