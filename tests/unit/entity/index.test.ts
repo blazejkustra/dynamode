@@ -335,4 +335,219 @@ describe('entityManager', () => {
       expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, {});
     });
   });
+
+  describe('put', async () => {
+    const putItemMock = vi.fn();
+
+    let getEntityMetadataSpy = vi.spyOn(Dynamode.storage, 'getEntityMetadata');
+    let convertEntityToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertEntityToAttributeValues');
+    let buildPutConditionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildPutConditionExpression');
+    let convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
+
+    beforeEach(() => {
+      vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ putItem: putItemMock } as any as DynamoDB);
+
+      getEntityMetadataSpy = vi.spyOn(Dynamode.storage, 'getEntityMetadata');
+      getEntityMetadataSpy.mockReturnValue({ partitionKey: 'partitionKey' } as any);
+
+      convertEntityToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertEntityToAttributeValues');
+      convertEntityToAttributeValuesSpy.mockImplementation((_, instance) => instance as any as AttributeValues);
+
+      buildPutConditionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildPutConditionExpression');
+      convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    test('Should call buildPutConditionExpressionSpy helper', async () => {
+      buildPutConditionExpressionSpy.mockReturnValue({
+        conditionExpression: 'conditionExpression',
+        attributeNames: { test: 'test' },
+        attributeValues: { test: { S: 'test' } },
+      });
+
+      expect(
+        mockEntityManager.put(mockInstance, {
+          return: 'input',
+          condition: mockEntityManager.condition().attribute('string').beginsWith('v'),
+        }),
+      ).toEqual({
+        TableName: TEST_TABLE_NAME,
+        Item: mockInstance,
+        ConditionExpression: 'conditionExpression',
+        ExpressionAttributeNames: { test: 'test' },
+        ExpressionAttributeValues: { test: { S: 'test' } },
+      });
+
+      expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
+      expect(buildPutConditionExpressionSpy).toBeCalledWith(
+        undefined,
+        mockEntityManager.condition().attribute('string').beginsWith('v'),
+      );
+      expect(putItemMock).not.toBeCalled();
+      expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
+    });
+
+    test('Should overwrite query with extraInput option', async () => {
+      buildPutConditionExpressionSpy.mockReturnValue({ conditionExpression: 'conditionExpression' });
+
+      expect(
+        mockEntityManager.put(mockInstance, {
+          return: 'input',
+          extraInput: { ConditionExpression: 'extra', ExpressionAttributeNames: { test: 'test' } },
+        }),
+      ).toEqual({
+        TableName: TEST_TABLE_NAME,
+        Item: mockInstance,
+        ConditionExpression: 'extra',
+        ExpressionAttributeNames: { test: 'test' },
+      });
+
+      expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
+      expect(buildPutConditionExpressionSpy).toBeCalledWith(undefined, undefined);
+      expect(putItemMock).not.toBeCalled();
+      expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
+    });
+
+    test('Should add condition to not overwrite existing item', async () => {
+      buildPutConditionExpressionSpy.mockReturnValue({ conditionExpression: 'conditionExpression' });
+
+      expect(mockEntityManager.put(mockInstance, { return: 'input', overwrite: false })).toEqual({
+        TableName: TEST_TABLE_NAME,
+        Item: mockInstance,
+        ConditionExpression: 'conditionExpression',
+      });
+
+      expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
+      expect(buildPutConditionExpressionSpy).toBeCalledWith(
+        mockEntityManager.condition().attribute('partitionKey').not().exists(),
+        undefined,
+      );
+      expect(putItemMock).not.toBeCalled();
+      expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
+    });
+
+    test('Should return native dynamo result (return: output)', async () => {
+      buildPutConditionExpressionSpy.mockReturnValue({ conditionExpression: 'conditionExpression' });
+      putItemMock.mockResolvedValue({ Attributes: undefined });
+
+      await expect(mockEntityManager.put(mockInstance, { return: 'output' })).resolves.toEqual({
+        Attributes: undefined,
+      });
+
+      expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
+      expect(buildPutConditionExpressionSpy).toBeCalledWith(undefined, undefined);
+      expect(putItemMock).toBeCalledWith({
+        TableName: TEST_TABLE_NAME,
+        Item: mockInstance,
+        ConditionExpression: 'conditionExpression',
+      });
+      expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
+    });
+
+    test('Should return dynamode result of put item', async () => {
+      buildPutConditionExpressionSpy.mockReturnValue({ conditionExpression: 'conditionExpression' });
+      putItemMock.mockResolvedValue({ Attributes: undefined });
+      convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
+
+      await expect(mockEntityManager.put(mockInstance)).resolves.toEqual(mockInstance);
+
+      expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
+      expect(buildPutConditionExpressionSpy).toBeCalledWith(undefined, undefined);
+      expect(putItemMock).toBeCalledWith({
+        TableName: TEST_TABLE_NAME,
+        Item: mockInstance,
+        ConditionExpression: 'conditionExpression',
+      });
+      expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, mockInstance);
+    });
+  });
+
+  describe('create', async () => {
+    test('Should call put item with overwrite = false', async () => {
+      const convertEntityToAttributeValuesSpy = vi
+        .spyOn(entityConvertHelpers, 'convertEntityToAttributeValues')
+        .mockImplementation((_, instance) => instance as any as AttributeValues);
+      const buildPutConditionExpressionSpy = vi
+        .spyOn(entityExpressionsHelpers, 'buildPutConditionExpression')
+        .mockReturnValue({});
+
+      mockEntityManager.create(mockInstance, {
+        return: 'input',
+        condition: mockEntityManager.condition().attribute('string').beginsWith('v'),
+      });
+
+      expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
+      expect(buildPutConditionExpressionSpy).toBeCalledWith(
+        mockEntityManager.condition().attribute('partitionKey').not().exists(),
+        mockEntityManager.condition().attribute('string').beginsWith('v'),
+      );
+    });
+  });
+
+  // describe('delete', async () => {
+  //   getEntityMetadata
+  //   buildDeleteConditionExpression
+  //   convertPrimaryKeyToAttributeValues
+  //   mapReturnValuesLimited
+  //   deleteItem
+  //   convertAttributeValuesToEntity
+  // });
+
+  // describe('batchGet', async () => {
+  //   buildGetProjectionExpression
+  //   convertPrimaryKeyToAttributeValues
+  //   batchGetItem
+  //   convertAttributeValuesToEntity
+  // });
+
+  // describe('batchPut', async () => {
+  //   convertEntityToAttributeValues
+  //   batchWriteItem
+  //   convertAttributeValuesToEntity
+  // });
+
+  // describe('batchDelete', async () => {
+  //   convertPrimaryKeyToAttributeValues
+  //   batchWriteItem
+  // });
+
+  // describe('transactionGet', async () => {
+  //   buildGetProjectionExpression
+  //   convertPrimaryKeyToAttributeValues
+  // });
+
+  // describe('transactionUpdate', async () => {
+  //   buildUpdateConditionExpression
+  //   convertPrimaryKeyToAttributeValues
+  //   mapReturnValuesLimited
+  // });
+
+  // describe('transactionPut', async () => {
+  //   getEntityMetadata
+  //   buildPutConditionExpression
+  //   convertEntityToAttributeValues
+  //   mapReturnValuesLimited
+  // });
+
+  // describe('transactionCreate', async () => {
+  //   transactionPut
+  // });
+
+  // describe('transactionDelete', async () => {
+  //   buildDeleteConditionExpression
+  //   convertPrimaryKeyToAttributeValues
+  // });
+
+  // describe('transactionDelete', async () => {
+  //   ExpressionBuilder
+  //   convertPrimaryKeyToAttributeValues
+  // });
 });
