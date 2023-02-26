@@ -56,8 +56,7 @@ import {
 } from '@lib/transactionWrite/types';
 import { AttributeValues, DYNAMODE_ENTITY, ExpressionBuilder, fromDynamo, NotFoundError } from '@lib/utils';
 export default class Entity {
-  // TODO: try to make it readonly
-  public dynamodeEntity: string;
+  public readonly dynamodeEntity: string;
 
   // eslint-disable-next-line unused-imports/no-unused-vars, @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
   constructor(...args: unknown[]) {}
@@ -70,18 +69,18 @@ Dynamode.storage.registerAttribute(Entity.name, DYNAMODE_ENTITY, {
 });
 
 export function entityManager<M extends Metadata<E>, E extends typeof Entity>(entity: E, tableName: string) {
-  entity.prototype.dynamodeEntity = entity.name;
+  (entity.prototype.dynamodeEntity as string) = entity.name;
 
   function condition(): Condition<E> {
     return new Condition(entity);
   }
 
   function query(): Query<M, E> {
-    return new Query(entity);
+    return new Query<M, E>(entity);
   }
 
   function scan(): Scan<M, E> {
-    return new Scan(entity);
+    return new Scan<M, E>(entity);
   }
 
   function get(

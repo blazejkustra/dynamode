@@ -5,8 +5,6 @@ import { BASE_OPERATOR, DefaultError, DYNAMODE_ENTITY, UPDATE_OPERATORS } from '
 
 import { MockEntity } from '../../../mocks';
 
-import { ExpressionBuilder } from './../../../../lib/utils/ExpressionBuilder';
-
 describe('Build operators entity helpers', () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -202,121 +200,6 @@ describe('Build operators entity helpers', () => {
         BASE_OPERATOR.space,
         ...UPDATE_OPERATORS.remove('boolean'),
       ]);
-
-      console.log(
-        ` new ExpressionBuilder().run([
-        BASE_OPERATOR.set,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.set('string', 'value'),
-        BASE_OPERATOR.comma,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.set('number', 1),
-        BASE_OPERATOR.comma,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.setIfNotExists('string', 'value'),
-        BASE_OPERATOR.comma,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.setIfNotExists('number', 1),
-        BASE_OPERATOR.comma,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.listAppend('array', ['1']),
-        BASE_OPERATOR.comma,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.increment('number', 1),
-        BASE_OPERATOR.comma,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.increment('object.required', 2),
-        BASE_OPERATOR.comma,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.decrement('number', 1),
-        BASE_OPERATOR.comma,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.decrement('object.required', 2),
-
-        BASE_OPERATOR.space,
-
-        BASE_OPERATOR.add,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.add('number', 1),
-        BASE_OPERATOR.comma,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.add('object.required', 2),
-        BASE_OPERATOR.comma,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.add('set', new Set('1')),
-
-        BASE_OPERATOR.space,
-
-        BASE_OPERATOR.delete,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.delete('set', new Set('1')),
-
-        BASE_OPERATOR.space,
-
-        BASE_OPERATOR.remove,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.remove('array'),
-        BASE_OPERATOR.comma,
-        BASE_OPERATOR.space,
-        ...UPDATE_OPERATORS.remove('boolean'),
-      ]); = `,
-        new ExpressionBuilder().run([
-          BASE_OPERATOR.set,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.set('string', 'value'),
-          BASE_OPERATOR.comma,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.set('number', 1),
-          BASE_OPERATOR.comma,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.setIfNotExists('string', 'value'),
-          BASE_OPERATOR.comma,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.setIfNotExists('number', 1),
-          BASE_OPERATOR.comma,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.listAppend('array', ['1']),
-          BASE_OPERATOR.comma,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.increment('number', 1),
-          BASE_OPERATOR.comma,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.increment('object.required', 2),
-          BASE_OPERATOR.comma,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.decrement('number', 1),
-          BASE_OPERATOR.comma,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.decrement('object.required', 2),
-
-          BASE_OPERATOR.space,
-
-          BASE_OPERATOR.add,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.add('number', 1),
-          BASE_OPERATOR.comma,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.add('object.required', 2),
-          BASE_OPERATOR.comma,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.add('set', new Set('1')),
-
-          BASE_OPERATOR.space,
-
-          BASE_OPERATOR.delete,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.delete('set', new Set('1')),
-
-          BASE_OPERATOR.space,
-
-          BASE_OPERATOR.remove,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.remove('array'),
-          BASE_OPERATOR.comma,
-          BASE_OPERATOR.space,
-          ...UPDATE_OPERATORS.remove('boolean'),
-        ]),
-      );
     });
 
     test('Should properly build update operators with no props', async () => {
