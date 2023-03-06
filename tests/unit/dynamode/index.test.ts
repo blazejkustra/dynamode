@@ -5,7 +5,7 @@ import Dynamode from '@lib/dynamode/index';
 import DynamodeStorage from '@lib/dynamode/storage';
 import { DefaultError } from '@lib/utils/errors';
 
-import { MockEntity, TEST_TABLE_NAME, TestTable } from '../../mocks';
+import { MockEntity, TEST_TABLE_NAME, TestTable } from '../../fixtures';
 
 const metadata: any = {
   tableName: TEST_TABLE_NAME,

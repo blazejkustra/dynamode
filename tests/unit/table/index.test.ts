@@ -4,7 +4,7 @@ import Dynamode from '@lib/dynamode/index';
 import * as entity from '@lib/entity';
 import { tableManager } from '@lib/table';
 
-import { MockEntity, mockEntityManager, TEST_TABLE_NAME, TestTable } from '../../mocks';
+import { MockEntity, mockEntityManager, TEST_TABLE_NAME, TestTable } from '../../fixtures';
 
 const metadata = {
   tableName: TEST_TABLE_NAME,

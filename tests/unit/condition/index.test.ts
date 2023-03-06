@@ -4,7 +4,7 @@ import Condition from '@lib/condition';
 import { AttributeType } from '@lib/condition/types';
 import { BASE_OPERATOR, OPERATORS } from '@lib/utils';
 
-import { MockEntity, mockEntityManager } from '../../mocks';
+import { MockEntity, mockEntityManager } from '../../fixtures';
 
 describe('Condition', () => {
   let condition = mockEntityManager.condition();

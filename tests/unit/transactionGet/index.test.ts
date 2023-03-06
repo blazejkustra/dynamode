@@ -7,7 +7,7 @@ import transactionGet from '@lib/transactionGet';
 import { TransactionGet } from '@lib/transactionGet/types';
 import { NotFoundError } from '@lib/utils';
 
-import { MockEntity, mockInstance, TEST_TABLE_NAME, TestTable, testTableInstance } from '../../mocks';
+import { MockEntity, mockInstance, TEST_TABLE_NAME, TestTable, testTableInstance } from '../../fixtures';
 
 const transactionGetInputMockEntity: TransactionGet<typeof MockEntity> = {
   get: {

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import Dynamode from '@lib/dynamode/index';
 import { prefixSuffixValue, truncateValue } from '@lib/entity/helpers/prefixSuffix';
 
-import { MockEntity } from '../../../mocks';
+import { MockEntity } from '../../../fixtures';
 
 describe('Prefix and suffix entity helpers', () => {
   let getEntityAttributesSpy = vi.spyOn(Dynamode.storage, 'getEntityAttributes');

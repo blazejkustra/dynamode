@@ -8,7 +8,7 @@ import { Metadata } from '@lib/table/types';
 import { BASE_OPERATOR } from '@lib/utils';
 import * as utils from '@lib/utils/helpers';
 
-import { MockEntity, mockEntityManager, mockInstance, TEST_TABLE_NAME } from '../../mocks';
+import { MockEntity, mockEntityManager, mockInstance, TEST_TABLE_NAME } from '../../fixtures';
 
 vi.mock('@lib/utils/ExpressionBuilder', () => {
   const ExpressionBuilder = vi.fn(() => ({

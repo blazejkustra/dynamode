@@ -11,7 +11,7 @@ import {
   TransactionUpdate,
 } from '@lib/transactionWrite/types';
 
-import { MockEntity, TEST_TABLE_NAME } from '../../mocks';
+import { MockEntity, TEST_TABLE_NAME } from '../../fixtures';
 
 const transactionUpdate: TransactionUpdate<typeof MockEntity> = {
   update: {

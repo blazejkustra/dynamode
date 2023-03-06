@@ -15,7 +15,7 @@ vi.useFakeTimers();
 const mockDate = new Date(1000000000000);
 vi.setSystemTime(mockDate);
 
-import { MockEntity, mockInstance, TestTableMetadata } from '../../../mocks';
+import { MockEntity, mockInstance, TestTableMetadata } from '../../../fixtures';
 
 const metadata = {
   tableName: 'test-table',

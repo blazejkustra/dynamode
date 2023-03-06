@@ -3,7 +3,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { buildProjectionOperators, buildUpdateOperators } from '@lib/entity/helpers/buildOperators';
 import { BASE_OPERATOR, DefaultError, DYNAMODE_ENTITY, UPDATE_OPERATORS } from '@lib/utils';
 
-import { MockEntity } from '../../../mocks';
+import { MockEntity } from '../../../fixtures';
 
 describe('Build operators entity helpers', () => {
   afterEach(() => {
