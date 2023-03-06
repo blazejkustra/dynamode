@@ -13,6 +13,19 @@ import * as converterUtils from '@lib/utils/converter';
 
 import { MockEntity, mockEntityManager, mockInstance, TEST_TABLE_NAME, testTableInstance } from '../../fixtures';
 
+import { OPERATORS } from './../../../lib/utils/constants';
+
+const expressionBuilderRunSpy = vi.fn();
+
+vi.mock('@lib/utils/ExpressionBuilder', () => {
+  const ExpressionBuilder = vi.fn(() => ({
+    attributeNames: { attributeNames: 'value' },
+    attributeValues: { attributeValues: 'value' },
+    run: expressionBuilderRunSpy,
+  }));
+  return { ExpressionBuilder };
+});
+
 const primaryKey = { partitionKey: 'PK', sortKey: 'SK' };
 
 describe('entityManager', () => {
@@ -37,13 +50,13 @@ describe('entityManager', () => {
   describe('get', async () => {
     const getItemMock = vi.fn();
 
-    let buildProjectionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildGetProjectionExpression');
+    let buildGetProjectionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildGetProjectionExpression');
     let convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
     let convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
 
     beforeEach(() => {
       vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ getItem: getItemMock } as any as DynamoDB);
-      buildProjectionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildGetProjectionExpression');
+      buildGetProjectionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildGetProjectionExpression');
       convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
       convertPrimaryKeyToAttributeValuesSpy.mockImplementation((_, primaryKey) => primaryKey as any as AttributeValues);
       convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
@@ -54,7 +67,7 @@ describe('entityManager', () => {
     });
 
     test('Should call buildGetProjectionExpression helper', async () => {
-      buildProjectionExpressionSpy.mockReturnValue({
+      buildGetProjectionExpressionSpy.mockReturnValue({
         projectionExpression: 'ProjectionExpression',
         attributeNames: { test: 'test' },
       });
@@ -67,14 +80,14 @@ describe('entityManager', () => {
         ExpressionAttributeNames: { test: 'test' },
       });
 
-      expect(buildProjectionExpressionSpy).toBeCalledWith(['number', 'string']);
+      expect(buildGetProjectionExpressionSpy).toBeCalledWith(['number', 'string']);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(getItemMock).not.toBeCalled();
       expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
     });
 
     test('Should overwrite query with extraInput option', async () => {
-      buildProjectionExpressionSpy.mockReturnValue({
+      buildGetProjectionExpressionSpy.mockReturnValue({
         projectionExpression: 'ProjectionExpression',
         attributeNames: { test: 'test' },
       });
@@ -92,19 +105,19 @@ describe('entityManager', () => {
         ExpressionAttributeNames: { test: 'test' },
       });
 
-      expect(buildProjectionExpressionSpy).toBeCalledWith(undefined);
+      expect(buildGetProjectionExpressionSpy).toBeCalledWith(undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(getItemMock).not.toBeCalled();
       expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
     });
 
     test('Should return native dynamo result (return: output)', async () => {
-      buildProjectionExpressionSpy.mockReturnValue({});
+      buildGetProjectionExpressionSpy.mockReturnValue({});
       getItemMock.mockResolvedValue({ Item: mockInstance });
 
       await expect(mockEntityManager.get(primaryKey, { return: 'output' })).resolves.toEqual({ Item: mockInstance });
 
-      expect(buildProjectionExpressionSpy).toBeCalledWith(undefined);
+      expect(buildGetProjectionExpressionSpy).toBeCalledWith(undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(getItemMock).toBeCalledWith({
         TableName: TEST_TABLE_NAME,
@@ -115,12 +128,12 @@ describe('entityManager', () => {
     });
 
     test('Should return native dynamo result (item not found)', async () => {
-      buildProjectionExpressionSpy.mockReturnValue({});
+      buildGetProjectionExpressionSpy.mockReturnValue({});
       getItemMock.mockResolvedValue({ Item: undefined });
 
       await expect(mockEntityManager.get(primaryKey, { return: 'output' })).resolves.toEqual({ Item: undefined });
 
-      expect(buildProjectionExpressionSpy).toBeCalledWith(undefined);
+      expect(buildGetProjectionExpressionSpy).toBeCalledWith(undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(getItemMock).toBeCalledWith({
         TableName: TEST_TABLE_NAME,
@@ -131,13 +144,13 @@ describe('entityManager', () => {
     });
 
     test('Should return dynamode result (item found)', async () => {
-      buildProjectionExpressionSpy.mockReturnValue({});
+      buildGetProjectionExpressionSpy.mockReturnValue({});
       getItemMock.mockResolvedValue({ Item: mockInstance });
       convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
 
       await expect(mockEntityManager.get(primaryKey)).resolves.toEqual(mockInstance);
 
-      expect(buildProjectionExpressionSpy).toBeCalledWith(undefined);
+      expect(buildGetProjectionExpressionSpy).toBeCalledWith(undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(getItemMock).toBeCalledWith({
         TableName: TEST_TABLE_NAME,
@@ -148,12 +161,12 @@ describe('entityManager', () => {
     });
 
     test("Should throw an error if item wasn't found", async () => {
-      buildProjectionExpressionSpy.mockReturnValue({});
+      buildGetProjectionExpressionSpy.mockReturnValue({});
       getItemMock.mockResolvedValue({ Item: undefined });
 
       await expect(mockEntityManager.get(primaryKey)).rejects.toThrow(NotFoundError);
 
-      expect(buildProjectionExpressionSpy).toBeCalledWith(undefined);
+      expect(buildGetProjectionExpressionSpy).toBeCalledWith(undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(getItemMock).toBeCalledWith({
         TableName: TEST_TABLE_NAME,
@@ -913,46 +926,840 @@ describe('entityManager', () => {
     });
   });
 
-  // describe('batchPut', async () => {
-  //   convertEntityToAttributeValues
-  //   batchWriteItem
-  //   convertAttributeValuesToEntity
-  // });
+  describe('batchPut', async () => {
+    const batchWriteMock = vi.fn();
 
-  // describe('batchDelete', async () => {
-  //   convertPrimaryKeyToAttributeValues
-  //   batchWriteItem
-  // });
+    let convertEntityToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertEntityToAttributeValues');
+    let convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
 
-  // describe('transactionGet', async () => {
-  //   buildGetProjectionExpression
-  //   convertPrimaryKeyToAttributeValues
-  // });
+    beforeEach(() => {
+      vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ batchWriteItem: batchWriteMock } as any as DynamoDB);
 
-  // describe('transactionUpdate', async () => {
-  //   buildUpdateConditionExpression
-  //   convertPrimaryKeyToAttributeValues
-  //   mapReturnValuesLimited
-  // });
+      convertEntityToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertEntityToAttributeValues');
+      convertEntityToAttributeValuesSpy.mockImplementation((_, instance) => instance as any as AttributeValues);
+      convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
+    });
 
-  // describe('transactionPut', async () => {
-  //   getEntityMetadata
-  //   buildPutConditionExpression
-  //   convertEntityToAttributeValues
-  //   mapReturnValuesLimited
-  // });
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
 
-  // describe('transactionCreate', async () => {
-  //   transactionPut
-  // });
+    test('Should return proper dynamo input', async () => {
+      expect(mockEntityManager.batchPut([mockInstance, testTableInstance as any], { return: 'input' })).toEqual({
+        RequestItems: {
+          [TEST_TABLE_NAME]: [
+            {
+              PutRequest: {
+                Item: mockInstance,
+              },
+            },
+            {
+              PutRequest: {
+                Item: testTableInstance,
+              },
+            },
+          ],
+        },
+      });
 
-  // describe('transactionDelete', async () => {
-  //   buildDeleteConditionExpression
-  //   convertPrimaryKeyToAttributeValues
-  // });
+      expect(convertEntityToAttributeValuesSpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance);
+      expect(convertEntityToAttributeValuesSpy).toHaveBeenNthCalledWith(2, MockEntity, testTableInstance);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledTimes(2);
+      expect(batchWriteMock).not.toBeCalled();
+      expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
+    });
 
-  // describe('transactionDelete', async () => {
-  //   ExpressionBuilder
-  //   convertPrimaryKeyToAttributeValues
-  // });
+    test('Should overwrite query with extraInput option', async () => {
+      expect(
+        mockEntityManager.batchPut([mockInstance, testTableInstance as any], {
+          return: 'input',
+          extraInput: { ReturnConsumedCapacity: 'returnConsumedCapacity' },
+        }),
+      ).toEqual({
+        RequestItems: {
+          [TEST_TABLE_NAME]: [
+            {
+              PutRequest: {
+                Item: mockInstance,
+              },
+            },
+            {
+              PutRequest: {
+                Item: testTableInstance,
+              },
+            },
+          ],
+        },
+        ReturnConsumedCapacity: 'returnConsumedCapacity',
+      });
+
+      expect(convertEntityToAttributeValuesSpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance);
+      expect(convertEntityToAttributeValuesSpy).toHaveBeenNthCalledWith(2, MockEntity, testTableInstance);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledTimes(2);
+      expect(batchWriteMock).not.toBeCalled();
+      expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
+    });
+
+    test('Should return native dynamo result (return: output)', async () => {
+      batchWriteMock.mockResolvedValue({ UnprocessedItems: undefined });
+
+      await expect(
+        mockEntityManager.batchPut([mockInstance, testTableInstance as any], { return: 'output' }),
+      ).resolves.toEqual({
+        UnprocessedItems: undefined,
+      });
+
+      expect(convertEntityToAttributeValuesSpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance);
+      expect(convertEntityToAttributeValuesSpy).toHaveBeenNthCalledWith(2, MockEntity, testTableInstance);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledTimes(2);
+      expect(batchWriteMock).toBeCalledWith({
+        RequestItems: {
+          [TEST_TABLE_NAME]: [
+            {
+              PutRequest: {
+                Item: mockInstance,
+              },
+            },
+            {
+              PutRequest: {
+                Item: testTableInstance,
+              },
+            },
+          ],
+        },
+      });
+      expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
+    });
+
+    test('Should return dynamode result of batch put item with no unprocessed items', async () => {
+      batchWriteMock.mockResolvedValue({ UnprocessedItems: undefined });
+      convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
+
+      await expect(mockEntityManager.batchPut([mockInstance, testTableInstance as any])).resolves.toEqual({
+        items: [mockInstance, testTableInstance],
+        unprocessedItems: [],
+      });
+
+      expect(convertEntityToAttributeValuesSpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance);
+      expect(convertEntityToAttributeValuesSpy).toHaveBeenNthCalledWith(2, MockEntity, testTableInstance);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledTimes(2);
+      expect(batchWriteMock).toBeCalledWith({
+        RequestItems: {
+          [TEST_TABLE_NAME]: [
+            {
+              PutRequest: {
+                Item: mockInstance,
+              },
+            },
+            {
+              PutRequest: {
+                Item: testTableInstance,
+              },
+            },
+          ],
+        },
+      });
+      expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance);
+      expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, MockEntity, testTableInstance);
+      expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(2);
+    });
+
+    test('Should return dynamode result of batch put item with unprocessed items', async () => {
+      batchWriteMock.mockResolvedValue({
+        UnprocessedItems: {
+          [TEST_TABLE_NAME]: [
+            {
+              PutRequest: {
+                Item: mockInstance,
+              },
+            },
+          ],
+        },
+      });
+
+      convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
+
+      await expect(mockEntityManager.batchPut([mockInstance, testTableInstance as any])).resolves.toEqual({
+        items: [mockInstance, testTableInstance],
+        unprocessedItems: [mockInstance],
+      });
+
+      expect(convertEntityToAttributeValuesSpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance);
+      expect(convertEntityToAttributeValuesSpy).toHaveBeenNthCalledWith(2, MockEntity, testTableInstance);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledTimes(2);
+      expect(batchWriteMock).toBeCalledWith({
+        RequestItems: {
+          [TEST_TABLE_NAME]: [
+            {
+              PutRequest: {
+                Item: mockInstance,
+              },
+            },
+            {
+              PutRequest: {
+                Item: testTableInstance,
+              },
+            },
+          ],
+        },
+      });
+      expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance);
+      expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, MockEntity, mockInstance);
+      expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(3, MockEntity, testTableInstance);
+      expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(3);
+    });
+  });
+
+  describe('batchDelete', async () => {
+    const batchWriteMock = vi.fn();
+
+    let convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
+    let fromDynamoSpy = vi.spyOn(converterUtils, 'fromDynamo');
+
+    beforeEach(() => {
+      vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ batchWriteItem: batchWriteMock } as any as DynamoDB);
+
+      convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
+      convertPrimaryKeyToAttributeValuesSpy.mockImplementation((_, primaryKey) => primaryKey as any as AttributeValues);
+      fromDynamoSpy = vi.spyOn(converterUtils, 'fromDynamo');
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    test('Should return proper dynamo input', async () => {
+      expect(mockEntityManager.batchDelete([primaryKey, primaryKey], { return: 'input' })).toEqual({
+        RequestItems: {
+          [TEST_TABLE_NAME]: [
+            {
+              DeleteRequest: {
+                Key: primaryKey,
+              },
+            },
+            {
+              DeleteRequest: {
+                Key: primaryKey,
+              },
+            },
+          ],
+        },
+      });
+
+      expect(convertPrimaryKeyToAttributeValuesSpy).toHaveBeenNthCalledWith(1, MockEntity, primaryKey);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toHaveBeenNthCalledWith(2, MockEntity, primaryKey);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledTimes(2);
+      expect(batchWriteMock).not.toBeCalled();
+      expect(fromDynamoSpy).not.toBeCalled();
+    });
+
+    test('Should overwrite query with extraInput option', async () => {
+      expect(
+        mockEntityManager.batchDelete([primaryKey, primaryKey], {
+          return: 'input',
+          extraInput: { ReturnConsumedCapacity: 'returnConsumedCapacity' },
+        }),
+      ).toEqual({
+        RequestItems: {
+          [TEST_TABLE_NAME]: [
+            {
+              DeleteRequest: {
+                Key: primaryKey,
+              },
+            },
+            {
+              DeleteRequest: {
+                Key: primaryKey,
+              },
+            },
+          ],
+        },
+        ReturnConsumedCapacity: 'returnConsumedCapacity',
+      });
+
+      expect(convertPrimaryKeyToAttributeValuesSpy).toHaveBeenNthCalledWith(1, MockEntity, primaryKey);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toHaveBeenNthCalledWith(2, MockEntity, primaryKey);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledTimes(2);
+      expect(batchWriteMock).not.toBeCalled();
+      expect(fromDynamoSpy).not.toBeCalled();
+    });
+
+    test('Should return native dynamo result (return: output)', async () => {
+      batchWriteMock.mockResolvedValue({ UnprocessedItems: undefined });
+
+      await expect(mockEntityManager.batchDelete([primaryKey, primaryKey], { return: 'output' })).resolves.toEqual({
+        UnprocessedItems: undefined,
+      });
+
+      expect(convertPrimaryKeyToAttributeValuesSpy).toHaveBeenNthCalledWith(1, MockEntity, primaryKey);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toHaveBeenNthCalledWith(2, MockEntity, primaryKey);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledTimes(2);
+      expect(batchWriteMock).toBeCalledWith({
+        RequestItems: {
+          [TEST_TABLE_NAME]: [
+            {
+              DeleteRequest: {
+                Key: primaryKey,
+              },
+            },
+            {
+              DeleteRequest: {
+                Key: primaryKey,
+              },
+            },
+          ],
+        },
+      });
+      expect(fromDynamoSpy).not.toBeCalled();
+    });
+
+    test('Should return dynamode result of batch delete item with no unprocessed items', async () => {
+      batchWriteMock.mockResolvedValue({ UnprocessedItems: undefined });
+
+      await expect(mockEntityManager.batchDelete([primaryKey, primaryKey])).resolves.toEqual({
+        unprocessedItems: [],
+      });
+
+      expect(convertPrimaryKeyToAttributeValuesSpy).toHaveBeenNthCalledWith(1, MockEntity, primaryKey);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toHaveBeenNthCalledWith(2, MockEntity, primaryKey);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledTimes(2);
+      expect(batchWriteMock).toBeCalledWith({
+        RequestItems: {
+          [TEST_TABLE_NAME]: [
+            {
+              DeleteRequest: {
+                Key: primaryKey,
+              },
+            },
+            {
+              DeleteRequest: {
+                Key: primaryKey,
+              },
+            },
+          ],
+        },
+      });
+      expect(fromDynamoSpy).not.toBeCalled();
+    });
+
+    test('Should return dynamode result of batch put item with unprocessed items', async () => {
+      batchWriteMock.mockResolvedValue({
+        UnprocessedItems: {
+          [TEST_TABLE_NAME]: [
+            {
+              DeleteRequest: {
+                Key: primaryKey,
+              },
+            },
+          ],
+        },
+      });
+      fromDynamoSpy.mockImplementation((key) => key);
+
+      await expect(mockEntityManager.batchDelete([primaryKey, primaryKey])).resolves.toEqual({
+        unprocessedItems: [primaryKey],
+      });
+
+      expect(convertPrimaryKeyToAttributeValuesSpy).toHaveBeenNthCalledWith(1, MockEntity, primaryKey);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toHaveBeenNthCalledWith(2, MockEntity, primaryKey);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledTimes(2);
+      expect(batchWriteMock).toBeCalledWith({
+        RequestItems: {
+          [TEST_TABLE_NAME]: [
+            {
+              DeleteRequest: {
+                Key: primaryKey,
+              },
+            },
+            {
+              DeleteRequest: {
+                Key: primaryKey,
+              },
+            },
+          ],
+        },
+      });
+      expect(fromDynamoSpy).toHaveBeenNthCalledWith(1, primaryKey);
+      expect(fromDynamoSpy).toBeCalledTimes(1);
+    });
+  });
+
+  describe('transactionGet', async () => {
+    let buildGetProjectionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildGetProjectionExpression');
+    let convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
+
+    beforeEach(() => {
+      buildGetProjectionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildGetProjectionExpression');
+      convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
+      convertPrimaryKeyToAttributeValuesSpy.mockImplementation((_, primaryKey) => primaryKey as any as AttributeValues);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    test('Should build transaction get input without options', async () => {
+      buildGetProjectionExpressionSpy.mockReturnValue({});
+
+      expect(mockEntityManager.transaction.get(primaryKey)).toEqual({
+        entity: MockEntity,
+        get: {
+          TableName: TEST_TABLE_NAME,
+          Key: primaryKey,
+        },
+      });
+
+      expect(buildGetProjectionExpressionSpy).toBeCalledWith(undefined);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
+    });
+
+    test('Should build transaction get input with extraInput option', async () => {
+      buildGetProjectionExpressionSpy.mockReturnValue({});
+
+      expect(mockEntityManager.transaction.get(primaryKey, { extraInput: { TableName: 'tableName' } })).toEqual({
+        entity: MockEntity,
+        get: {
+          TableName: 'tableName',
+          Key: primaryKey,
+        },
+      });
+
+      expect(buildGetProjectionExpressionSpy).toBeCalledWith(undefined);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
+    });
+
+    test('Should build transaction get input with attributes option', async () => {
+      buildGetProjectionExpressionSpy.mockReturnValue({
+        projectionExpression: 'ProjectionExpression',
+        attributeNames: { test: 'test' },
+      });
+
+      expect(mockEntityManager.transaction.get(primaryKey, { attributes: ['number', 'string'] })).toEqual({
+        entity: MockEntity,
+        get: {
+          TableName: TEST_TABLE_NAME,
+          Key: primaryKey,
+          ProjectionExpression: 'ProjectionExpression',
+          ExpressionAttributeNames: { test: 'test' },
+        },
+      });
+
+      expect(buildGetProjectionExpressionSpy).toBeCalledWith(['number', 'string']);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
+    });
+  });
+
+  describe('transactionUpdate', async () => {
+    let buildUpdateConditionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildUpdateConditionExpression');
+    let convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
+    let mapReturnValuesLimitedSpy = vi.spyOn(returnValuesHelpers, 'mapReturnValuesLimited');
+
+    beforeEach(() => {
+      buildUpdateConditionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildUpdateConditionExpression');
+      convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
+      convertPrimaryKeyToAttributeValuesSpy.mockImplementation((_, primaryKey) => primaryKey as any as AttributeValues);
+      mapReturnValuesLimitedSpy = vi.spyOn(returnValuesHelpers, 'mapReturnValuesLimited');
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    test('Should build transaction update input without options', async () => {
+      buildUpdateConditionExpressionSpy.mockReturnValue({
+        updateExpression: 'updateExpression',
+        conditionExpression: 'conditionExpression',
+        attributeNames: { test: 'test' },
+        attributeValues: { test: { S: 'test' } },
+      });
+      mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
+
+      expect(mockEntityManager.transaction.update(primaryKey, { set: { string: 'value' } })).toEqual({
+        entity: MockEntity,
+        update: {
+          TableName: TEST_TABLE_NAME,
+          Key: primaryKey,
+          ReturnValuesOnConditionCheckFailure: ReturnValuesOnConditionCheckFailure.ALL_OLD,
+          UpdateExpression: 'updateExpression',
+          ConditionExpression: 'conditionExpression',
+          ExpressionAttributeNames: { test: 'test' },
+          ExpressionAttributeValues: { test: { S: 'test' } },
+        },
+      });
+
+      expect(buildUpdateConditionExpressionSpy).toBeCalledWith({ set: { string: 'value' } }, undefined);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
+      expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
+    });
+
+    test('Should build transaction update input with extraInput option', async () => {
+      buildUpdateConditionExpressionSpy.mockReturnValue({
+        updateExpression: 'updateExpression',
+      });
+      mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
+
+      expect(
+        mockEntityManager.transaction.update(
+          primaryKey,
+          { set: { string: 'value' } },
+          {
+            extraInput: { ExpressionAttributeNames: { test: 'test' }, UpdateExpression: 'updateExpression overwrite' },
+          },
+        ),
+      ).toEqual({
+        entity: MockEntity,
+        update: {
+          TableName: TEST_TABLE_NAME,
+          Key: primaryKey,
+          ReturnValuesOnConditionCheckFailure: ReturnValuesOnConditionCheckFailure.ALL_OLD,
+          UpdateExpression: 'updateExpression overwrite',
+          ExpressionAttributeNames: { test: 'test' },
+        },
+      });
+
+      expect(buildUpdateConditionExpressionSpy).toBeCalledWith({ set: { string: 'value' } }, undefined);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
+      expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
+    });
+
+    test('Should build transaction update input with condition option', async () => {
+      buildUpdateConditionExpressionSpy.mockReturnValue({
+        updateExpression: 'updateExpression',
+      });
+      mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
+
+      expect(
+        mockEntityManager.transaction.update(
+          primaryKey,
+          { set: { string: 'value' } },
+          { condition: mockEntityManager.condition().attribute('string').beginsWith('v') },
+        ),
+      ).toEqual({
+        entity: MockEntity,
+        update: {
+          TableName: TEST_TABLE_NAME,
+          Key: primaryKey,
+          ReturnValuesOnConditionCheckFailure: ReturnValuesOnConditionCheckFailure.ALL_OLD,
+          UpdateExpression: 'updateExpression',
+        },
+      });
+
+      expect(buildUpdateConditionExpressionSpy).toBeCalledWith(
+        { set: { string: 'value' } },
+        mockEntityManager.condition().attribute('string').beginsWith('v'),
+      );
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
+      expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
+    });
+
+    test('Should build transaction update input with returnValuesOnFailure option', async () => {
+      buildUpdateConditionExpressionSpy.mockReturnValue({
+        updateExpression: 'updateExpression',
+      });
+      mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.NONE);
+
+      expect(
+        mockEntityManager.transaction.update(
+          primaryKey,
+          { set: { string: 'value' } },
+          { returnValuesOnFailure: 'none' },
+        ),
+      ).toEqual({
+        entity: MockEntity,
+        update: {
+          TableName: TEST_TABLE_NAME,
+          Key: primaryKey,
+          ReturnValuesOnConditionCheckFailure: ReturnValuesOnConditionCheckFailure.NONE,
+          UpdateExpression: 'updateExpression',
+        },
+      });
+
+      expect(buildUpdateConditionExpressionSpy).toBeCalledWith({ set: { string: 'value' } }, undefined);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
+      expect(mapReturnValuesLimitedSpy).toBeCalledWith('none');
+    });
+  });
+
+  describe('transactionPut', async () => {
+    let getEntityMetadataSpy = vi.spyOn(Dynamode.storage, 'getEntityMetadata');
+    let buildPutConditionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildPutConditionExpression');
+    let convertEntityToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertEntityToAttributeValues');
+    let mapReturnValuesLimitedSpy = vi.spyOn(returnValuesHelpers, 'mapReturnValuesLimited');
+
+    beforeEach(() => {
+      getEntityMetadataSpy = vi.spyOn(Dynamode.storage, 'getEntityMetadata');
+      getEntityMetadataSpy.mockReturnValue({ partitionKey: 'partitionKey' } as any);
+
+      buildPutConditionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildPutConditionExpression');
+
+      convertEntityToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertEntityToAttributeValues');
+      convertEntityToAttributeValuesSpy.mockImplementation((_, instance) => instance as any as AttributeValues);
+
+      mapReturnValuesLimitedSpy = vi.spyOn(returnValuesHelpers, 'mapReturnValuesLimited');
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    test('Should build transaction put input without options', async () => {
+      buildPutConditionExpressionSpy.mockReturnValue({});
+      mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
+
+      expect(mockEntityManager.transaction.put(mockInstance)).toEqual({
+        entity: MockEntity,
+        put: {
+          TableName: TEST_TABLE_NAME,
+          Item: mockInstance,
+          ReturnValuesOnConditionCheckFailure: ReturnValuesOnConditionCheckFailure.ALL_OLD,
+        },
+      });
+
+      expect(buildPutConditionExpressionSpy).toBeCalledWith(undefined, undefined);
+      expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
+      expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
+    });
+
+    test('Should build transaction put input with extraInput option', async () => {
+      buildPutConditionExpressionSpy.mockReturnValue({});
+      mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
+
+      expect(
+        mockEntityManager.transaction.put(mockInstance, { extraInput: { ConditionExpression: 'conditionExpression' } }),
+      ).toEqual({
+        entity: MockEntity,
+        put: {
+          TableName: TEST_TABLE_NAME,
+          Item: mockInstance,
+          ReturnValuesOnConditionCheckFailure: ReturnValuesOnConditionCheckFailure.ALL_OLD,
+          ConditionExpression: 'conditionExpression',
+        },
+      });
+
+      expect(buildPutConditionExpressionSpy).toBeCalledWith(undefined, undefined);
+      expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
+      expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
+    });
+
+    test('Should build transaction put input with overwrite option', async () => {
+      buildPutConditionExpressionSpy.mockReturnValue({});
+      mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
+
+      expect(mockEntityManager.transaction.put(mockInstance, { overwrite: false })).toEqual({
+        entity: MockEntity,
+        put: {
+          TableName: TEST_TABLE_NAME,
+          Item: mockInstance,
+          ReturnValuesOnConditionCheckFailure: ReturnValuesOnConditionCheckFailure.ALL_OLD,
+        },
+      });
+
+      expect(buildPutConditionExpressionSpy).toBeCalledWith(
+        mockEntityManager.condition().attribute('partitionKey').not().exists(),
+        undefined,
+      );
+      expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
+      expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
+    });
+
+    test('Should build transaction put input with condition option', async () => {
+      buildPutConditionExpressionSpy.mockReturnValue({
+        conditionExpression: 'conditionExpression',
+        attributeNames: { test: 'test' },
+        attributeValues: { test: { S: 'test' } },
+      });
+      mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
+
+      expect(
+        mockEntityManager.transaction.put(mockInstance, {
+          condition: mockEntityManager.condition().attribute('string').beginsWith('v'),
+        }),
+      ).toEqual({
+        entity: MockEntity,
+        put: {
+          TableName: TEST_TABLE_NAME,
+          Item: mockInstance,
+          ReturnValuesOnConditionCheckFailure: ReturnValuesOnConditionCheckFailure.ALL_OLD,
+          ConditionExpression: 'conditionExpression',
+          ExpressionAttributeNames: { test: 'test' },
+          ExpressionAttributeValues: { test: { S: 'test' } },
+        },
+      });
+
+      expect(buildPutConditionExpressionSpy).toBeCalledWith(
+        undefined,
+        mockEntityManager.condition().attribute('string').beginsWith('v'),
+      );
+      expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
+      expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
+    });
+
+    test('Should build transaction put input with returnValuesOnFailure option', async () => {
+      buildPutConditionExpressionSpy.mockReturnValue({});
+      mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.NONE);
+
+      expect(
+        mockEntityManager.transaction.put(mockInstance, {
+          returnValuesOnFailure: 'none',
+        }),
+      ).toEqual({
+        entity: MockEntity,
+        put: {
+          TableName: TEST_TABLE_NAME,
+          Item: mockInstance,
+          ReturnValuesOnConditionCheckFailure: ReturnValuesOnConditionCheckFailure.NONE,
+        },
+      });
+
+      expect(buildPutConditionExpressionSpy).toBeCalledWith(undefined, undefined);
+      expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
+      expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
+      expect(mapReturnValuesLimitedSpy).toBeCalledWith('none');
+    });
+  });
+
+  describe('transactionCreate', async () => {
+    test('Should call transactionPut item with overwrite = false', async () => {
+      const convertEntityToAttributeValuesSpy = vi
+        .spyOn(entityConvertHelpers, 'convertEntityToAttributeValues')
+        .mockImplementation((_, instance) => instance as any as AttributeValues);
+      const buildPutConditionExpressionSpy = vi
+        .spyOn(entityExpressionsHelpers, 'buildPutConditionExpression')
+        .mockReturnValue({});
+      const getEntityMetadataSpy = vi
+        .spyOn(Dynamode.storage, 'getEntityMetadata')
+        .mockReturnValue({ partitionKey: 'partitionKey' } as any);
+      const mapReturnValuesLimitedSpy = vi
+        .spyOn(returnValuesHelpers, 'mapReturnValuesLimited')
+        .mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
+
+      mockEntityManager.transaction.create(mockInstance, {
+        condition: mockEntityManager.condition().attribute('string').beginsWith('v'),
+      });
+
+      expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
+      expect(buildPutConditionExpressionSpy).toBeCalledWith(
+        mockEntityManager.condition().attribute('partitionKey').not().exists(),
+        mockEntityManager.condition().attribute('string').beginsWith('v'),
+      );
+      expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
+      expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
+    });
+  });
+
+  describe('transactionDelete', async () => {
+    let buildDeleteConditionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildDeleteConditionExpression');
+    let convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
+
+    beforeEach(() => {
+      buildDeleteConditionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildDeleteConditionExpression');
+
+      convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
+      convertPrimaryKeyToAttributeValuesSpy.mockImplementation((_, primaryKey) => primaryKey as any as AttributeValues);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    test('Should build transaction delete input without options', async () => {
+      buildDeleteConditionExpressionSpy.mockReturnValue({
+        conditionExpression: 'conditionExpression',
+        attributeNames: { test: 'test' },
+        attributeValues: { test: { S: 'test' } },
+      });
+
+      expect(mockEntityManager.transaction.delete(primaryKey)).toEqual({
+        entity: MockEntity,
+        delete: {
+          TableName: TEST_TABLE_NAME,
+          Key: primaryKey,
+          ConditionExpression: 'conditionExpression',
+          ExpressionAttributeNames: { test: 'test' },
+          ExpressionAttributeValues: { test: { S: 'test' } },
+        },
+      });
+
+      expect(buildDeleteConditionExpressionSpy).toBeCalledWith(undefined);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
+    });
+
+    test('Should build transaction delete input with extraInput option', async () => {
+      buildDeleteConditionExpressionSpy.mockReturnValue({});
+
+      expect(
+        mockEntityManager.transaction.delete(primaryKey, {
+          extraInput: { ConditionExpression: 'conditionExpression' },
+        }),
+      ).toEqual({
+        entity: MockEntity,
+        delete: {
+          TableName: TEST_TABLE_NAME,
+          Key: primaryKey,
+          ConditionExpression: 'conditionExpression',
+        },
+      });
+
+      expect(buildDeleteConditionExpressionSpy).toBeCalledWith(undefined);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
+    });
+
+    test('Should build transaction delete input with condition option', async () => {
+      buildDeleteConditionExpressionSpy.mockReturnValue({});
+
+      expect(
+        mockEntityManager.transaction.delete(primaryKey, {
+          condition: mockEntityManager.condition().attribute('string').beginsWith('v'),
+        }),
+      ).toEqual({
+        entity: MockEntity,
+        delete: {
+          TableName: TEST_TABLE_NAME,
+          Key: primaryKey,
+        },
+      });
+
+      expect(buildDeleteConditionExpressionSpy).toBeCalledWith(
+        mockEntityManager.condition().attribute('string').beginsWith('v'),
+      );
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
+    });
+  });
+
+  describe('transactionCondition', async () => {
+    let convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
+
+    beforeEach(() => {
+      convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
+      convertPrimaryKeyToAttributeValuesSpy.mockImplementation((_, primaryKey) => primaryKey as any as AttributeValues);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    test('Should build transaction condition input', async () => {
+      expressionBuilderRunSpy.mockReturnValue('number = 1');
+
+      expect(
+        mockEntityManager.transaction.condition(primaryKey, mockEntityManager.condition().attribute('number').eq(1)),
+      ).toEqual({
+        entity: MockEntity,
+        condition: {
+          TableName: TEST_TABLE_NAME,
+          Key: primaryKey,
+          ConditionExpression: 'number = 1',
+          ExpressionAttributeNames: { attributeNames: 'value' },
+          ExpressionAttributeValues: { attributeValues: 'value' },
+        },
+      });
+
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
+      expect(expressionBuilderRunSpy).toBeCalledWith(OPERATORS.eq('number', 1));
+    });
+  });
 });

@@ -49,7 +49,6 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 ### Priority
 
-* [ ] Add tests and coverage
 * [ ] convert all Date attributes to String/Number not only updatedAt and createdAt
 * [ ] add array type to attribute.array decorator (consider if it's necessary)
 * [ ] Fix issue with empty set when using Entity.update (add additional validation) - empty set and string are not allowed https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html
@@ -74,3 +73,4 @@ Dynamode is licensed under [The MIT License](LICENSE).
 * [ ] CLI tool to create/update table/index
 * [ ] Add possibility to have more than one suffix/prefix
 * [ ] Add PartiQL support
+* [ ] Decide if batchPut should return items if unprocessed items are returned
