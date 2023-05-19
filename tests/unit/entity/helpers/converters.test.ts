@@ -11,11 +11,7 @@ import {
 import * as prefixSuffixHelpers from '@lib/entity/helpers/prefixSuffix';
 import { DefaultError } from '@lib/utils/errors';
 
-vi.useFakeTimers();
-const mockDate = new Date(1000000000000);
-vi.setSystemTime(mockDate);
-
-import { MockEntity, mockInstance, TestTableMetadata } from '../../../fixtures';
+import { mockDate, MockEntity, mockInstance, TestTableMetadata } from '../../../fixtures';
 
 const metadata = {
   tableName: 'test-table',
@@ -148,6 +144,15 @@ describe('Converters entity helpers', () => {
   });
 
   describe('convertEntityToAttributeValues', async () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(mockDate);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     test('Should return object in dynamo format', async () => {
       getEntityAttributesSpy.mockReturnValue(mockEntityAttributes);
 

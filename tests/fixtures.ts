@@ -1,7 +1,14 @@
+import { vi } from 'vitest';
+
 import attribute from '@lib/decorators';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import { tableManager } from '@lib/table';
+
+vi.useFakeTimers();
+
+export const mockDate = new Date(1000000000000);
+vi.setSystemTime(mockDate);
 
 Dynamode.ddb.local();
 export const ddb = Dynamode.ddb.get();
@@ -168,3 +175,5 @@ export const mockInstance = new MockEntity({
   array: ['1', '2'],
   boolean: true,
 });
+
+vi.useRealTimers();

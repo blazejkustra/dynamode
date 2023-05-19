@@ -219,6 +219,11 @@ describe('Query', () => {
 
   describe('partitionKey', () => {
     beforeEach(() => {
+      maybePushKeyLogicalOperatorSpy = vi.spyOn(query, 'maybePushKeyLogicalOperator' as any);
+      setAssociatedIndexNameSpy = vi.spyOn(query, 'setAssociatedIndexName' as any);
+    });
+
+    afterEach(() => {
       vi.restoreAllMocks();
     });
 
@@ -239,6 +244,11 @@ describe('Query', () => {
 
   describe('sortKey', () => {
     beforeEach(() => {
+      maybePushKeyLogicalOperatorSpy = vi.spyOn(query, 'maybePushKeyLogicalOperator' as any);
+      setAssociatedIndexNameSpy = vi.spyOn(query, 'setAssociatedIndexName' as any);
+    });
+
+    afterEach(() => {
       vi.restoreAllMocks();
     });
 

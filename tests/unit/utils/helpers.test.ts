@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import {
   duplicatesInArray,
@@ -139,20 +139,23 @@ describe('Helpers', () => {
   });
 
   describe('timeout', () => {
-    const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
-
     beforeEach(() => {
-      vi.restoreAllMocks();
+      vi.useFakeTimers();
+      vi.spyOn(global, 'setTimeout').mockImplementation((cb) => cb() as any);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
     });
 
     test('Should call setTimeout if argument is greater than 0', async () => {
       expect(await timeout(1)).toEqual(undefined);
-      expect(setTimeoutSpy).toHaveBeenLastCalledWith(expect.anything(), 1);
+      expect(setTimeout).toHaveBeenLastCalledWith(expect.anything(), 1);
     });
 
     test('Should call setTimeout if argument equals 0', async () => {
       expect(await timeout(0)).toEqual(undefined);
-      expect(setTimeoutSpy).not.toHaveBeenCalled();
+      expect(setTimeout).not.toHaveBeenCalled();
     });
   });
 });
