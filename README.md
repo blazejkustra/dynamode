@@ -49,8 +49,6 @@ Dynamode is licensed under [The MIT License](LICENSE).
 
 ### Priority
 
-* [ ] convert all Date attributes to String/Number not only updatedAt and createdAt
-* [ ] add array type to attribute.array decorator (consider if it's necessary)
 * [ ] Fix issue with empty set when using Entity.update (add additional validation) - empty set and string are not allowed https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html
 * [ ] Add validation to query/scan classes
 * [ ] Add validation to make sure that entities are registered have partitionKey and other stuff (think if it is needed at all)
@@ -61,16 +59,18 @@ Dynamode is licensed under [The MIT License](LICENSE).
 * [ ] Write e2e tests
 * [ ] Implement query that support querying different types of entities
 * [ ] Add dynamoDB streams support
-* [ ] Capture dynamoDB errors and make it easier to work with
-* [ ] Add logging possibility
-* [ ] Support binary types https://github.com/aws/aws-sdk-js-v3/blob/06417909a3/packages/util-dynamodb/src/convertToAttr.ts#L166 and https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_dynamodb.html
 
-### Consider
+### Medium priority
 
-* [ ] Allow passing empty objects to Entity.update.set
-* [ ] Allow having multiple ddb instances
-* [ ] Add dependsOn to global settings to throw/warn when updating
-* [ ] CLI tool to create/update table/index
 * [ ] Add possibility to have more than one suffix/prefix
-* [ ] Add PartiQL support
 * [ ] Decide if batchPut should return items if unprocessed items are returned
+* [ ] Support binary types https://github.com/aws/aws-sdk-js-v3/blob/06417909a3/packages/util-dynamodb/src/convertToAttr.ts#L166 and https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_dynamodb.html
+* [ ] Add logging possibility
+
+### Future
+
+* [ ] Add PartiQL support
+* [ ] Add dependsOn to global settings to throw/warn when updating (decorator)
+* [ ] Allow having multiple ddb instances
+* [ ] Capture dynamoDB errors and make it easier to work with
+* [ ] CLI tool to create/update table/index

@@ -21,8 +21,6 @@ export type AttributeRole =
   | 'gsiSortKey'
   | 'lsiSortKey'
   | 'date'
-  | 'createdAt'
-  | 'updatedAt'
   | 'attribute'
   | 'dynamodeEntity';
 

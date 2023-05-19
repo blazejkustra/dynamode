@@ -32,7 +32,7 @@ export class EntityReservedWord extends Entity {
   @attribute.lsi.sortKey.number({ indexName: 'PRIMARY' })
   old?: number;
 
-  // Timestamps
+  // Dates
   @attribute.date.string()
   DAY: Date;
 
@@ -50,7 +50,7 @@ export class EntityReservedWord extends Entity {
     this.DEFAULT = props.DEFAULT;
     this.old = props.old;
 
-    // Timestamps
+    // Dates
     this.DAY = props.DAY || new Date();
     this.DATE = props.DATE || new Date();
   }
