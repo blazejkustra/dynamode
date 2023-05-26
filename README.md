@@ -29,48 +29,81 @@ Dynamode is highly influenced by other ORMs/ODMs, such as [TypeORM](https://gith
 
 ## Documentation
 
-Check out our dedicated documentation page for info about the library, guide and more: https://blazejkustra.github.io/dynamode/docs/getting_started/introduction
+Check out our dedicated documentation page [here](https://blazejkustra.github.io/dynamode/docs/getting_started/introduction) for info about the library, guide and more.
 
 ## Installation
 
 Check out the [installation](https://blazejkustra.github.io/dynamode/docs/getting_started/install) section of our docs for the detailed installation instructions.
 
-## Examples
-
-Find examples under the [`examples/`](https://github.com/blazejkustra/dynamode/blob/master/examples/) directory.
-
 ## License
 
 Dynamode is licensed under [The MIT License](LICENSE).
 
----
+## Examples
 
-## Road map
+Example table definition:
+```ts
+type ExampleTableProps = {
+  propPk: string;
+  propSk: number;
+  index: string;
+};
 
-### Priority
+const TABLE_NAME = 'example-table';
 
-* [ ] Fix issue with empty set when using Entity.update (add additional validation) - empty set and string are not allowed https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html
-* [ ] Add validation to query/scan classes
-* [ ] Add validation to make sure that entities are registered have partitionKey and other stuff (think if it is needed at all)
-* [ ] Fix Condition, Query and Scan methods to work only on specific properties (between, contains etc shouldn't work for array as an example)
-* [ ] Improve error messages
-* [ ] Add table creation
-* [ ] Add table validation  - You can only add local secondary indexes on tables with composite primary keys
-* [ ] Write e2e tests
-* [ ] Implement query that support querying different types of entities
-* [ ] Add dynamoDB streams support
+class ExampleTable extends Entity {
+  @attribute.partitionKey.string()
+  propPk: string;
 
-### Medium priority
+  @attribute.sortKey.number()
+  propSk: number;
 
-* [ ] Add possibility to have more than one suffix/prefix
-* [ ] Decide if batchPut should return items if unprocessed items are returned
-* [ ] Support binary types https://github.com/aws/aws-sdk-js-v3/blob/06417909a3/packages/util-dynamodb/src/convertToAttr.ts#L166 and https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_dynamodb.html
-* [ ] Add logging possibility
+  @attribute.lsi.sortKey.string({ indexName: 'LSI_NAME' })
+  index: string;
 
-### Future
+  constructor(props: ExampleTableProps) {
+    super();
 
-* [ ] Add PartiQL support
-* [ ] Add dependsOn to global settings to throw/warn when updating (decorator)
-* [ ] Allow having multiple ddb instances
-* [ ] Capture dynamoDB errors and make it easier to work with
-* [ ] CLI tool to create/update table/index
+    this.propPk = props.propPk;
+    this.propSk = props.propSk;
+    this.index = props.index;
+  }
+}
+
+export const exampleTable = tableManager(ExampleTable).metadata({
+  tableName: TABLE_NAME,
+  partitionKey: 'propPk',
+  sortKey: 'propSk',
+  indexes: {
+    LSI_NAME: {
+      sortKey: 'index',
+    },
+  },
+});
+
+await exampleTable.create();
+```
+
+Example entity definition:
+```ts
+type ExampleEntityProps = ExampleTableProps & {
+  attr: { [k: string]: number };
+};
+
+export class ExampleEntity extends ExampleTable {
+  @attribute.object()
+  attr: { [k: string]: number };
+
+  constructor(props: ExampleEntityProps) {
+    super(props);
+
+    this.attr = props.attr;
+  }
+}
+
+export const ExampleManager = exampleTable.entityManager(ExampleEntity);
+
+await ExampleManager.put(new ExampleEntity({ ... }));
+```
+
+Find more examples under the [`examples/`](https://github.com/blazejkustra/dynamode/blob/master/examples/) directory.

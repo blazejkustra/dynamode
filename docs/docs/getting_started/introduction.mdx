@@ -7,7 +7,7 @@ hide_title: true
 
 :::caution
 
-This is an **alpha** version. Dynamode has no tests at this point and no extensive validation - use at your own risk.
+This is an **alpha** version. Dynamode has no e2e tests at this point - use at your own risk.
 
 :::
 
@@ -37,7 +37,31 @@ Dynamode is highly influenced by other ORMs/ODMs, such as [TypeORM](https://gith
 - Logging
 - Migrations and automatic migrations generation.
 - DynamoDB streams support
-- Unit and e2e tests
+- E2e tests
 - PartiQL support
 - Capture DynamoDB errors and make it easier to work with
 - Support binary data type
+
+## TODOs
+
+* [ ] Table creation
+* [ ] Table validation/update (e.g. local secondary indexes can be added only on tables with composite primary keys)
+* [ ] Fix issue using Entity.update (empty set and string are not allowed https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html)
+* [ ] Validation to query/scan classes
+* [ ] Validation to make sure that entities are registered have partitionKey and other stuff
+* [ ] Fix Condition, Query and Scan methods to work only on specific properties (between, contains etc shouldn't work for array as an example)
+* [ ] Improve error messages
+* [ ] Write e2e tests
+
+### Other
+  
+* [ ] Add DynamoDB streams support
+* [ ] Implement query that support querying different types of entities at once with TS support
+* [ ] Possibility to have more than one suffix/prefix
+* [ ] Decide if batchPut should return items when unprocessed items are returned
+* [ ] Support binary types [link](https://github.com/aws/aws-sdk-js-v3/blob/06417909a3/packages/util-dynamodb/src/convertToAttr.ts#L166) and [link](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_dynamodb.html)
+* [ ] Logging possibility
+* [ ] PartiQL support
+* [ ] Add dependsOn decorator to throw/warn when updating
+* [ ] Allow multiple DynamoDB instances
+* [ ] Capture DynamoDB errors and make it easier to work with
