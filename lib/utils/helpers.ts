@@ -30,6 +30,36 @@ export function insertBetween<T>(arr: T[], separator: T | T[]): T[] {
   );
 }
 
+export function deepEqual(obj1: any, obj2: any): boolean {
+  // Check if the objects are strictly equal
+  if (obj1 === obj2) {
+    return true;
+  }
+
+  // Check if both objects are objects and not null
+  if (typeof obj1 !== 'object' || obj1 === null || typeof obj2 !== 'object' || obj2 === null) {
+    return false;
+  }
+
+  // Get the keys of the objects
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  // Check if the objects have the same number of properties
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  // Check if all properties are deep equal
+  for (const key of keys1) {
+    if (!deepEqual(obj1[key], obj2[key])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 /** Splits key that reference a list element.
  * Alphanumeric part can be replaced in case it is a DynamoDB reserved word.
  * Examples: 'list[0][1]' -> ['list', '[0][1]']. 'auto[10]' -> ['auto', '[10]'] */
