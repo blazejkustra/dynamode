@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import Dynamode from '@lib/dynamode/index';
-import * as entity from '@lib/entity';
+import * as entity from '@lib/entity/entityManager';
 import { tableManager } from '@lib/table';
 
 import { MockEntity, mockEntityManager, TEST_TABLE_NAME, TestTable } from '../../fixtures';
@@ -69,7 +69,7 @@ describe('Table', () => {
 
       const TableManager = tableManager(TestTable).metadata(metadata);
 
-      expect(TableManager.tableEntityManager()).toEqual({ testTable: 'testTable' });
+      expect(TableManager.entityManager()).toEqual({ testTable: 'testTable' });
       expect(entityManagerSpy).toBeCalledWith(TestTable, TEST_TABLE_NAME);
     });
   });
