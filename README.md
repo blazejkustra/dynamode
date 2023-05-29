@@ -70,7 +70,7 @@ class ExampleTable extends Entity {
   }
 }
 
-export const exampleTable = tableManager(ExampleTable).metadata({
+export const ExampleTableManager = tableManager(ExampleTable).metadata({
   tableName: TABLE_NAME,
   partitionKey: 'propPk',
   sortKey: 'propSk',
@@ -81,7 +81,7 @@ export const exampleTable = tableManager(ExampleTable).metadata({
   },
 });
 
-await exampleTable.create();
+await ExampleTableManager.create();
 ```
 
 Example entity definition:
@@ -101,9 +101,9 @@ export class ExampleEntity extends ExampleTable {
   }
 }
 
-export const ExampleManager = exampleTable.entityManager(ExampleEntity);
+export const ExampleEntityManager = ExampleTableManager.entityManager(ExampleEntity);
 
-await ExampleManager.put(new ExampleEntity({ ... }));
+await ExampleEntityManager.put(new ExampleEntityManager({ ... }));
 ```
 
 Find more examples under the [`examples/`](https://github.com/blazejkustra/dynamode/blob/master/examples/) directory.
