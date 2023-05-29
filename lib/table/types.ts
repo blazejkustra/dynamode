@@ -50,3 +50,12 @@ export type TableSortKeys<M extends Metadata<E>, E extends typeof Entity> =
           : never
         : never;
     }>;
+
+export interface TableCreateOptions {
+  throughput?: {
+    read: number;
+    write: number;
+  };
+  tags?: Record<string, string>;
+  deletionProtection?: boolean;
+}
