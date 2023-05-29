@@ -1,6 +1,9 @@
+import { Dynamode } from '../../dist';
 import attribute from '../../dist/decorators';
 import Entity from '../../dist/entity';
 import { tableManager } from '../../dist/table';
+
+Dynamode.ddb.local();
 
 type TableProps = {
   propPk: string;
@@ -74,7 +77,7 @@ export class EntityThree extends BaseTable {
   }
 }
 
-export const baseTable = tableManager(BaseTable).metadata({
+export const BaseTableManager = tableManager(BaseTable).metadata({
   tableName: TABLE_NAME,
   partitionKey: 'propPk',
   sortKey: 'propSk',
@@ -85,6 +88,11 @@ export const baseTable = tableManager(BaseTable).metadata({
   },
 });
 
-export const EntityOneManager = baseTable.entityManager(EntityOne);
-export const EntityTwoManager = baseTable.entityManager(EntityTwo);
-export const EntityThreeManager = baseTable.entityManager(EntityThree);
+export const EntityOneManager = BaseTableManager.entityManager(EntityOne);
+export const EntityTwoManager = BaseTableManager.entityManager(EntityTwo);
+export const EntityThreeManager = BaseTableManager.entityManager(EntityThree);
+
+async function create() {
+  const table = await BaseTableManager.create();
+  console.log(table);
+}

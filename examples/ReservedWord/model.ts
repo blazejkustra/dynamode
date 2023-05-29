@@ -1,6 +1,9 @@
+import { Dynamode } from '../../dist';
 import attribute from '../../dist/decorators';
 import Entity from '../../dist/entity';
 import { tableManager } from '../../dist/table';
+
+Dynamode.ddb.local();
 
 type ReservedWordProps = {
   COLUMN: string;
@@ -56,19 +59,19 @@ export class EntityReservedWord extends Entity {
   }
 }
 
-export const reservedWordManager = tableManager(EntityReservedWord)
-  .metadata({
-    tableName: TABLE_NAME,
-    partitionKey: 'COLUMN',
-    sortKey: 'OBJECT',
-    indexes: {
-      OTHER: {
-        partitionKey: 'COPY',
-        sortKey: 'DEFAULT',
-      },
-      PRIMARY: {
-        sortKey: 'old',
-      },
+export const ReservedWordTableManager = tableManager(EntityReservedWord).metadata({
+  tableName: TABLE_NAME,
+  partitionKey: 'COLUMN',
+  sortKey: 'OBJECT',
+  indexes: {
+    OTHER: {
+      partitionKey: 'COPY',
+      sortKey: 'DEFAULT',
     },
-  })
-  .tableEntityManager();
+    PRIMARY: {
+      sortKey: 'old',
+    },
+  },
+});
+
+export const ReservedWordManager = ReservedWordTableManager.entityManager();

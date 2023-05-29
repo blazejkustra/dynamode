@@ -1,6 +1,9 @@
+import { Dynamode } from '../../dist';
 import attribute from '../../dist/decorators';
 import Entity from '../../dist/entity';
 import { tableManager } from '../../dist/table';
+
+Dynamode.ddb.local();
 
 type AllPossiblePropertiesProps = {
   partitionKey: string;
@@ -112,7 +115,7 @@ export class AllPossibleProperties extends Entity {
     console.log('staticMethod');
   }
 }
-export const AllPossiblePropertiesManager = tableManager(AllPossibleProperties).metadata({
+const AllPossiblePropertiesTableManager = tableManager(AllPossibleProperties).metadata({
   tableName: TABLE_NAME,
   partitionKey: 'partitionKey',
   sortKey: 'sortKey',
@@ -128,3 +131,25 @@ export const AllPossiblePropertiesManager = tableManager(AllPossibleProperties).
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
 });
+
+export const AllPossiblePropertiesManager = AllPossiblePropertiesTableManager.entityManager();
+
+async function create() {
+  const table = await AllPossiblePropertiesTableManager.create();
+  console.log(table);
+}
+
+async function createIndex() {
+  const table = await AllPossiblePropertiesTableManager.createIndex('GSI_1_NAME');
+  console.log(table);
+}
+
+async function deleteIndex() {
+  const table = await AllPossiblePropertiesTableManager.deleteIndex('GSI_1_NAME');
+  console.log(table);
+}
+
+async function validateTable() {
+  const table = await AllPossiblePropertiesTableManager.validate();
+  console.log(table);
+}

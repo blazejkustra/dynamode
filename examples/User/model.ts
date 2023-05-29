@@ -1,6 +1,9 @@
+import { Dynamode } from '../../dist';
 import attribute from '../../dist/decorators';
 import Entity from '../../dist/entity';
 import { tableManager } from '../../dist/table';
+
+Dynamode.ddb.local();
 
 type UserProps = {
   partitionKey: string;
@@ -56,10 +59,15 @@ export class User extends Entity {
   }
 }
 
-export const userManager = tableManager(User)
-  .metadata({
-    tableName: USERS_TABLE,
-    partitionKey: 'partitionKey',
-    sortKey: 'sortKey',
-  })
-  .tableEntityManager();
+export const UserTableManager = tableManager(User).metadata({
+  tableName: USERS_TABLE,
+  partitionKey: 'partitionKey',
+  sortKey: 'sortKey',
+});
+
+export const UserManager = UserTableManager.entityManager();
+
+async function create() {
+  const table = await UserTableManager.create();
+  console.log(table);
+}

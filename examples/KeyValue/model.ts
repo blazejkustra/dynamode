@@ -1,6 +1,9 @@
+import { Dynamode } from '../../dist';
 import attribute from '../../dist/decorators';
 import Entity from '../../dist/entity';
 import { tableManager } from '../../dist/table';
+
+Dynamode.ddb.local();
 
 type KeyValueProps = {
   key: string;
@@ -24,9 +27,38 @@ export class KeyValue extends Entity {
   }
 }
 
-export const keyValueManager = tableManager(KeyValue)
-  .metadata({
-    tableName: TABLE_NAME,
-    partitionKey: 'key',
-  })
-  .tableEntityManager();
+export const KeyValueTableManager = tableManager(KeyValue).metadata({
+  tableName: TABLE_NAME,
+  partitionKey: 'key',
+});
+
+export const KeyValueManager = KeyValueTableManager.entityManager();
+
+async function create() {
+  const table = await KeyValueTableManager.create({
+    tags: {
+      'dynamode:example': 'key-value',
+    },
+    throughput: {
+      read: 1,
+      write: 1,
+    },
+    deletionProtection: true,
+  });
+  console.log(table);
+}
+
+async function createIndex() {
+  const table = await KeyValueTableManager.createIndex('test');
+  console.log(table);
+}
+
+async function deleteIndex() {
+  const table = await KeyValueTableManager.deleteIndex('test');
+  console.log(table);
+}
+
+async function validateTable() {
+  const table = await KeyValueTableManager.validate();
+  console.log(table);
+}
