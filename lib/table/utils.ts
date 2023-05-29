@@ -67,7 +67,7 @@ export function getTableLocalSecondaryIndexes<M extends Metadata<TE>, TE extends
   const { partitionKey, indexes } = metadata;
 
   return Object.entries(indexes || {})
-    .filter(([_, index]) => !index.partitionKey && index.sortKey)
+    .filter(([, index]) => !index.partitionKey && index.sortKey)
     .map(([indexName, index]) => ({
       IndexName: indexName,
       KeySchema: [
@@ -86,7 +86,7 @@ export function getTableGlobalSecondaryIndexes<M extends Metadata<TE>, TE extend
   const { indexes } = metadata;
 
   return Object.entries(indexes || {})
-    .filter(([_, index]) => index.partitionKey)
+    .filter(([, index]) => index.partitionKey)
     .map(([indexName, index]) => ({
       IndexName: indexName,
       KeySchema: [
