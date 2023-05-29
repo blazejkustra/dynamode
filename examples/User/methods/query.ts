@@ -1,8 +1,7 @@
-import { userManager } from '../model';
+import { UserManager } from '../model';
 
 async function query() {
-  const result = await userManager
-    .query()
+  const result = await UserManager.query()
     .partitionKey('partitionKey')
     .eq('1')
     .sortKey('sortKey')

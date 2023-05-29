@@ -1,7 +1,7 @@
-import { reservedWordManager } from '../model';
+import { ReservedWordManager } from '../model';
 
 async function get() {
-  const userGet = await reservedWordManager.get({ COLUMN: 'pk1', OBJECT: 'sk1' });
+  const userGet = await ReservedWordManager.get({ COLUMN: 'pk1', OBJECT: 'sk1' });
 
   console.log();
   console.log('OUTPUT:');

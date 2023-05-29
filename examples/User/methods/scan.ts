@@ -1,8 +1,7 @@
-import { userManager } from '../model';
+import { UserManager } from '../model';
 
 async function scan() {
-  const result = await userManager
-    .scan()
+  const result = await UserManager.scan()
     .attribute('age')
     .eq(18)
     .attribute('partitionKey')

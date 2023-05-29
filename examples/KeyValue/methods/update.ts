@@ -1,7 +1,7 @@
-import { keyValueManager } from '../model';
+import { KeyValueManager } from '../model';
 
 async function update() {
-  const userUpdate = await keyValueManager.update(
+  const userUpdate = await KeyValueManager.update(
     { key: 'key1' },
     {
       set: {

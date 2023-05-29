@@ -1,10 +1,10 @@
 import { transactionGet } from '../../../dist';
-import { userManager } from '../model';
+import { UserManager } from '../model';
 
 async function transaction() {
   const transactions = await transactionGet([
-    userManager.transaction.get({ partitionKey: 'pk1', sortKey: 'sk1' }),
-    userManager.transaction.get({ partitionKey: 'pk1', sortKey: 'sk1' }),
+    UserManager.transaction.get({ partitionKey: 'pk1', sortKey: 'sk1' }),
+    UserManager.transaction.get({ partitionKey: 'pk1', sortKey: 'sk1' }),
   ]);
 
   console.log();

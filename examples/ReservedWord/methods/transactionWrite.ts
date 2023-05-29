@@ -1,10 +1,10 @@
 import { transactionWrite } from '../../../dist';
-import { EntityReservedWord, reservedWordManager } from '../model';
+import { EntityReservedWord, ReservedWordManager } from '../model';
 
 async function transaction() {
   const transactions = await transactionWrite(
     [
-      reservedWordManager.transactionUpdate(
+      ReservedWordManager.transactionUpdate(
         { COLUMN: 'pk1', OBJECT: 'sk1' },
         {
           add: {
@@ -12,7 +12,7 @@ async function transaction() {
           },
         },
       ),
-      reservedWordManager.transactionPut(
+      ReservedWordManager.transactionPut(
         new EntityReservedWord({
           COLUMN: 'pk2',
           OBJECT: 'sk2',
@@ -21,7 +21,7 @@ async function transaction() {
           old: 105,
         }),
       ),
-      reservedWordManager.transactionCreate(
+      ReservedWordManager.transactionCreate(
         new EntityReservedWord({
           COLUMN: 'pk3',
           OBJECT: 'sk3',
@@ -30,10 +30,10 @@ async function transaction() {
           old: 105,
         }),
       ),
-      reservedWordManager.transactionDelete({ COLUMN: 'pk5', OBJECT: 'sk5' }),
-      reservedWordManager.transactionCondition(
+      ReservedWordManager.transactionDelete({ COLUMN: 'pk5', OBJECT: 'sk5' }),
+      ReservedWordManager.transactionCondition(
         { COLUMN: 'pk6', OBJECT: 'sk6' },
-        reservedWordManager.condition().attribute('COLUMN').not().exists(),
+        ReservedWordManager.condition().attribute('COLUMN').not().exists(),
       ),
     ],
     { return: 'default' },

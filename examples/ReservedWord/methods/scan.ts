@@ -1,8 +1,7 @@
-import { reservedWordManager } from '../model';
+import { ReservedWordManager } from '../model';
 
 async function scan() {
-  const entityReservedWordScan = await reservedWordManager
-    .scan()
+  const entityReservedWordScan = await ReservedWordManager.scan()
     .attribute('COLUMN')
     .beginsWith('pk')
     .startAt({ OBJECT: 'sk1', COLUMN: 'pk1' })

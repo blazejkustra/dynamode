@@ -1,7 +1,7 @@
-import { User, userManager } from '../model';
+import { User, UserManager } from '../model';
 
 async function create() {
-  const user = await userManager.create(
+  const user = await UserManager.create(
     new User({
       partitionKey: 'pk1',
       sortKey: 'sk1',

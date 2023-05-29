@@ -1,10 +1,10 @@
 import { transactionGet } from '../../../dist';
-import { keyValueManager } from '../model';
+import { KeyValueManager } from '../model';
 
 async function transaction() {
   const transactions = await transactionGet([
-    keyValueManager.transaction.get({ key: 'key1' }),
-    keyValueManager.transaction.get({ key: 'key2' }),
+    KeyValueManager.transaction.get({ key: 'key1' }),
+    KeyValueManager.transaction.get({ key: 'key2' }),
   ]);
 
   console.log();

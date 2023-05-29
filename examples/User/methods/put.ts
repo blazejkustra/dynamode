@@ -1,7 +1,7 @@
-import { User, userManager } from '../model';
+import { User, UserManager } from '../model';
 
 async function put() {
-  const user = await userManager.put(
+  const user = await UserManager.put(
     new User({
       partitionKey: '1',
       sortKey: 'blazej',

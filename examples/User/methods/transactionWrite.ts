@@ -1,9 +1,9 @@
 import { transactionWrite } from '../../../dist';
-import { User, userManager } from '../model';
+import { User, UserManager } from '../model';
 
 async function transaction() {
   const transactions = await transactionWrite([
-    userManager.transaction.update(
+    UserManager.transaction.update(
       { partitionKey: 'pk1', sortKey: 'sk1' },
       {
         set: {
@@ -11,10 +11,10 @@ async function transaction() {
         },
       },
       {
-        condition: userManager.condition().attribute('partitionKey').eq('pk1'),
+        condition: UserManager.condition().attribute('partitionKey').eq('pk1'),
       },
     ),
-    userManager.transaction.put(
+    UserManager.transaction.put(
       new User({
         partitionKey: 'pk2',
         sortKey: 'sk2',
@@ -27,7 +27,7 @@ async function transaction() {
         },
       }),
     ),
-    userManager.transaction.create(
+    UserManager.transaction.create(
       new User({
         partitionKey: 'pk3',
         sortKey: 'sk3',
@@ -40,10 +40,10 @@ async function transaction() {
         },
       }),
     ),
-    userManager.transaction.delete({ partitionKey: 'pk4', sortKey: 'sk4' }),
-    userManager.transaction.condition(
+    UserManager.transaction.delete({ partitionKey: 'pk4', sortKey: 'sk4' }),
+    UserManager.transaction.condition(
       { partitionKey: 'pk5', sortKey: 'sk5' },
-      userManager.condition().attribute('partitionKey').eq('pk5'),
+      UserManager.condition().attribute('partitionKey').eq('pk5'),
     ),
   ]);
 

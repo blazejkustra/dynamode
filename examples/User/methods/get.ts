@@ -1,7 +1,7 @@
-import { userManager } from '../model';
+import { UserManager } from '../model';
 
 async function get() {
-  const userGet = await userManager.get({ partitionKey: 'pk1', sortKey: 'sk1' });
+  const userGet = await UserManager.get({ partitionKey: 'pk1', sortKey: 'sk1' });
 
   console.log();
   console.log('OUTPUT:');

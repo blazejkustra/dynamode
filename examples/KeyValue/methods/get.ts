@@ -1,7 +1,7 @@
-import { keyValueManager } from '../model';
+import { KeyValueManager } from '../model';
 
 async function get() {
-  const modelGet = await keyValueManager.get({ key: 'key1' });
+  const modelGet = await KeyValueManager.get({ key: 'key1' });
 
   console.log();
   console.log('OUTPUT:');

@@ -1,7 +1,7 @@
-import { reservedWordManager } from '../model';
+import { ReservedWordManager } from '../model';
 
 async function deleteFn() {
-  const entityReservedWordDelete = await reservedWordManager.delete({ COLUMN: 'pk1', OBJECT: 'sk1' });
+  const entityReservedWordDelete = await ReservedWordManager.delete({ COLUMN: 'pk1', OBJECT: 'sk1' });
 
   console.log();
   console.log('OUTPUT:');

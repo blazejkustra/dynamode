@@ -1,10 +1,10 @@
 import { transactionWrite } from '../../../dist';
-import { KeyValue, keyValueManager } from '../model';
+import { KeyValue, KeyValueManager } from '../model';
 
 async function transaction() {
   const transactions = await transactionWrite(
     [
-      keyValueManager.transaction.update(
+      KeyValueManager.transaction.update(
         { key: 'key1' },
         {
           set: {
@@ -13,20 +13,20 @@ async function transaction() {
           increment: {},
         },
       ),
-      keyValueManager.transaction.put(
+      KeyValueManager.transaction.put(
         new KeyValue({
           key: 'key2',
           value: { test: '' },
         }),
       ),
-      keyValueManager.transaction.create(
+      KeyValueManager.transaction.create(
         new KeyValue({
           key: 'key3',
           value: { test: '' },
         }),
       ),
-      keyValueManager.transaction.delete({ key: 'key4' }),
-      keyValueManager.transaction.condition({ key: 'key5' }, keyValueManager.condition().attribute('key').eq('key5')),
+      KeyValueManager.transaction.delete({ key: 'key4' }),
+      KeyValueManager.transaction.condition({ key: 'key5' }, KeyValueManager.condition().attribute('key').eq('key5')),
     ],
     { return: 'default' },
   );
