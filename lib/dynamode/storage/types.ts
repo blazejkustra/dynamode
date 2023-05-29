@@ -11,8 +11,7 @@ export type AttributeType =
   | ObjectConstructor
   | ArrayConstructor
   | SetConstructor
-  | MapConstructor
-  | DateConstructor;
+  | MapConstructor;
 
 export type AttributeRole =
   | 'partitionKey'

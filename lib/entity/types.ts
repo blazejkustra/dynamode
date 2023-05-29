@@ -30,7 +30,7 @@ export type EntityProperties<E extends typeof Entity> = Partial<FlattenObject<In
 export type EntityKey<E extends typeof Entity> = keyof EntityProperties<E>;
 export type EntityValue<E extends typeof Entity, K extends EntityKey<E>> = FlattenObject<InstanceType<E>>[K];
 
-// Entity.get
+// entityManager.get
 
 export interface EntityGetOptions<E extends typeof Entity> {
   extraInput?: Partial<GetItemCommandInput>;
@@ -44,7 +44,7 @@ export interface BuildGetProjectionExpression {
   projectionExpression?: string;
 }
 
-// Entity.update
+// entityManager.update
 
 export type PickByType<T, Value> = Omit<
   {
@@ -82,7 +82,7 @@ export interface BuildUpdateConditionExpression {
   updateExpression: string;
 }
 
-// Entity.put
+// entityManager.put
 
 export interface EntityPutOptions<E extends typeof Entity> {
   extraInput?: Partial<PutItemCommandInput>;
@@ -97,7 +97,7 @@ export interface BuildPutConditionExpression {
   conditionExpression?: string;
 }
 
-// Entity.delete
+// entityManager.delete
 
 export interface EntityDeleteOptions<E extends typeof Entity> {
   extraInput?: Partial<DeleteItemCommandInput>;
@@ -113,7 +113,7 @@ export interface BuildDeleteConditionExpression {
   conditionExpression?: string;
 }
 
-// Entity.batchGet
+// entityManager.batchGet
 
 export interface EntityBatchGetOptions<E extends typeof Entity> {
   extraInput?: Partial<BatchGetItemCommandInput>;
@@ -126,14 +126,14 @@ export interface EntityBatchDeleteOutput<PrimaryKey> {
   unprocessedItems: Array<PrimaryKey>;
 }
 
-// Entity.batchGet
+// entityManager.batchGet
 
 export interface EntityBatchGetOutput<M extends Metadata<E>, E extends typeof Entity> {
   items: Array<InstanceType<E>>;
   unprocessedKeys: Array<TablePrimaryKey<M, E>>;
 }
 
-// Entity.batchPut
+// entityManager.batchPut
 
 export interface EntityBatchPutOptions {
   extraInput?: Partial<BatchWriteItemCommandInput>;
@@ -145,7 +145,7 @@ export interface EntityBatchPutOutput<E extends typeof Entity> {
   unprocessedItems: Array<InstanceType<E>>;
 }
 
-// Entity.batchDelete
+// entityManager.batchDelete
 
 export interface EntityBatchDeleteOptions {
   extraInput?: Partial<BatchWriteItemCommandInput>;
@@ -156,14 +156,14 @@ export type EntityTransactionInput<E, Command extends Get | Update | Put | Delet
   entity: E;
 };
 
-// Entity.transactionGet
+// entityManager.transactionGet
 
 export interface EntityTransactionGetOptions<EntityKey> {
   extraInput?: Partial<Get>;
   attributes?: Array<EntityKey>;
 }
 
-// Entity.transactionUpdate
+// entityManager.transactionUpdate
 
 export interface EntityTransactionUpdateOptions<E extends typeof Entity> {
   extraInput?: Partial<Update>;
@@ -171,7 +171,7 @@ export interface EntityTransactionUpdateOptions<E extends typeof Entity> {
   returnValuesOnFailure?: ReturnValuesLimited;
 }
 
-// Entity.transactionPut
+// entityManager.transactionPut
 
 export interface EntityTransactionPutOptions<E extends typeof Entity> {
   extraInput?: Partial<Put>;
@@ -180,7 +180,7 @@ export interface EntityTransactionPutOptions<E extends typeof Entity> {
   returnValuesOnFailure?: ReturnValuesLimited;
 }
 
-// Entity.transactionDelete
+// entityManager.transactionDelete
 
 export interface EntityTransactionDeleteOptions<E extends typeof Entity> {
   extraInput?: Partial<Delete>;
