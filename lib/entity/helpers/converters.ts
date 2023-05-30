@@ -45,7 +45,7 @@ export function convertEntityToAttributeValues<E extends typeof Entity>(
 
     if (value instanceof Date) {
       if (attribute.role !== 'date') {
-        throw new DefaultError();
+        throw new DefaultError('Invalid date attribute role');
       }
 
       switch (attribute.type) {
@@ -58,7 +58,7 @@ export function convertEntityToAttributeValues<E extends typeof Entity>(
           break;
         }
         default: {
-          throw new DefaultError();
+          throw new DefaultError('Invalid date attribute type');
         }
       }
     }

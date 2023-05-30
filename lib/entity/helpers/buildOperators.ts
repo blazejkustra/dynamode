@@ -14,7 +14,7 @@ import {
 
 export function buildProjectionOperators<E extends typeof Entity>(attributes: Array<EntityKey<E>>): Operators {
   if (duplicatesInArray(attributes)) {
-    throw new DefaultError();
+    throw new DefaultError('Projection attributes must be unique');
   }
 
   const uniqueAttributes = Array.from(new Set([...attributes, DYNAMODE_ENTITY]));

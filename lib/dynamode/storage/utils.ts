@@ -18,6 +18,6 @@ export function getAttributeType(type: AttributeType) {
     case Map:
       return 'M';
     default:
-      throw new DefaultError();
+      throw new DefaultError('Invalid attribute type');
   }
 }
