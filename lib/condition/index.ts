@@ -2,7 +2,7 @@ import type { AttributeType } from '@lib/condition/types';
 import Entity from '@lib/entity';
 import { prefixSuffixValue } from '@lib/entity/helpers/prefixSuffix';
 import { EntityKey, EntityValue } from '@lib/entity/types';
-import { BASE_OPERATOR, OPERATORS, Operators } from '@lib/utils';
+import { BASE_OPERATOR, DefaultError, OPERATORS, Operators } from '@lib/utils';
 
 export default class Condition<E extends typeof Entity> {
   protected entity: E;
@@ -28,15 +28,21 @@ export default class Condition<E extends typeof Entity> {
       between: (value1: EntityValue<E, K>, value2: EntityValue<E, K>): C =>
         this.between(this.operators, key, value1, value2),
       contains: (value: EntityValue<E, K>): C => {
-        const processedValue = value;
+        let processedValue = value;
 
-        // TODO(blazejkustra): Make sure that this logic is valid for sets
-        // if (value instanceof Set) {
-        //   if (value.size > 1) {
-        //     throw new DefaultError();
-        //   }
-        //   processedValue = Array.from(value)[0];
-        // }
+        if (value instanceof Set) {
+          if (value.size !== 1) {
+            throw new DefaultError('contains() only supports one value in the set');
+          }
+          processedValue = Array.from(value)[0];
+        }
+
+        if (Array.isArray(value)) {
+          if (value.length !== 1) {
+            throw new DefaultError('contains() only supports one value in the array');
+          }
+          processedValue = value[0];
+        }
 
         this.operators.push(
           ...OPERATORS.contains(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, processedValue)),
@@ -90,15 +96,21 @@ export default class Condition<E extends typeof Entity> {
         gt: (value: EntityValue<E, K>): C => this.le(this.operators, key, value),
         ge: (value: EntityValue<E, K>): C => this.lt(this.operators, key, value),
         contains: (value: EntityValue<E, K>): C => {
-          const processedValue = value;
+          let processedValue = value;
 
-          // TODO(blazejkustra): Make sure that this logic is valid for sets
-          // if (value instanceof Set) {
-          //   if (value.size > 1) {
-          //     throw new DefaultError();
-          //   }
-          //   processedValue = Array.from(value)[0];
-          // }
+          if (value instanceof Set) {
+            if (value.size !== 1) {
+              throw new DefaultError('contains() only supports one value in the set');
+            }
+            processedValue = Array.from(value)[0];
+          }
+
+          if (Array.isArray(value)) {
+            if (value.length !== 1) {
+              throw new DefaultError('contains() only supports one value in the array');
+            }
+            processedValue = value[0];
+          }
 
           this.operators.push(
             ...OPERATORS.notContains(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, processedValue)),
