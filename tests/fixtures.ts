@@ -132,11 +132,6 @@ export class MockEntity extends TestTable {
   }
 }
 
-// test code
-
-// const ddb = new Dynamode.DynamoDB();
-// const dynamode = new Dynamode.Client(ddb);
-
 const testTable = tableManager(TestTable).metadata({
   tableName: TEST_TABLE_NAME,
   partitionKey: 'partitionKey',
@@ -150,8 +145,6 @@ const testTable = tableManager(TestTable).metadata({
       sortKey: 'LSI_1_SK',
     },
   },
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
 });
 
 export type TestTableMetadata = typeof testTable.tableMetadata;

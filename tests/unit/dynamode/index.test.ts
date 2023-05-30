@@ -20,8 +20,6 @@ const metadata: any = {
       sortKey: 'LSI_1_SK',
     },
   },
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
 };
 
 describe('Dynamode', () => {

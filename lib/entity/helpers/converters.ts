@@ -19,11 +19,7 @@ export function convertAttributeValuesToEntity<E extends typeof Entity>(
       value = new Map(Object.entries(value));
     }
 
-    if (
-      value &&
-      (typeof value === 'string' || typeof value === 'number') &&
-      ['date', 'createdAt', 'updatedAt'].includes(attribute.role)
-    ) {
+    if (value && (typeof value === 'string' || typeof value === 'number') && attribute.role === 'date') {
       value = new Date(value);
     }
 

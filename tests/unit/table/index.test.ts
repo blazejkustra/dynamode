@@ -19,8 +19,6 @@ const metadata = {
       sortKey: 'LSI_1_SK',
     },
   },
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
 } as const;
 
 describe('Table', () => {
