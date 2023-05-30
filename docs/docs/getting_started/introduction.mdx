@@ -48,19 +48,18 @@ Dynamode is highly influenced by other ORMs/ODMs, such as [TypeORM](https://gith
 * [x] Table validation/update (e.g. local secondary indexes can be added only on tables with composite primary keys)
 * [ ] Validation in query/scan classes
 * [ ] Validation to make sure that entities are registered have partitionKey and other stuff
-* [ ] Fix Condition, Query and Scan methods to work only on specific properties (between, contains etc shouldn't work for array as an example)
 * [ ] Manage timestamps (createdAt, updatedAt)
+* [ ] Decide if batchPut should return items when unprocessed items are returned
 * [ ] Write e2e tests
 
 ### Road map
   
-* [ ] Add DynamoDB streams support
 * [ ] Implement query that support querying different types of entities at once with TS support
-* [ ] Possibility to have more than one suffix/prefix
-* [ ] Decide if batchPut should return items when unprocessed items are returned
+* [ ] Add DynamoDB streams support
 * [ ] Support binary types [link](https://github.com/aws/aws-sdk-js-v3/blob/06417909a3/packages/util-dynamodb/src/convertToAttr.ts#L166) and [link](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_dynamodb.html)
-* [ ] Logging possibility
+* [ ] Possibility to have more than one suffix/prefix
 * [ ] PartiQL support
+* [ ] Logging possibility
 * [ ] Add dependsOn decorator to throw/warn when updating
 * [ ] Allow multiple DynamoDB instances
 * [ ] Capture DynamoDB errors and make it easier to work with
