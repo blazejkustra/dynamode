@@ -50,6 +50,8 @@ export type TableSortKeys<M extends Metadata<E>, E extends typeof Entity> =
         : never;
     }>;
 
+// tableManager.create
+
 export interface TableCreateOptions {
   extraInput?: Partial<CreateTableCommandInput>;
   return?: ReturnOption;
@@ -61,6 +63,8 @@ export interface TableCreateOptions {
   deletionProtection?: boolean;
 }
 
+// tableManager.createIndex
+
 export interface TableCreateIndexOptions {
   extraInput?: Partial<CreateTableCommandInput>;
   return?: ReturnOption;
@@ -70,10 +74,14 @@ export interface TableCreateIndexOptions {
   };
 }
 
+// tableManager.deleteIndex
+
 export interface TableDeleteIndexOptions {
   extraInput?: Partial<CreateTableCommandInput>;
   return?: ReturnOption;
 }
+
+// tableManager.validate
 
 export interface TableValidateOptions {
   extraInput?: Partial<CreateTableCommandInput>;
