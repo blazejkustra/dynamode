@@ -2,7 +2,7 @@ import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import { entityManager as EntityManager } from '@lib/entity/entityManager';
 import { Metadata, TableCreateOptions } from '@lib/table/types';
-import { DefaultError, Narrow } from '@lib/utils';
+import { ForbiddenError, Narrow } from '@lib/utils';
 
 import {
   getKeySchema,
@@ -72,12 +72,12 @@ class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
     const { indexes } = this.tableMetadata;
     const newIndex = indexes?.[indexName];
     if (!newIndex || !newIndex.partitionKey) {
-      throw new DefaultError(`Index "${indexName}" not registered in ${this.tableEntity.name} entity`);
+      throw new ForbiddenError(`Index "${indexName}" not registered in ${this.tableEntity.name} entity`);
     }
 
     const { partitionKey, sortKey } = newIndex;
     if (!partitionKey) {
-      throw new DefaultError(`Index "${indexName}" doesn't have a partition key`);
+      throw new ForbiddenError(`Index "${indexName}" doesn't have a partition key`);
     }
 
     const attributes = Dynamode.storage.getEntityAttributes(this.tableEntity.name);
@@ -111,7 +111,7 @@ class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
     const { indexes } = this.tableMetadata;
     const oldIndex = indexes?.[indexName];
     if (oldIndex) {
-      throw new DefaultError(
+      throw new ForbiddenError(
         `Before deleting index "${indexName}" make sure it is no longer registered in ${this.tableEntity.name} entity`,
       );
     }

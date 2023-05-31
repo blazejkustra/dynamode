@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest';
 import { convertToAttr, convertToNative, marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import DynamodeStorage from '@lib/dynamode/storage';
-import { DefaultError } from '@lib/utils/errors';
+import { DynamodeStorageError } from '@lib/utils/errors';
 
 import { MockEntity, TEST_TABLE_NAME, TestTable } from '../../fixtures';
 
@@ -74,7 +74,7 @@ describe('Dynamode', () => {
       });
 
       test('Should throw an error when table is registered more than once', async () => {
-        expect(() => storage.registerTable(TestTable, metadata)).toThrow(DefaultError);
+        expect(() => storage.registerTable(TestTable, metadata)).toThrow(DynamodeStorageError);
       });
     });
 
@@ -97,11 +97,11 @@ describe('Dynamode', () => {
       });
 
       test('Should throw an error when entity is registered more than once', async () => {
-        expect(() => storage.registerEntity(MockEntity, TEST_TABLE_NAME)).toThrow(DefaultError);
+        expect(() => storage.registerEntity(MockEntity, TEST_TABLE_NAME)).toThrow(DynamodeStorageError);
       });
 
       test("Should throw an error when entity is registered and table isn't", async () => {
-        expect(() => storage.registerEntity(MockEntity, 'unknownTableName')).toThrow(DefaultError);
+        expect(() => storage.registerEntity(MockEntity, 'unknownTableName')).toThrow(DynamodeStorageError);
       });
     });
 
@@ -143,7 +143,7 @@ describe('Dynamode', () => {
             type: Number,
             role: 'attribute',
           }),
-        ).toThrow(DefaultError);
+        ).toThrow(DynamodeStorageError);
       });
     });
 
@@ -193,7 +193,7 @@ describe('Dynamode', () => {
       });
 
       test('Should throw an error if no entity is found', async () => {
-        expect(() => storage.getEntityTableName('unknownEntityName')).toThrow(DefaultError);
+        expect(() => storage.getEntityTableName('unknownEntityName')).toThrow(DynamodeStorageError);
       });
     });
 
@@ -203,12 +203,12 @@ describe('Dynamode', () => {
       });
 
       test('Should throw an error if no entity is found', async () => {
-        expect(() => storage.getEntityMetadata('unknownEntityName')).toThrow(DefaultError);
+        expect(() => storage.getEntityMetadata('unknownEntityName')).toThrow(DynamodeStorageError);
       });
 
       test('Should throw an error if no table is found for entity', async () => {
         storage.entities['unknownEntityName'] = { tableName: 'unknownTableName' } as any;
-        expect(() => storage.getEntityMetadata('unknownEntityName')).toThrow(DefaultError);
+        expect(() => storage.getEntityMetadata('unknownEntityName')).toThrow(DynamodeStorageError);
       });
     });
   });

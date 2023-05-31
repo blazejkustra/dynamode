@@ -2,10 +2,10 @@ import Entity from '@lib/entity';
 import { EntityKey, UpdateProps } from '@lib/entity/types';
 import {
   BASE_OPERATOR,
-  DefaultError,
   duplicatesInArray,
   DYNAMODE_ENTITY,
   insertBetween,
+  InvalidParameter,
   isNotEmpty,
   isNotEmptyArray,
   Operators,
@@ -14,7 +14,7 @@ import {
 
 export function buildProjectionOperators<E extends typeof Entity>(attributes: Array<EntityKey<E>>): Operators {
   if (duplicatesInArray(attributes)) {
-    throw new DefaultError('Projection attributes must be unique');
+    throw new InvalidParameter('Projection attributes must be unique');
   }
 
   const uniqueAttributes = Array.from(new Set([...attributes, DYNAMODE_ENTITY]));

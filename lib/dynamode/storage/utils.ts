@@ -1,5 +1,5 @@
 import { AttributeType } from '@lib/dynamode/storage/types';
-import { DefaultError } from '@lib/utils';
+import { InvalidParameter } from '@lib/utils';
 
 export function getAttributeType(type: AttributeType) {
   switch (type) {
@@ -18,6 +18,6 @@ export function getAttributeType(type: AttributeType) {
     case Map:
       return 'M';
     default:
-      throw new DefaultError('Invalid attribute type');
+      throw new InvalidParameter('Invalid attribute type');
   }
 }

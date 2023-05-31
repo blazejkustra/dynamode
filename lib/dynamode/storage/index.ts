@@ -8,7 +8,7 @@ import type {
 } from '@lib/dynamode/storage/types';
 import Entity from '@lib/entity';
 import { Metadata } from '@lib/table/types';
-import { DefaultError, mergeObjects } from '@lib/utils';
+import { DynamodeStorageError, mergeObjects } from '@lib/utils';
 
 export default class DynamodeStorage {
   public tables: TablesMetadata = {};
@@ -22,7 +22,7 @@ export default class DynamodeStorage {
     };
 
     if (this.tables[metadata.tableName]) {
-      throw new DefaultError(`Table "${metadata.tableName}" already registered`);
+      throw new DynamodeStorageError(`Table "${metadata.tableName}" already registered`);
     }
 
     this.tables[metadata.tableName] = tableMetadata;
@@ -37,11 +37,11 @@ export default class DynamodeStorage {
     };
 
     if (!this.tables[tableName]) {
-      throw new DefaultError(`Table "${tableName}" not registered`);
+      throw new DynamodeStorageError(`Table "${tableName}" not registered`);
     }
 
     if (existingEntityMetadata?.entity || existingEntityMetadata?.tableName) {
-      throw new DefaultError(`Entity "${entity.name}" already registered`);
+      throw new DynamodeStorageError(`Entity "${entity.name}" already registered`);
     }
 
     this.entities[entity.name] = entityMetadata;
@@ -53,7 +53,7 @@ export default class DynamodeStorage {
     }
 
     if (this.entities[entityName].attributes[propertyName]) {
-      throw new DefaultError(`Attribute "${propertyName}" already registered in entity "${entityName}"`);
+      throw new DynamodeStorageError(`Attribute "${propertyName}" already registered in entity "${entityName}"`);
     }
 
     this.entities[entityName].attributes[propertyName] = value;
@@ -88,7 +88,7 @@ export default class DynamodeStorage {
 
   public getEntityTableName(entityName: string): string {
     if (!this.entities[entityName]) {
-      throw new DefaultError(`Invalid entity name "${entityName}`);
+      throw new DynamodeStorageError(`Invalid entity name "${entityName}`);
     }
 
     return this.entities[entityName].tableName;
@@ -96,13 +96,13 @@ export default class DynamodeStorage {
 
   public getEntityMetadata(entityName: string): Metadata<typeof Entity> {
     if (!this.entities[entityName]) {
-      throw new DefaultError(`Invalid entity name "${entityName}`);
+      throw new DynamodeStorageError(`Invalid entity name "${entityName}`);
     }
 
     const { tableName } = this.entities[entityName];
 
     if (!this.tables[tableName]) {
-      throw new DefaultError(`Invalid table name "${tableName}`);
+      throw new DynamodeStorageError(`Invalid table name "${tableName}`);
     }
 
     return this.tables[tableName].metadata;

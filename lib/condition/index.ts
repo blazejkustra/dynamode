@@ -2,7 +2,7 @@ import type { AttributeType } from '@lib/condition/types';
 import Entity from '@lib/entity';
 import { prefixSuffixValue } from '@lib/entity/helpers/prefixSuffix';
 import { EntityKey, EntityValue } from '@lib/entity/types';
-import { BASE_OPERATOR, DefaultError, OPERATORS, Operators } from '@lib/utils';
+import { BASE_OPERATOR, OPERATORS, Operators, ValidationError } from '@lib/utils';
 
 export default class Condition<E extends typeof Entity> {
   protected entity: E;
@@ -32,14 +32,14 @@ export default class Condition<E extends typeof Entity> {
 
         if (value instanceof Set) {
           if (value.size !== 1) {
-            throw new DefaultError('contains() only supports one value in the set');
+            throw new ValidationError('contains() only supports one value in the set');
           }
           processedValue = Array.from(value)[0];
         }
 
         if (Array.isArray(value)) {
           if (value.length !== 1) {
-            throw new DefaultError('contains() only supports one value in the array');
+            throw new ValidationError('contains() only supports one value in the array');
           }
           processedValue = value[0];
         }
@@ -100,14 +100,14 @@ export default class Condition<E extends typeof Entity> {
 
           if (value instanceof Set) {
             if (value.size !== 1) {
-              throw new DefaultError('contains() only supports one value in the set');
+              throw new ValidationError('contains() only supports one value in the set');
             }
             processedValue = Array.from(value)[0];
           }
 
           if (Array.isArray(value)) {
             if (value.length !== 1) {
-              throw new DefaultError('contains() only supports one value in the array');
+              throw new ValidationError('contains() only supports one value in the array');
             }
             processedValue = value[0];
           }

@@ -1,7 +1,7 @@
 import {
   AttributeNames,
   AttributeValues,
-  DefaultError,
+  InvalidParameter,
   isNotEmpty,
   Operators,
   RESERVED_WORDS,
@@ -78,6 +78,6 @@ export class ExpressionBuilder {
       }
     }
 
-    throw new DefaultError(`Couldn't substitute a value for key: ${key}. Value key out of range`);
+    throw new InvalidParameter(`Couldn't substitute a value for key: ${key}. Value key out of range`);
   }
 }

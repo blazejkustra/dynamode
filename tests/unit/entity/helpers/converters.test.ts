@@ -9,7 +9,7 @@ import {
   convertPrimaryKeyToAttributeValues,
 } from '@lib/entity/helpers/converters';
 import * as prefixSuffixHelpers from '@lib/entity/helpers/prefixSuffix';
-import { DefaultError } from '@lib/utils/errors';
+import { InvalidParameter } from '@lib/utils';
 
 import { mockDate, MockEntity, mockInstance, TestTableMetadata } from '../../../fixtures';
 
@@ -169,7 +169,7 @@ describe('Converters entity helpers', () => {
         },
       });
 
-      expect(() => convertEntityToAttributeValues(MockEntity, mockInstance)).toThrow(DefaultError);
+      expect(() => convertEntityToAttributeValues(MockEntity, mockInstance)).toThrow(InvalidParameter);
     });
 
     test('Should throw an error if date has invalid role', async () => {
@@ -181,7 +181,7 @@ describe('Converters entity helpers', () => {
         },
       });
 
-      expect(() => convertEntityToAttributeValues(MockEntity, mockInstance)).toThrow(DefaultError);
+      expect(() => convertEntityToAttributeValues(MockEntity, mockInstance)).toThrow(InvalidParameter);
     });
   });
 

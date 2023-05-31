@@ -3,7 +3,7 @@ import Entity from '@lib/entity';
 import { prefixSuffixValue, truncateValue } from '@lib/entity/helpers/prefixSuffix';
 import { EntityKey } from '@lib/entity/types';
 import { Metadata, TablePrimaryKey } from '@lib/table/types';
-import { AttributeValues, DefaultError, fromDynamo, GenericObject, objectToDynamo } from '@lib/utils';
+import { AttributeValues, fromDynamo, GenericObject, InvalidParameter, objectToDynamo } from '@lib/utils';
 
 export function convertAttributeValuesToEntity<E extends typeof Entity>(
   entity: E,
@@ -41,7 +41,7 @@ export function convertEntityToAttributeValues<E extends typeof Entity>(
 
     if (value instanceof Date) {
       if (attribute.role !== 'date') {
-        throw new DefaultError('Invalid date attribute role');
+        throw new InvalidParameter('Invalid date attribute role');
       }
 
       switch (attribute.type) {
@@ -54,7 +54,7 @@ export function convertEntityToAttributeValues<E extends typeof Entity>(
           break;
         }
         default: {
-          throw new DefaultError('Invalid date attribute type');
+          throw new InvalidParameter('Invalid date attribute type');
         }
       }
     }

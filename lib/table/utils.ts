@@ -3,7 +3,7 @@ import { AttributesMetadata } from '@lib/dynamode/storage/types';
 import { getAttributeType } from '@lib/dynamode/storage/utils';
 import Entity from '@lib/entity';
 import { Metadata } from '@lib/table/types';
-import { deepEqual, DefaultError } from '@lib/utils';
+import { ConflictError, deepEqual } from '@lib/utils';
 
 export function getKeySchema<M extends Metadata<TE>, TE extends typeof Entity>(metadata: M): KeySchemaElement[] {
   const { partitionKey, sortKey } = metadata;
@@ -102,18 +102,17 @@ export function getTableGlobalSecondaryIndexes<M extends Metadata<TE>, TE extend
 export function validateTableEntityConsistency<T>(aa: T[], bb: T[]) {
   aa.forEach((a) => {
     if (!bb?.some((b) => deepEqual(a, b))) {
-      console.log(aa, bb);
-      throw new DefaultError(`Key "${JSON.stringify(a)}" not found in table`);
+      throw new ConflictError(`Key "${JSON.stringify(a)}" not found in table`);
     }
   });
 
   bb.forEach((a) => {
     if (!aa.some((b) => deepEqual(a, b))) {
-      throw new DefaultError(`Key "${JSON.stringify(a)}" not found in entity`);
+      throw new ConflictError(`Key "${JSON.stringify(a)}" not found in entity`);
     }
   });
 
   if (aa.length !== bb.length) {
-    throw new DefaultError(`Key schema length mismatch between table and entity`);
+    throw new ConflictError('Key schema length mismatch between table and entity');
   }
 }
