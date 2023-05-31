@@ -1,6 +1,8 @@
 import { ValueOf } from 'type-fest';
 
+import { CreateTableCommandInput } from '@aws-sdk/client-dynamodb';
 import Entity from '@lib/entity';
+import { ReturnOption } from '@lib/entity/types';
 
 // Table metadata types
 
@@ -49,10 +51,31 @@ export type TableSortKeys<M extends Metadata<E>, E extends typeof Entity> =
     }>;
 
 export interface TableCreateOptions {
+  extraInput?: Partial<CreateTableCommandInput>;
+  return?: ReturnOption;
   throughput?: {
     read: number;
     write: number;
   };
   tags?: Record<string, string>;
   deletionProtection?: boolean;
+}
+
+export interface TableCreateIndexOptions {
+  extraInput?: Partial<CreateTableCommandInput>;
+  return?: ReturnOption;
+  throughput?: {
+    read: number;
+    write: number;
+  };
+}
+
+export interface TableDeleteIndexOptions {
+  extraInput?: Partial<CreateTableCommandInput>;
+  return?: ReturnOption;
+}
+
+export interface TableValidateOptions {
+  extraInput?: Partial<CreateTableCommandInput>;
+  return?: ReturnOption;
 }

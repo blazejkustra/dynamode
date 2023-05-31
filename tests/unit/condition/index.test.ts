@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import Condition from '@lib/condition';
 import { AttributeType } from '@lib/condition/types';
-import { BASE_OPERATOR, OPERATORS } from '@lib/utils';
+import { BASE_OPERATOR, OPERATORS, ValidationError } from '@lib/utils';
 
 import { MockEntity, MockEntityManager } from '../../fixtures';
 
@@ -109,6 +109,23 @@ describe('Condition', () => {
           condition.attribute('string').contains('value');
 
           expect(condition['operators']).toEqual([...OPERATORS.contains('string', 'value')]);
+        });
+
+        test('Should push expression only for one value from set', async () => {
+          condition.attribute('set').contains(new Set(['1']));
+
+          expect(condition['operators']).toEqual([...OPERATORS.contains('set', '1')]);
+        });
+
+        test('Should push expression only for one value from array', async () => {
+          condition.attribute('array').contains(['1']);
+
+          expect(condition['operators']).toEqual([...OPERATORS.contains('array', '1')]);
+        });
+
+        test('Should throw an error for set and array with more than one value', async () => {
+          expect(() => condition.attribute('set').contains(new Set(['1', '2']))).toThrow(ValidationError);
+          expect(() => condition.attribute('array').contains(['1', '2'])).toThrow(ValidationError);
         });
       });
 
@@ -258,6 +275,31 @@ describe('Condition', () => {
             condition.attribute('string').not().contains('value');
 
             expect(condition['operators']).toEqual([...OPERATORS.notContains('string', 'value')]);
+          });
+
+          test('Should push expression only for one value from set', async () => {
+            condition
+              .attribute('set')
+              .not()
+              .contains(new Set(['1']));
+
+            expect(condition['operators']).toEqual([...OPERATORS.notContains('set', '1')]);
+          });
+
+          test('Should push expression only for one value from array', async () => {
+            condition.attribute('array').not().contains(['1']);
+
+            expect(condition['operators']).toEqual([...OPERATORS.notContains('array', '1')]);
+          });
+
+          test('Should throw an error for set and array with more than one value', async () => {
+            expect(() =>
+              condition
+                .attribute('set')
+                .not()
+                .contains(new Set(['1', '2'])),
+            ).toThrow(ValidationError);
+            expect(() => condition.attribute('array').not().contains(['1', '2'])).toThrow(ValidationError);
           });
         });
 

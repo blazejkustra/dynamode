@@ -14,6 +14,5 @@ export const createError = (defaultMessage: string, errorName: string) =>
 export const NotFoundError = createError('Item not found', 'NotFoundError');
 export const InvalidParameter = createError('Invalid Parameter', 'InvalidParameter');
 export const ValidationError = createError('Validation failed', 'ValidationError');
-export const ForbiddenError = createError('Forbidden action', 'ForbiddenError');
 export const ConflictError = createError('Conflict', 'ConflictError');
 export const DynamodeStorageError = createError('Dynamode storage failed', 'DynamodeStorageError');

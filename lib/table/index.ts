@@ -1,16 +1,43 @@
+import {
+  CreateTableCommandInput,
+  CreateTableCommandOutput,
+  DescribeTableCommandInput,
+  DescribeTableCommandOutput,
+  UpdateTableCommandInput,
+  UpdateTableCommandOutput,
+} from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import { entityManager as EntityManager } from '@lib/entity/entityManager';
-import { Metadata, TableCreateOptions } from '@lib/table/types';
-import { ForbiddenError, Narrow } from '@lib/utils';
-
 import {
+  Metadata,
+  TableCreateIndexOptions,
+  TableCreateOptions,
+  TableDeleteIndexOptions,
+  TableValidateOptions,
+} from '@lib/table/types';
+import {
+  buildIndexCreate,
+  buildIndexDelete,
+  convertTableDescription,
   getKeySchema,
   getTableAttributeDefinitions,
   getTableGlobalSecondaryIndexes,
   getTableLocalSecondaryIndexes,
-  validateTableEntityConsistency,
-} from './utils';
+  TableInformation,
+  validateTableSynchronization,
+} from '@lib/table/utils';
+import { isNotEmptyArray, Narrow, ValidationError } from '@lib/utils';
+
+export function tableManager<TE extends typeof Entity>(tableEntity: TE) {
+  function metadata<M extends Metadata<TE>>(tableMetadata: Narrow<M>) {
+    return new TableManager(tableMetadata as M, tableEntity);
+  }
+
+  return {
+    metadata,
+  };
+}
 
 class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
   public tableMetadata: M;
@@ -37,151 +64,172 @@ class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
     return EntityManager<M, TE>(this.tableEntity, this.tableMetadata.tableName);
   }
 
-  public async create(
-    { tags, throughput, deletionProtection = false }: TableCreateOptions = { deletionProtection: false },
-  ) {
-    const attributes = Dynamode.storage.getEntityAttributes(this.tableEntity.name);
-    const keySchema = getKeySchema(this.tableMetadata);
-    const attributeDefinitions = getTableAttributeDefinitions(this.tableMetadata, attributes);
+  public create(options?: TableCreateOptions & { return?: 'default' }): Promise<TableInformation>;
+  public create(options: TableCreateOptions & { return: 'output' }): Promise<CreateTableCommandOutput>;
+  public create(options: TableCreateOptions & { return: 'input' }): CreateTableCommandInput;
+  public create(
+    options?: TableCreateOptions,
+  ): Promise<TableInformation | CreateTableCommandOutput> | CreateTableCommandInput {
     const localSecondaryIndexes = getTableLocalSecondaryIndexes(this.tableMetadata);
     const globalSecondaryIndexes = getTableGlobalSecondaryIndexes(this.tableMetadata);
+    const throughput = options?.throughput && {
+      ReadCapacityUnits: options?.throughput.read,
+      WriteCapacityUnits: options?.throughput.write,
+    };
+    const tags = options?.tags && Object.entries(options.tags).map(([key, value]) => ({ Key: key, Value: value }));
 
-    const { TableDescription: tableDescription } = await Dynamode.ddb.get().createTable({
+    const commandInput: CreateTableCommandInput = {
       TableName: this.tableMetadata.tableName,
-      KeySchema: keySchema,
-      AttributeDefinitions: attributeDefinitions,
-
-      LocalSecondaryIndexes: localSecondaryIndexes.length ? localSecondaryIndexes : undefined,
-      GlobalSecondaryIndexes: globalSecondaryIndexes.length ? globalSecondaryIndexes : undefined,
-
-      DeletionProtectionEnabled: deletionProtection,
+      KeySchema: getKeySchema(this.tableMetadata.partitionKey, this.tableMetadata.sortKey),
+      AttributeDefinitions: getTableAttributeDefinitions(this.tableMetadata, this.tableEntity.name),
+      LocalSecondaryIndexes: isNotEmptyArray(localSecondaryIndexes) ? localSecondaryIndexes : undefined,
+      GlobalSecondaryIndexes: isNotEmptyArray(globalSecondaryIndexes) ? globalSecondaryIndexes : undefined,
+      DeletionProtectionEnabled: options?.deletionProtection,
       BillingMode: throughput ? 'PROVISIONED' : 'PAY_PER_REQUEST',
-      ProvisionedThroughput: throughput && {
-        ReadCapacityUnits: throughput.read,
-        WriteCapacityUnits: throughput.write,
-      },
-      Tags: tags && Object.entries(tags).map(([key, value]) => ({ Key: key, Value: value })),
-    });
+      ProvisionedThroughput: throughput,
+      Tags: tags,
+      ...options?.extraInput,
+    };
 
-    return tableDescription;
-  }
-
-  public async createIndex(indexName: string) {
-    const { Table: table } = await Dynamode.ddb.get().describeTable({ TableName: this.tableMetadata.tableName });
-
-    const read = table?.ProvisionedThroughput?.ReadCapacityUnits;
-    const write = table?.ProvisionedThroughput?.WriteCapacityUnits;
-    const throughput = read && write ? { ReadCapacityUnits: read, WriteCapacityUnits: write } : undefined;
-
-    const { indexes } = this.tableMetadata;
-    const newIndex = indexes?.[indexName];
-    if (!newIndex || !newIndex.partitionKey) {
-      throw new ForbiddenError(`Index "${indexName}" not registered in ${this.tableEntity.name} entity`);
+    if (options?.return === 'input') {
+      return commandInput;
     }
 
-    const { partitionKey, sortKey } = newIndex;
+    return (async () => {
+      const result = await Dynamode.ddb.get().createTable(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      return convertTableDescription(result.TableDescription);
+    })();
+  }
+
+  public createIndex(
+    indexName: string,
+    options?: TableCreateIndexOptions & { return?: 'default' },
+  ): Promise<TableInformation>;
+
+  public createIndex(
+    indexName: string,
+    options: TableCreateIndexOptions & { return: 'output' },
+  ): Promise<UpdateTableCommandOutput>;
+
+  public createIndex(
+    indexName: string,
+    options: TableCreateIndexOptions & { return: 'input' },
+  ): UpdateTableCommandInput;
+
+  public createIndex(
+    indexName: string,
+    options?: TableCreateIndexOptions,
+  ): Promise<TableInformation | UpdateTableCommandOutput> | UpdateTableCommandInput {
+    const { indexes } = this.tableMetadata;
+    if (!indexes || !indexes?.[indexName]) {
+      throw new ValidationError(`Index "${indexName}" not registered in ${this.tableEntity.name} entity`);
+    }
+
+    const { partitionKey, sortKey } = indexes?.[indexName];
     if (!partitionKey) {
-      throw new ForbiddenError(`Index "${indexName}" doesn't have a partition key`);
+      throw new ValidationError(`Index "${indexName}" doesn't have a partition key`);
     }
 
-    const attributes = Dynamode.storage.getEntityAttributes(this.tableEntity.name);
-    const attributeDefinitions = getTableAttributeDefinitions(this.tableMetadata, attributes);
-
-    const { TableDescription: tableDescription } = await Dynamode.ddb.get().updateTable({
+    const commandInput: UpdateTableCommandInput = {
       TableName: this.tableMetadata.tableName,
-      AttributeDefinitions: attributeDefinitions,
+      AttributeDefinitions: getTableAttributeDefinitions(this.tableMetadata, this.tableEntity.name),
+      GlobalSecondaryIndexUpdates: buildIndexCreate({ indexName, partitionKey, sortKey, options }),
+      ...options?.extraInput,
+    };
 
-      GlobalSecondaryIndexUpdates: [
-        {
-          Create: {
-            IndexName: indexName,
-            KeySchema: [
-              { AttributeName: String(partitionKey), KeyType: 'HASH' },
-              ...(sortKey ? [{ AttributeName: String(sortKey), KeyType: 'RANGE' }] : []),
-            ],
-            Projection: {
-              ProjectionType: 'ALL',
-            },
-            ProvisionedThroughput: throughput,
-          },
-        },
-      ],
-    });
+    if (options?.return === 'input') {
+      return commandInput;
+    }
 
-    return tableDescription;
+    return (async () => {
+      const result = await Dynamode.ddb.get().updateTable(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      return convertTableDescription(result.TableDescription);
+    })();
   }
 
-  public async deleteIndex(indexName: string) {
+  public deleteIndex(
+    indexName: string,
+    options?: TableDeleteIndexOptions & { return?: 'default' },
+  ): Promise<TableInformation>;
+
+  public deleteIndex(
+    indexName: string,
+    options: TableDeleteIndexOptions & { return: 'output' },
+  ): Promise<UpdateTableCommandOutput>;
+
+  public deleteIndex(
+    indexName: string,
+    options: TableDeleteIndexOptions & { return: 'input' },
+  ): UpdateTableCommandInput;
+
+  public deleteIndex(
+    indexName: string,
+    options?: TableDeleteIndexOptions,
+  ): Promise<TableInformation | UpdateTableCommandOutput> | UpdateTableCommandInput {
     const { indexes } = this.tableMetadata;
-    const oldIndex = indexes?.[indexName];
-    if (oldIndex) {
-      throw new ForbiddenError(
+    if (indexes?.[indexName]) {
+      throw new ValidationError(
         `Before deleting index "${indexName}" make sure it is no longer registered in ${this.tableEntity.name} entity`,
       );
     }
 
-    const { TableDescription: tableDescription } = await Dynamode.ddb.get().updateTable({
+    const commandInput: UpdateTableCommandInput = {
       TableName: this.tableMetadata.tableName,
-      GlobalSecondaryIndexUpdates: [
-        {
-          Delete: {
-            IndexName: indexName,
-          },
-        },
-      ],
-    });
+      GlobalSecondaryIndexUpdates: buildIndexDelete(indexName),
+      ...options?.extraInput,
+    };
 
-    return tableDescription;
+    if (options?.return === 'input') {
+      return commandInput;
+    }
+
+    return (async () => {
+      const result = await Dynamode.ddb.get().updateTable(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      return convertTableDescription(result.TableDescription);
+    })();
   }
 
-  public async validate() {
-    const { Table: table } = await Dynamode.ddb.get().describeTable({ TableName: this.tableMetadata.tableName });
-    const attributes = Dynamode.storage.getEntityAttributes(this.tableEntity.name);
+  public validate(options?: TableValidateOptions & { return?: 'default' }): Promise<TableInformation>;
+  public validate(options: TableValidateOptions & { return: 'output' }): Promise<DescribeTableCommandOutput>;
+  public validate(options: TableValidateOptions & { return: 'input' }): DescribeTableCommandInput;
+  public validate(
+    options?: TableValidateOptions,
+  ): Promise<TableInformation | DescribeTableCommandOutput> | DescribeTableCommandInput {
+    const commandInput: DescribeTableCommandInput = { TableName: this.tableMetadata.tableName, ...options?.extraInput };
 
-    const tableKeySchema = table?.KeySchema;
-    const keySchema = getKeySchema(this.tableMetadata);
-    validateTableEntityConsistency(keySchema, tableKeySchema || []);
+    if (options?.return === 'input') {
+      return commandInput;
+    }
 
-    const tableAttributeDefinitions = table?.AttributeDefinitions;
-    const attributeDefinitions = getTableAttributeDefinitions(this.tableMetadata, attributes);
-    validateTableEntityConsistency(attributeDefinitions, tableAttributeDefinitions || []);
+    return (async () => {
+      const result = await Dynamode.ddb.get().describeTable(commandInput);
 
-    const tableLocalSecondaryIndexes = table?.LocalSecondaryIndexes;
-    const localSecondaryIndexes = getTableLocalSecondaryIndexes(this.tableMetadata);
-    validateTableEntityConsistency(
-      localSecondaryIndexes.map((v) => ({
-        IndexName: v.IndexName,
-        KeySchema: v.KeySchema,
-      })),
-      tableLocalSecondaryIndexes?.map((v) => ({
-        IndexName: v.IndexName,
-        KeySchema: v.KeySchema,
-      })) || [],
-    );
+      validateTableSynchronization({
+        metadata: this.tableMetadata,
+        tableNameEntity: this.tableEntity.name,
+        table: result.Table,
+      });
 
-    const tableGlobalSecondaryIndexes = table?.GlobalSecondaryIndexes;
-    const globalSecondaryIndexes = getTableGlobalSecondaryIndexes(this.tableMetadata);
-    validateTableEntityConsistency(
-      globalSecondaryIndexes.map((v) => ({
-        IndexName: v.IndexName,
-        KeySchema: v.KeySchema,
-      })),
-      tableGlobalSecondaryIndexes?.map((v) => ({
-        IndexName: v.IndexName,
-        KeySchema: v.KeySchema,
-      })) || [],
-    );
+      if (options?.return === 'output') {
+        return result;
+      }
 
-    return table;
+      return convertTableDescription(result.Table);
+    })();
   }
-}
-
-export function tableManager<TE extends typeof Entity>(tableEntity: TE) {
-  function metadata<M extends Metadata<TE>>(tableMetadata: Narrow<M>) {
-    return new TableManager(tableMetadata as M, tableEntity);
-  }
-
-  return {
-    metadata,
-  };
 }
