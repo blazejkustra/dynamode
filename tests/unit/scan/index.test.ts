@@ -13,7 +13,7 @@ vi.mock('@lib/utils/ExpressionBuilder', () => {
   const ExpressionBuilder = vi.fn(() => ({
     attributeNames: { attributeNames: 'value' },
     attributeValues: { attributeValues: 'value' },
-    run: vi.fn().mockReturnValue('filterExpression'),
+    run: vi.fn().mockImplementation((v: string[]) => v.join('')),
   }));
   return { ExpressionBuilder };
 });
@@ -94,10 +94,20 @@ describe('Scan', () => {
     });
 
     test('Should return no items with no values returned for return = "output"', async () => {
-      ddbScanMock.mockImplementationOnce(() => {
-        return { Items: [] };
-      });
+      ddbScanMock
+        .mockImplementationOnce(() => {
+          return { Items: [] };
+        })
+        .mockImplementationOnce(() => {
+          return { Items: undefined };
+        });
 
+      await expect(scan.run({ return: 'default' })).resolves.toEqual({
+        items: [],
+        lastKey: undefined,
+        count: 0,
+        scannedCount: 0,
+      });
       await expect(scan.run({ return: 'default' })).resolves.toEqual({
         items: [],
         lastKey: undefined,
@@ -164,6 +174,7 @@ describe('Scan', () => {
 
   describe('buildScanInput', async () => {
     test('Should successfully build scan input without extraInput', async () => {
+      scan['operators'] = ['filterExpression'] as any;
       scan['buildScanInput']();
 
       expect(scan['input'].TableName).toEqual(TEST_TABLE_NAME);
@@ -177,13 +188,14 @@ describe('Scan', () => {
     });
 
     test('Should successfully build scan input with extraInput', async () => {
+      scan['operators'] = [];
       scan['buildScanInput']({
         IndexName: 'indexName',
         ExpressionAttributeValues: { attributeValues: { S: 'overriddenValue' } },
       });
 
       expect(scan['input'].TableName).toEqual(TEST_TABLE_NAME);
-      expect(scan['input'].FilterExpression).toEqual('filterExpression');
+      expect(scan['input'].FilterExpression).toEqual(undefined);
       expect(scan['input'].ExpressionAttributeNames).toEqual({
         attributeNames: 'value',
       });

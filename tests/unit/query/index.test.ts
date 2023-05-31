@@ -14,7 +14,10 @@ vi.mock('@lib/utils/ExpressionBuilder', () => {
   const ExpressionBuilder = vi.fn(() => ({
     attributeNames: { attributeNames: 'value' },
     attributeValues: { attributeValues: 'value' },
-    run: vi.fn().mockReturnValueOnce('keyConditionExpression').mockReturnValueOnce('filterExpression'),
+    run: vi
+      .fn()
+      .mockImplementationOnce(() => 'keyConditionExpression')
+      .mockImplementationOnce((v: string[]) => v.join('')),
   }));
   return { ExpressionBuilder };
 });
@@ -109,8 +112,19 @@ describe('Query', () => {
 
     describe('With option return = "default"', () => {
       test('Should return no items with no values returned', async () => {
-        ddbQueryMock.mockImplementationOnce(() => {
-          return { Items: [] };
+        ddbQueryMock
+          .mockImplementationOnce(() => {
+            return { Items: [] };
+          })
+          .mockImplementationOnce(() => {
+            return { Items: undefined };
+          });
+
+        await expect(query.run({ return: 'default' })).resolves.toEqual({
+          items: [],
+          lastKey: undefined,
+          count: 0,
+          scannedCount: 0,
         });
 
         await expect(query.run({ return: 'default' })).resolves.toEqual({
@@ -387,6 +401,7 @@ describe('Query', () => {
 
   describe('buildQueryInput', () => {
     test('Should successfully build query input without extraInput', async () => {
+      query['operators'] = ['filterExpression'] as any;
       query['buildQueryInput']();
 
       expect(query['input'].TableName).toEqual(TEST_TABLE_NAME);
@@ -401,6 +416,7 @@ describe('Query', () => {
     });
 
     test('Should successfully build query input with extraInput', async () => {
+      query['operators'] = [];
       query['buildQueryInput']({
         IndexName: 'indexName',
         ExpressionAttributeValues: { attributeValues: { S: 'overriddenValue' } },
@@ -408,7 +424,7 @@ describe('Query', () => {
 
       expect(query['input'].TableName).toEqual(TEST_TABLE_NAME);
       expect(query['input'].KeyConditionExpression).toEqual('keyConditionExpression');
-      expect(query['input'].FilterExpression).toEqual('filterExpression');
+      expect(query['input'].FilterExpression).toEqual(undefined);
       expect(query['input'].ExpressionAttributeNames).toEqual({
         attributeNames: 'value',
       });
