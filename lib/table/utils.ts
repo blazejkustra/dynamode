@@ -1,6 +1,5 @@
 import { AttributeDefinition, KeySchemaElement, LocalSecondaryIndex } from '@aws-sdk/client-dynamodb';
-import { AttributesMetadata } from '@lib/dynamode/storage/types';
-import { getAttributeType } from '@lib/dynamode/storage/utils';
+import { AttributesMetadata, AttributeType } from '@lib/dynamode/storage/types';
 import Entity from '@lib/entity';
 import { Metadata } from '@lib/table/types';
 import { ConflictError, deepEqual } from '@lib/utils';
@@ -19,15 +18,25 @@ export function getTableAttributeDefinitions<M extends Metadata<TE>, TE extends 
 ): AttributeDefinition[] {
   const { partitionKey, sortKey, indexes } = metadata;
 
+  const DynamodeToDynamoTypeMap = new Map<AttributeType, 'S' | 'N' | 'B' | 'M' | 'L' | 'SS'>([
+    [String, 'S'],
+    [Number, 'N'],
+    [Boolean, 'B'],
+    [Object, 'M'],
+    [Array, 'L'],
+    [Set, 'SS'],
+    [Map, 'M'],
+  ]);
+
   const partitionKeyDefinition = {
     AttributeName: String(partitionKey),
-    AttributeType: getAttributeType(attributes[String(partitionKey)].type),
+    AttributeType: DynamodeToDynamoTypeMap.get(attributes[String(partitionKey)].type),
   };
 
   const sortKeyDefinition = sortKey && [
     {
       AttributeName: String(sortKey),
-      AttributeType: getAttributeType(attributes[String(sortKey)].type),
+      AttributeType: DynamodeToDynamoTypeMap.get(attributes[String(sortKey)].type),
     },
   ];
 
@@ -37,14 +46,14 @@ export function getTableAttributeDefinitions<M extends Metadata<TE>, TE extends 
       const indexPartitionKeyDefinition = index.partitionKey && [
         {
           AttributeName: String(index.partitionKey),
-          AttributeType: getAttributeType(attributes[String(index.partitionKey)].type),
+          AttributeType: DynamodeToDynamoTypeMap.get(attributes[String(index.partitionKey)].type),
         },
       ];
 
       const indexSortKeyDefinition = index.sortKey && [
         {
           AttributeName: String(index.sortKey),
-          AttributeType: getAttributeType(attributes[String(index.sortKey)].type),
+          AttributeType: DynamodeToDynamoTypeMap.get(attributes[String(index.sortKey)].type),
         },
       ];
 
