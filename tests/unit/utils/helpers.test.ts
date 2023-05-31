@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import {
+  deepEqual,
   duplicatesInArray,
   insertBetween,
   isEmpty,
@@ -104,6 +105,38 @@ describe('Helpers', () => {
     test('Should not split the string if there are no brackets', async () => {
       expect(splitListPathReference('key')).toEqual(['key', '']);
       expect(splitListPathReference('another_key')).toEqual(['another_key', '']);
+    });
+  });
+
+  describe('deepEqual', () => {
+    test('Primitive variables should be deeply equal', async () => {
+      expect(deepEqual(1, 1)).toEqual(true);
+      expect(deepEqual('1', '1')).toEqual(true);
+      expect(deepEqual(true, true)).toEqual(true);
+    });
+
+    test('Different primitive variables should not be deeply equal', async () => {
+      expect(deepEqual(1, 2)).toEqual(false);
+      expect(deepEqual('1', '2')).toEqual(false);
+      expect(deepEqual(true, false)).toEqual(false);
+    });
+
+    test('Non primitive variables should be deeply equal', async () => {
+      expect(deepEqual({}, {})).toEqual(true);
+      expect(deepEqual({ a: { b: { c: 10 } } }, { a: { b: { c: 10 } } })).toEqual(true);
+      expect(deepEqual([], [])).toEqual(true);
+    });
+
+    test('Non primitive variables with different structures should not be deeply equal', async () => {
+      expect(deepEqual({}, { a: 1 })).toEqual(false);
+      expect(deepEqual([1], [])).toEqual(false);
+      expect(
+        deepEqual(
+          { '1': { '1': { '1': 'e', '2': 'e' }, '2': 'e' } },
+          { '1': { '1': { '1': 'f', '3': 'f' } }, '3': 'f' },
+        ),
+      ).toEqual(false);
+      expect(deepEqual({ a: { b: { c: 10 } } }, { a: { b: { c: 11 } } })).toEqual(false);
     });
   });
 
