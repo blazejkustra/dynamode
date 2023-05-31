@@ -45,7 +45,6 @@ describe('Scan', () => {
     const ddbScanMock = vi.fn();
 
     let buildScanInputSpy = vi.spyOn(scan, 'buildScanInput' as any);
-    let validateScanInputSpy = vi.spyOn(scan, 'validateScanInput' as any);
     let convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
     let convertAttributeValuesToPrimaryKeySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToPrimaryKey');
 
@@ -58,7 +57,6 @@ describe('Scan', () => {
     beforeEach(() => {
       vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ scan: ddbScanMock } as any as DynamoDB);
       buildScanInputSpy = vi.spyOn(scan, 'buildScanInput' as any).mockImplementation(() => (scan['input'] = scanInput));
-      validateScanInputSpy = vi.spyOn(scan, 'validateScanInput' as any).mockReturnValue(undefined);
       convertAttributeValuesToEntitySpy = vi
         .spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity')
         .mockReturnValue(mockInstance);
@@ -70,7 +68,6 @@ describe('Scan', () => {
     test('Should build and validate scan input', async () => {
       expect(scan.run({ return: 'input' })).toEqual(scanInput);
       expect(buildScanInputSpy).toBeCalled();
-      expect(validateScanInputSpy).toBeCalled();
     });
 
     test('Should build and validate scan input with extraInput', async () => {
@@ -193,9 +190,5 @@ describe('Scan', () => {
       expect(scan['input'].ExpressionAttributeValues).toEqual({ attributeValues: { S: 'overriddenValue' } });
       expect(scan['input'].IndexName).toEqual('indexName');
     });
-  });
-
-  describe('validateScanInput', async () => {
-    test.todo('Should successfully validate scan input');
   });
 });

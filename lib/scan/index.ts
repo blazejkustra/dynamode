@@ -19,7 +19,6 @@ export default class Scan<M extends Metadata<E>, E extends typeof Entity> extend
   public run(options: ScanRunOptions & { return: 'input' }): ScanInput;
   public run(options?: ScanRunOptions): Promise<ScanRunOutput<E> | ScanCommandOutput> | ScanInput {
     this.buildScanInput(options?.extraInput);
-    this.validateScanInput();
 
     if (options?.return === 'input') {
       return this.input;
@@ -74,10 +73,5 @@ export default class Scan<M extends Metadata<E>, E extends typeof Entity> extend
       ExpressionAttributeValues: expressionBuilder.attributeValues,
       ...extraInput,
     };
-  }
-
-  //TODO: Implement validation
-  private validateScanInput() {
-    console.log('validateScanInput');
   }
 }

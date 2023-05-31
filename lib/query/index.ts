@@ -21,7 +21,6 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
   public run(options: QueryRunOptions & { return: 'input' }): QueryInput;
   public run(options?: QueryRunOptions): Promise<QueryRunOutput<E> | QueryCommandOutput> | QueryInput {
     this.buildQueryInput(options?.extraInput);
-    this.validateQueryInput();
 
     if (options?.return === 'input') {
       return this.input;
@@ -127,12 +126,5 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
       ExpressionAttributeValues: expressionBuilder.attributeValues,
       ...extraInput,
     };
-  }
-
-  //TODO: Implement validation
-  private validateQueryInput(): void {
-    // ValidationException: Invalid FilterExpression: The BETWEEN operator requires upper bound to be greater than or equal to lower bound; lower bound operand: AttributeValue: {S:5}, upper bound operand: AttributeValue: {S:100}
-    // Index validation
-    console.log('validateQueryInput');
   }
 }

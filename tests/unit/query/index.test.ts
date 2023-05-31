@@ -52,7 +52,6 @@ describe('Query', () => {
     const ddbQueryMock = vi.fn();
 
     let buildQueryInputSpy = vi.spyOn(query, 'buildQueryInput' as any);
-    let validateQueryInputSpy = vi.spyOn(query, 'validateQueryInput' as any);
     let convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
     let convertAttributeValuesToPrimaryKeySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToPrimaryKey');
     let timeoutSpy = vi.spyOn(utils, 'timeout');
@@ -68,7 +67,6 @@ describe('Query', () => {
       buildQueryInputSpy = vi
         .spyOn(query, 'buildQueryInput' as any)
         .mockImplementation(() => (query['input'] = queryInput));
-      validateQueryInputSpy = vi.spyOn(query, 'validateQueryInput' as any).mockReturnValue(undefined);
       convertAttributeValuesToEntitySpy = vi
         .spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity')
         .mockReturnValue(mockInstance);
@@ -81,7 +79,6 @@ describe('Query', () => {
     test('Should build and validate query input', async () => {
       expect(query.run({ return: 'input' })).toEqual(queryInput);
       expect(buildQueryInputSpy).toBeCalled();
-      expect(validateQueryInputSpy).toBeCalled();
     });
 
     test('Should build and validate query input with extraInput', async () => {
@@ -418,9 +415,5 @@ describe('Query', () => {
       expect(query['input'].ExpressionAttributeValues).toEqual({ attributeValues: { S: 'overriddenValue' } });
       expect(query['input'].IndexName).toEqual('indexName');
     });
-  });
-
-  describe('validateQueryInput', () => {
-    test.todo('Should successfully validate query input');
   });
 });
