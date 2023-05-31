@@ -14,6 +14,7 @@ import {
 } from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import Dynamode from '@lib/dynamode/index';
+import Entity from '@lib/entity';
 import {
   buildDeleteConditionExpression,
   buildGetProjectionExpression,
@@ -55,8 +56,6 @@ import {
   TransactionUpdate,
 } from '@lib/transactionWrite/types';
 import { AttributeValues, ExpressionBuilder, fromDynamo, NotFoundError } from '@lib/utils';
-
-import Entity from '.';
 
 export function entityManager<M extends Metadata<E>, E extends typeof Entity>(entity: E, tableName: string) {
   (entity.prototype.dynamodeEntity as string) = entity.name;
