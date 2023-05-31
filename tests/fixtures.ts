@@ -132,7 +132,7 @@ export class MockEntity extends TestTable {
   }
 }
 
-const testTable = tableManager(TestTable).metadata({
+const TestTableManager = tableManager(TestTable).metadata({
   tableName: TEST_TABLE_NAME,
   partitionKey: 'partitionKey',
   sortKey: 'sortKey',
@@ -147,9 +147,9 @@ const testTable = tableManager(TestTable).metadata({
   },
 });
 
-export type TestTableMetadata = typeof testTable.tableMetadata;
+export type TestTableMetadata = typeof TestTableManager.tableMetadata;
 
-export const mockEntityManager = testTable.entityManager(MockEntity);
+export const MockEntityManager = TestTableManager.entityManager(MockEntity);
 
 export const testTableInstance = new TestTable({
   partitionKey: 'PK',

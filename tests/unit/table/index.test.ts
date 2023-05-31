@@ -4,7 +4,7 @@ import Dynamode from '@lib/dynamode/index';
 import * as entity from '@lib/entity/entityManager';
 import { tableManager } from '@lib/table';
 
-import { MockEntity, mockEntityManager, TEST_TABLE_NAME, TestTable } from '../../fixtures';
+import { MockEntity, MockEntityManager, TEST_TABLE_NAME, TestTable } from '../../fixtures';
 
 const metadata = {
   tableName: TEST_TABLE_NAME,
@@ -52,11 +52,11 @@ describe('Table', () => {
     test('Should call entityManager with proper parameters', async () => {
       registerTableSpy.mockReturnValue(undefined);
       registerEntitySpy.mockReturnValue(undefined);
-      entityManagerSpy.mockReturnValue(mockEntityManager as any);
+      entityManagerSpy.mockReturnValue(MockEntityManager as any);
 
       const TableManager = tableManager(TestTable).metadata(metadata);
 
-      expect(TableManager.entityManager(MockEntity)).toEqual(mockEntityManager);
+      expect(TableManager.entityManager(MockEntity)).toEqual(MockEntityManager);
       expect(entityManagerSpy).toBeCalledWith(MockEntity, TEST_TABLE_NAME);
     });
 

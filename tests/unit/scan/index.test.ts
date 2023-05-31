@@ -7,7 +7,7 @@ import Scan from '@lib/scan';
 import { Metadata } from '@lib/table/types';
 import { BASE_OPERATOR } from '@lib/utils';
 
-import { MockEntity, mockEntityManager, mockInstance, TEST_TABLE_NAME } from '../../fixtures';
+import { MockEntity, MockEntityManager, mockInstance, TEST_TABLE_NAME } from '../../fixtures';
 
 vi.mock('@lib/utils/ExpressionBuilder', () => {
   const ExpressionBuilder = vi.fn(() => ({
@@ -19,10 +19,10 @@ vi.mock('@lib/utils/ExpressionBuilder', () => {
 });
 
 describe('Scan', () => {
-  let scan = mockEntityManager.scan();
+  let scan = MockEntityManager.scan();
 
   beforeEach(() => {
-    scan = mockEntityManager.scan();
+    scan = MockEntityManager.scan();
   });
 
   afterEach(() => {
@@ -30,7 +30,7 @@ describe('Scan', () => {
   });
 
   test('Should be able to initialize scan', async () => {
-    const scan1 = mockEntityManager.scan();
+    const scan1 = MockEntityManager.scan();
     expect(scan1['operators']).toEqual([]);
     expect(scan1['entity']).toEqual(MockEntity);
     expect(scan1['logicalOperator']).toEqual(BASE_OPERATOR.and);

@@ -11,7 +11,7 @@ import Scan from '@lib/scan';
 import { AttributeValues, NotFoundError } from '@lib/utils';
 import * as converterUtils from '@lib/utils/converter';
 
-import { MockEntity, mockEntityManager, mockInstance, TEST_TABLE_NAME, testTableInstance } from '../../fixtures';
+import { MockEntity, MockEntityManager, mockInstance, TEST_TABLE_NAME, testTableInstance } from '../../fixtures';
 
 import { OPERATORS } from './../../../lib/utils/constants';
 
@@ -31,19 +31,19 @@ const primaryKey = { partitionKey: 'PK', sortKey: 'SK' };
 describe('entityManager', () => {
   describe('condition', async () => {
     test('Should initialize Condition class', async () => {
-      expect(mockEntityManager.condition()).toEqual(new Condition(MockEntity));
+      expect(MockEntityManager.condition()).toEqual(new Condition(MockEntity));
     });
   });
 
   describe('query', async () => {
     test('Should initialize Query class', async () => {
-      expect(mockEntityManager.query()).toEqual(new Query(MockEntity));
+      expect(MockEntityManager.query()).toEqual(new Query(MockEntity));
     });
   });
 
   describe('condition', async () => {
     test('Should initialize Scan class', async () => {
-      expect(mockEntityManager.scan()).toEqual(new Scan(MockEntity));
+      expect(MockEntityManager.scan()).toEqual(new Scan(MockEntity));
     });
   });
 
@@ -72,7 +72,7 @@ describe('entityManager', () => {
         attributeNames: { test: 'test' },
       });
 
-      expect(mockEntityManager.get(primaryKey, { return: 'input', attributes: ['number', 'string'] })).toEqual({
+      expect(MockEntityManager.get(primaryKey, { return: 'input', attributes: ['number', 'string'] })).toEqual({
         TableName: TEST_TABLE_NAME,
         Key: primaryKey,
         ConsistentRead: false,
@@ -93,7 +93,7 @@ describe('entityManager', () => {
       });
 
       expect(
-        mockEntityManager.get(primaryKey, {
+        MockEntityManager.get(primaryKey, {
           return: 'input',
           extraInput: { ProjectionExpression: 'ProjectionExpression overwrite', ConsistentRead: true },
         }),
@@ -115,7 +115,7 @@ describe('entityManager', () => {
       buildGetProjectionExpressionSpy.mockReturnValue({});
       getItemMock.mockResolvedValue({ Item: mockInstance });
 
-      await expect(mockEntityManager.get(primaryKey, { return: 'output' })).resolves.toEqual({ Item: mockInstance });
+      await expect(MockEntityManager.get(primaryKey, { return: 'output' })).resolves.toEqual({ Item: mockInstance });
 
       expect(buildGetProjectionExpressionSpy).toBeCalledWith(undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
@@ -131,7 +131,7 @@ describe('entityManager', () => {
       buildGetProjectionExpressionSpy.mockReturnValue({});
       getItemMock.mockResolvedValue({ Item: undefined });
 
-      await expect(mockEntityManager.get(primaryKey, { return: 'output' })).resolves.toEqual({ Item: undefined });
+      await expect(MockEntityManager.get(primaryKey, { return: 'output' })).resolves.toEqual({ Item: undefined });
 
       expect(buildGetProjectionExpressionSpy).toBeCalledWith(undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
@@ -148,7 +148,7 @@ describe('entityManager', () => {
       getItemMock.mockResolvedValue({ Item: mockInstance });
       convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
 
-      await expect(mockEntityManager.get(primaryKey)).resolves.toEqual(mockInstance);
+      await expect(MockEntityManager.get(primaryKey)).resolves.toEqual(mockInstance);
 
       expect(buildGetProjectionExpressionSpy).toBeCalledWith(undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
@@ -164,7 +164,7 @@ describe('entityManager', () => {
       buildGetProjectionExpressionSpy.mockReturnValue({});
       getItemMock.mockResolvedValue({ Item: undefined });
 
-      await expect(mockEntityManager.get(primaryKey)).rejects.toThrow(NotFoundError);
+      await expect(MockEntityManager.get(primaryKey)).rejects.toThrow(NotFoundError);
 
       expect(buildGetProjectionExpressionSpy).toBeCalledWith(undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
@@ -208,10 +208,10 @@ describe('entityManager', () => {
       mapReturnValuesSpy.mockReturnValue(ReturnValue.ALL_NEW);
 
       expect(
-        mockEntityManager.update(
+        MockEntityManager.update(
           primaryKey,
           { set: { string: 'value' } },
-          { return: 'input', condition: mockEntityManager.condition().attribute('string').beginsWith('v') },
+          { return: 'input', condition: MockEntityManager.condition().attribute('string').beginsWith('v') },
         ),
       ).toEqual({
         TableName: TEST_TABLE_NAME,
@@ -225,7 +225,7 @@ describe('entityManager', () => {
 
       expect(buildUpdateConditionExpressionSpy).toBeCalledWith(
         { set: { string: 'value' } },
-        mockEntityManager.condition().attribute('string').beginsWith('v'),
+        MockEntityManager.condition().attribute('string').beginsWith('v'),
       );
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(mapReturnValuesSpy).toBeCalledWith(undefined);
@@ -238,7 +238,7 @@ describe('entityManager', () => {
       mapReturnValuesSpy.mockReturnValue(ReturnValue.NONE);
 
       expect(
-        mockEntityManager.update(primaryKey, { set: { string: 'value' } }, { return: 'input', returnValues: 'none' }),
+        MockEntityManager.update(primaryKey, { set: { string: 'value' } }, { return: 'input', returnValues: 'none' }),
       ).toEqual({
         TableName: TEST_TABLE_NAME,
         Key: primaryKey,
@@ -258,7 +258,7 @@ describe('entityManager', () => {
       mapReturnValuesSpy.mockReturnValue(ReturnValue.ALL_NEW);
 
       expect(
-        mockEntityManager.update(
+        MockEntityManager.update(
           primaryKey,
           { set: { string: 'value' } },
           {
@@ -290,7 +290,7 @@ describe('entityManager', () => {
       updateItemMock.mockResolvedValue({ Attributes: mockInstance });
 
       await expect(
-        mockEntityManager.update(primaryKey, { set: { string: 'value' } }, { return: 'output' }),
+        MockEntityManager.update(primaryKey, { set: { string: 'value' } }, { return: 'output' }),
       ).resolves.toEqual({
         Attributes: mockInstance,
       });
@@ -313,7 +313,7 @@ describe('entityManager', () => {
       updateItemMock.mockResolvedValue({ Attributes: mockInstance });
       convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
 
-      await expect(mockEntityManager.update(primaryKey, { set: { string: 'value' } })).resolves.toEqual(mockInstance);
+      await expect(MockEntityManager.update(primaryKey, { set: { string: 'value' } })).resolves.toEqual(mockInstance);
 
       expect(buildUpdateConditionExpressionSpy).toBeCalledWith({ set: { string: 'value' } }, undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
@@ -333,7 +333,7 @@ describe('entityManager', () => {
       updateItemMock.mockResolvedValue({ Attributes: undefined });
       convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
 
-      await expect(mockEntityManager.update(primaryKey, { set: { string: 'value' } })).resolves.toEqual({});
+      await expect(MockEntityManager.update(primaryKey, { set: { string: 'value' } })).resolves.toEqual({});
 
       expect(buildUpdateConditionExpressionSpy).toBeCalledWith({ set: { string: 'value' } }, undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
@@ -381,9 +381,9 @@ describe('entityManager', () => {
       });
 
       expect(
-        mockEntityManager.put(mockInstance, {
+        MockEntityManager.put(mockInstance, {
           return: 'input',
-          condition: mockEntityManager.condition().attribute('string').beginsWith('v'),
+          condition: MockEntityManager.condition().attribute('string').beginsWith('v'),
         }),
       ).toEqual({
         TableName: TEST_TABLE_NAME,
@@ -397,7 +397,7 @@ describe('entityManager', () => {
       expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
       expect(buildPutConditionExpressionSpy).toBeCalledWith(
         undefined,
-        mockEntityManager.condition().attribute('string').beginsWith('v'),
+        MockEntityManager.condition().attribute('string').beginsWith('v'),
       );
       expect(putItemMock).not.toBeCalled();
       expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
@@ -407,7 +407,7 @@ describe('entityManager', () => {
       buildPutConditionExpressionSpy.mockReturnValue({ conditionExpression: 'conditionExpression' });
 
       expect(
-        mockEntityManager.put(mockInstance, {
+        MockEntityManager.put(mockInstance, {
           return: 'input',
           extraInput: { ConditionExpression: 'extra', ExpressionAttributeNames: { test: 'test' } },
         }),
@@ -428,7 +428,7 @@ describe('entityManager', () => {
     test('Should add condition to not overwrite existing item', async () => {
       buildPutConditionExpressionSpy.mockReturnValue({ conditionExpression: 'conditionExpression' });
 
-      expect(mockEntityManager.put(mockInstance, { return: 'input', overwrite: false })).toEqual({
+      expect(MockEntityManager.put(mockInstance, { return: 'input', overwrite: false })).toEqual({
         TableName: TEST_TABLE_NAME,
         Item: mockInstance,
         ConditionExpression: 'conditionExpression',
@@ -437,7 +437,7 @@ describe('entityManager', () => {
       expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
       expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
       expect(buildPutConditionExpressionSpy).toBeCalledWith(
-        mockEntityManager.condition().attribute('partitionKey').not().exists(),
+        MockEntityManager.condition().attribute('partitionKey').not().exists(),
         undefined,
       );
       expect(putItemMock).not.toBeCalled();
@@ -448,7 +448,7 @@ describe('entityManager', () => {
       buildPutConditionExpressionSpy.mockReturnValue({ conditionExpression: 'conditionExpression' });
       putItemMock.mockResolvedValue({ Attributes: undefined });
 
-      await expect(mockEntityManager.put(mockInstance, { return: 'output' })).resolves.toEqual({
+      await expect(MockEntityManager.put(mockInstance, { return: 'output' })).resolves.toEqual({
         Attributes: undefined,
       });
 
@@ -468,7 +468,7 @@ describe('entityManager', () => {
       putItemMock.mockResolvedValue({ Attributes: undefined });
       convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
 
-      await expect(mockEntityManager.put(mockInstance)).resolves.toEqual(mockInstance);
+      await expect(MockEntityManager.put(mockInstance)).resolves.toEqual(mockInstance);
 
       expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
       expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
@@ -491,15 +491,15 @@ describe('entityManager', () => {
         .spyOn(entityExpressionsHelpers, 'buildPutConditionExpression')
         .mockReturnValue({});
 
-      mockEntityManager.create(mockInstance, {
+      MockEntityManager.create(mockInstance, {
         return: 'input',
-        condition: mockEntityManager.condition().attribute('string').beginsWith('v'),
+        condition: MockEntityManager.condition().attribute('string').beginsWith('v'),
       });
 
       expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
       expect(buildPutConditionExpressionSpy).toBeCalledWith(
-        mockEntityManager.condition().attribute('partitionKey').not().exists(),
-        mockEntityManager.condition().attribute('string').beginsWith('v'),
+        MockEntityManager.condition().attribute('partitionKey').not().exists(),
+        MockEntityManager.condition().attribute('string').beginsWith('v'),
       );
     });
   });
@@ -540,9 +540,9 @@ describe('entityManager', () => {
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
 
       expect(
-        mockEntityManager.delete(primaryKey, {
+        MockEntityManager.delete(primaryKey, {
           return: 'input',
-          condition: mockEntityManager.condition().attribute('string').beginsWith('v'),
+          condition: MockEntityManager.condition().attribute('string').beginsWith('v'),
         }),
       ).toEqual({
         TableName: TEST_TABLE_NAME,
@@ -556,7 +556,7 @@ describe('entityManager', () => {
       expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
       expect(buildDeleteConditionExpressionSpy).toBeCalledWith(
         undefined,
-        mockEntityManager.condition().attribute('string').beginsWith('v'),
+        MockEntityManager.condition().attribute('string').beginsWith('v'),
       );
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
@@ -573,9 +573,9 @@ describe('entityManager', () => {
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
 
       expect(
-        mockEntityManager.delete(primaryKey, {
+        MockEntityManager.delete(primaryKey, {
           return: 'input',
-          condition: mockEntityManager.condition().attribute('string').beginsWith('v'),
+          condition: MockEntityManager.condition().attribute('string').beginsWith('v'),
           throwErrorIfNotExists: true,
         }),
       ).toEqual({
@@ -589,8 +589,8 @@ describe('entityManager', () => {
 
       expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
       expect(buildDeleteConditionExpressionSpy).toBeCalledWith(
-        mockEntityManager.condition().attribute('partitionKey').exists(),
-        mockEntityManager.condition().attribute('string').beginsWith('v'),
+        MockEntityManager.condition().attribute('partitionKey').exists(),
+        MockEntityManager.condition().attribute('string').beginsWith('v'),
       );
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
@@ -603,7 +603,7 @@ describe('entityManager', () => {
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.NONE);
 
       expect(
-        mockEntityManager.delete(primaryKey, {
+        MockEntityManager.delete(primaryKey, {
           return: 'input',
           returnValues: 'none',
         }),
@@ -626,7 +626,7 @@ describe('entityManager', () => {
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
 
       expect(
-        mockEntityManager.delete(primaryKey, {
+        MockEntityManager.delete(primaryKey, {
           return: 'input',
           extraInput: {
             ReturnValues: ReturnValuesOnConditionCheckFailure.NONE,
@@ -653,7 +653,7 @@ describe('entityManager', () => {
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
       deleteItemMock.mockResolvedValue({ Attributes: undefined });
 
-      await expect(mockEntityManager.delete(primaryKey, { return: 'output' })).resolves.toEqual({
+      await expect(MockEntityManager.delete(primaryKey, { return: 'output' })).resolves.toEqual({
         Attributes: undefined,
       });
 
@@ -674,7 +674,7 @@ describe('entityManager', () => {
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.NONE);
       deleteItemMock.mockResolvedValue({ Attributes: undefined });
 
-      await expect(mockEntityManager.delete(primaryKey)).resolves.toEqual(null);
+      await expect(MockEntityManager.delete(primaryKey)).resolves.toEqual(null);
 
       expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
       expect(buildDeleteConditionExpressionSpy).toBeCalledWith(undefined, undefined);
@@ -694,7 +694,7 @@ describe('entityManager', () => {
       deleteItemMock.mockResolvedValue({ Attributes: mockInstance });
       convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
 
-      await expect(mockEntityManager.delete(primaryKey)).resolves.toEqual(mockInstance);
+      await expect(MockEntityManager.delete(primaryKey)).resolves.toEqual(mockInstance);
 
       expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
       expect(buildDeleteConditionExpressionSpy).toBeCalledWith(undefined, undefined);
@@ -737,7 +737,7 @@ describe('entityManager', () => {
       });
 
       expect(
-        mockEntityManager.batchGet([primaryKey, primaryKey], { return: 'input', attributes: ['number', 'string'] }),
+        MockEntityManager.batchGet([primaryKey, primaryKey], { return: 'input', attributes: ['number', 'string'] }),
       ).toEqual({
         RequestItems: {
           [TEST_TABLE_NAME]: {
@@ -762,7 +762,7 @@ describe('entityManager', () => {
       });
 
       expect(
-        mockEntityManager.batchGet([primaryKey, primaryKey], {
+        MockEntityManager.batchGet([primaryKey, primaryKey], {
           return: 'input',
           extraInput: {
             RequestItems: {
@@ -793,7 +793,7 @@ describe('entityManager', () => {
     test('Should build a ConsistentRead: true query with options.consistent', async () => {
       buildGetProjectionExpressionSpy.mockReturnValue({});
 
-      expect(mockEntityManager.batchGet([primaryKey, primaryKey], { return: 'input', consistent: true })).toEqual({
+      expect(MockEntityManager.batchGet([primaryKey, primaryKey], { return: 'input', consistent: true })).toEqual({
         RequestItems: {
           [TEST_TABLE_NAME]: {
             Keys: [primaryKey, primaryKey],
@@ -817,7 +817,7 @@ describe('entityManager', () => {
         },
       });
 
-      await expect(mockEntityManager.batchGet([primaryKey, primaryKey], { return: 'output' })).resolves.toEqual({
+      await expect(MockEntityManager.batchGet([primaryKey, primaryKey], { return: 'output' })).resolves.toEqual({
         Responses: {
           [TEST_TABLE_NAME]: [mockInstance, undefined],
           UnprocessedKeys: undefined,
@@ -847,7 +847,7 @@ describe('entityManager', () => {
       });
       convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
 
-      await expect(mockEntityManager.batchGet([primaryKey, primaryKey])).resolves.toEqual({
+      await expect(MockEntityManager.batchGet([primaryKey, primaryKey])).resolves.toEqual({
         items: [mockInstance, testTableInstance],
         unprocessedKeys: [],
       });
@@ -877,7 +877,7 @@ describe('entityManager', () => {
       });
       convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
 
-      await expect(mockEntityManager.batchGet([primaryKey, primaryKey])).resolves.toEqual({
+      await expect(MockEntityManager.batchGet([primaryKey, primaryKey])).resolves.toEqual({
         items: [mockInstance],
         unprocessedKeys: [],
       });
@@ -906,7 +906,7 @@ describe('entityManager', () => {
       });
       fromDynamoSpy.mockImplementation((item) => item);
 
-      await expect(mockEntityManager.batchGet([primaryKey, primaryKey])).resolves.toEqual({
+      await expect(MockEntityManager.batchGet([primaryKey, primaryKey])).resolves.toEqual({
         items: [],
         unprocessedKeys: [primaryKey, primaryKey],
       });
@@ -945,7 +945,7 @@ describe('entityManager', () => {
     });
 
     test('Should return proper dynamo input', async () => {
-      expect(mockEntityManager.batchPut([mockInstance, testTableInstance as any], { return: 'input' })).toEqual({
+      expect(MockEntityManager.batchPut([mockInstance, testTableInstance as any], { return: 'input' })).toEqual({
         RequestItems: {
           [TEST_TABLE_NAME]: [
             {
@@ -971,7 +971,7 @@ describe('entityManager', () => {
 
     test('Should overwrite query with extraInput option', async () => {
       expect(
-        mockEntityManager.batchPut([mockInstance, testTableInstance as any], {
+        MockEntityManager.batchPut([mockInstance, testTableInstance as any], {
           return: 'input',
           extraInput: { ReturnConsumedCapacity: 'returnConsumedCapacity' },
         }),
@@ -1004,7 +1004,7 @@ describe('entityManager', () => {
       batchWriteMock.mockResolvedValue({ UnprocessedItems: undefined });
 
       await expect(
-        mockEntityManager.batchPut([mockInstance, testTableInstance as any], { return: 'output' }),
+        MockEntityManager.batchPut([mockInstance, testTableInstance as any], { return: 'output' }),
       ).resolves.toEqual({
         UnprocessedItems: undefined,
       });
@@ -1035,7 +1035,7 @@ describe('entityManager', () => {
       batchWriteMock.mockResolvedValue({ UnprocessedItems: undefined });
       convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
 
-      await expect(mockEntityManager.batchPut([mockInstance, testTableInstance as any])).resolves.toEqual({
+      await expect(MockEntityManager.batchPut([mockInstance, testTableInstance as any])).resolves.toEqual({
         items: [mockInstance, testTableInstance],
         unprocessedItems: [],
       });
@@ -1079,7 +1079,7 @@ describe('entityManager', () => {
 
       convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
 
-      await expect(mockEntityManager.batchPut([mockInstance, testTableInstance as any])).resolves.toEqual({
+      await expect(MockEntityManager.batchPut([mockInstance, testTableInstance as any])).resolves.toEqual({
         items: [mockInstance, testTableInstance],
         unprocessedItems: [mockInstance],
       });
@@ -1129,7 +1129,7 @@ describe('entityManager', () => {
     });
 
     test('Should return proper dynamo input', async () => {
-      expect(mockEntityManager.batchDelete([primaryKey, primaryKey], { return: 'input' })).toEqual({
+      expect(MockEntityManager.batchDelete([primaryKey, primaryKey], { return: 'input' })).toEqual({
         RequestItems: {
           [TEST_TABLE_NAME]: [
             {
@@ -1155,7 +1155,7 @@ describe('entityManager', () => {
 
     test('Should overwrite query with extraInput option', async () => {
       expect(
-        mockEntityManager.batchDelete([primaryKey, primaryKey], {
+        MockEntityManager.batchDelete([primaryKey, primaryKey], {
           return: 'input',
           extraInput: { ReturnConsumedCapacity: 'returnConsumedCapacity' },
         }),
@@ -1187,7 +1187,7 @@ describe('entityManager', () => {
     test('Should return native dynamo result (return: output)', async () => {
       batchWriteMock.mockResolvedValue({ UnprocessedItems: undefined });
 
-      await expect(mockEntityManager.batchDelete([primaryKey, primaryKey], { return: 'output' })).resolves.toEqual({
+      await expect(MockEntityManager.batchDelete([primaryKey, primaryKey], { return: 'output' })).resolves.toEqual({
         UnprocessedItems: undefined,
       });
 
@@ -1216,7 +1216,7 @@ describe('entityManager', () => {
     test('Should return dynamode result of batch delete item with no unprocessed items', async () => {
       batchWriteMock.mockResolvedValue({ UnprocessedItems: undefined });
 
-      await expect(mockEntityManager.batchDelete([primaryKey, primaryKey])).resolves.toEqual({
+      await expect(MockEntityManager.batchDelete([primaryKey, primaryKey])).resolves.toEqual({
         unprocessedItems: [],
       });
 
@@ -1256,7 +1256,7 @@ describe('entityManager', () => {
       });
       fromDynamoSpy.mockImplementation((key) => key);
 
-      await expect(mockEntityManager.batchDelete([primaryKey, primaryKey])).resolves.toEqual({
+      await expect(MockEntityManager.batchDelete([primaryKey, primaryKey])).resolves.toEqual({
         unprocessedItems: [primaryKey],
       });
 
@@ -1301,7 +1301,7 @@ describe('entityManager', () => {
     test('Should build transaction get input without options', async () => {
       buildGetProjectionExpressionSpy.mockReturnValue({});
 
-      expect(mockEntityManager.transaction.get(primaryKey)).toEqual({
+      expect(MockEntityManager.transaction.get(primaryKey)).toEqual({
         entity: MockEntity,
         get: {
           TableName: TEST_TABLE_NAME,
@@ -1316,7 +1316,7 @@ describe('entityManager', () => {
     test('Should build transaction get input with extraInput option', async () => {
       buildGetProjectionExpressionSpy.mockReturnValue({});
 
-      expect(mockEntityManager.transaction.get(primaryKey, { extraInput: { TableName: 'tableName' } })).toEqual({
+      expect(MockEntityManager.transaction.get(primaryKey, { extraInput: { TableName: 'tableName' } })).toEqual({
         entity: MockEntity,
         get: {
           TableName: 'tableName',
@@ -1334,7 +1334,7 @@ describe('entityManager', () => {
         attributeNames: { test: 'test' },
       });
 
-      expect(mockEntityManager.transaction.get(primaryKey, { attributes: ['number', 'string'] })).toEqual({
+      expect(MockEntityManager.transaction.get(primaryKey, { attributes: ['number', 'string'] })).toEqual({
         entity: MockEntity,
         get: {
           TableName: TEST_TABLE_NAME,
@@ -1374,7 +1374,7 @@ describe('entityManager', () => {
       });
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
 
-      expect(mockEntityManager.transaction.update(primaryKey, { set: { string: 'value' } })).toEqual({
+      expect(MockEntityManager.transaction.update(primaryKey, { set: { string: 'value' } })).toEqual({
         entity: MockEntity,
         update: {
           TableName: TEST_TABLE_NAME,
@@ -1399,7 +1399,7 @@ describe('entityManager', () => {
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
 
       expect(
-        mockEntityManager.transaction.update(
+        MockEntityManager.transaction.update(
           primaryKey,
           { set: { string: 'value' } },
           {
@@ -1429,10 +1429,10 @@ describe('entityManager', () => {
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
 
       expect(
-        mockEntityManager.transaction.update(
+        MockEntityManager.transaction.update(
           primaryKey,
           { set: { string: 'value' } },
-          { condition: mockEntityManager.condition().attribute('string').beginsWith('v') },
+          { condition: MockEntityManager.condition().attribute('string').beginsWith('v') },
         ),
       ).toEqual({
         entity: MockEntity,
@@ -1446,7 +1446,7 @@ describe('entityManager', () => {
 
       expect(buildUpdateConditionExpressionSpy).toBeCalledWith(
         { set: { string: 'value' } },
-        mockEntityManager.condition().attribute('string').beginsWith('v'),
+        MockEntityManager.condition().attribute('string').beginsWith('v'),
       );
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
@@ -1459,7 +1459,7 @@ describe('entityManager', () => {
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.NONE);
 
       expect(
-        mockEntityManager.transaction.update(
+        MockEntityManager.transaction.update(
           primaryKey,
           { set: { string: 'value' } },
           { returnValuesOnFailure: 'none' },
@@ -1506,7 +1506,7 @@ describe('entityManager', () => {
       buildPutConditionExpressionSpy.mockReturnValue({});
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
 
-      expect(mockEntityManager.transaction.put(mockInstance)).toEqual({
+      expect(MockEntityManager.transaction.put(mockInstance)).toEqual({
         entity: MockEntity,
         put: {
           TableName: TEST_TABLE_NAME,
@@ -1526,7 +1526,7 @@ describe('entityManager', () => {
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
 
       expect(
-        mockEntityManager.transaction.put(mockInstance, { extraInput: { ConditionExpression: 'conditionExpression' } }),
+        MockEntityManager.transaction.put(mockInstance, { extraInput: { ConditionExpression: 'conditionExpression' } }),
       ).toEqual({
         entity: MockEntity,
         put: {
@@ -1547,7 +1547,7 @@ describe('entityManager', () => {
       buildPutConditionExpressionSpy.mockReturnValue({});
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
 
-      expect(mockEntityManager.transaction.put(mockInstance, { overwrite: false })).toEqual({
+      expect(MockEntityManager.transaction.put(mockInstance, { overwrite: false })).toEqual({
         entity: MockEntity,
         put: {
           TableName: TEST_TABLE_NAME,
@@ -1557,7 +1557,7 @@ describe('entityManager', () => {
       });
 
       expect(buildPutConditionExpressionSpy).toBeCalledWith(
-        mockEntityManager.condition().attribute('partitionKey').not().exists(),
+        MockEntityManager.condition().attribute('partitionKey').not().exists(),
         undefined,
       );
       expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
@@ -1574,8 +1574,8 @@ describe('entityManager', () => {
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
 
       expect(
-        mockEntityManager.transaction.put(mockInstance, {
-          condition: mockEntityManager.condition().attribute('string').beginsWith('v'),
+        MockEntityManager.transaction.put(mockInstance, {
+          condition: MockEntityManager.condition().attribute('string').beginsWith('v'),
         }),
       ).toEqual({
         entity: MockEntity,
@@ -1591,7 +1591,7 @@ describe('entityManager', () => {
 
       expect(buildPutConditionExpressionSpy).toBeCalledWith(
         undefined,
-        mockEntityManager.condition().attribute('string').beginsWith('v'),
+        MockEntityManager.condition().attribute('string').beginsWith('v'),
       );
       expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
       expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
@@ -1603,7 +1603,7 @@ describe('entityManager', () => {
       mapReturnValuesLimitedSpy.mockReturnValue(ReturnValuesOnConditionCheckFailure.NONE);
 
       expect(
-        mockEntityManager.transaction.put(mockInstance, {
+        MockEntityManager.transaction.put(mockInstance, {
           returnValuesOnFailure: 'none',
         }),
       ).toEqual({
@@ -1637,14 +1637,14 @@ describe('entityManager', () => {
         .spyOn(returnValuesHelpers, 'mapReturnValuesLimited')
         .mockReturnValue(ReturnValuesOnConditionCheckFailure.ALL_OLD);
 
-      mockEntityManager.transaction.create(mockInstance, {
-        condition: mockEntityManager.condition().attribute('string').beginsWith('v'),
+      MockEntityManager.transaction.create(mockInstance, {
+        condition: MockEntityManager.condition().attribute('string').beginsWith('v'),
       });
 
       expect(convertEntityToAttributeValuesSpy).toBeCalledWith(MockEntity, mockInstance);
       expect(buildPutConditionExpressionSpy).toBeCalledWith(
-        mockEntityManager.condition().attribute('partitionKey').not().exists(),
-        mockEntityManager.condition().attribute('string').beginsWith('v'),
+        MockEntityManager.condition().attribute('partitionKey').not().exists(),
+        MockEntityManager.condition().attribute('string').beginsWith('v'),
       );
       expect(getEntityMetadataSpy).toBeCalledWith(MockEntity.name);
       expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
@@ -1673,7 +1673,7 @@ describe('entityManager', () => {
         attributeValues: { test: { S: 'test' } },
       });
 
-      expect(mockEntityManager.transaction.delete(primaryKey)).toEqual({
+      expect(MockEntityManager.transaction.delete(primaryKey)).toEqual({
         entity: MockEntity,
         delete: {
           TableName: TEST_TABLE_NAME,
@@ -1692,7 +1692,7 @@ describe('entityManager', () => {
       buildDeleteConditionExpressionSpy.mockReturnValue({});
 
       expect(
-        mockEntityManager.transaction.delete(primaryKey, {
+        MockEntityManager.transaction.delete(primaryKey, {
           extraInput: { ConditionExpression: 'conditionExpression' },
         }),
       ).toEqual({
@@ -1712,8 +1712,8 @@ describe('entityManager', () => {
       buildDeleteConditionExpressionSpy.mockReturnValue({});
 
       expect(
-        mockEntityManager.transaction.delete(primaryKey, {
-          condition: mockEntityManager.condition().attribute('string').beginsWith('v'),
+        MockEntityManager.transaction.delete(primaryKey, {
+          condition: MockEntityManager.condition().attribute('string').beginsWith('v'),
         }),
       ).toEqual({
         entity: MockEntity,
@@ -1724,7 +1724,7 @@ describe('entityManager', () => {
       });
 
       expect(buildDeleteConditionExpressionSpy).toBeCalledWith(
-        mockEntityManager.condition().attribute('string').beginsWith('v'),
+        MockEntityManager.condition().attribute('string').beginsWith('v'),
       );
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
     });
@@ -1746,7 +1746,7 @@ describe('entityManager', () => {
       expressionBuilderRunSpy.mockReturnValue('number = 1');
 
       expect(
-        mockEntityManager.transaction.condition(primaryKey, mockEntityManager.condition().attribute('number').eq(1)),
+        MockEntityManager.transaction.condition(primaryKey, MockEntityManager.condition().attribute('number').eq(1)),
       ).toEqual({
         entity: MockEntity,
         condition: {

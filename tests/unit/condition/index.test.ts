@@ -4,17 +4,17 @@ import Condition from '@lib/condition';
 import { AttributeType } from '@lib/condition/types';
 import { BASE_OPERATOR, OPERATORS } from '@lib/utils';
 
-import { MockEntity, mockEntityManager } from '../../fixtures';
+import { MockEntity, MockEntityManager } from '../../fixtures';
 
 describe('Condition', () => {
-  let condition = mockEntityManager.condition();
+  let condition = MockEntityManager.condition();
 
   beforeEach(() => {
-    condition = mockEntityManager.condition();
+    condition = MockEntityManager.condition();
   });
 
   test('Should be able to initialize condition', async () => {
-    const condition1 = mockEntityManager.condition();
+    const condition1 = MockEntityManager.condition();
     expect(condition1['operators']).toEqual([]);
     expect(condition1['entity']).toEqual(MockEntity);
     expect(condition1['logicalOperator']).toEqual(BASE_OPERATOR.and);
@@ -296,7 +296,7 @@ describe('Condition', () => {
     });
 
     test('Should add parenthesis if defined condition is passed as argument', async () => {
-      const innerCondition = mockEntityManager.condition();
+      const innerCondition = MockEntityManager.condition();
 
       innerCondition['operators'].push(BASE_OPERATOR.attributeExists);
 
@@ -309,7 +309,7 @@ describe('Condition', () => {
     });
 
     test('Should add parenthesis if defined condition is passed as argument + should add logical operator', async () => {
-      const innerCondition = mockEntityManager.condition();
+      const innerCondition = MockEntityManager.condition();
 
       condition['operators'].push(BASE_OPERATOR.contains);
       innerCondition['operators'].push(BASE_OPERATOR.attributeExists);
@@ -335,7 +335,7 @@ describe('Condition', () => {
     });
 
     test('Should add parenthesis if defined condition is passed as argument', async () => {
-      const innerCondition = mockEntityManager.condition();
+      const innerCondition = MockEntityManager.condition();
 
       innerCondition['operators'].push(BASE_OPERATOR.attributeExists);
 
@@ -348,7 +348,7 @@ describe('Condition', () => {
     });
 
     test('Should add parenthesis if defined condition is passed as argument + should add logical operator', async () => {
-      const innerCondition = mockEntityManager.condition();
+      const innerCondition = MockEntityManager.condition();
 
       condition['operators'].push(BASE_OPERATOR.contains);
       innerCondition['operators'].push(BASE_OPERATOR.attributeExists);
@@ -374,7 +374,7 @@ describe('Condition', () => {
     });
 
     test('Should join conditions if defined condition is passed as argument', async () => {
-      const otherCondition = mockEntityManager.condition();
+      const otherCondition = MockEntityManager.condition();
 
       otherCondition['operators'].push(BASE_OPERATOR.attributeExists);
 
@@ -383,7 +383,7 @@ describe('Condition', () => {
     });
 
     test('Should join conditions if defined condition is passed as argument + should add logical operator', async () => {
-      const otherCondition = mockEntityManager.condition();
+      const otherCondition = MockEntityManager.condition();
 
       condition['operators'].push(BASE_OPERATOR.contains);
       otherCondition['operators'].push(BASE_OPERATOR.attributeExists);

@@ -24,7 +24,11 @@ class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
     this.tableEntity = tableEntity;
   }
 
-  public entityManager<E extends TE>(entity?: E) {
+  public entityManager(): ReturnType<typeof EntityManager<M, TE>>;
+  public entityManager<E extends TE>(entity: E): ReturnType<typeof EntityManager<M, E>>;
+  public entityManager<E extends TE>(
+    entity?: E,
+  ): ReturnType<typeof EntityManager<M, E>> | ReturnType<typeof EntityManager<M, TE>> {
     if (entity) {
       Dynamode.storage.registerEntity(entity, this.tableMetadata.tableName);
       return EntityManager<M, E>(entity, this.tableMetadata.tableName);
