@@ -32,17 +32,17 @@ export type EntityValue<E extends typeof Entity, K extends EntityKey<E>> = Flatt
 
 // entityManager.get
 
-export interface EntityGetOptions<E extends typeof Entity> {
+export type EntityGetOptions<E extends typeof Entity> = {
   extraInput?: Partial<GetItemCommandInput>;
   return?: ReturnOption;
   attributes?: Array<EntityKey<E>>;
   consistent?: boolean;
-}
+};
 
-export interface BuildGetProjectionExpression {
+export type BuildGetProjectionExpression = {
   attributeNames?: AttributeNames;
   projectionExpression?: string;
-}
+};
 
 // entityManager.update
 
@@ -68,89 +68,89 @@ export type UpdateProps<E extends typeof Entity> = RequireAtLeastOne<{
   remove?: Array<EntityKey<E>>;
 }>;
 
-export interface EntityUpdateOptions<E extends typeof Entity> {
+export type EntityUpdateOptions<E extends typeof Entity> = {
   extraInput?: Partial<UpdateItemCommandInput>;
   return?: ReturnOption;
   condition?: Condition<E>;
   returnValues?: ReturnValues;
-}
+};
 
-export interface BuildUpdateConditionExpression {
+export type BuildUpdateConditionExpression = {
   attributeNames?: AttributeNames;
   attributeValues?: AttributeValues;
   conditionExpression?: string;
   updateExpression: string;
-}
+};
 
 // entityManager.put
 
-export interface EntityPutOptions<E extends typeof Entity> {
+export type EntityPutOptions<E extends typeof Entity> = {
   extraInput?: Partial<PutItemCommandInput>;
   return?: ReturnOption;
   overwrite?: boolean;
   condition?: Condition<E>;
-}
+};
 
-export interface BuildPutConditionExpression {
+export type BuildPutConditionExpression = {
   attributeNames?: AttributeNames;
   attributeValues?: AttributeValues;
   conditionExpression?: string;
-}
+};
 
 // entityManager.delete
 
-export interface EntityDeleteOptions<E extends typeof Entity> {
+export type EntityDeleteOptions<E extends typeof Entity> = {
   extraInput?: Partial<DeleteItemCommandInput>;
   return?: ReturnOption;
   condition?: Condition<E>;
   throwErrorIfNotExists?: boolean;
   returnValues?: ReturnValuesLimited;
-}
+};
 
-export interface BuildDeleteConditionExpression {
+export type BuildDeleteConditionExpression = {
   attributeNames?: AttributeNames;
   attributeValues?: AttributeValues;
   conditionExpression?: string;
-}
+};
 
 // entityManager.batchGet
 
-export interface EntityBatchGetOptions<E extends typeof Entity> {
+export type EntityBatchGetOptions<E extends typeof Entity> = {
   extraInput?: Partial<BatchGetItemCommandInput>;
   return?: ReturnOption;
   attributes?: Array<EntityKey<E>>;
   consistent?: boolean;
-}
+};
 
-export interface EntityBatchDeleteOutput<PrimaryKey> {
+export type EntityBatchDeleteOutput<PrimaryKey> = {
   unprocessedItems: Array<PrimaryKey>;
-}
+};
 
 // entityManager.batchGet
 
-export interface EntityBatchGetOutput<M extends Metadata<E>, E extends typeof Entity> {
+export type EntityBatchGetOutput<M extends Metadata<E>, E extends typeof Entity> = {
   items: Array<InstanceType<E>>;
   unprocessedKeys: Array<TablePrimaryKey<M, E>>;
-}
+};
 
 // entityManager.batchPut
 
-export interface EntityBatchPutOptions {
+export type EntityBatchPutOptions = {
   extraInput?: Partial<BatchWriteItemCommandInput>;
   return?: ReturnOption;
-}
+};
 
-export interface EntityBatchPutOutput<E extends typeof Entity> {
+export type EntityBatchPutOutput<E extends typeof Entity> = {
   items: Array<InstanceType<E>>;
   unprocessedItems: Array<InstanceType<E>>;
-}
+};
 
 // entityManager.batchDelete
 
-export interface EntityBatchDeleteOptions {
+export type EntityBatchDeleteOptions = {
   extraInput?: Partial<BatchWriteItemCommandInput>;
   return?: ReturnOption;
-}
+};
 
 export type EntityTransactionInput<E, Command extends Get | Update | Put | Delete | ConditionCheck> = Command & {
   entity: E;
@@ -158,31 +158,31 @@ export type EntityTransactionInput<E, Command extends Get | Update | Put | Delet
 
 // entityManager.transactionGet
 
-export interface EntityTransactionGetOptions<EntityKey> {
+export type EntityTransactionGetOptions<EntityKey> = {
   extraInput?: Partial<Get>;
   attributes?: Array<EntityKey>;
-}
+};
 
 // entityManager.transactionUpdate
 
-export interface EntityTransactionUpdateOptions<E extends typeof Entity> {
+export type EntityTransactionUpdateOptions<E extends typeof Entity> = {
   extraInput?: Partial<Update>;
   condition?: Condition<E>;
   returnValuesOnFailure?: ReturnValuesLimited;
-}
+};
 
 // entityManager.transactionPut
 
-export interface EntityTransactionPutOptions<E extends typeof Entity> {
+export type EntityTransactionPutOptions<E extends typeof Entity> = {
   extraInput?: Partial<Put>;
   overwrite?: boolean;
   condition?: Condition<E>;
   returnValuesOnFailure?: ReturnValuesLimited;
-}
+};
 
 // entityManager.transactionDelete
 
-export interface EntityTransactionDeleteOptions<E extends typeof Entity> {
+export type EntityTransactionDeleteOptions<E extends typeof Entity> = {
   extraInput?: Partial<Delete>;
   condition?: Condition<E>;
-}
+};

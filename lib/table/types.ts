@@ -52,7 +52,7 @@ export type TableSortKeys<M extends Metadata<E>, E extends typeof Entity> =
 
 // tableManager.create
 
-export interface TableCreateOptions {
+export type TableCreateOptions = {
   extraInput?: Partial<CreateTableCommandInput>;
   return?: ReturnOption;
   throughput?: {
@@ -61,29 +61,29 @@ export interface TableCreateOptions {
   };
   tags?: Record<string, string>;
   deletionProtection?: boolean;
-}
+};
 
 // tableManager.createIndex
 
-export interface TableCreateIndexOptions {
+export type TableCreateIndexOptions = {
   extraInput?: Partial<CreateTableCommandInput>;
   return?: ReturnOption;
   throughput?: {
     read: number;
     write: number;
   };
-}
+};
 
 // tableManager.deleteIndex
 
-export interface TableDeleteIndexOptions {
+export type TableDeleteIndexOptions = {
   extraInput?: Partial<CreateTableCommandInput>;
   return?: ReturnOption;
-}
+};
 
 // tableManager.validate
 
-export interface TableValidateOptions {
+export type TableValidateOptions = {
   extraInput?: Partial<CreateTableCommandInput>;
   return?: ReturnOption;
-}
+};

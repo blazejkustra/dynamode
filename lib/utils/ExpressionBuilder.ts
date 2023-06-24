@@ -9,10 +9,10 @@ import {
   valueToDynamo,
 } from '@lib/utils';
 
-interface ExpressionBuilderProps {
+type ExpressionBuilderProps = {
   attributeNames?: AttributeNames;
   attributeValues?: AttributeValues;
-}
+};
 
 export class ExpressionBuilder {
   private _attributeNames: AttributeNames;

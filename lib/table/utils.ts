@@ -29,6 +29,7 @@ export function getTableAttributeDefinitions<M extends Metadata<TE>, TE extends 
   const attributes = Dynamode.storage.getEntityAttributes(tableEntityName);
   const { partitionKey, sortKey, indexes } = metadata;
 
+  // TODO: Double check this (SS is string set but not number set)
   const DynamodeToDynamoTypeMap = new Map<AttributeType, 'S' | 'N' | 'B' | 'M' | 'L' | 'SS'>([
     [String, 'S'],
     [Number, 'N'],

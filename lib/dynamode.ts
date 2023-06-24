@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-definitions */
 import Condition, { AttributeType } from '@lib/condition';
 import attribute from '@lib/decorators';
 import Dynamode from '@lib/dynamode/index';

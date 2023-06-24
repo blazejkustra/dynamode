@@ -1,8 +1,8 @@
-export interface PrefixSuffixOptions {
+export type PrefixSuffixOptions = {
   prefix?: string;
   suffix?: string;
-}
+};
 
-export interface IndexDecoratorOptions {
+export type IndexDecoratorOptions = {
   indexName: string;
-}
+};

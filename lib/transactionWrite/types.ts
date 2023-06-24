@@ -25,15 +25,15 @@ export type TransactionWriteInput<TW extends Array<TransactionWrite<typeof Entit
   readonly [K in keyof TW]: TW[K];
 };
 
-export interface TransactionWriteOptions {
+export type TransactionWriteOptions = {
   return?: ReturnOption;
   extraInput?: Partial<TransactWriteItemsCommandInput>;
   idempotencyKey?: string;
-}
+};
 
-export interface TransactionWriteOutput<TW extends Array<TransactionWrite<typeof Entity>>> {
+export type TransactionWriteOutput<TW extends Array<TransactionWrite<typeof Entity>>> = {
   items: {
     [K in keyof TW]: TW[K] extends TransactionPut<infer E> ? InstanceType<E> : undefined;
   };
   count: number;
-}
+};

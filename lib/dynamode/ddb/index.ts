@@ -1,11 +1,11 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 
-export interface DDBType {
+export type DDBType = {
   DynamoDB: typeof DynamoDB;
   get: () => DynamoDB;
   set: (ddb: DynamoDB) => void;
   local: (endpoint?: string) => DynamoDB;
-}
+};
 
 export default function (): DDBType {
   let ddbInstance = new DynamoDB({});

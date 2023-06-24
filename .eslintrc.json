@@ -7,10 +7,10 @@
   "plugins": ["import", "simple-import-sort", "@typescript-eslint", "unused-imports"],
   "extends": [
     "plugin:@typescript-eslint/recommended",
-    "prettier",
     "plugin:prettier/recommended",
     "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:import/typescript"
+    "plugin:import/typescript",
+    "prettier"
   ],
   "env": {
     "node": true
@@ -37,7 +37,8 @@
     "unused-imports/no-unused-vars": [
       "warn",
       { "vars": "all", "varsIgnorePattern": "^_", "args": "after-used", "argsIgnorePattern": "^_" }
-    ]
+    ],
+    "@typescript-eslint/consistent-type-definitions": ["error", "type"]
   },
   "settings": {
     "import/parsers": {
