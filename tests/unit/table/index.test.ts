@@ -26,17 +26,18 @@ describe('Table', () => {
     describe('Initializers', async () => {
       let registerTableSpy = vi.spyOn(Dynamode.storage, 'registerTable');
       let registerEntitySpy = vi.spyOn(Dynamode.storage, 'registerEntity');
-      let entityManagerSpy = vi.spyOn(entity, 'entityManager');
+      let entityManagerSpy = vi.spyOn(entity, 'EntityManager');
 
       beforeEach(() => {
         registerTableSpy = vi.spyOn(Dynamode.storage, 'registerTable');
         registerEntitySpy = vi.spyOn(Dynamode.storage, 'registerEntity');
-        entityManagerSpy = vi.spyOn(entity, 'entityManager');
+        entityManagerSpy = vi.spyOn(entity, 'EntityManager');
       });
 
       afterEach(() => {
         vi.restoreAllMocks();
       });
+
       test('Should properly initialize TableManager', async () => {
         registerTableSpy.mockReturnValue(undefined);
         registerEntitySpy.mockReturnValue(undefined);
