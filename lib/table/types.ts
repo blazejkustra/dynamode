@@ -93,7 +93,26 @@ export type TableValidateOptions = {
 
 // helpers
 
-export type TableInformation = TableDescription;
+type KeySchema = { name: string; type: string };
+type AttributeDefinition = { name: string; type: string };
+type IndexInformation = {
+  indexName: string;
+  keySchema: KeySchema[];
+  itemCount: number;
+};
+
+export type TableInformation = {
+  tableName: string;
+  status: string;
+  attributeDefinitions: AttributeDefinition[];
+  keySchema: KeySchema[];
+  itemCount: number;
+  tableSizeBytes: number;
+  billingMode?: string;
+  creationTime: Date;
+  globalSecondaryIndexes: IndexInformation[];
+  localSecondaryIndexes: IndexInformation[];
+};
 
 // helpers.builders
 

@@ -1,19 +1,8 @@
 import { AttributeDefinition } from '@aws-sdk/client-dynamodb';
 import { Dynamode } from '@lib/dynamode';
-import { AttributesMetadata } from '@lib/dynamode/storage/types';
 import Entity from '@lib/entity';
+import { getAttributeType } from '@lib/table/helpers/utils';
 import { Metadata } from '@lib/table/types';
-import { DYNAMODE_DYNAMO_KEY_TYPE_MAP, ValidationError } from '@lib/utils';
-
-function getAttributeType(attributes: AttributesMetadata, attribute: string): 'S' | 'N' {
-  const attributeType = DYNAMODE_DYNAMO_KEY_TYPE_MAP.get(attributes[String(attribute)].type);
-
-  if (!attributeType) {
-    throw new ValidationError(`Attribute "${String(attribute)}" is registered with invalid type.`);
-  }
-
-  return attributeType;
-}
 
 export function getTableAttributeDefinitions<M extends Metadata<TE>, TE extends typeof Entity>(
   metadata: M,

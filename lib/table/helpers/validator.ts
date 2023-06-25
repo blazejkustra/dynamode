@@ -1,10 +1,9 @@
 import Entity from '@lib/entity';
+import { getTableAttributeDefinitions } from '@lib/table/helpers/definitions';
+import { getTableGlobalSecondaryIndexes, getTableLocalSecondaryIndexes } from '@lib/table/helpers/indexes';
+import { getKeySchema } from '@lib/table/helpers/schema';
+import { compareDynamodeEntityWithDynamoTable } from '@lib/table/helpers/utils';
 import { Metadata, ValidateTableSync } from '@lib/table/types';
-import { ConflictError, deepEqual } from '@lib/utils';
-
-import { getTableAttributeDefinitions } from './definitions';
-import { getTableGlobalSecondaryIndexes, getTableLocalSecondaryIndexes } from './indexes';
-import { getKeySchema } from './schema';
 
 export function validateTableSync<M extends Metadata<TE>, TE extends typeof Entity>({
   metadata,
@@ -37,22 +36,4 @@ export function validateTableSync<M extends Metadata<TE>, TE extends typeof Enti
   compareDynamodeEntityWithDynamoTable(attributeDefinitions, tableAttributeDefinitions || []);
   compareDynamodeEntityWithDynamoTable(localSecondaryIndexes, tableLocalSecondaryIndexes || []);
   compareDynamodeEntityWithDynamoTable(globalSecondaryIndexes, tableGlobalSecondaryIndexes || []);
-}
-
-function compareDynamodeEntityWithDynamoTable<T>(aa: T[], bb: T[]): void {
-  aa.forEach((a) => {
-    if (!bb?.some((b) => deepEqual(a, b))) {
-      throw new ConflictError(`Key "${JSON.stringify(a)}" not found in table`);
-    }
-  });
-
-  bb.forEach((a) => {
-    if (!aa.some((b) => deepEqual(a, b))) {
-      throw new ConflictError(`Key "${JSON.stringify(a)}" not found in entity`);
-    }
-  });
-
-  if (aa.length !== bb.length) {
-    throw new ConflictError('Key schema length mismatch between table and entity');
-  }
 }

@@ -10,6 +10,10 @@ import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import { EntityManager } from '@lib/entity/entityManager';
 import { buildIndexCreate, buildIndexDelete } from '@lib/table/helpers/builders';
+import { convertToTableInformation } from '@lib/table/helpers/converters';
+import { getTableAttributeDefinitions } from '@lib/table/helpers/definitions';
+import { getKeySchema } from '@lib/table/helpers/schema';
+import { validateTableSync } from '@lib/table/helpers/validator';
 import {
   Metadata,
   TableCreateIndexOptions,
@@ -20,11 +24,7 @@ import {
 } from '@lib/table/types';
 import { isNotEmptyArray, ValidationError } from '@lib/utils';
 
-import { convertTableDescription } from './helpers/converters';
-import { getTableAttributeDefinitions } from './helpers/definitions';
 import { getTableGlobalSecondaryIndexes, getTableLocalSecondaryIndexes } from './helpers/indexes';
-import { getKeySchema } from './helpers/schema';
-import { validateTableSync } from './helpers/validator';
 
 export class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
   public tableMetadata: M;
@@ -90,7 +90,7 @@ export class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
         return result;
       }
 
-      return convertTableDescription(result.TableDescription);
+      return convertToTableInformation(result.TableDescription);
     })();
   }
 
@@ -146,7 +146,7 @@ export class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
         return result;
       }
 
-      return convertTableDescription(result.TableDescription);
+      return convertToTableInformation(result.TableDescription);
     })();
   }
 
@@ -193,7 +193,7 @@ export class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
         return result;
       }
 
-      return convertTableDescription(result.TableDescription);
+      return convertToTableInformation(result.TableDescription);
     })();
   }
 
@@ -222,7 +222,7 @@ export class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
         return result;
       }
 
-      return convertTableDescription(result.Table);
+      return convertToTableInformation(result.Table);
     })();
   }
 }
