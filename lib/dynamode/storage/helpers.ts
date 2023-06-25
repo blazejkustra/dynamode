@@ -4,10 +4,6 @@ import { ValidationError } from '@lib/utils';
 const ALLOWED_KEY_TYPES: AttributeType[] = [String, Number];
 
 export function validateAttribute({ attributes, name, role, indexName }: ValidateAttribute): void {
-  if (!name) {
-    return;
-  }
-
   const attribute = attributes[name];
   if (!attribute) {
     throw new ValidationError(`Attribute "${name}" isn't registered in the entity.`);
@@ -17,12 +13,10 @@ export function validateAttribute({ attributes, name, role, indexName }: Validat
     throw new ValidationError(`Attribute "${name}" is registered with a wrong role.`);
   }
 
-  if (indexName && attribute.indexName !== indexName) {
-    throw new ValidationError(`Attribute "${name}" is registered with a wrong index name.`);
-  }
-
-  if (!indexName && attribute.indexName) {
-    throw new ValidationError(`Attribute "${name}" shouldn't be registered with an index.`);
+  if (attribute.indexName !== indexName) {
+    throw new ValidationError(
+      `Attribute "${name}" is registered with a wrong index name/shouldn't be registered with an index.`,
+    );
   }
 
   if (!ALLOWED_KEY_TYPES.includes(attribute.type)) {

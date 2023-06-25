@@ -9,7 +9,7 @@ import type {
 } from '@lib/dynamode/storage/types';
 import Entity from '@lib/entity';
 import { Metadata } from '@lib/table/types';
-import { DynamodeStorageError, mergeObjects } from '@lib/utils';
+import { DynamodeStorageError, mergeObjects, ValidationError } from '@lib/utils';
 
 export default class DynamodeStorage {
   public tables: TablesMetadata = {};
@@ -113,16 +113,22 @@ export default class DynamodeStorage {
     const attributes = this.getEntityAttributes(entityName);
 
     validateAttribute({ name: metadata.partitionKey, attributes, role: 'partitionKey' });
-    validateAttribute({ name: metadata.sortKey, attributes, role: 'sortKey' });
+    if (metadata.sortKey) validateAttribute({ name: metadata.sortKey, attributes, role: 'sortKey' });
     Object.entries(metadata.indexes ?? {}).forEach(([indexName, index]) => {
+      // Validate GSI
       if (index.partitionKey) {
-        // Validate GSI
         validateAttribute({ name: index.partitionKey, attributes, role: 'gsiPartitionKey', indexName });
-        validateAttribute({ name: index.sortKey, attributes, role: 'gsiSortKey', indexName });
-      } else {
-        // Validate LSI
-        validateAttribute({ name: index.sortKey, attributes, role: 'lsiSortKey', indexName });
+        if (index.sortKey) validateAttribute({ name: index.sortKey, attributes, role: 'gsiSortKey', indexName });
+        return;
       }
+
+      // Validate LSI
+      if (index.sortKey) {
+        validateAttribute({ name: index.sortKey, attributes, role: 'lsiSortKey', indexName });
+        return;
+      }
+
+      throw new ValidationError(`Index "${indexName}" should have a partition key or a sort key.`);
     });
   }
 }

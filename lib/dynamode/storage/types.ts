@@ -58,8 +58,8 @@ export type TablesMetadata = {
 // helpers
 
 export type ValidateAttribute = {
+  name: string;
   attributes: AttributesMetadata;
   role: AttributeRole;
-  name?: string;
   indexName?: string;
 };
