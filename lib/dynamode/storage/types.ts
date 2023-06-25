@@ -48,10 +48,18 @@ export type EntitiesMetadata = {
 
 export type TableMetadata = {
   tableEntity: typeof Entity;
-  attributes: AttributesMetadata;
   metadata: Metadata<typeof Entity>;
 };
 
 export type TablesMetadata = {
   [tableName: string]: TableMetadata;
+};
+
+// helpers
+
+export type ValidateAttribute = {
+  attributes: AttributesMetadata;
+  role: AttributeRole;
+  name?: string;
+  indexName?: string;
 };

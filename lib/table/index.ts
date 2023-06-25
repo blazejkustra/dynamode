@@ -46,6 +46,7 @@ class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
   constructor(tableMetadata: M, tableEntity: TE) {
     Dynamode.storage.registerTable(tableEntity, tableMetadata);
     Dynamode.storage.registerEntity(tableEntity, tableMetadata.tableName);
+    Dynamode.storage.validateTableMetadata(tableEntity.name);
 
     this.tableMetadata = tableMetadata;
     this.tableEntity = tableEntity;

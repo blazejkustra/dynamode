@@ -70,7 +70,6 @@ describe('Dynamode', () => {
         storage.registerTable(TestTable, metadata);
         expect(storage.tables[TEST_TABLE_NAME].tableEntity).toEqual(TestTable);
         expect(storage.tables[TEST_TABLE_NAME].metadata).toEqual(metadata);
-        expect(storage.tables[TEST_TABLE_NAME].attributes).toEqual({});
       });
 
       test('Should throw an error when table is registered more than once', async () => {

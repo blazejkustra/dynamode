@@ -1,3 +1,4 @@
+import { validateAttribute } from '@lib/dynamode/storage/helpers';
 import type {
   AttributeMetadata,
   AttributesMetadata,
@@ -18,7 +19,6 @@ export default class DynamodeStorage {
     const tableMetadata: TableMetadata = {
       tableEntity,
       metadata,
-      attributes: {},
     };
 
     if (this.tables[metadata.tableName]) {
@@ -106,5 +106,23 @@ export default class DynamodeStorage {
     }
 
     return this.tables[tableName].metadata;
+  }
+
+  public validateTableMetadata(entityName: string): void {
+    const metadata = this.getEntityMetadata(entityName);
+    const attributes = this.getEntityAttributes(entityName);
+
+    validateAttribute({ name: metadata.partitionKey, attributes, role: 'partitionKey' });
+    validateAttribute({ name: metadata.sortKey, attributes, role: 'sortKey' });
+    Object.entries(metadata.indexes ?? {}).forEach(([indexName, index]) => {
+      if (index.partitionKey) {
+        // Validate GSI
+        validateAttribute({ name: index.partitionKey, attributes, role: 'gsiPartitionKey', indexName });
+        validateAttribute({ name: index.sortKey, attributes, role: 'gsiSortKey', indexName });
+      } else {
+        // Validate LSI
+        validateAttribute({ name: index.sortKey, attributes, role: 'lsiSortKey', indexName });
+      }
+    });
   }
 }
