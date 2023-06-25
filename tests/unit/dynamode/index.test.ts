@@ -1,13 +1,15 @@
-import { describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { convertToAttr, convertToNative, marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import DynamodeStorage from '@lib/dynamode/storage';
-import { DynamodeStorageError } from '@lib/utils/errors';
+import * as storageHelper from '@lib/dynamode/storage/helpers';
+import { Metadata } from '@lib/table/types';
+import { DynamodeStorageError, ValidationError } from '@lib/utils/errors';
 
 import { MockEntity, TEST_TABLE_NAME, TestTable } from '../../fixtures';
 
-const metadata: any = {
+const metadata: Metadata<typeof MockEntity> = {
   tableName: TEST_TABLE_NAME,
   partitionKey: 'partitionKey',
   sortKey: 'sortKey',
@@ -208,6 +210,82 @@ describe('Dynamode', () => {
       test('Should throw an error if no table is found for entity', async () => {
         storage.entities['unknownEntityName'] = { tableName: 'unknownTableName' } as any;
         expect(() => storage.getEntityMetadata('unknownEntityName')).toThrow(DynamodeStorageError);
+      });
+    });
+
+    describe('validateTableMetadata', async () => {
+      let validateAttribute = vi.spyOn(storageHelper, 'validateAttribute');
+      let getEntityMetadata = vi.spyOn(storage, 'getEntityMetadata');
+      let getEntityAttributes = vi.spyOn(storage, 'getEntityAttributes');
+
+      beforeEach(() => {
+        validateAttribute = vi.spyOn(storageHelper, 'validateAttribute');
+        getEntityMetadata = vi.spyOn(storage, 'getEntityMetadata');
+        getEntityAttributes = vi.spyOn(storage, 'getEntityAttributes');
+      });
+
+      afterEach(() => {
+        vi.restoreAllMocks();
+      });
+
+      test('Should successfully validate every attribute from metadata', async () => {
+        getEntityMetadata.mockReturnValue(metadata);
+        getEntityAttributes.mockReturnValue({});
+        validateAttribute.mockReturnValue();
+        storage.validateTableMetadata(TestTable.name);
+
+        expect(validateAttribute).toHaveBeenCalledTimes(5);
+        expect(validateAttribute).toHaveBeenNthCalledWith(1, {
+          name: 'partitionKey',
+          role: 'partitionKey',
+          attributes: {},
+        });
+        expect(validateAttribute).toHaveBeenNthCalledWith(2, {
+          name: 'sortKey',
+          role: 'sortKey',
+          attributes: {},
+        });
+      });
+
+      test('Should successfully validate without indexes', async () => {
+        getEntityMetadata.mockReturnValue({
+          partitionKey: 'pk',
+          sortKey: 'sk',
+        } as any);
+        getEntityAttributes.mockReturnValue({});
+        validateAttribute.mockReturnValue();
+        storage.validateTableMetadata(TestTable.name);
+
+        expect(validateAttribute).toHaveBeenCalledTimes(2);
+        expect(validateAttribute).toHaveBeenNthCalledWith(1, {
+          name: 'pk',
+          role: 'partitionKey',
+          attributes: {},
+        });
+        expect(validateAttribute).toHaveBeenNthCalledWith(2, {
+          name: 'sk',
+          role: 'sortKey',
+          attributes: {},
+        });
+      });
+
+      test('Should fail for invalid index', async () => {
+        getEntityMetadata.mockReturnValue({
+          partitionKey: 'pk',
+          indexes: {
+            index: {},
+          },
+        } as any);
+        getEntityAttributes.mockReturnValue({});
+        validateAttribute.mockReturnValue();
+        expect(() => storage.validateTableMetadata(TestTable.name)).toThrow(ValidationError);
+
+        expect(validateAttribute).toHaveBeenCalledTimes(1);
+        expect(validateAttribute).toHaveBeenNthCalledWith(1, {
+          name: 'pk',
+          role: 'partitionKey',
+          attributes: {},
+        });
       });
     });
   });
