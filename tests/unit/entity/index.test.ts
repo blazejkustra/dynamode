@@ -9,11 +9,10 @@ import * as returnValuesHelpers from '@lib/entity/helpers/returnValues';
 import Query from '@lib/query';
 import Scan from '@lib/scan';
 import { AttributeValues, NotFoundError } from '@lib/utils';
+import { OPERATORS } from '@lib/utils/constants';
 import * as converterUtils from '@lib/utils/converter';
 
 import { MockEntity, MockEntityManager, mockInstance, TEST_TABLE_NAME, testTableInstance } from '../../fixtures';
-
-import { OPERATORS } from './../../../lib/utils/constants';
 
 const expressionBuilderRunSpy = vi.fn();
 
