@@ -1,7 +1,5 @@
-import type { AttributeType, ValidateAttribute } from '@lib/dynamode/storage/types';
-import { ValidationError } from '@lib/utils';
-
-const ALLOWED_KEY_TYPES: AttributeType[] = [String, Number];
+import type { ValidateAttribute } from '@lib/dynamode/storage/types';
+import { DYNAMODE_ALLOWED_KEY_TYPES, ValidationError } from '@lib/utils';
 
 export function validateAttribute({ attributes, name, role, indexName }: ValidateAttribute): void {
   const attribute = attributes[name];
@@ -19,7 +17,7 @@ export function validateAttribute({ attributes, name, role, indexName }: Validat
     );
   }
 
-  if (!ALLOWED_KEY_TYPES.includes(attribute.type)) {
+  if (!DYNAMODE_ALLOWED_KEY_TYPES.includes(attribute.type)) {
     throw new ValidationError(`Attribute "${name}" is registered with invalid type.`);
   }
 }

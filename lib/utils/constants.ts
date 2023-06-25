@@ -1,6 +1,14 @@
+import { AttributeType } from '@lib/dynamode/storage/types';
 import { insertBetween } from '@lib/utils';
 
 export const DYNAMODE_ENTITY = 'dynamodeEntity';
+
+export const DYNAMODE_DYNAMO_KEY_TYPE_MAP = new Map<AttributeType, 'S' | 'N'>([
+  [String, 'S'],
+  [Number, 'N'],
+]);
+
+export const DYNAMODE_ALLOWED_KEY_TYPES: AttributeType[] = [String, Number];
 
 export const RESERVED_WORDS = new Set([
   'ABORT',
