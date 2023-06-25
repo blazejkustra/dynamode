@@ -232,6 +232,46 @@ describe('entityManager', () => {
       expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
     });
 
+    test('Should call buildUpdateConditionExpression helper with updatedAt timestamp', async () => {
+      vi.useFakeTimers();
+      vi.spyOn(Dynamode.storage, 'getEntityMetadata').mockReturnValue({ updatedAt: 'updated' } as any);
+      buildUpdateConditionExpressionSpy.mockReturnValue({
+        updateExpression: 'updateExpression',
+        conditionExpression: 'conditionExpression',
+      });
+
+      MockEntityManager.update(primaryKey, { set: { string: 'value' } }, { return: 'input' });
+      MockEntityManager.update(
+        primaryKey,
+        { set: { string: 'value', ['updated' as any]: 'override' } },
+        { return: 'input' },
+      );
+      MockEntityManager.update(primaryKey, { increment: { number: 1 } }, { return: 'input' });
+
+      expect(buildUpdateConditionExpressionSpy).toHaveBeenNthCalledWith(
+        1,
+        {
+          set: { string: 'value', updated: new Date() },
+        },
+        undefined,
+      );
+      expect(buildUpdateConditionExpressionSpy).toHaveBeenNthCalledWith(
+        2,
+        {
+          set: { string: 'value', updated: 'override' },
+        },
+        undefined,
+      );
+      expect(buildUpdateConditionExpressionSpy).toHaveBeenNthCalledWith(
+        3,
+        {
+          increment: { number: 1 },
+          set: { updated: new Date() },
+        },
+        undefined,
+      );
+    });
+
     test('Should call mapReturnValues with correct value', async () => {
       buildUpdateConditionExpressionSpy.mockReturnValue({ updateExpression: 'updateExpression' });
       mapReturnValuesSpy.mockReturnValue(ReturnValue.NONE);
