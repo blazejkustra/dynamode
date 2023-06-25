@@ -9,25 +9,22 @@ import {
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import { EntityManager } from '@lib/entity/entityManager';
+import { buildIndexCreate, buildIndexDelete } from '@lib/table/helpers/builders';
 import {
   Metadata,
   TableCreateIndexOptions,
   TableCreateOptions,
   TableDeleteIndexOptions,
+  TableInformation,
   TableValidateOptions,
 } from '@lib/table/types';
-import {
-  buildIndexCreate,
-  buildIndexDelete,
-  convertTableDescription,
-  getKeySchema,
-  getTableAttributeDefinitions,
-  getTableGlobalSecondaryIndexes,
-  getTableLocalSecondaryIndexes,
-  TableInformation,
-  validateTableSynchronization,
-} from '@lib/table/utils';
 import { isNotEmptyArray, ValidationError } from '@lib/utils';
+
+import { convertTableDescription } from './helpers/converters';
+import { getTableAttributeDefinitions } from './helpers/definitions';
+import { getTableGlobalSecondaryIndexes, getTableLocalSecondaryIndexes } from './helpers/indexes';
+import { getKeySchema } from './helpers/schema';
+import { validateTableSync } from './helpers/validator';
 
 export class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
   public tableMetadata: M;
@@ -71,7 +68,7 @@ export class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
 
     const commandInput: CreateTableCommandInput = {
       TableName: this.tableMetadata.tableName,
-      KeySchema: getKeySchema(this.tableMetadata.partitionKey, this.tableMetadata.sortKey),
+      KeySchema: getKeySchema(String(this.tableMetadata.partitionKey), String(this.tableMetadata.sortKey)),
       AttributeDefinitions: getTableAttributeDefinitions(this.tableMetadata, this.tableEntity.name),
       LocalSecondaryIndexes: isNotEmptyArray(localSecondaryIndexes) ? localSecondaryIndexes : undefined,
       GlobalSecondaryIndexes: isNotEmptyArray(globalSecondaryIndexes) ? globalSecondaryIndexes : undefined,
@@ -129,7 +126,12 @@ export class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
     const commandInput: UpdateTableCommandInput = {
       TableName: this.tableMetadata.tableName,
       AttributeDefinitions: getTableAttributeDefinitions(this.tableMetadata, this.tableEntity.name),
-      GlobalSecondaryIndexUpdates: buildIndexCreate({ indexName, partitionKey, sortKey, options }),
+      GlobalSecondaryIndexUpdates: buildIndexCreate({
+        indexName,
+        partitionKey: String(partitionKey),
+        sortKey: String(sortKey),
+        options,
+      }),
       ...options?.extraInput,
     };
 
@@ -210,7 +212,7 @@ export class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
     return (async () => {
       const result = await Dynamode.ddb.get().describeTable(commandInput);
 
-      validateTableSynchronization({
+      validateTableSync({
         metadata: this.tableMetadata,
         tableNameEntity: this.tableEntity.name,
         table: result.Table,

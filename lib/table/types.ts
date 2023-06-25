@@ -1,6 +1,6 @@
 import { ValueOf } from 'type-fest';
 
-import { CreateTableCommandInput } from '@aws-sdk/client-dynamodb';
+import { CreateTableCommandInput, TableDescription } from '@aws-sdk/client-dynamodb';
 import Entity from '@lib/entity';
 import { ReturnOption } from '@lib/entity/types';
 
@@ -89,4 +89,25 @@ export type TableDeleteIndexOptions = {
 export type TableValidateOptions = {
   extraInput?: Partial<CreateTableCommandInput>;
   return?: ReturnOption;
+};
+
+// helpers
+
+export type TableInformation = TableDescription;
+
+// helpers.builders
+
+export type BuildIndexCreate = {
+  indexName: string;
+  partitionKey: string;
+  sortKey: string | undefined;
+  options?: TableCreateIndexOptions;
+};
+
+// helpers.validator
+
+export type ValidateTableSync<M extends Metadata<TE>, TE extends typeof Entity> = {
+  metadata: M;
+  tableNameEntity: string;
+  table?: TableDescription;
 };
