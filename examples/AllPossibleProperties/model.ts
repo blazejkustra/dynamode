@@ -128,6 +128,8 @@ const AllPossiblePropertiesTableManager = tableManager(AllPossibleProperties).me
       sortKey: 'LSI_1_SK',
     },
   },
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
 });
 
 export const AllPossiblePropertiesManager = AllPossiblePropertiesTableManager.entityManager();

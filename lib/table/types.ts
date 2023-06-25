@@ -19,6 +19,9 @@ export type Metadata<E extends typeof Entity> = {
   partitionKey: keyof InstanceType<E>;
   sortKey?: keyof InstanceType<E>;
   indexes?: TableIndexesMetadata<E>;
+
+  createdAt?: keyof InstanceType<E>;
+  updatedAt?: keyof InstanceType<E>;
 };
 
 type SK<M extends Metadata<E>, E extends typeof Entity> = M['sortKey'];
