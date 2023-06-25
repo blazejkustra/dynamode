@@ -22,53 +22,54 @@ const metadata = {
 } as const;
 
 describe('Table', () => {
-  let registerTableSpy = vi.spyOn(Dynamode.storage, 'registerTable');
-  let registerEntitySpy = vi.spyOn(Dynamode.storage, 'registerEntity');
-  let entityManagerSpy = vi.spyOn(entity, 'entityManager');
-
-  beforeEach(() => {
-    registerTableSpy = vi.spyOn(Dynamode.storage, 'registerTable');
-    registerEntitySpy = vi.spyOn(Dynamode.storage, 'registerEntity');
-    entityManagerSpy = vi.spyOn(entity, 'entityManager');
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   describe('tableManager', async () => {
-    test('Should properly initialize TableManager', async () => {
-      registerTableSpy.mockReturnValue(undefined);
-      registerEntitySpy.mockReturnValue(undefined);
+    describe('Initializers', async () => {
+      let registerTableSpy = vi.spyOn(Dynamode.storage, 'registerTable');
+      let registerEntitySpy = vi.spyOn(Dynamode.storage, 'registerEntity');
+      let entityManagerSpy = vi.spyOn(entity, 'entityManager');
 
-      const TableManager = tableManager(TestTable).metadata(metadata);
+      beforeEach(() => {
+        registerTableSpy = vi.spyOn(Dynamode.storage, 'registerTable');
+        registerEntitySpy = vi.spyOn(Dynamode.storage, 'registerEntity');
+        entityManagerSpy = vi.spyOn(entity, 'entityManager');
+      });
 
-      expect(registerTableSpy).toBeCalledWith(TestTable, metadata);
-      expect(registerEntitySpy).toBeCalledWith(TestTable, TEST_TABLE_NAME);
-      expect(TableManager.tableEntity).toEqual(TestTable);
-      expect(TableManager.tableMetadata).toEqual(metadata);
-    });
+      afterEach(() => {
+        vi.restoreAllMocks();
+      });
+      test('Should properly initialize TableManager', async () => {
+        registerTableSpy.mockReturnValue(undefined);
+        registerEntitySpy.mockReturnValue(undefined);
 
-    test('Should call entityManager with proper parameters', async () => {
-      registerTableSpy.mockReturnValue(undefined);
-      registerEntitySpy.mockReturnValue(undefined);
-      entityManagerSpy.mockReturnValue(MockEntityManager as any);
+        const TableManager = tableManager(TestTable).metadata(metadata);
 
-      const TableManager = tableManager(TestTable).metadata(metadata);
+        expect(registerTableSpy).toBeCalledWith(TestTable, metadata);
+        expect(registerEntitySpy).toBeCalledWith(TestTable, TEST_TABLE_NAME);
+        expect(TableManager.tableEntity).toEqual(TestTable);
+        expect(TableManager.tableMetadata).toEqual(metadata);
+      });
 
-      expect(TableManager.entityManager(MockEntity)).toEqual(MockEntityManager);
-      expect(entityManagerSpy).toBeCalledWith(MockEntity, TEST_TABLE_NAME);
-    });
+      test('Should call entityManager with proper parameters', async () => {
+        registerTableSpy.mockReturnValue(undefined);
+        registerEntitySpy.mockReturnValue(undefined);
+        entityManagerSpy.mockReturnValue(MockEntityManager as any);
 
-    test('Should call tableEntityManager with proper parameters', async () => {
-      registerTableSpy.mockReturnValue(undefined);
-      registerEntitySpy.mockReturnValue(undefined);
-      entityManagerSpy.mockReturnValue({ testTable: 'testTable' } as any);
+        const TableManager = tableManager(TestTable).metadata(metadata);
 
-      const TableManager = tableManager(TestTable).metadata(metadata);
+        expect(TableManager.entityManager(MockEntity)).toEqual(MockEntityManager);
+        expect(entityManagerSpy).toBeCalledWith(MockEntity, TEST_TABLE_NAME);
+      });
 
-      expect(TableManager.entityManager()).toEqual({ testTable: 'testTable' });
-      expect(entityManagerSpy).toBeCalledWith(TestTable, TEST_TABLE_NAME);
+      test('Should call tableEntityManager with proper parameters', async () => {
+        registerTableSpy.mockReturnValue(undefined);
+        registerEntitySpy.mockReturnValue(undefined);
+        entityManagerSpy.mockReturnValue({ testTable: 'testTable' } as any);
+
+        const TableManager = tableManager(TestTable).metadata(metadata);
+
+        expect(TableManager.entityManager()).toEqual({ testTable: 'testTable' });
+        expect(entityManagerSpy).toBeCalledWith(TestTable, TEST_TABLE_NAME);
+      });
     });
   });
 });
