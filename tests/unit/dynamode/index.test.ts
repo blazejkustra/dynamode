@@ -25,20 +25,6 @@ const metadata: Metadata<typeof MockEntity> = {
 };
 
 describe('Dynamode', () => {
-  test('Should be able to use global ddb instance', async () => {
-    const DDBInstance = new Dynamode.ddb.DynamoDB({});
-    Dynamode.ddb.set(DDBInstance);
-    expect(Dynamode.ddb.get()).toEqual(DDBInstance);
-    Dynamode.ddb.local();
-    await expect(Dynamode.ddb.get().config.endpoint?.()).resolves.toEqual({
-      hostname: 'localhost',
-      path: '/',
-      port: 8000,
-      protocol: 'http:',
-      query: undefined,
-    });
-  });
-
   test('Should be able to use global separator', async () => {
     expect(Dynamode.separator.get()).toEqual('#');
     Dynamode.separator.set(':');

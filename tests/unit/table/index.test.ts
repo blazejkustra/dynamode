@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import Dynamode from '@lib/dynamode/index';
 import * as entity from '@lib/entity/entityManager';
-import { tableManager } from '@lib/table';
+import tableManager from '@lib/table';
 
 import { MockEntity, MockEntityManager, TEST_TABLE_NAME, TestTable } from '../../fixtures';
 
@@ -72,5 +72,9 @@ describe('Table', () => {
         expect(entityManagerSpy).toBeCalledWith(TestTable, TEST_TABLE_NAME);
       });
     });
+
+    // describe('create', async () => {
+    //   test('Should create a table with proper parameters', async () => {});
+    // });
   });
 });

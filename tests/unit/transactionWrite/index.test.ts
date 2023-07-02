@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
-import { Dynamode, Entity } from '@lib/dynamode';
+import Dynamode from '@lib/dynamode';
+import Entity from '@lib/entity';
 import * as entityConvertHelpers from '@lib/entity/helpers/converters';
 import transactionWrite from '@lib/transactionWrite';
 import {

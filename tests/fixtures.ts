@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import attribute from '@lib/decorators';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
-import { tableManager } from '@lib/table';
+import tableManager from '@lib/table';
 
 vi.useFakeTimers();
 
