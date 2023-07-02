@@ -19,7 +19,7 @@ import TabItem from '@theme/TabItem';
   
 **Entity Manager class** is used to perform operations on a given model.
 - Exposes static methods that you can use to read, insert, update, delete items in DynamoDB. This page describes in detail all available methods.
-- To create an instance of Entity Manager use [`TableManager.entityManager(entity?)`](/docs/guide/table/tableManager) method.
+- To create an instance of Entity Manager use [`TableManager.entityManager(entity?)`](/docs/guide/table/tableManager#tablemanagerentitymanagerentity) method.
 
 ## new Entity(props)
 
@@ -73,7 +73,7 @@ This method is used to retrieve an item from DynamoDB. It uses the [GetItem Dyna
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 <!-- TODO: Add info that this function is async and returns a promise -->
@@ -477,7 +477,7 @@ This method is used to delete an item from DynamoDB. It uses the DeleteItem Dyna
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -583,7 +583,7 @@ This method is used to retrieve multiple items from DynamoDB. It uses the [Batch
 
 ### Arguments
 
-**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
+**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -887,7 +887,7 @@ This method is used to delete multiple items from DynamoDB. It uses the [BatchWr
 
 ### Arguments
 
-**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
+**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
@@ -979,7 +979,7 @@ This method is used to build a retrieve item operation. `EntityManager.transacti
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 <!-- TODO: Add info that this function is async and returns a promise -->
@@ -1034,7 +1034,7 @@ This method is used to build an update item operation. `EntityManager.transactio
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to update. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to update. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -1071,7 +1071,7 @@ This method is used to build a delete item operation. `EntityManager.transaction
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -1094,7 +1094,7 @@ This method is used to build a `conditionCheck` when running a transaction. `Ent
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
