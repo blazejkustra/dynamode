@@ -41,6 +41,9 @@
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "^0.31.1"
   },
+  "peerDependencies": {
+    "typescript": ">=4.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/blazejkustra/dynamode.git"
