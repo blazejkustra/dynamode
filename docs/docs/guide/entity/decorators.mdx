@@ -10,9 +10,9 @@ hide_title: true
 Decorators are crucial for modelling  entities. Dynamode uses them to bind model attributes with DynamoDB tables.
 
 :::info
-Decorators are a language feature which hasn’t yet been fully ratified into the JavaScript specification - [source](https://www.typescriptlang.org/tsconfig#experimentalDecorators). 
+Dynamode uses experimental decorators, it is a language feature which hasn’t yet been fully ratified into the JavaScript specification - [source](https://www.typescriptlang.org/tsconfig#experimentalDecorators). 
 
-Add following lines in `tsconfig.json` in order to use decorators with Typescript:
+Add following lines in `tsconfig.json` in order to use decorators with Typescript (even if you are using Typescript 5.0+):
 
 ```ts
 {
@@ -27,45 +27,19 @@ Add following lines in `tsconfig.json` in order to use decorators with Typescrip
 
 To see examples of decorators in use - check out [modeling](/docs/guide/entity/modeling) page.
 
-## register(ddb)
-
+## attribute.partitionKey.string(options?)
 ### Description
 
-Every model that inherits `Entity` has to be registered with this decorator. It is used to tag the entity for Dynamode internal use.
+This decorator is used to tag the partition key attribute of type `string`.
 
 :::info
-`register(ddb)` is required for every entity.
-:::
-### Arguments
-
-<!-- TODO: add link to Dynamode -->
-`value: DynamoDB` - DynamoDB instance that you can set up with `Dynamode` class 
-
-### Examples
-
-```ts
-const ddb = Dynamode.ddb.get();
-
-@register(ddb)
-class YourModel extends Entity<Keys>(tableName: string) { 
-  ...
-}
-```
-
-## primaryPartitionKey(type, options?)
-### Description
-
-This decorator is used to tag the partition key attribute.
-
-:::info
-`primaryPartitionKey(type, options?)` is required in every entity.
+`attribute.partitionKey.string(options?) or attribute.partitionKey.number()` is required in every entity.
 :::
 
 ### Arguments
 
-`type: String | Number` - Data type of the attribute.
 
-In case `type: String` is passed, you can add optional `options` parameter that is an object. The table below represents options that you can pass in:
+You can add optional `options` parameter that is an object. The table below represents options that you can pass in:
 
 | Name     | Description                                                                       | Type     | Default     |
 | -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
@@ -75,29 +49,42 @@ In case `type: String` is passed, you can add optional `options` parameter that 
 ### Examples
 
 ```ts
-class YourModel extends Entity<Keys>(tableName: string) { 
+class YourModel extends Entity { 
   ...
-  @primaryPartitionKey(String)
+  @attribute.partitionKey.string()
   PK: string;
   ...
 }
 ```
 
-## primarySortKey(type, options?)
-
+## attribute.partitionKey.number()
 ### Description
 
-This decorator is used to tag the sort key attribute.
+This decorator is used to tag the partition key attribute of type `number`.
 
 :::info
-`primarySortKey(type, options?)` is required in entities that belongs to table with composite primary key.
+`attribute.partitionKey.string(options?) or attribute.partitionKey.number()` is required in every entity.
 :::
+
+### Examples
+
+```ts
+class YourModel extends Entity { 
+  ...
+  @attribute.partitionKey.number()
+  PK: number;
+  ...
+}
+```
+
+## attribute.sortKey.string(options?)
+### Description
+
+This decorator is used to tag the sort key attribute of type `string`.
 
 ### Arguments
 
-`type: String | Number` - Data type of the attribute.
-
-In case `type: String` is passed, you can add optional `options` parameter that is an object. The table below represents options that you can pass in:
+You can add optional `options` parameter that is an object. The table below represents options that you can pass in:
 
 | Name     | Description                                                                       | Type     | Default     |
 | -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
@@ -107,87 +94,195 @@ In case `type: String` is passed, you can add optional `options` parameter that 
 ### Examples
 
 ```ts
-class YourModel extends Entity<Keys>(tableName: string) { 
+class YourModel extends Entity { 
   ...
-  @primarySortKey(String)
+  @attribute.sortKey.string()
   SK: string;
   ...
 }
 ```
 
-## gsiPartitionKey(type, indexName, options?)
-
+## attribute.sortKey.number()
 ### Description
 
-This decorator is used to tag a global secondary index partition key attribute.
-
-### Arguments
-
-`type: String | Number` - Data type of the attribute.
-
-`indexName: string` - Name of the index for the partition key.
-
-In case `type: String` is passed, you can add optional `options` parameter that is an object. The table below represents options that you can pass in:
-
-| Name     | Description                                                                       | Type     | Default     |
-| -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
-| `prefix` | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
-| `suffix` | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
+This decorator is used to tag the sort key attribute of type `number`.
 
 ### Examples
 
 ```ts
-class YourModel extends Entity<Keys>(tableName: string) { 
+class YourModel extends Entity { 
   ...
-  @gsiPartitionKey(String)
+  @attribute.sortKey.number()
+  SK: number;
+  ...
+}
+```
+
+## attribute.gsi.partitionKey.string(options)
+
+### Description
+
+This decorator is used to tag a global secondary index partition key attribute of type `string`.
+
+### Arguments
+
+`options` - Options that configure the index. The table below represents options that you can pass in:
+
+| Name        | Description                                                                       | Type     | Default     |
+| ----------- | --------------------------------------------------------------------------------- | -------- | ----------- |
+| `indexName` | Name of the index for the partition key.                                          | `string` | N/A         |
+| `prefix`    | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
+| `suffix`    | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
+
+### Examples
+
+```ts
+class YourModel extends Entity { 
+  ...
+  @attribute.gsi.partitionKey.string({ indexName: 'GSI1' })
   GSI_PK: string;
   ...
 }
 ```
 
-## gsiSortKey(type, indexName, options?)
+## attribute.gsi.partitionKey.number(options)
 
 ### Description
 
-This decorator is used to tag a global secondary index sort key attribute.
+This decorator is used to tag a global secondary index partition key attribute of type `number`.
 
 ### Arguments
 
-`type: String | Number` - Data type of the attribute.
+`options` - Options that configure the index. The table below represents options that you can pass in:
 
-`indexName: string` - Name of the index for the sort key.
-
-In case `type: String` is passed, you can add optional `options` parameter that is an object. The table below represents options that you can pass in:
-
-| Name     | Description                                                                       | Type     | Default     |
-| -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
-| `prefix` | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
-| `suffix` | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
+| Name        | Description                              | Type     | Default |
+| ----------- | ---------------------------------------- | -------- | ------- |
+| `indexName` | Name of the index for the partition key. | `string` | N/A     |
 
 ### Examples
 
 ```ts
-class YourModel extends Entity<Keys>(tableName: string) { 
+class YourModel extends Entity { 
   ...
-  @gsiSortKey(String)
+  @attribute.gsi.partitionKey.number({ indexName: 'GSI1' })
+  GSI_PK: number;
+  ...
+}
+```
+
+## attribute.gsi.sortKey.string(options)
+
+### Description
+
+This decorator is used to tag a global secondary index sort key attribute of type `string`.
+
+### Arguments
+
+`options` - Options that configure the index. The table below represents options that you can pass in:
+
+| Name        | Description                                                                       | Type     | Default     |
+| ----------- | --------------------------------------------------------------------------------- | -------- | ----------- |
+| `indexName` | Name of the index for the sort key.                                               | `string` | N/A         |
+| `prefix`    | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
+| `suffix`    | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
+
+### Examples
+
+```ts
+class YourModel extends Entity { 
+  ...
+  @attribute.gsi.sortKey.string({ indexName: 'GSI1' })
   GSI_SK: string;
   ...
 }
 ```
 
-## lsiSortKey(type, indexName, options?)
+## attribute.gsi.sortKey.number(options)
 
 ### Description
 
-This decorator is used to tag a local secondary index sort key attribute.
+This decorator is used to tag a global secondary index sort key attribute of type `number`.
 
 ### Arguments
 
-`type: String | Number` - Data type of the attribute.
+`options` - Options that configure the index. The table below represents options that you can pass in:
 
-`indexName: string` - Name of the index for the sort key.
+| Name        | Description                         | Type     | Default |
+| ----------- | ----------------------------------- | -------- | ------- |
+| `indexName` | Name of the index for the sort key. | `string` | N/A     |
 
-In case `type: String` is passed, you can add optional `options` parameter that is an object. The table below represents options that you can pass in:
+### Examples
+
+```ts
+class YourModel extends Entity { 
+  ...
+  @attribute.gsi.sortKey.number({ indexName: 'GSI1' })
+  GSI_SK: number;
+  ...
+}
+```
+
+## attribute.lsi.sortKey.string(options)
+
+### Description
+
+This decorator is used to tag a local secondary index sort key attribute of type `string`.
+
+### Arguments
+
+`options` - Options that configure the index. The table below represents options that you can pass in:
+
+| Name        | Description                                                                       | Type     | Default     |
+| ----------- | --------------------------------------------------------------------------------- | -------- | ----------- |
+| `indexName` | Name of the index for the sort key.                                               | `string` | N/A         |
+| `prefix`    | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
+| `suffix`    | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
+
+### Examples
+
+```ts
+class YourModel extends Entity { 
+  ...
+  @attribute.gsi.sortKey.string({ indexName: 'GSI1' })
+  GSI_SK: string;
+  ...
+}
+```
+
+## attribute.lsi.sortKey.number(options)
+
+### Description
+
+This decorator is used to tag a local secondary index sort key attribute of type `number`.
+
+### Arguments
+
+`options` - Options that configure the index. The table below represents options that you can pass in:
+
+| Name        | Description                         | Type     | Default |
+| ----------- | ----------------------------------- | -------- | ------- |
+| `indexName` | Name of the index for the sort key. | `string` | N/A     |
+
+### Examples
+
+```ts
+class YourModel extends Entity { 
+  ...
+  @attribute.gsi.sortKey.number({ indexName: 'GSI1' })
+  GSI_SK: number;
+  ...
+}
+```
+
+## attribute.string(options?)
+
+### Description
+
+This decorator is used to tag an attribute of type `string`.
+
+### Arguments
+
+You can add optional `options` parameter that is an object. The table below represents options that you can pass in:
 
 | Name     | Description                                                                       | Type     | Default     |
 | -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
@@ -197,68 +292,132 @@ In case `type: String` is passed, you can add optional `options` parameter that 
 ### Examples
 
 ```ts
-class YourModel extends Entity<Keys>(tableName: string) { 
+class YourModel extends Entity { 
   ...
-  @lsiSortKey(String)
-  LSI_SK: string;
+  @attribute.string()
+  key: string;
   ...
 }
 ```
 
-## attribute(type, options?)
+## attribute.number()
 
 ### Description
 
-This decorator is used to tag a non partition/sort key attribute.
-
-### Arguments
-
-`type: String | Number | Boolean | Object | Array | Set | Map` - Data type of the attribute.
-
-In case `type: String` is passed, you can add optional `options` parameter that is an object. The table below represents options that you can pass in:
-
-| Name     | Description                                                                       | Type     | Default     |
-| -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
-| `prefix` | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
-| `suffix` | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
+This decorator is used to tag an attribute of type `number`.
 
 ### Examples
 
 ```ts
-class YourModel extends Entity<Keys>(tableName: string) { 
+class YourModel extends Entity { 
   ...
-  @attribute(String)
-  attr1: string;
-  ...
-  @attribute(Boolean)
-  attr2: boolean;
-  ...
-  @attribute(Set)
-  attr3: Set<number>;
+  @attribute.number()
+  key: number;
   ...
 }
 ```
 
-## createdAt(type, options?)
+## attribute.boolean()
 
 ### Description
 
-This decorator is used to tag an attribute that holds a `createdAt` timestamp (moment when item is inserted to the table).
+This decorator is used to tag an attribute of type `boolean`.
 
-:::warning
-`createdAt(type, options?)` can be used once for a single entity. 
-:::
+### Examples
+
+```ts
+class YourModel extends Entity { 
+  ...
+  @attribute.boolean()
+  key: boolean;
+  ...
+}
+```
+
+## attribute.object()
+
+### Description
+
+This decorator is used to tag an attribute of type `Record<string, unknown>` / `{ [key: string]: unknown }` / `{ [key]: unknown, ... }`.
+
+### Examples
+
+```ts
+class YourModel extends Entity { 
+  ...
+  @attribute.object()
+  key: Record<string, number>;
+
+  @attribute.object()
+  key2: { [key: string]: unknown };
+  ...
+}
+```
+
+## attribute.array()
+
+### Description
+
+This decorator is used to tag an attribute of type `Array<T>`.
+
+### Examples
+
+```ts
+class YourModel extends Entity { 
+  ...
+  @attribute.array()
+  key: Array<unknown>;
+  ...
+}
+```
+
+## attribute.set()
+
+### Description
+
+This decorator is used to tag an attribute of type `Set<string | number>`.
+
+### Examples
+
+```ts
+class YourModel extends Entity { 
+  ...
+  @attribute.set()
+  key: Set<string>;
+  ...
+}
+```
+
+## attribute.map()
+
+### Description
+
+This decorator is used to tag an attribute of type `Map<string, unknown>`.
+
+### Examples
+
+```ts
+class YourModel extends Entity { 
+  ...
+  @attribute.map()
+  key: Map<string, unknown>;
+  ...
+}
+```
+
+## attribute.date.string(options?)
+
+### Description
+
+This decorator is used to tag an attribute that holds a `Date`, the attribute is saved in DynamoDB in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format.
 
 :::info
-`createdAt(type, options?)` has to decorate attribute of [`Date`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) type.
+`attribute.date.string(options?)` has to decorate attribute of [`Date`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) type.
 :::
-
 
 ### Arguments
 
-`type: String | Number` - Data type of the attribute. Decorated `Date` is saved to DynamoDB in [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time) format for `type: Number` and [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format for `type: String`.
-
-In case `type: String` is passed, you can add optional `options` parameter that is an object. The table below represents options that you can pass in:
+You can pass optional `options` parameter that is an object. The table below represents options that you can pass in:
 
 | Name     | Description                                                                       | Type     | Default     |
 | -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
@@ -268,60 +427,44 @@ In case `type: String` is passed, you can add optional `options` parameter that 
 ### Examples
 
 ```ts
-class YourModel extends Entity<Keys>(tableName: string) { 
+class YourModel extends Entity { 
   ...
-  @createdAt(String)
-  CREATED_AT: string; // saved as ISO 8601: '2022-10-18T20:36:20.511Z'
+  @attribute.date.string()
+  CREATED_AT: Date; // saved as ISO 8601: '2022-10-18T20:36:20.511Z'
   ...
 }
 ```
 
-## updatedAt(type, options?)
+## attribute.date.number()
 
 ### Description
 
-:::warning
-`updatedAt(type, options?)` can be used once for a single entity. 
-:::
+This decorator is used to tag an attribute that holds a `Date`, the attribute is saved in DynamoDB in [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time) format. 
 
 :::info
-`updatedAt(type, options?)` has to decorate attribute of [`Date`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) type.
+`attribute.date.number(options?)` has to decorate attribute of [`Date`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) type.
 :::
-
-This decorator is used to tag an attribute that holds a `updatedAt` timestamp (moment when item was last updated).
-
-### Arguments
-
-`type: String | Number` - Data type of the attribute. Decorated `Date` is saved to DynamoDB in [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time) format for `type: Number` and [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format for `type: String`.
-
-In case `type: String` is passed, you can add optional `options` parameter that is an object. The table below represents options that you can pass in:
-
-| Name     | Description                                                                       | Type     | Default     |
-| -------- | --------------------------------------------------------------------------------- | -------- | ----------- |
-| `prefix` | Shortcut for [prefix(value)](/docs/guide/entity/decorators#prefixvalue) decorator | `string` | `undefined` |
-| `suffix` | Shortcut for [suffix(value)](/docs/guide/entity/decorators#suffixvalue) decorator | `string` | `undefined` |
 
 ### Examples
 
 ```ts
-class YourModel extends Entity<Keys>(tableName: string) { 
+class YourModel extends Entity { 
   ...
-  @updatedAt(Number)
-  UPDATED_AT: number; // saved as Unix timestamp: 1666125293
+  @attribute.date.number()
+  updatedAt: Date; // saved as Unix timestamp: 1688307056
   ...
 }
 ```
 
-## prefix(value)
+## attribute.prefix(value)
 
 ### Description
 
-<!-- TODO: add link to Dynamode -->
-This decorator is used to add a static prefix to the value (only for attributes of `string` type). You can customize a separator that is added between prefix and actual value with `Dynamode` class.
+This decorator is used to add a static prefix to the value (only for attributes of `string` type). You can customize a separator that is added between prefix and actual value with [`Dynamode` class](/docs/guide/dynamode#dynamodeseparator).
 
 :::info
 Prefix is added whenever you interact with a attribute.
-- All Entity static methods (e.g. `Entity.get()`, `Entity.update()`)
+- All EntityManager static methods (e.g. `EntityManager.get()`, `EntityManager.update()`)
 - Condition, Query and Scan builders
 - transactionGet and transactionWrite
 :::
@@ -333,39 +476,39 @@ Prefix is added whenever you interact with a attribute.
 ### Examples
 
 ```ts
-class YourModel extends Entity<Keys>(tableName: string) { 
+class YourModel extends Entity { 
   ...
-  @prefix("attr_prefix")
-  @attribute(String)
+  @attribute.prefix("attr_prefix")
+  @attribute.string()
   attr: string; // for 'attr_value' -> 'attr_prefix#attr_value'
   ...
 }
 ```
 
-## suffix(value)
+## attribute.suffix(value)
 
 ### Description
 
-<!-- TODO: add link to Dynamode -->
-This decorator is used to add a static suffix to the value (only for attributes of `string` type). You can customize a separator that is added between actual value and suffix with `Dynamode` class.
+This decorator is used to add a static suffix to the value (only for attributes of `string` type). You can customize a separator that is added between suffix and actual value with [`Dynamode` class](/docs/guide/dynamode#dynamodeseparator).
 
 :::info
-Suffix is added whenever you interact with a attribute.
-- All Entity static methods (e.g. `Entity.get()`, `Entity.update()`)
+Prefix is added whenever you interact with a attribute.
+- All EntityManager static methods (e.g. `EntityManager.get()`, `EntityManager.update()`)
 - Condition, Query and Scan builders
 - transactionGet and transactionWrite
 :::
 
 ### Arguments
 
-`value: string` - String that will be appended to the value
+`value: string` - String that will be prepended to the value
+
 ### Examples
 
 ```ts
-class YourModel extends Entity<Keys>(tableName: string) { 
+class YourModel extends Entity { 
   ...
-  @suffix("attr_suffix")
-  @attribute(String)
+  @attribute.suffix("attr_suffix")
+  @attribute.string()
   attr: string; // for 'attr_value' -> 'attr_value#attr_suffix'
   ...
 }
