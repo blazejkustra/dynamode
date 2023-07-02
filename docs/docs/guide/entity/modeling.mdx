@@ -19,79 +19,71 @@ DynamoDB limits possible data types that can be saved in the database. To learn 
 
 Supported DynamoDB data types and its Dynamode equivalents:
 
-| DynamoDB type | Dynamode Typescript equivalent                                                                | Notes                                                                                                                                     |
-| ------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| No value      | `undefined`                                                                                   | DynamoDB non existent values are mapped to `undefined`.                                                                                   |
-| `Null`        | `null`                                                                                        | Null represents an attribute with an unknown or `undefined` state.                                                                        |
-| `String`      | `string`                                                                                      | Partition and sort keys can't be empty strings.                                                                                           |
-| `Number`      | `number`                                                                                      | DynamoDB does not support `Infinite` and `NaN` values.                                                                                    |
-| `Binary`      | `N/A`                                                                                         | Not yet supported by Dynamode.                                                                                                            |
-| `Boolean`     | `boolean`                                                                                     | `true` or `false`.                                                                                                                        |
-| `List`        | `Array<any>`                                                                                  | There are no restrictions on the data types that can be stored in an `Array`. Elements in an array do not have to be of the same type.    |
-| `Map`         | `Map<string, any>` / `Record<string, any>` / `{ [key: string]: any }` / `{ [key]: any, ... }` | There are no restrictions on the data types that can be stored in a `Map`/`object`. Elements in a map do not have to be of the same type. |
-| `Set`         | `Set<string>` / `Set<number>`                                                                 | Set can only represent sets of `numbers` or `strings`. All the elements within a set must be of the same type.                            |
-| N/A           | `Date`                                                                                        | DynamoDB does not natively support a `Date` data type. To store a `Date` use Unix epoch (`number`) or Iso 8601 format (`string`).         |
+| DynamoDB type | Dynamode Typescript equivalent                                                                            | Notes                                                                                                                                       |
+| ------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| No value      | `undefined`                                                                                               | DynamoDB non existent values are mapped to `undefined`.                                                                                     |
+| `Null`        | `null`                                                                                                    | Null represents an attribute with an unknown or `undefined` state.                                                                          |
+| `String`      | `string`                                                                                                  | Partition and sort keys can't be empty strings.                                                                                             |
+| `Number`      | `number`                                                                                                  | DynamoDB does not support `Infinite` and `NaN` values.                                                                                      |
+| `Binary`      | `N/A`                                                                                                     | Not yet supported by Dynamode.                                                                                                              |
+| `Boolean`     | `boolean`                                                                                                 | `true` or `false`.                                                                                                                          |
+| `List`        | `Array<unknown>`                                                                                          | There are no restrictions on the data types that can be stored in an `Array`. Elements in an array do not have to be of the same type.      |
+| `Map`         | `Map<string, uknown>` / `Record<string, uknown>` / `{ [key: string]: uknown }` / `{ [key]: uknown, ... }` | There are no restrictions on the data types that can be stored in a `Map`/`object`. Elements in a map do not have to be of the same type.   |
+| `Set`         | `Set<string>` / `Set<number>`                                                                             | Set can only represent sets of `numbers` or `strings`. All the elements within a set must be of the same type.                              |
+| N/A           | `Date`                                                                                                    | DynamoDB does not natively support a `Date` data type. To store a `Date` Dynamode uses Unix epoch (`number`) or Iso 8601 format (`string`). |
 
 ## Modeling with Typescript
 
 In order to start modeling you need to create a class that inherits `Entity`.
 
+:::caution
+Make sure that your classes names are unique within a table. Dynamode uses class names to identify entities.
+:::
 
 ```ts
 import Entity from 'dynamode/entity';
-import { register } from 'dynamode/decorators';
 
-@register(ddb: DynamoDB)
-class YourModel extends Entity<Keys>(tableName: string) { 
+class YourModel extends Entity { 
   ...
 }
-```
-
-`Entity` takes one argument `tableName: string` which defines the table in which the model will be saved. It also takes a generic type which describes primary key and secondary index keys. Dynamode uses this type in all underlying methods so be cautious when setting it up. 
-
-```ts
-type Keys = {
-  partitionKey: 'keyPk';
-  sortKey?: 'keySk';
-  indexes?: {
-    [indexName: string]: {
-      partitionKey?: 'indexKeyPk';
-      sortKey?: 'indexKeySk';
-    };
-  }
-};
 ```
 
 ### Decorators
 
 **Only decorated properties will be saved in the database.** Thanks to this you can add undecorated properties to your entity that won't be saved but can be useful for your application logic.
 
+:::caution
+There are no limits to the number of attributes that you can add, but keep in mind the [DynamoDB size limits](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html).
+:::
+
 ```ts
-class YourModel extends Entity<Keys>(tableName: string) {
-  // Will be saved (property decorated)
-  @primaryPartitionKey(...)
-  key: any;
+import attribute from 'dynamode/decorators';
 
-  @primarySortKey(...)
-  key: any;
+class YourModel extends Entity {
+  // These attributes will be saved in the database (decorated)
+  @attribute.partitionKey.string()
+  key: ...;
 
-  @gsiSortKey(...)
-  key: any;
+  @attribute.sortKey.string()
+  key: ...;
 
-  @lsiSortKey(...)
-  key: any;
+  @attribute.gsi.partitionKey.string({ indexName: '...' })
+  key: ...;
 
-  @createdAt(...)
-  key: any;
+  @attribute.lsi.sortKey.number({ indexName: '...' })
+  key: ...;
 
-  @createdAt(...)
-  key: any;
+  @attribute.date.string()
+  key: ...;
 
-  @attribute(...)
-  key: any;
+  @attribute.date.number()
+  key: ...;
 
-  // Won't be saved (not decorated)
-  key: any;
+  @attribute.string()
+  key: ...;
+
+  // Won't be saved in the database (undecorated)
+  key: ...;
 
   ...
 }
@@ -99,10 +91,10 @@ class YourModel extends Entity<Keys>(tableName: string) {
 
 ### Additional methods
 
-You can add non-static and static methods to your entities that you can call later.
+You can add non-static and static methods to your entities that you can call later. You can also add static properties that will be available in your class.
 
 :::danger
-Do not override existing `Entity` methods, unless you know what you are doing.
+Do not override `Entity.dynamodeEntity` static property, unless you know what you are doing.
 :::
 
 ```ts
@@ -126,48 +118,42 @@ class YourModel extends Entity<Keys>(tableName: string) {
 
 ### Generic example
 
-There are no limits to the number of attributes that you can add, but keep in mind the [DynamoDB size limits](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html).
-
 Basic setup of a `YourModel` class:
 
 ```ts
 import Entity from 'dynamode/entity';
-import { attribute, createdAt, gsiPartitionKey, gsiSortKey, lsiSortKey, prefix, primaryPartitionKey, primarySortKey, register, updatedAt } from 'dynamode/decorators';
+import { attribute } from 'dynamode/decorators';
 
-type Keys = {
-  partitionKey: string;
-  sortKey?: string;
-  indexes?: {
-    [indexName: string]: {
-      partitionKey?: string;
-      sortKey?: string;
-    };
-  }
-};
+
 
 type Props = {
-  [key]: string;
+  key: string;
   ...
 };
 
-@register(ddb: DynamoDB)
-class YourModel extends Entity<Keys>(tableName: string) {
-  // required
-  @primaryPartitionKey(...)
-  [key]: string;
 
-  // optional
-  @prefix(...)
-  @suffix(...)
-  @attribute(...)
-  @primarySortKey(...)
-  @gsiPartitionKey(...)
-  @gsiSortKey(...)
-  @lsiSortKey(...)
-  @createdAt(...)
-  @createdAt(...)
+class YourModel extends Entity {
+  // Required
+  @attribute.partitionKey.string()
+  key: string;
+
+  // Optional
+  @attribute.prefix(...)
+  @attribute.suffix(...)
+  @attribute.sortKey.string()
+  @attribute.gsi.partitionKey.string(...)
+  @attribute.gsi.sortKey.number(...)
+  @attribute.lsi.sortKey.number(...)
+  @attribute.date.string()
+  @attribute.number()
+  @attribute.string()
+  @attribute.object()
+  @attribute.array()
+  @attribute.set()
+  @attribute.boolean()
   name: any;
 
+  // Not saved in the database 
   otherName: any;
 
   constructor(props: Props) {
@@ -178,6 +164,7 @@ class YourModel extends Entity<Keys>(tableName: string) {
     ... 
   }
 
+  // Custom methods that can be called later
   public method() {
     ...
   }
@@ -197,23 +184,20 @@ Here are some example models that shows how flexible Dynamode modeling is. Note 
 The simplest example with only key and value attributes. There is no sort key for the table, meaning it uses a *simple primary key*. 
 
 ```ts
-type KeyValueKeys = {
-  partitionKey: 'key';
-};
+import Entity from 'dynamode/entity';
+import { attribute } from 'dynamode/decorators';
+import tableManager from 'dynamode/table';
 
 type KeyValueProps = {
   key: string;
   value: Record<string, unknown>;
 };
 
-const TABLE_NAME = 'key-value';
-
-@register(ddb)
-class KeyValue extends Entity<KeyValueKeys>(TABLE_NAME) {
-  @primaryPartitionKey(String)
+export class KeyValue extends Entity {
+  @attribute.partitionKey.string()
   key: string;
 
-  @attribute(Object)
+  @attribute.object()
   value: Record<string, unknown>;
 
   constructor(props: KeyValueProps) {
@@ -223,6 +207,15 @@ class KeyValue extends Entity<KeyValueKeys>(TABLE_NAME) {
     this.value = props.value;
   }
 }
+
+const TABLE_NAME = 'key-value';
+
+export const KeyValueTableManager = tableManager(KeyValue).metadata({
+  tableName: TABLE_NAME,
+  partitionKey: 'key',
+});
+
+export const KeyValueManager = KeyValueTableManager.entityManager();
 ```
 
 ### User
@@ -230,10 +223,9 @@ class KeyValue extends Entity<KeyValueKeys>(TABLE_NAME) {
 Another model without indexes but this time with a *composite primary key* (with partition and sort keys).
 
 ```ts
-type UserKeys = {
-  partitionKey: 'partitionKey';
-  sortKey: 'sortKey';
-};
+import Entity from 'dynamode/entity';
+import { attribute } from 'dynamode/decorators';
+import tableManager from 'dynamode/table';
 
 type UserProps = {
   partitionKey: string;
@@ -247,29 +239,26 @@ type UserProps = {
   };
 };
 
-const USERS_TABLE = 'users';
-
-@register(ddb)
-class User extends Entity<UserKeys>(USERS_TABLE) {
-  @primaryPartitionKey(String)
+export class User extends Entity {
+  @attribute.partitionKey.string()
   partitionKey: string;
 
-  @primarySortKey(String)
+  @attribute.sortKey.string()
   sortKey: string;
 
-  @attribute(String)
+  @attribute.string()
   username: string;
 
-  @attribute(String)
+  @attribute.string()
   email: string;
 
-  @attribute(Number)
+  @attribute.number()
   age: number;
 
-  @attribute(Array)
+  @attribute.array()
   friends: string[];
 
-  @attribute(Object)
+  @attribute.object()
   config: {
     isAdmin: boolean;
   };
@@ -281,7 +270,7 @@ class User extends Entity<UserKeys>(USERS_TABLE) {
     this.partitionKey = props.partitionKey;
     this.sortKey = props.sortKey;
 
-    // Other
+    // Other properties
     this.username = props.username;
     this.email = props.email;
     this.age = props.age;
@@ -289,29 +278,25 @@ class User extends Entity<UserKeys>(USERS_TABLE) {
     this.config = props.config;
   }
 }
+
+const USERS_TABLE = 'users';
+
+export const UserTableManager = tableManager(User).metadata({
+  tableName: USERS_TABLE,
+  partitionKey: 'partitionKey',
+  sortKey: 'sortKey',
+});
+
+export const UserManager = UserTableManager.entityManager();
 ```
 
 ### All possible properties
 
-A model with all possible properties that are supported in Dynamode. This model has a *composite primary key* and two indexes that are defined in `AllPossiblePropertiesKeys` type, `AllPossiblePropertiesProps` type and in `AllPossibleProperties` class.
+A model with all possible properties that are supported in Dynamode. This model has a *composite primary key* and two indexes.
 
-This model also has two properties decorated with `createdAt(type: String | Number)` and `updatedAt(type: String | Number)` decorators. They represent the timestamps of when the model was created or last updated.
+This model also has two properties `createdAt` and `updatedAt` that represent the timestamps of when the model was created or last updated.
 
 ```ts
-type AllPossiblePropertiesKeys = {
-  partitionKey: 'partitionKey';
-  sortKey: 'sortKey';
-  indexes: {
-    GSI_1_NAME: {
-      partitionKey: 'GSI_1_PK';
-      sortKey: 'GSI_1_SK';
-    };
-    LSI_1_NAME: {
-      sortKey: 'LSI_1_SK';
-    };
-  };
-};
-
 type AllPossiblePropertiesProps = {
   partitionKey: string;
   sortKey: string;
@@ -333,58 +318,56 @@ type AllPossiblePropertiesProps = {
   boolean: boolean;
 };
 
-const TABLE_NAME = 'all-possible-properties';
 const PREFIX = 'prefix';
 
-@register(ddb)
-class AllPossibleProperties extends Entity<AllPossiblePropertiesKeys>(TABLE_NAME) {
+export class AllPossibleProperties extends Entity {
   // Primary key
-  @prefix(PREFIX)
-  @primaryPartitionKey(String)
+  @attribute.prefix(PREFIX)
+  @attribute.partitionKey.string()
   partitionKey: string;
 
-  @primarySortKey(String)
+  @attribute.sortKey.string()
   sortKey: string;
 
   // Indexes
-  @gsiPartitionKey(String, 'GSI_1_NAME')
+  @attribute.gsi.partitionKey.string({ indexName: 'GSI_1_NAME' })
   GSI_1_PK?: string;
 
-  @gsiSortKey(Number, 'GSI_1_NAME')
+  @attribute.gsi.sortKey.number({ indexName: 'GSI_1_NAME' })
   GSI_1_SK?: number;
 
-  @lsiSortKey(Number, 'LSI_1_NAME')
+  @attribute.lsi.sortKey.number({ indexName: 'LSI_1_NAME' })
   LSI_1_SK?: number;
 
   // Timestamps
-  @createdAt(String)
+  @attribute.date.string()
   createdAt: Date;
 
-  @updatedAt(Number)
+  @attribute.date.number()
   updatedAt: Date;
 
-  @attribute(String)
+  @attribute.string()
   string: string;
 
-  @attribute(Object)
+  @attribute.object()
   object: {
     optional?: string;
     required: number;
   };
 
-  @attribute(Array)
+  @attribute.array()
   array?: string[];
 
-  @attribute(Map)
+  @attribute.map()
   map: Map<string, string>;
 
-  @attribute(Set)
+  @attribute.set()
   set: Set<string>;
 
-  @attribute(Number)
+  @attribute.number()
   number?: number;
 
-  @attribute(Boolean)
+  @attribute.boolean()
   boolean: boolean;
 
   unsaved: string;
@@ -416,49 +399,57 @@ class AllPossibleProperties extends Entity<AllPossiblePropertiesKeys>(TABLE_NAME
   }
 
   public method() {
-    ...
+    console.log('method');
   }
 
   public static staticMethod() {
-    ...
+    console.log('staticMethod');
   }
 }
+
+const TABLE_NAME = 'all-possible-properties';
+
+const AllPossiblePropertiesTableManager = tableManager(AllPossibleProperties).metadata({
+  tableName: TABLE_NAME,
+  partitionKey: 'partitionKey',
+  sortKey: 'sortKey',
+  indexes: {
+    GSI_1_NAME: {
+      partitionKey: 'GSI_1_PK',
+      sortKey: 'GSI_1_SK',
+    },
+    LSI_1_NAME: {
+      sortKey: 'LSI_1_SK',
+    },
+  },
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+});
+
+export const AllPossiblePropertiesManager = AllPossiblePropertiesTableManager.entityManager();
 ```
 
 ### Inheritance
 
-An important feature of Dynamode is the possibility to inherit multiple times. That means that models can share attributes, primary keys and indexes between each other = less boilerplate.
+An important feature of Dynamode is the possibility to inherit entities multiple times. That means that models can share attributes, primary keys and indexes between each other (= less boilerplate).
 
-Notice that Entity is only inherited once as all these models are bound to the same DynamoDB table. The idea is to have one base class that represent DynamoDB table (`BaseTable`). The rest of the models (`EntityOne`, `EntityTwo` and `EntityThree`) are representing individual entities.
+Notice that `Entity` is only inherited once as all these models are bound to the same DynamoDB table. The idea is to have one base class that represent DynamoDB table (`BaseTable`). The rest of the models (`EntityOne`, `EntityTwo` and `EntityThree`) are representing individual entities.
 
 ```ts
-type TableKeys = {
-  partitionKey: 'propPk';
-  sortKey: 'propSk';
-  indexes: {
-    LSI_NAME: {
-      sortKey: 'index';
-    };
-  };
-};
-
 type TableProps = {
   propPk: string;
   propSk: number;
   index: string;
 };
 
-const TABLE_NAME = 'inheritance';
-
-@register(ddb)
-class BaseTable extends Entity<TableKeys>(TABLE_NAME) {
-  @primaryPartitionKey(String)
+class BaseTable extends Entity {
+  @attribute.partitionKey.string()
   propPk: string;
 
-  @primarySortKey(Number)
+  @attribute.sortKey.number()
   propSk: number;
 
-  @lsiSortKey(String, 'LSI_NAME')
+  @attribute.lsi.sortKey.string({ indexName: 'LSI_NAME' })
   index: string;
 
   constructor(props: TableProps) {
@@ -474,9 +465,8 @@ type EntityOneProps = TableProps & {
   one: { [k: string]: number };
 };
 
-@register(ddb)
-class EntityOne extends BaseTable {
-  @attribute(Object)
+export class EntityOne extends BaseTable {
+  @attribute.object()
   one: { [k: string]: number };
 
   constructor(props: EntityOneProps) {
@@ -490,9 +480,8 @@ type EntityTwoProps = EntityOneProps & {
   two: { [k: string]: string };
 };
 
-@register(ddb)
-class EntityTwo extends EntityOne {
-  @attribute(Object)
+export class EntityTwo extends EntityOne {
+  @attribute.object()
   two: { [k: string]: string };
 
   constructor(props: EntityTwoProps) {
@@ -506,9 +495,8 @@ type EntityThreeProps = TableProps & {
   otherProperty: any;
 };
 
-@register(ddb)
-class EntityThree extends BaseTable {
-  @attribute(Object)
+export class EntityThree extends BaseTable {
+  @attribute.object()
   otherProperty: { [k: string]: number };
 
   constructor(props: EntityThreeProps) {
@@ -517,6 +505,23 @@ class EntityThree extends BaseTable {
     this.otherProperty = props.otherProperty;
   }
 }
+
+const TABLE_NAME = 'inheritance';
+
+export const BaseTableManager = tableManager(BaseTable).metadata({
+  tableName: TABLE_NAME,
+  partitionKey: 'propPk',
+  sortKey: 'propSk',
+  indexes: {
+    LSI_NAME: {
+      sortKey: 'index',
+    },
+  },
+});
+
+export const EntityOneManager = BaseTableManager.entityManager(EntityOne);
+export const EntityTwoManager = BaseTableManager.entityManager(EntityTwo);
+export const EntityThreeManager = BaseTableManager.entityManager(EntityThree);
 ```
 
 

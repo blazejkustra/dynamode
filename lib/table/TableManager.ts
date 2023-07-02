@@ -8,7 +8,7 @@ import {
 } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
-import { EntityManager } from '@lib/entity/entityManager';
+import EntityManager from '@lib/entity/entityManager';
 import { buildIndexCreate, buildIndexDelete } from '@lib/table/helpers/builders';
 import { convertToTableInformation } from '@lib/table/helpers/converters';
 import { getTableAttributeDefinitions } from '@lib/table/helpers/definitions';

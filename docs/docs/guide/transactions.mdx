@@ -20,7 +20,7 @@ This function is used to get multiple items in a single transaction. It uses the
 
 ### Arguments
 
-**`transactions`**: `Array<Entity.transactionGet>` - Array of get operations generated with [`Entity.transactionGet(primaryKey, options?)`](/docs/guide/entity/methods#entitytransactiongetprimarykey-options) method.
+**`transactions`**: `TransactionGet[]` - Array of get operations generated with [`EntityManager.transactionGet(primaryKey, options?)`](/docs/guide/entity/methods#entitytransactiongetprimarykey-options) method.
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
@@ -28,7 +28,7 @@ You can add optional **`options`** parameter that is an object. The table below 
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
 | `return`          | What the method should return. For `'default'` method returns initialized classes with retrieved data. For `'input'` method returns prepared DynamoDB input command and no request is made to DynamoDB (method no longer returns a promise). For `'output'` method returns the bare output from DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                                                                                                        | `'default'` |
 | `throwOnNotFound` | By default Dynamode will throw an error in case an item was not found.  If you want to prevent throwing errors when items are not found set `throwOnNotFound` prop to `false`.                                                                                                                                      | `boolean`                                                                                                                                                     | `true`      |
-| `extraInput`      | Extra input that is passed to TransactGetItems DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                                       | [`TransactGetItemsCommandInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/transactgetitemscommandinput.html) | `undefined` |
+| `extraInput`      | Extra input that is passed to `TransactGetItems` DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                                     | [`TransactGetItemsCommandInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/transactgetitemscommandinput.html) | `undefined` |
 
 
 ### Examples
@@ -39,15 +39,15 @@ You can add optional **`options`** parameter that is an object. The table below 
 ```ts
 const transactions = await transactionGet(
   [
-    KeyValue.transactionGet({ key: 'key1' }), 
-    User.transactionGet({ partitionKey: '1', sortKey: 'blazej' }),
+    KeyValueManager.transactionGet({ key: 'key1' }), 
+    UserManager.transactionGet({ partitionKey: '1', sortKey: 'blazej' }),
   ]
 );
 // OR 
 const transactions = await transactionGet(
   [
-    KeyValue.transactionGet({ key: 'key1' }), 
-    User.transactionGet({ partitionKey: '1', sortKey: 'blazej' }),
+    KeyValueManager.transactionGet({ key: 'key1' }), 
+    UserManager.transactionGet({ partitionKey: '1', sortKey: 'blazej' }),
   ],
   {
     return: 'default'
@@ -86,8 +86,8 @@ Output:
 ```ts
 const input = transactionGet(
   [
-    KeyValue.transactionGet({ key: 'key1' }), 
-    User.transactionGet({ partitionKey: '1', sortKey: 'blazej' }),
+    KeyValueManager.transactionGet({ key: 'key1' }), 
+    UserManager.transactionGet({ partitionKey: '1', sortKey: 'blazej' }),
   ],
   {
     return: 'input'
@@ -113,8 +113,8 @@ Output:
 ```ts
 const output = await transactionGet(
   [
-    KeyValue.transactionGet({ key: 'key1' }), 
-    User.transactionGet({ partitionKey: '1', sortKey: 'blazej' }),
+    KeyValueManager.transactionGet({ key: 'key1' }), 
+    UserManager.transactionGet({ partitionKey: '1', sortKey: 'blazej' }),
   ],
   {
     return: 'output'
@@ -145,15 +145,15 @@ This function is used to insert/update/delete multiple items in a single transac
 
 ### Arguments
 
-**`transactions`**: `Array<Entity.transactionPut | Entity.transactionCreate | Entity.transactionUpdate | Entity.transactionDelete | Entity.transactionCondition>` - Array of operations generated with methods that are described below:
+**`transactions`**: `TransactionWrite[]` - Array of operations generated with methods that are described below:
 
-| Method                                                                                                                                            | Description                                     |
-| ------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| [`Entity.transactionPut(item, options?)`](/docs/guide/entity/methods#entitytransactionputitem-options)                                            | Insert an item to DynamoDB.                     |
-| [`Entity.transactionCreate(item, options?)`](/docs/guide/entity/methods#entitytransactioncreateitem-options)                                      | Insert an item to DynamoDB (without overwrite). |
-| [`Entity.transactionUpdate(primaryKey, props, options?)`](/docs/guide/entity/methods#entitytransactionupdateprimarykey-props-options)             | Update an item in DynamoDB.                     |
-| [`Entity.transactionDelete(primaryKey, options?)`](/docs/guide/entity/methods#entitytransactiondeleteprimarykey-options)                          | Delete an item in DynamoDB.                     |
-| [`Entity.transactionCondition(primaryKey, conditionInstance)`](/docs/guide/entity/methods#entitytransactionconditionprimarykey-conditioninstance) | Condition for the transaction.                  |
+| Method                                                                                                                                                   | Description                                     |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| [`EntityManager.transactionPut(item, options?)`](/docs/guide/entity/methods#entitytransactionputitem-options)                                            | Insert an item to DynamoDB.                     |
+| [`EntityManager.transactionCreate(item, options?)`](/docs/guide/entity/methods#entitytransactioncreateitem-options)                                      | Insert an item to DynamoDB (without overwrite). |
+| [`EntityManager.transactionUpdate(primaryKey, props, options?)`](/docs/guide/entity/methods#entitytransactionupdateprimarykey-props-options)             | Update an item in DynamoDB.                     |
+| [`EntityManager.transactionDelete(primaryKey, options?)`](/docs/guide/entity/methods#entitytransactiondeleteprimarykey-options)                          | Delete an item in DynamoDB.                     |
+| [`EntityManager.transactionCondition(primaryKey, conditionInstance)`](/docs/guide/entity/methods#entitytransactionconditionprimarykey-conditioninstance) | Condition for the transaction.                  |
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
@@ -171,7 +171,7 @@ You can add optional **`options`** parameter that is an object. The table below 
 ```ts
 const transactions = await transactionWrite(
   [
-    User.transactionUpdate(
+    UserManager.transactionUpdate(
       { partitionKey: '1', sortKey: 'blazej' },
       {
         set: {
@@ -179,26 +179,26 @@ const transactions = await transactionWrite(
         },
       },
     ),
-    KeyValue.transactionPut(
+    KeyValueManager.transactionPut(
       new KeyValue({
         key: 'key2',
         value: { test: 'test2' },
       }),
     ),
-    KeyValue.transactionCreate(
+    KeyValueManager.transactionCreate(
       new KeyValue({
         key: 'key3',
         value: { test: 'test3' },
       }),
     ),
-    KeyValue.transactionDelete({ key: 'key4' }),
-    KeyValue.transactionCondition({ key: 'key5' }, KeyValue.condition().attribute('key').eq('key5')),
+    KeyValueManager.transactionDelete({ key: 'key4' }),
+    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValue.condition().attribute('key').eq('key5')),
   ],
 );
 // OR
 const transactions = await transactionWrite(
   [
-    User.transactionUpdate(
+    UserManager.transactionUpdate(
       { partitionKey: '1', sortKey: 'blazej' },
       {
         set: {
@@ -206,20 +206,20 @@ const transactions = await transactionWrite(
         },
       },
     ),
-    KeyValue.transactionPut(
+    KeyValueManager.transactionPut(
       new KeyValue({
         key: 'key2',
         value: { test: 'test2' },
       }),
     ),
-    KeyValue.transactionCreate(
+    KeyValueManager.transactionCreate(
       new KeyValue({
         key: 'key3',
         value: { test: 'test3' },
       }),
     ),
-    KeyValue.transactionDelete({ key: 'key4' }),
-    KeyValue.transactionCondition({ key: 'key5' }, KeyValue.condition().attribute('key').eq('key5')),
+    KeyValueManager.transactionDelete({ key: 'key4' }),
+    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValue.condition().attribute('key').eq('key5')),
   ],
   { return: 'default' },
 );
@@ -251,7 +251,7 @@ Output:
 ```ts
 const input = transactionWrite(
   [
-    User.transactionUpdate(
+    UserManager.transactionUpdate(
       { partitionKey: '1', sortKey: 'blazej' },
       {
         set: {
@@ -259,20 +259,20 @@ const input = transactionWrite(
         },
       },
     ),
-    KeyValue.transactionPut(
+    KeyValueManager.transactionPut(
       new KeyValue({
         key: 'key2',
         value: { test: 'test2' },
       }),
     ),
-    KeyValue.transactionCreate(
+    KeyValueManager.transactionCreate(
       new KeyValue({
         key: 'key3',
         value: { test: 'test3' },
       }),
     ),
-    KeyValue.transactionDelete({ key: 'key4' }),
-    KeyValue.transactionCondition({ key: 'key5' }, KeyValue.condition().attribute('key').eq('key5')),
+    KeyValueManager.transactionDelete({ key: 'key4' }),
+    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValue.condition().attribute('key').eq('key5')),
   ],
   { return: 'input' },
 );
@@ -299,7 +299,7 @@ Output:
 ```ts
 const output = await transactionWrite(
   [
-    User.transactionUpdate(
+    UserManager.transactionUpdate(
       { partitionKey: '1', sortKey: 'blazej' },
       {
         set: {
@@ -307,20 +307,20 @@ const output = await transactionWrite(
         },
       },
     ),
-    KeyValue.transactionPut(
+    KeyValueManager.transactionPut(
       new KeyValue({
         key: 'key2',
         value: { test: 'test2' },
       }),
     ),
-    KeyValue.transactionCreate(
+    KeyValueManager.transactionCreate(
       new KeyValue({
         key: 'key3',
         value: { test: 'test3' },
       }),
     ),
-    KeyValue.transactionDelete({ key: 'key4' }),
-    KeyValue.transactionCondition({ key: 'key5' }, KeyValue.condition().attribute('key').eq('key5')),
+    KeyValueManager.transactionDelete({ key: 'key4' }),
+    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValue.condition().attribute('key').eq('key5')),
   ],
   { return: 'output' },
 );

@@ -1,0 +1,25 @@
+---
+title: TableManager | Dynamode
+description: TableManager
+sidebar_label: TableManager
+hide_title: true
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Methods
+`Entity` takes one argument `tableName: string` which defines the table in which the model will be saved. It also takes a generic type which describes primary key and secondary index keys. Dynamode uses this type in all underlying methods so be cautious when setting it up. 
+
+```ts
+type Keys = {
+  partitionKey: 'keyPk';
+  sortKey?: 'keySk';
+  indexes?: {
+    [indexName: string]: {
+      partitionKey?: 'indexKeyPk';
+      sortKey?: 'indexKeySk';
+    };
+  }
+};
+```
