@@ -1,14 +1,14 @@
 ---
-title: TableManager | Dynamode
-description: TableManager
-sidebar_label: TableManager
+title: Table Manager | Dynamode
+description: Table Manager
+sidebar_label: Table Manager
 hide_title: true
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Methods
+# Table Manager
 `Entity` takes one argument `tableName: string` which defines the table in which the model will be saved. It also takes a generic type which describes primary key and secondary index keys. Dynamode uses this type in all underlying methods so be cautious when setting it up. 
 
 ```ts
@@ -23,3 +23,43 @@ type Keys = {
   }
 };
 ```
+
+## new TableManager(tableEntity, tableMetadata)
+
+
+
+## TableManager.entityManager(entity?)
+
+
+
+## TableManager.create(options?)
+
+This method creates a table in DynamoDB.
+
+:::danger
+This method isn't tested yet. Use it at your own risk.
+:::
+
+## TableManager.createIndex(indexName, options?)
+
+This method creates a secondary index in DynamoDB.
+
+:::danger
+This method isn't tested yet. Use it at your own risk.
+:::
+
+## TableManager.deleteIndex(indexName, options?)
+
+This method deletes a secondary index in DynamoDB.
+
+:::danger
+This method isn't tested yet. Use it at your own risk.
+:::
+
+## TableManager.validate(options?)
+
+This method validates the integrity of TableEntity and DynamoDB table.
+
+:::danger
+This method isn't tested yet. Use it at your own risk.
+:::

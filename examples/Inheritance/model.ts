@@ -1,7 +1,7 @@
 import attribute from '../../dist/decorators';
 import Dynamode from '../../dist/dynamode';
 import Entity from '../../dist/entity';
-import tableManager from '../../dist/table';
+import TableManager from '../../dist/table';
 
 Dynamode.ddb.local();
 
@@ -77,7 +77,7 @@ export class EntityThree extends BaseTable {
   }
 }
 
-export const BaseTableManager = tableManager(BaseTable).metadata({
+export const BaseTableManager = new TableManager(BaseTable, {
   tableName: TABLE_NAME,
   partitionKey: 'propPk',
   sortKey: 'propSk',

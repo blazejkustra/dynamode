@@ -1,7 +1,7 @@
 import attribute from '../../dist/decorators';
 import Dynamode from '../../dist/dynamode';
 import Entity from '../../dist/entity';
-import tableManager from '../../dist/table';
+import TableManager from '../../dist/table';
 
 Dynamode.ddb.local();
 
@@ -115,7 +115,7 @@ export class AllPossibleProperties extends Entity {
     console.log('staticMethod');
   }
 }
-const AllPossiblePropertiesTableManager = tableManager(AllPossibleProperties).metadata({
+const AllPossiblePropertiesTableManager = new TableManager(AllPossibleProperties, {
   tableName: TABLE_NAME,
   partitionKey: 'partitionKey',
   sortKey: 'sortKey',

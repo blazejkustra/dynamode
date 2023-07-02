@@ -98,7 +98,7 @@ Do not override `Entity.dynamodeEntity` static property, unless you know what yo
 :::
 
 ```ts
-class YourModel extends Entity<Keys>(tableName: string) {
+class YourModel extends Entity {
   ...
   
   constructor(props: Props) {
@@ -186,7 +186,7 @@ The simplest example with only key and value attributes. There is no sort key fo
 ```ts
 import Entity from 'dynamode/entity';
 import { attribute } from 'dynamode/decorators';
-import tableManager from 'dynamode/table';
+import TableManager from 'dynamode/table';
 
 type KeyValueProps = {
   key: string;
@@ -210,7 +210,7 @@ export class KeyValue extends Entity {
 
 const TABLE_NAME = 'key-value';
 
-export const KeyValueTableManager = tableManager(KeyValue).metadata({
+export const KeyValueTableManager = new TableManager(KeyValue, {
   tableName: TABLE_NAME,
   partitionKey: 'key',
 });
@@ -225,7 +225,7 @@ Another model without indexes but this time with a *composite primary key* (with
 ```ts
 import Entity from 'dynamode/entity';
 import { attribute } from 'dynamode/decorators';
-import tableManager from 'dynamode/table';
+import TableManager from 'dynamode/table';
 
 type UserProps = {
   partitionKey: string;
@@ -281,7 +281,7 @@ export class User extends Entity {
 
 const USERS_TABLE = 'users';
 
-export const UserTableManager = tableManager(User).metadata({
+export const UserTableManager = new TableManager(User, {
   tableName: USERS_TABLE,
   partitionKey: 'partitionKey',
   sortKey: 'sortKey',
@@ -409,7 +409,7 @@ export class AllPossibleProperties extends Entity {
 
 const TABLE_NAME = 'all-possible-properties';
 
-const AllPossiblePropertiesTableManager = tableManager(AllPossibleProperties).metadata({
+const AllPossiblePropertiesTableManager = new TableManager(AllPossibleProperties, {
   tableName: TABLE_NAME,
   partitionKey: 'partitionKey',
   sortKey: 'sortKey',
@@ -508,7 +508,7 @@ export class EntityThree extends BaseTable {
 
 const TABLE_NAME = 'inheritance';
 
-export const BaseTableManager = tableManager(BaseTable).metadata({
+export const BaseTableManager = new TableManager(BaseTable, {
   tableName: TABLE_NAME,
   partitionKey: 'propPk',
   sortKey: 'propSk',

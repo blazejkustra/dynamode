@@ -1,7 +1,7 @@
 import attribute from '../../dist/decorators';
 import Dynamode from '../../dist/dynamode';
 import Entity from '../../dist/entity';
-import tableManager from '../../dist/table';
+import TableManager from '../../dist/table';
 
 Dynamode.ddb.local();
 
@@ -59,7 +59,7 @@ export class EntityReservedWord extends Entity {
   }
 }
 
-export const ReservedWordTableManager = tableManager(EntityReservedWord).metadata({
+export const ReservedWordTableManager = new TableManager(EntityReservedWord, {
   tableName: TABLE_NAME,
   partitionKey: 'COLUMN',
   sortKey: 'OBJECT',

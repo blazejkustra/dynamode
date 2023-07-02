@@ -1,4 +1,4 @@
-import { transactionGet } from '../../../dist';
+import transactionGet from '../../../dist/transactionGet';
 import { AllPossiblePropertiesManager } from '../model';
 
 async function transaction() {

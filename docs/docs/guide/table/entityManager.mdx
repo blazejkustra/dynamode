@@ -1,26 +1,31 @@
 ---
-title: EntityManager | Dynamode
-description: EntityManager
-sidebar_label: EntityManager
+title: Entity Manager | Dynamode
+description: Entity Manager
+sidebar_label: Entity Manager
 hide_title: true
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Methods
+# Entity Manager
 
-The Entity class represents a model for your application. Instance of a class represents an item for a given model in DynamoDB. It can be created locally (meaning that is not yet saved in DynamoDB) with [entity constructor](/docs/guide/entity/methods#new-entityprops), or can be already stored in DynamoDB (e.g. [`Entity.get(primaryKey, options?)`](/docs/guide/entity/methods#entitygetprimarykey-options) or [`Entity.put(item, options?)`](/docs/guide/entity/methods#entityputitem-options)).
-
-Every class that inherits `Entity` has static methods that you can use to read, insert, update, delete items in DynamoDB. This page describes in detail all available methods.
-
-To read more about modeling entities check out [Decorators](/docs/guide/entity/decorators) and [Modeling](/docs/guide/entity/modeling) pages. 
+**Entity class** represents a model for your application. 
+- To read more about modeling entities check out [Decorators](/docs/guide/entity/decorators) and [Modeling](/docs/guide/entity/modeling) pages. 
+  
+**Instance of a class** represents an item for a given model in DynamoDB. 
+- It can be created locally (meaning that is not yet saved in DynamoDB) with [entity constructor](/docs/guide/table/entityManager#new-entityprops), 
+- It can be already stored in DynamoDB (e.g. [`EntityManager.get(primaryKey, options?)`](/docs/guide/table/entityManager#entitygetprimarykey-options) or [`EntityManager.put(item, options?)`](/docs/guide/table/entityManager#entityputitem-options)).
+  
+**Entity Manager class** is used to perform operations on a given model.
+- Exposes static methods that you can use to read, insert, update, delete items in DynamoDB. This page describes in detail all available methods.
+- To create an instance of Entity Manager use [`TableManager.entityManager(entity?)`](/docs/guide/table/tableManager) method.
 
 ## new Entity(props)
 
 ### Description
 
-Entity constructor is used to initialize an item for a given model. When you construct an item using `new Entity(props)` the item is only created locally, meaning that it is not yet saved in DynamoDB. If you want to save it to the table use for example [`Entity.put(item, options?)`](/docs/guide/entity/methods#entityputitem-options) method.
+Entity constructor is used to initialize an item for a given model. When you construct an item using `new Entity(props)` the item is only created locally, meaning that it is not yet saved in DynamoDB. If you want to save it to the table use for example [`EntityManager.put(item, options?)`](/docs/guide/table/entityManager#entityputitem-options) method.
 
 ### Arguments
 
@@ -42,23 +47,25 @@ const user = new User({
     isAdmin: true,
   },
 }); // Item is not saved in DynamoDB at this point 
+
+await UserManager.put(user); // Item is saved in DynamoDB
 ```
 
-## Entity.condition()
+## EntityManager.condition()
 
-You can construct a conditional by using the `Entity.condition()` method. This initializes `Condition` class that acts as a condition builder to construct your conditional that you can pass to entity methods, Query and Scan classes. To learn more check out [`Condition`](/docs/guide/condition) page.
-
-
-## Entity.query()
-
-You can query items by using the `Entity.query()` method. This initializes `Query` class that acts as a builder to construct your DynamoDB query with the appropriate filters. To learn more check out [`Query`](/docs/guide/query) page.
+You can construct a conditional by using the `EntityManager.condition()` method. This initializes [`Condition`](/docs/guide/condition) class that acts as a condition builder to construct your conditional that you can pass to Entity Manager methods, [`Query`](/docs/guide/query) and [`Scan`](/docs/guide/scan) classes. To learn more check out [`Condition`](/docs/guide/condition) page.
 
 
-## Entity.scan()
+## EntityManager.query()
 
-You can scan items by using the `Entity.scan()` method. This initializes `Scan` class that acts as a builder to construct your DynamoDB scan with the appropriate filters. To learn more check out [`Scan`](/docs/guide/scan) page.
+You can query items by using the `EntityManager.query()` method. This initializes [`Query`](/docs/guide/query) class that acts as a builder to construct your DynamoDB query with the appropriate filters. To learn more check out [`Query`](/docs/guide/query) page.
 
-## Entity.get(primaryKey, options?)
+
+## EntityManager.scan()
+
+You can scan items by using the `EntityManager.scan()` method. This initializes `Scan` class that acts as a builder to construct your DynamoDB scan with the appropriate filters. To learn more check out [`Scan`](/docs/guide/scan) page.
+
+## EntityManager.get(primaryKey, options?)
 
 ### Description
 
@@ -66,7 +73,7 @@ This method is used to retrieve an item from DynamoDB. It uses the [GetItem Dyna
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 <!-- TODO: Add info that this function is async and returns a promise -->
@@ -86,8 +93,8 @@ You can add optional **`options`** parameter that is an object. The table below 
 <TabItem value="default" label="return: 'default'" default>
 
 ```ts
-const user = await User.get({ partitionKey: '1', sortKey: 'blazej' });
-const user = await User.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 'default' }); // the same
+const user = await UserManager.get({ partitionKey: '1', sortKey: 'blazej' });
+const user = await UserManager.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 'default' }); // the same
 ```
 
 Output:
@@ -109,7 +116,7 @@ User {
 <TabItem value="input" label="return: 'input'">
 
 ```ts
-const input = User.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 'input' });
+const input = UserManager.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 'input' });
 ```
 
 Output:
@@ -126,7 +133,7 @@ Output:
 <TabItem value="output" label="return: 'output'">
 
 ```ts
-const output = await User.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 'output' });
+const output = await UserManager.get({ partitionKey: '1', sortKey: 'blazej' }, { return: 'output' });
 ```
 
 Output:
@@ -153,7 +160,7 @@ Output:
 </TabItem>
 </Tabs>
 
-## Entity.put(item, options?)
+## EntityManager.put(item, options?)
 
 ### Description
 
@@ -161,14 +168,14 @@ This method is used to insert an item to DynamoDB. It uses the [PutItem DynamoDB
 
 ### Arguments
 
-**`item`**: `Entity` - Instance of entity that you want to insert.
+**`item`**: `Entity` - Instance of a model that you want to insert.
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
 | Name         | Description                                                                                                                                                                                                                                                                                   | Type                                                                                                                                        | Default     |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
 | `return`     | What the method should return. For `'default'` method returns initialized class. For `'input'` method returns prepared DynamoDB input command and no request is made to DynamoDB (method no longer returns a promise). For `'output'` method returns the bare output from DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                                                                                      | `'default'` |
-| `overwrite`  | PutItem DynamoDB operation overwrites items on insertion by default. If you want to prevent overwrites use `Entity.create(item, options?)` instead, or set `overwrite` prop to `false`.                                                                                                       | `boolean`                                                                                                                                   | `true`      |
+| `overwrite`  | PutItem DynamoDB operation overwrites items on insertion by default. If you want to prevent overwrites use `EntityManager.create(item, options?)` instead, or set `overwrite` prop to `false`.                                                                                                | `boolean`                                                                                                                                   | `true`      |
 | `condition`  | This is an optional instance of a `Condition` for the save. Item won't be inserted in case condition fails.                                                                                                                                                                                   | `Condition`                                                                                                                                 | `undefined` |
 | `extraInput` | Extra input that is passed to PutItem DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                          | [`PutItemCommandInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/putitemcommandinput.html) | `undefined` |
 
@@ -190,9 +197,9 @@ const userInstance = new User({
   },
 });
 
-const user = await User.put(userInstance);
+const user = await UserManager.put(userInstance);
 // OR
-const user = await User.put(userInstance, { return: 'default' });
+const user = await UserManager.put(userInstance, { return: 'default' });
 ```
 
 Output:
@@ -226,7 +233,7 @@ const userInstance = new User({
   },
 });
 
-const input = User.put(userInstance, { return: 'input' });
+const input = UserManager.put(userInstance, { return: 'input' });
 ```
 
 Output:
@@ -263,7 +270,7 @@ const userInstance = new User({
   },
 });
 
-const output = await User.put(userInstance, { return: 'output' });
+const output = await UserManager.put(userInstance, { return: 'output' });
 ```
 
 Output:
@@ -282,13 +289,13 @@ Output:
 </TabItem>
 </Tabs>
 
-## Entity.create(item, options?)
+## EntityManager.create(item, options?)
 
 ### Description
 
-This method is almost identical to [`Entity.put(item, options?)`](/docs/guide/entity/methods#entityputitem-options). The only difference being that `Entity.create(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
+This method is almost identical to [`EntityManager.put(item, options?)`](/docs/guide/table/entityManager#entityputitem-options). The only difference being that `EntityManager.create(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
 
-## Entity.update(primaryKey, props, options?)
+## EntityManager.update(primaryKey, props, options?)
 
 ### Description
 
@@ -296,7 +303,7 @@ This method is used to update an item in DynamoDB. It uses the [UpdateItem Dynam
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to update. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to update. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#tablemanagertableentitymetadatatablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -329,7 +336,7 @@ You can add optional **`options`** parameter that is an object. The table below 
 <TabItem value="default" label="return: 'default'" default>
 
 ```ts
-const item = await AllPossibleProperties.update(
+const item = await AllPossiblePropertiesManager.update(
   { partitionKey: 'pk1', sortKey: 'sk1' },
   {
     add: {
@@ -344,7 +351,7 @@ const item = await AllPossibleProperties.update(
   },
 );
 // OR
-const item = await AllPossibleProperties.update(
+const item = await AllPossiblePropertiesManager.update(
   { partitionKey: 'pk1', sortKey: 'sk1' },
   {
     add: {
@@ -388,7 +395,7 @@ AllPossibleProperties {
 <TabItem value="input" label="return: 'input'">
 
 ```ts
-const input = AllPossibleProperties.update(
+const input = AllPossiblePropertiesManager.update(
   { partitionKey: 'pk1', sortKey: 'sk1' },
   {
     listAppend: {
@@ -419,7 +426,7 @@ Output:
 <TabItem value="output" label="return: 'output'">
 
 ```ts
-const output = await AllPossibleProperties.update(
+const output = await AllPossiblePropertiesManager.update(
   { partitionKey: 'pk1', sortKey: 'sk1' },
   {
     decrement: {
@@ -462,7 +469,7 @@ Output:
 </TabItem>
 </Tabs>
 
-## Entity.delete(primaryKey, options?)
+## EntityManager.delete(primaryKey, options?)
 
 ### Description
 
@@ -470,7 +477,7 @@ This method is used to delete an item from DynamoDB. It uses the DeleteItem Dyna
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -490,9 +497,9 @@ You can add optional **`options`** parameter that is an object. The table below 
 <TabItem value="default" label="return: 'default'" default>
 
 ```ts
-const deletedUser = await User.delete({ partitionKey: '1', sortKey: 'blazej' });
+const deletedUser = await UserManager.delete({ partitionKey: '1', sortKey: 'blazej' });
 // OR
-const deletedUser = await User.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'default' });
+const deletedUser = await UserManager.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'default' });
 ```
 
 Output:
@@ -514,7 +521,7 @@ User {
 <TabItem value="input" label="return: 'input'">
 
 ```ts
-const input = User.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'input' });
+const input = UserManager.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'input' });
 ```
 
 Output:
@@ -531,7 +538,7 @@ Output:
 <TabItem value="output" label="return: 'output'">
 
 ```ts
-const output = await User.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'output' });
+const output = await UserManager.delete({ partitionKey: '1', sortKey: 'blazej' }, { return: 'output' });
 ```
 
 Output:
@@ -568,7 +575,7 @@ Output:
 </TabItem>
 </Tabs>
 
-## Entity.batchGet(primaryKeys, options?)
+## EntityManager.batchGet(primaryKeys, options?)
 
 ### Description
 
@@ -576,7 +583,7 @@ This method is used to retrieve multiple items from DynamoDB. It uses the [Batch
 
 ### Arguments
 
-**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -595,12 +602,12 @@ You can add optional **`options`** parameter that is an object. The table below 
 <TabItem value="default" label="return: 'default'" default>
 
 ```ts
-const input = await User.batchGet([
+const input = await UserManager.batchGet([
     { partitionKey: '1', sortKey: 'blazej' },
     { partitionKey: '2', sortKey: 'blazej' },
 ]);
 // OR
-const input = await User.batchGet(
+const input = await UserManager.batchGet(
   [
     { partitionKey: '1', sortKey: 'blazej' },
     { partitionKey: '2', sortKey: 'blazej' },
@@ -646,7 +653,7 @@ Output:
 <TabItem value="input" label="return: 'input'">
 
 ```ts
-const input = User.batchGet(
+const input = UserManager.batchGet(
   [
     { partitionKey: '1', sortKey: 'blazej' },
     { partitionKey: '2', sortKey: 'blazej' },
@@ -667,7 +674,7 @@ Output:
 <TabItem value="output" label="return: 'output'">
 
 ```ts
-const output = await User.batchGet(
+const output = await UserManager.batchGet(
   [
     { partitionKey: '1', sortKey: 'blazej' },
     { partitionKey: '2', sortKey: 'blazej' },
@@ -695,7 +702,7 @@ Output:
 </TabItem>
 </Tabs>
 
-## Entity.batchPut(items, options?)
+## EntityManager.batchPut(items, options?)
 
 ### Description
 
@@ -745,9 +752,9 @@ const users = [
   }),
 ];
 
-const result = await User.batchPut(users);
+const result = await UserManager.batchPut(users);
 // OR
-const result = await User.batchPut(users, {
+const result = await UserManager.batchPut(users, {
   return: 'default',
 });
 ```
@@ -811,7 +818,7 @@ const users = [
   }),
 ];
 
-const input = User.batchPut(users, {
+const input = UserManager.batchPut(users, {
   return: 'input',
 });
 ```
@@ -851,7 +858,7 @@ const users = [
   }),
 ];
 
-const output = await User.batchPut(users, {
+const output = await UserManager.batchPut(users, {
   return: 'output',
 });
 ```
@@ -872,7 +879,7 @@ Output:
 </TabItem>
 </Tabs>
 
-## Entity.batchDelete(primaryKeys, options?)
+## EntityManager.batchDelete(primaryKeys, options?)
 
 ### Description
 
@@ -880,7 +887,7 @@ This method is used to delete multiple items from DynamoDB. It uses the [BatchWr
 
 ### Arguments
 
-**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
@@ -896,14 +903,14 @@ You can add optional **`options`** parameter that is an object. The table below 
 <TabItem value="default" label="return: 'default'" default>
 
 ```ts
-const result = await User.batchDelete(
+const result = await UserManager.batchDelete(
   [
     { partitionKey: '1', sortKey: 'blazej' },
     { partitionKey: '2', sortKey: 'blazej' },
   ],
 );
 // OR
-const result = await User.batchDelete(
+const result = await UserManager.batchDelete(
   [
     { partitionKey: '1', sortKey: 'blazej' },
     { partitionKey: '2', sortKey: 'blazej' },
@@ -922,7 +929,7 @@ Output:
 <TabItem value="input" label="return: 'input'">
 
 ```ts
-const input = User.batchDelete(
+const input = UserManager.batchDelete(
   [
     { partitionKey: '1', sortKey: 'blazej' },
     { partitionKey: '2', sortKey: 'blazej' },
@@ -939,7 +946,7 @@ const input = User.batchDelete(
 <TabItem value="output" label="return: 'output'">
 
 ```ts
-const output = await User.batchDelete(
+const output = await UserManager.batchDelete(
   [
     { partitionKey: '1', sortKey: 'blazej' },
     { partitionKey: '2', sortKey: 'blazej' },
@@ -964,15 +971,15 @@ Output:
 </TabItem>
 </Tabs>
 
-## Entity.transactionGet(primaryKey, options?)
+## EntityManager.transactionGet(primaryKey, options?)
 
 ### Description
 
-This method is used to build a retrieve item operation. `Entity.transactionGet(primaryKey, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionGet(transactions, options?)`](/docs/guide/transactions#transactiongettransactions-options) function. This allows to retrieve multiple items in a single transaction.
+This method is used to build a retrieve item operation. `EntityManager.transactionGet(primaryKey, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionGet(transactions, options?)`](/docs/guide/transactions#transactiongettransactions-options) function. This allows to retrieve multiple items in a single transaction.
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 <!-- TODO: Add info that this function is async and returns a promise -->
@@ -989,45 +996,45 @@ You can add optional **`options`** parameter that is an object. The table below 
 
 Check out [`transactionGet(transactions, options?)`](/docs/guide/transactions#transactiongettransactions-options) function to see example usage.
 
-## Entity.transactionPut(item, options?)
+## EntityManager.transactionPut(item, options?)
 
 ### Description
 
-This method is used to build an insert item operation. `Entity.transactionPut(item, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to insert multiple items in a single transaction
+This method is used to build an insert item operation. `EntityManager.transactionPut(item, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to insert multiple items in a single transaction
 
 ### Arguments
 
-**`item`**: `Entity` - Instance of entity that you want to insert.
+**`item`**: `Entity` - Instance of a model that you want to insert.
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
-| Name                    | Description                                                                                                                                                                                                                                                                  | Type                                                                                                                                                        | Default     |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `overwrite`             | `TransactItems.Put` DynamoDB operation overwrites items on insertion by default. If you want to prevent overwrites use [`Entity.transactionCreate(item, options?)`](/docs/guide/entity/methods#entitytransactioncreateitem-options) instead, or set overwrite prop to false. | `boolean`                                                                                                                                                   | `true`      |
-| `condition`             | This is an optional instance of a `Condition` for the save. Item won't be inserted in case condition fails.                                                                                                                                                                  | `Condition`                                                                                                                                                 | `undefined` |
-| `returnValuesOnFailure` | Whether or not to return the item if the `Put` condition fails. You can get the item attributes as they appear before insertion or none at all. This uses DynamoDB's `ReturnValuesOnConditionCheckFailure`.                                                                  | `'none'` \| `'allOld'`                                                                                                                                      | `'allOld'`  |
-| `extraInput`            | Extra input that is passed to `Put` DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                           | [`TransactItems.Put`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/transactwriteitemsinput.html#transactitems) | `undefined` |
+| Name                    | Description                                                                                                                                                                                                                                                                              | Type                                                                                                                                                        | Default     |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `overwrite`             | `TransactItems.Put` DynamoDB operation overwrites items on insertion by default. If you want to prevent overwrites use [`EntityManager.transactionCreate(item, options?)`](/docs/guide/table/entityManager#entitytransactioncreateitem-options) instead, or set overwrite prop to false. | `boolean`                                                                                                                                                   | `true`      |
+| `condition`             | This is an optional instance of a `Condition` for the save. Item won't be inserted in case condition fails.                                                                                                                                                                              | `Condition`                                                                                                                                                 | `undefined` |
+| `returnValuesOnFailure` | Whether or not to return the item if the `Put` condition fails. You can get the item attributes as they appear before insertion or none at all. This uses DynamoDB's `ReturnValuesOnConditionCheckFailure`.                                                                              | `'none'` \| `'allOld'`                                                                                                                                      | `'allOld'`  |
+| `extraInput`            | Extra input that is passed to `Put` DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                       | [`TransactItems.Put`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/transactwriteitemsinput.html#transactitems) | `undefined` |
 
 
 ### Examples
 
 Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function to see example usage.
 
-## Entity.transactionCreate(item, options?)
+## EntityManager.transactionCreate(item, options?)
 
 ### Description
 
-This method is almost identical to [`Entity.transactionPut(item, options?)`](/docs/guide/entity/methods#entitytransactionputitem-options). The only difference being that `Entity.transactionCreate(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
+This method is almost identical to [`EntityManager.transactionPut(item, options?)`](/docs/guide/table/entityManager#entitytransactionputitem-options). The only difference being that `EntityManager.transactionCreate(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
 
-## Entity.transactionUpdate(primaryKey, props, options?)
+## EntityManager.transactionUpdate(primaryKey, props, options?)
 
 ### Description
 
-This method is used to build an update item operation. `Entity.transactionUpdate(primaryKey, props, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to update multiple items in a single transaction.
+This method is used to build an update item operation. `EntityManager.transactionUpdate(primaryKey, props, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to update multiple items in a single transaction.
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to update. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to update. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -1056,15 +1063,15 @@ You can add optional **`options`** parameter that is an object. The table below 
 
 Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function to see example usage.
 
-## Entity.transactionDelete(primaryKey, options?)
+## EntityManager.transactionDelete(primaryKey, options?)
 
 ### Description
 
-This method is used to build a delete item operation. `Entity.transactionDelete(primaryKey, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to delete multiple items in a single transaction.
+This method is used to build a delete item operation. `EntityManager.transactionDelete(primaryKey, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to delete multiple items in a single transaction.
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -1079,15 +1086,15 @@ You can add optional **`options`** parameter that is an object. The table below 
 
 Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function to see example usage.
 
-## Entity.transactionCondition(primaryKey, conditionInstance)
+## EntityManager.transactionCondition(primaryKey, conditionInstance)
 
 ### Description
 
-This method is used to build a `conditionCheck` when running a transaction. `Entity.transactionCondition(primaryKey, conditionInstance)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows add multiple condition to a single transaction.
+This method is used to build a `conditionCheck` when running a transaction. `EntityManager.transactionCondition(primaryKey, conditionInstance)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows add multiple condition to a single transaction.
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the generic type that is passed once `Entity` class is inherited.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#metadatatablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 

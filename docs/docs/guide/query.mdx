@@ -18,17 +18,17 @@ Query class acts as a build to construct your query with appropriate filters, to
 
 Query is a child of [Condition](/docs/guide/condition) class, meaning that all methods listed on [Condition](/docs/guide/condition) page are also available in Query class. As example you can use `Query.attribute(key)` method to filter out retrieved items.
 
-## new Query(Entity) or Entity.query()
+## new Query(Entity) or EntityManager.query()
 
-Every query has to be initialized with [Entity](/docs/guide/entity/methods) to infer its underlying properties. You can achieve this in two ways:
+Every query has to be initialized with [Entity](/docs/guide/table/entityManager) to infer its underlying properties. You can achieve this in two ways:
 
 ```ts
 // Below definitions are equivalent
 new Query(AllPossibleProperties);
-AllPossibleProperties.query();
+AllPossiblePropertiesManager.query();
 ```
 
-[AllPossibleProperties](/docs/guide/entity/modeling#all-possible-properties) is an example class that extends [Entity](/docs/guide/entity/methods).
+[AllPossibleProperties](/docs/guide/entity/modeling#all-possible-properties) is an example class that extends [Entity](/docs/guide/table/entityManager).
 
 ## Query.partitionKey(key)
 
@@ -38,15 +38,15 @@ This method prepares a partition key conditional expression. The `key` parameter
 These properties are allowed for the `AllPossibleProperties` model
 
 ```ts
-AllPossibleProperties.query().partitionKey('partitionKey');
-AllPossibleProperties.query().partitionKey('GSI_1_PK');
+AllPossiblePropertiesManager.query().partitionKey('partitionKey');
+AllPossiblePropertiesManager.query().partitionKey('GSI_1_PK');
 ```
 :::
 
 :::caution
 Typescript error: Argument of type '"unknownProperty"' is not assignable to parameter of type: `"partitionKey" | "GSI_1_PK"`
 ```ts
-AllPossibleProperties.query().partitionKey('unknownProperty');
+AllPossiblePropertiesManager.query().partitionKey('unknownProperty');
 ```
 :::
 
@@ -57,7 +57,7 @@ To complete partition key conditional you need to use `.eq(value)` function.
 This comparison function will check if the given key is equal to the value that is passed in as a parameter.
 
 ```ts
-User.query().partitionKey('partitionKey').eq('1'); // Resulting in: `partitionKey = 1`
+UserManager.query().partitionKey('partitionKey').eq('1'); // Resulting in: `partitionKey = 1`
 ```
 
 ## Query.sortKey(key)
@@ -69,23 +69,23 @@ These properties are allowed for the `AllPossibleProperties` model
 :::
 
 ```ts
-AllPossibleProperties.query().sortKey('sortKey');
-AllPossibleProperties.query().sortKey('GSI_1_SK');
-AllPossibleProperties.query().sortKey('LSI_1_SK');
+AllPossiblePropertiesManager.query().sortKey('sortKey');
+AllPossiblePropertiesManager.query().sortKey('GSI_1_SK');
+AllPossiblePropertiesManager.query().sortKey('LSI_1_SK');
 ```
 
 :::caution
 Typescript error: Argument of type '"unknownProperty"' is not assignable to parameter of type: `"sortKey" | "GSI_1_SK" | "LSI_1_SK"`
 ```ts
-AllPossibleProperties.query().sortKey('unknownProperty');
+AllPossiblePropertiesManager.query().sortKey('unknownProperty');
 ```
 :::
 
 To complete sort key conditional you need to use one of undermentioned functions.
 
 ```ts
-User.query().sortKey('sortKey'); // This condition has no impact on the final conditional
-User.query().sortKey('sortKey').eq('blazej'); // Adding comparison function (eq) after `sortKey(key)` method will complete the conditional. Resulting in: `sortKey = blazej`
+UserManager.query().sortKey('sortKey'); // This condition has no impact on the final conditional
+UserManager.query().sortKey('sortKey').eq('blazej'); // Adding comparison function (eq) after `sortKey(key)` method will complete the conditional. Resulting in: `sortKey = blazej`
 ```
 
 ### .eq(value)
@@ -93,7 +93,7 @@ User.query().sortKey('sortKey').eq('blazej'); // Adding comparison function (eq)
 This comparison function will check if the given key is equal to the value that is passed in as a parameter.
 
 ```ts
-User.query().sortKey('sortKey').eq('blazej'); // Resulting in: `sortKey = blazej`
+UserManager.query().sortKey('sortKey').eq('blazej'); // Resulting in: `sortKey = blazej`
 ```
 
 ### .ne(value)
@@ -101,7 +101,7 @@ User.query().sortKey('sortKey').eq('blazej'); // Resulting in: `sortKey = blazej
 This comparison function will check if the given key is not equal to the value that is passed in as a parameter.
 
 ```ts
-User.query().sortKey('sortKey').ne('blazej'); // Resulting in: `sortKey <> blazej`
+UserManager.query().sortKey('sortKey').ne('blazej'); // Resulting in: `sortKey <> blazej`
 ```
 
 ### .lt(value)
@@ -109,7 +109,7 @@ User.query().sortKey('sortKey').ne('blazej'); // Resulting in: `sortKey <> blaze
 This comparison function will check if the given key is less than the value that is passed in as a parameter.
 
 ```ts
-User.query().sortKey('sortKey').lt('blazej'); // Resulting in: `sortKey < blazej`
+UserManager.query().sortKey('sortKey').lt('blazej'); // Resulting in: `sortKey < blazej`
 ```
 
 ### .le(value)
@@ -117,7 +117,7 @@ User.query().sortKey('sortKey').lt('blazej'); // Resulting in: `sortKey < blazej
 This comparison function will check if the given key is less than or equal to the value that is passed in as a parameter.
 
 ```ts
-User.query().sortKey('sortKey').le('blazej'); // Resulting in: `sortKey <= blazej`
+UserManager.query().sortKey('sortKey').le('blazej'); // Resulting in: `sortKey <= blazej`
 ```
 
 ### .gt(value)
@@ -125,7 +125,7 @@ User.query().sortKey('sortKey').le('blazej'); // Resulting in: `sortKey <= blaze
 This comparison function will check if the given key is greater than the value that is passed in as a parameter.
 
 ```ts
-User.query().sortKey('sortKey').gt('blazej'); // Resulting in: `sortKey > blazej`
+UserManager.query().sortKey('sortKey').gt('blazej'); // Resulting in: `sortKey > blazej`
 ```
 
 ### .ge(value)
@@ -133,7 +133,7 @@ User.query().sortKey('sortKey').gt('blazej'); // Resulting in: `sortKey > blazej
 This comparison function will check if the given key is greater than or equal to the value that is passed in as a parameter.
 
 ```ts
-User.query().sortKey('sortKey').ge('blazej'); // Resulting in: `sortKey >= blazej`
+UserManager.query().sortKey('sortKey').ge('blazej'); // Resulting in: `sortKey >= blazej`
 ```
 
 ### .beginsWith(value)
@@ -141,7 +141,7 @@ User.query().sortKey('sortKey').ge('blazej'); // Resulting in: `sortKey >= blaze
 This comparison function will check if the given key is begins with the value that is passed in as a parameter.
 
 ```ts
-User.query().sortKey('sortKey').beginsWith('bla'); // Resulting in: `begins_with(sortKey, bla)`
+UserManager.query().sortKey('sortKey').beginsWith('bla'); // Resulting in: `begins_with(sortKey, bla)`
 ```
 
 ### .between(value1, value2)
@@ -149,7 +149,7 @@ User.query().sortKey('sortKey').beginsWith('bla'); // Resulting in: `begins_with
 This comparison function will check if the given key is between the values that were passed in as parameters.
 
 ```ts
-User.query().sortKey('sortKey').between('bla', 'cla'); // Resulting in: `sortKey BETWEEN 'bla' AND 'cla'`
+UserManager.query().sortKey('sortKey').between('bla', 'cla'); // Resulting in: `sortKey BETWEEN 'bla' AND 'cla'`
 ```
 
 ## Query.sort(order)
@@ -159,7 +159,7 @@ This method sorts the items you receive by using sort key. It uses DynamoDB's `S
 The `order` parameter must be a string, either `'ascending'` or `'descending'`. Query will return items in ascending order by default.
 
 ```ts
-User.query().partitionKey('partitionKey').eq('1').sort('descending'); // Resulting in: `ScanIndexForward: false`
+UserManager.query().partitionKey('partitionKey').eq('1').sort('descending'); // Resulting in: `ScanIndexForward: false`
 ```
 
 ## Query.limit(count)
@@ -173,7 +173,7 @@ Unlike most SQL databases **this does not guarantee the response will contain 5 
 The `count` argument should be a `number` representing how many items you wish DynamoDB to query.
 
 ```ts
-User.query().partitionKey('partitionKey').eq('1').limit(10); // Resulting in: `Limit: 10`
+UserManager.query().partitionKey('partitionKey').eq('1').limit(10); // Resulting in: `Limit: 10`
 ```
 
 ## Query.startAt(key)
@@ -181,8 +181,8 @@ User.query().partitionKey('partitionKey').eq('1').limit(10); // Resulting in: `L
 In case there are more items to retrieve in a previous query response, Dynamode will return `lastKey` property with primary key of last evaluated item. You can pass this property to further query your items. It uses DynamoDB's `LastEvaluatedKey`.
 
 ```ts
-const response1 = await User.query().partitionKey('partitionKey').eq('1').run(); 
-const response2 = await User.query().partitionKey('partitionKey').eq('1').startAt(response1.lastKey).run(); // Resulting in: `LastEvaluatedKey: response1.lastKey`
+const response1 = await UserManager.query().partitionKey('partitionKey').eq('1').run(); 
+const response2 = await UserManager.query().partitionKey('partitionKey').eq('1').startAt(response1.lastKey).run(); // Resulting in: `LastEvaluatedKey: response1.lastKey`
 ```
 
 ## Query.consistent()
@@ -190,7 +190,7 @@ const response2 = await User.query().partitionKey('partitionKey').eq('1').startA
 This will cause the query to run a consistent read. By default read is eventually consistent. It uses DynamoDB's `ConsistentRead`.
 
 ```ts
-User.query().partitionKey('partitionKey').eq('1').consistent(); // Resulting in: `ConsistentRead: true`
+UserManager.query().partitionKey('partitionKey').eq('1').consistent(); // Resulting in: `ConsistentRead: true`
 ```
 
 ## Query.count()
@@ -198,7 +198,7 @@ User.query().partitionKey('partitionKey').eq('1').consistent(); // Resulting in:
 Instead of returning an array of items, this method will make the query operation to return an object with count information. This option saves bandwidth by using DynamoDB's `Select`.
 
 ```ts
-User.query().partitionKey('partitionKey').eq('1').count(); // Resulting in: `Select: 'COUNT'`
+UserManager.query().partitionKey('partitionKey').eq('1').count(); // Resulting in: `Select: 'COUNT'`
 ```
 
 ## Query.attributes(attributes)
@@ -208,7 +208,7 @@ This method is used to tag what item attributes should be retrieved and returned
 If this value is `undefined`, then all attributes will be returned. `attributes` argument should be an array of strings representing the property names to return.
 
 ```ts
-User.query().partitionKey('partitionKey').eq('1').attributes(['username', 'age']); // Resulting in: `ProjectionExpression: 'username, age'`
+UserManager.query().partitionKey('partitionKey').eq('1').attributes(['username', 'age']); // Resulting in: `ProjectionExpression: 'username, age'`
 ```
 
 ## Query.run(options?)
@@ -239,13 +239,13 @@ If `all` option is set to `true` all of the requests will be merged into a singl
 <TabItem value="default" label="return: 'default'" default>
 
 ```ts
-const result = await User.query()
+const result = await UserManager.query()
   .partitionKey('partitionKey').eq('1')
   .sortKey('sortKey').beginsWith('bla')
   .limit(1).sort('descending')
   .run();
 // OR
-const result = await User.query()
+const result = await UserManager.query()
   .partitionKey('partitionKey').eq('1')
   .sortKey('sortKey').beginsWith('bla')
   .limit(1).sort('descending')
@@ -278,7 +278,7 @@ Output:
 <TabItem value="input" label="return: 'input'">
 
 ```ts
-const input = User.query()
+const input = UserManager.query()
   .partitionKey('partitionKey').eq('1')
   .sortKey('sortKey').beginsWith('bla')
   .limit(1).sort('descending')
@@ -303,7 +303,7 @@ Output:
 <TabItem value="output" label="return: 'output'">
 
 ```ts
-const output = await User.query()
+const output = await UserManager.query()
   .partitionKey('partitionKey').eq('1')
   .sortKey('sortKey').beginsWith('bla')
   .limit(1).sort('descending')

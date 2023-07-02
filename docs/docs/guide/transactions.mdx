@@ -20,7 +20,7 @@ This function is used to get multiple items in a single transaction. It uses the
 
 ### Arguments
 
-**`transactions`**: `TransactionGet[]` - Array of get operations generated with [`EntityManager.transactionGet(primaryKey, options?)`](/docs/guide/entity/methods#entitytransactiongetprimarykey-options) method.
+**`transactions`**: `TransactionGet[]` - Array of get operations generated with [`EntityManager.transactionGet(primaryKey, options?)`](/docs/guide/table/entityManager#entitytransactiongetprimarykey-options) method.
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
@@ -147,13 +147,13 @@ This function is used to insert/update/delete multiple items in a single transac
 
 **`transactions`**: `TransactionWrite[]` - Array of operations generated with methods that are described below:
 
-| Method                                                                                                                                                   | Description                                     |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| [`EntityManager.transactionPut(item, options?)`](/docs/guide/entity/methods#entitytransactionputitem-options)                                            | Insert an item to DynamoDB.                     |
-| [`EntityManager.transactionCreate(item, options?)`](/docs/guide/entity/methods#entitytransactioncreateitem-options)                                      | Insert an item to DynamoDB (without overwrite). |
-| [`EntityManager.transactionUpdate(primaryKey, props, options?)`](/docs/guide/entity/methods#entitytransactionupdateprimarykey-props-options)             | Update an item in DynamoDB.                     |
-| [`EntityManager.transactionDelete(primaryKey, options?)`](/docs/guide/entity/methods#entitytransactiondeleteprimarykey-options)                          | Delete an item in DynamoDB.                     |
-| [`EntityManager.transactionCondition(primaryKey, conditionInstance)`](/docs/guide/entity/methods#entitytransactionconditionprimarykey-conditioninstance) | Condition for the transaction.                  |
+| Method                                                                                                                                                        | Description                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| [`EntityManager.transactionPut(item, options?)`](/docs/guide/table/entityManager#entitytransactionputitem-options)                                            | Insert an item to DynamoDB.                     |
+| [`EntityManager.transactionCreate(item, options?)`](/docs/guide/table/entityManager#entitytransactioncreateitem-options)                                      | Insert an item to DynamoDB (without overwrite). |
+| [`EntityManager.transactionUpdate(primaryKey, props, options?)`](/docs/guide/table/entityManager#entitytransactionupdateprimarykey-props-options)             | Update an item in DynamoDB.                     |
+| [`EntityManager.transactionDelete(primaryKey, options?)`](/docs/guide/table/entityManager#entitytransactiondeleteprimarykey-options)                          | Delete an item in DynamoDB.                     |
+| [`EntityManager.transactionCondition(primaryKey, conditionInstance)`](/docs/guide/table/entityManager#entitytransactionconditionprimarykey-conditioninstance) | Condition for the transaction.                  |
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
@@ -192,7 +192,7 @@ const transactions = await transactionWrite(
       }),
     ),
     KeyValueManager.transactionDelete({ key: 'key4' }),
-    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValue.condition().attribute('key').eq('key5')),
+    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValueManager.condition().attribute('key').eq('key5')),
   ],
 );
 // OR
@@ -219,7 +219,7 @@ const transactions = await transactionWrite(
       }),
     ),
     KeyValueManager.transactionDelete({ key: 'key4' }),
-    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValue.condition().attribute('key').eq('key5')),
+    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValueManager.condition().attribute('key').eq('key5')),
   ],
   { return: 'default' },
 );
@@ -272,7 +272,7 @@ const input = transactionWrite(
       }),
     ),
     KeyValueManager.transactionDelete({ key: 'key4' }),
-    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValue.condition().attribute('key').eq('key5')),
+    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValueManager.condition().attribute('key').eq('key5')),
   ],
   { return: 'input' },
 );
@@ -320,7 +320,7 @@ const output = await transactionWrite(
       }),
     ),
     KeyValueManager.transactionDelete({ key: 'key4' }),
-    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValue.condition().attribute('key').eq('key5')),
+    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValueManager.condition().attribute('key').eq('key5')),
   ],
   { return: 'output' },
 );

@@ -70,7 +70,7 @@ class ExampleTable extends Entity {
   }
 }
 
-export const ExampleTableManager = tableManager(ExampleTable).metadata({
+export const ExampleTableManager = new TableManager(ExampleTable, {
   tableName: TABLE_NAME,
   partitionKey: 'propPk',
   sortKey: 'propSk',

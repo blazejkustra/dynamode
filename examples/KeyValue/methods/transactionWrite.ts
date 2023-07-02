@@ -1,4 +1,4 @@
-import { transactionWrite } from '../../../dist';
+import transactionWrite from '../../../dist/transactionWrite';
 import { KeyValue, KeyValueManager } from '../model';
 
 async function transaction() {

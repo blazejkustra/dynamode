@@ -28,20 +28,20 @@ export default class Condition<E extends typeof Entity> {
       between: (value1: EntityValue<E, K>, value2: EntityValue<E, K>): C =>
         this.between(this.operators, key, value1, value2),
       contains: (value: EntityValue<E, K>): C => {
-        let processedValue = value;
+        let processedValue: unknown = value;
 
-        if (value instanceof Set) {
-          if (value.size !== 1) {
+        if (processedValue instanceof Set) {
+          if (processedValue.size !== 1) {
             throw new ValidationError('contains() only supports one value in the set');
           }
-          processedValue = Array.from(value)[0];
+          processedValue = Array.from(processedValue)[0];
         }
 
-        if (Array.isArray(value)) {
-          if (value.length !== 1) {
+        if (Array.isArray(processedValue)) {
+          if (processedValue.length !== 1) {
             throw new ValidationError('contains() only supports one value in the array');
           }
-          processedValue = value[0];
+          processedValue = processedValue[0];
         }
 
         this.operators.push(
@@ -96,20 +96,20 @@ export default class Condition<E extends typeof Entity> {
         gt: (value: EntityValue<E, K>): C => this.le(this.operators, key, value),
         ge: (value: EntityValue<E, K>): C => this.lt(this.operators, key, value),
         contains: (value: EntityValue<E, K>): C => {
-          let processedValue = value;
+          let processedValue: unknown = value;
 
-          if (value instanceof Set) {
-            if (value.size !== 1) {
+          if (processedValue instanceof Set) {
+            if (processedValue.size !== 1) {
               throw new ValidationError('contains() only supports one value in the set');
             }
-            processedValue = Array.from(value)[0];
+            processedValue = Array.from(processedValue)[0];
           }
 
-          if (Array.isArray(value)) {
-            if (value.length !== 1) {
+          if (Array.isArray(processedValue)) {
+            if (processedValue.length !== 1) {
               throw new ValidationError('contains() only supports one value in the array');
             }
-            processedValue = value[0];
+            processedValue = processedValue[0];
           }
 
           this.operators.push(

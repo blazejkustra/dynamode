@@ -1,4 +1,4 @@
-import { transactionWrite } from '../../../dist';
+import transactionWrite from '../../../dist/transactionWrite';
 import { User, UserManager } from '../model';
 
 async function transaction() {

@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import attribute from '@lib/decorators';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
-import tableManager from '@lib/table';
+import TableManager from '@lib/table';
 
 vi.useFakeTimers();
 
@@ -132,7 +132,7 @@ export class MockEntity extends TestTable {
   }
 }
 
-const TestTableManager = tableManager(TestTable).metadata({
+const TestTableManager = new TableManager(TestTable, {
   tableName: TEST_TABLE_NAME,
   partitionKey: 'partitionKey',
   sortKey: 'sortKey',

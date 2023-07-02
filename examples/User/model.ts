@@ -1,7 +1,7 @@
 import attribute from '../../dist/decorators';
 import Dynamode from '../../dist/dynamode';
 import Entity from '../../dist/entity';
-import tableManager from '../../dist/table';
+import TableManager from '../../dist/table';
 
 Dynamode.ddb.local();
 
@@ -59,7 +59,7 @@ export class User extends Entity {
   }
 }
 
-export const UserTableManager = tableManager(User).metadata({
+export const UserTableManager = new TableManager(User, {
   tableName: USERS_TABLE,
   partitionKey: 'partitionKey',
   sortKey: 'sortKey',

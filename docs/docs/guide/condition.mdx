@@ -7,21 +7,21 @@ hide_title: true
 
 # Condition
 
-Condition class represents a conditional that you can pass to [Entity methods](/docs/guide/entity/methods) and also to build more complex conditions in [Query](/docs/guide/query) and [Scan](/docs/guide/scan) classes.
+Condition class represents a conditional that you can pass to [Entity Manager methods](/docs/guide/table/entityManager) and also to build more complex conditions in [Query](/docs/guide/query) and [Scan](/docs/guide/scan) classes.
 
 Condition is also a base class for [Query](/docs/guide/query) and [Scan](/docs/guide/scan), meaning that all methods listed here are also available in [Query](/docs/guide/query) and [Scan](/docs/guide/scan) classes.
 
-## new Condition(Entity) or Entity.condition()
+## new Condition(Entity) or EntityManager.condition()
 
-Every condition has to be initialized with [Entity](/docs/guide/entity/methods) to infer its underlying properties. You can achieve this in two ways:
+Every condition has to be initialized with [Entity](/docs/guide/table/entityManager) to infer its underlying properties. You can achieve this in two ways:
 
 ```ts
 // Below definitions are equivalent
 new Condition(User);
-User.condition();
+UserManager.condition();
 ```
 
-[User](/docs/guide/entity/modeling#user) is an example class that extends [Entity](/docs/guide/entity/methods).
+[User](/docs/guide/entity/modeling#user) is an example class that extends [Entity](/docs/guide/table/entityManager).
 
 ## Condition.attribute(key)
 
@@ -31,30 +31,30 @@ This method prepares a new conditional expression. The `key` parameter is a stri
 These properties are allowed for the User entity
 
 ```ts
-User.condition().attribute('partitionKey');
-User.condition().attribute('sortKey');
-User.condition().attribute('username');
-User.condition().attribute('age');
-User.condition().attribute('friends');
-User.condition().attribute('config');
-User.condition().attribute('config.isAdmin');
-User.condition().attribute('friends[1]');
-User.condition().attribute('friends[10]');
+UserManager.condition().attribute('partitionKey');
+UserManager.condition().attribute('sortKey');
+UserManager.condition().attribute('username');
+UserManager.condition().attribute('age');
+UserManager.condition().attribute('friends');
+UserManager.condition().attribute('config');
+UserManager.condition().attribute('config.isAdmin');
+UserManager.condition().attribute('friends[1]');
+UserManager.condition().attribute('friends[10]');
 ```
 :::
 
 :::caution
 Typescript error: Argument of type '"unknownProperty"' is not assignable to parameter of type: `"username" | "partitionKey" | "sortKey" | "age" | "config" | "config.isAdmin" | friends | friends.${number}`
 ```ts
-User.condition().attribute('unknownProperty');
+UserManager.condition().attribute('unknownProperty');
 ```
 :::
 
 To complete the conditional you need to use one of undermentioned functions.
 
 ```ts
-User.condition().attribute('username'); // This condition has no impact on the final conditional
-User.condition().attribute('username').eq('blazej'); // Adding comparison function (eq) after `attribute` method will complete the conditional. Resulting in: `username = blazej`
+UserManager.condition().attribute('username'); // This condition has no impact on the final conditional
+UserManager.condition().attribute('username').eq('blazej'); // Adding comparison function (eq) after `attribute` method will complete the conditional. Resulting in: `username = blazej`
 ```
 
 ### .eq(value)
@@ -62,7 +62,7 @@ User.condition().attribute('username').eq('blazej'); // Adding comparison functi
 This comparison function will check if the given key is equal to the value that is passed in as a parameter.
 
 ```ts
-User.condition().attribute('username').eq('blazej'); // Resulting in: `username = blazej`
+UserManager.condition().attribute('username').eq('blazej'); // Resulting in: `username = blazej`
 ```
 
 ### .ne(value)
@@ -70,7 +70,7 @@ User.condition().attribute('username').eq('blazej'); // Resulting in: `username 
 This comparison function will check if the given key is not equal to the value that is passed in as a parameter.
 
 ```ts
-User.condition().attribute('username').ne('blazej'); // Resulting in: `username <> blazej`
+UserManager.condition().attribute('username').ne('blazej'); // Resulting in: `username <> blazej`
 ```
 
 ### .lt(value)
@@ -78,7 +78,7 @@ User.condition().attribute('username').ne('blazej'); // Resulting in: `username 
 This comparison function will check if the given key is less than the value that is passed in as a parameter.
 
 ```ts
-User.condition().attribute('username').lt('blazej'); // Resulting in: `username < blazej`
+UserManager.condition().attribute('username').lt('blazej'); // Resulting in: `username < blazej`
 ```
 
 ### .le(value)
@@ -86,7 +86,7 @@ User.condition().attribute('username').lt('blazej'); // Resulting in: `username 
 This comparison function will check if the given key is less than or equal to the value that is passed in as a parameter.
 
 ```ts
-User.condition().attribute('username').le('blazej'); // Resulting in: `username <= blazej`
+UserManager.condition().attribute('username').le('blazej'); // Resulting in: `username <= blazej`
 ```
 
 ### .gt(value)
@@ -94,7 +94,7 @@ User.condition().attribute('username').le('blazej'); // Resulting in: `username 
 This comparison function will check if the given key is greater than the value that is passed in as a parameter.
 
 ```ts
-User.condition().attribute('username').gt('blazej'); // Resulting in: `username > blazej`
+UserManager.condition().attribute('username').gt('blazej'); // Resulting in: `username > blazej`
 ```
 
 ### .ge(value)
@@ -102,7 +102,7 @@ User.condition().attribute('username').gt('blazej'); // Resulting in: `username 
 This comparison function will check if the given key is greater than or equal to the value that is passed in as a parameter.
 
 ```ts
-User.condition().attribute('username').ge('blazej'); // Resulting in: `username >= blazej`
+UserManager.condition().attribute('username').ge('blazej'); // Resulting in: `username >= blazej`
 ```
 
 ### .beginsWith(value)
@@ -110,7 +110,7 @@ User.condition().attribute('username').ge('blazej'); // Resulting in: `username 
 This comparison function will check if the given key is begins with the value that is passed in as a parameter.
 
 ```ts
-User.condition().attribute('username').beginsWith('bla'); // Resulting in: `begins_with(username, bla)`
+UserManager.condition().attribute('username').beginsWith('bla'); // Resulting in: `begins_with(username, bla)`
 ```
 
 ### .between(value1, value2)
@@ -118,7 +118,7 @@ User.condition().attribute('username').beginsWith('bla'); // Resulting in: `begi
 This comparison function will check if the given key is between the values that were passed in as parameters.
 
 ```ts
-User.condition().attribute('age').between(21, 37); // Resulting in: `age BETWEEN 21 AND 37`
+UserManager.condition().attribute('age').between(21, 37); // Resulting in: `age BETWEEN 21 AND 37`
 ```
 
 ### .contains(values)
@@ -126,7 +126,7 @@ User.condition().attribute('age').between(21, 37); // Resulting in: `age BETWEEN
 This comparison function will check if the given key contains the value that is passed in as a parameter.
 
 ```ts
-User.condition().attribute('username').contains('blazej'); // Resulting in: `contains(username, blazej)`
+UserManager.condition().attribute('username').contains('blazej'); // Resulting in: `contains(username, blazej)`
 ```
 
 ### .in(values)
@@ -134,7 +134,7 @@ User.condition().attribute('username').contains('blazej'); // Resulting in: `con
 This comparison function will check if the given key equals to any of the items that are passed in as parameters.
 
 ```ts
-User.condition().attribute('username').in(['blazej', 'david']); // Resulting in: `username IN blazej, david`
+UserManager.condition().attribute('username').in(['blazej', 'david']); // Resulting in: `username IN blazej, david`
 ```
 
 ### .type(value)
@@ -144,7 +144,7 @@ This comparison function will check if the given key is of a given type that is 
 ```ts
 import { AttributeType } from 'dynamode/condition';
 
-User.condition().attribute('username').type(AttributeType.String); // Resulting in: `attribute_type(username, 'S')`
+UserManager.condition().attribute('username').type(AttributeType.String); // Resulting in: `attribute_type(username, 'S')`
 ```
 
 ### .exists()
@@ -152,7 +152,7 @@ User.condition().attribute('username').type(AttributeType.String); // Resulting 
 This comparison function will check if the given key exists in the item.
 
 ```ts
-User.condition().attribute('username').exists(); // Resulting in: `attribute_exists(username)`
+UserManager.condition().attribute('username').exists(); // Resulting in: `attribute_exists(username)`
 ```
 
 ### .size()
@@ -184,17 +184,17 @@ This function use the opposite comparison for a given condition. List of possibl
 | `.exists()`        | N/A          | `'attribute_not_exists(key)'`   |
 
 ```ts
-User.condition().attribute('username').not().contains('blazej'); // Resulting in: `NOT contains(username, blazej)`
-User.condition().attribute('username').not().eq('blazej'); // Resulting in: `username <> blazej`
+UserManager.condition().attribute('username').not().contains('blazej'); // Resulting in: `NOT contains(username, blazej)`
+UserManager.condition().attribute('username').not().eq('blazej'); // Resulting in: `username <> blazej`
 ```
 
 ## Condition.parenthesis(condition)
 
-This method takes initialized `Condition` as a parameter and groups the inner condition with a parenthesis.
+This method takes initialized [`Condition`](/docs/guide/condition) as a parameter and groups the inner condition with a parenthesis.
 
 ```ts
-User.condition().attribute('username').eq('blazej').and.parenthesis(
-  User.condition()
+UserManager.condition().attribute('username').eq('blazej').and.parenthesis(
+  UserManager.condition()
     .attribute('age').eq(21)
     .attribute('age').eq(37)
 ); // username = blazej AND ( age = 21 OR age = 37 )
@@ -206,17 +206,17 @@ This method is identical to [`Condition.parenthesis(condition)`](/docs/guide/con
 
 ## Condition.condition(condition)
 
-This method takes initialized `Condition` as a parameter and merges both conditions together without parenthesis.
+This method takes initialized [`Condition`](/docs/guide/condition) as a parameter and merges both conditions together without parenthesis.
 
 ```ts
-User.condition().attribute('username').eq('blazej').and.condition(
-  User.condition()
+UserManager.condition().attribute('username').eq('blazej').and.condition(
+  UserManager.condition()
     .attribute('age').eq(21).or
     .attribute('age').eq(37)
 ); // username = blazej AND age = 21 OR age = 37 
 
-User.condition().attribute('username').eq('blazej').or.condition(
-  User.condition()
+UserManager.condition().attribute('username').eq('blazej').or.condition(
+  UserManager.condition()
     .attribute('age').eq(21).or
     .attribute('age').eq(37)
 ); // username = blazej OR age = 21 OR age = 37 
@@ -228,8 +228,8 @@ This method specifies an `AND` operator between two conditions, condition will r
 
 ```ts
 // conditions below are identical
-User.condition().attribute('username').eq('blazej').and.attribute('age').eq(21); // username = blazej AND age = 21
-User.condition().attribute('username').eq('blazej').attribute('age').eq(21); // username = blazej AND age = 21
+UserManager.condition().attribute('username').eq('blazej').and.attribute('age').eq(21); // username = blazej AND age = 21
+UserManager.condition().attribute('username').eq('blazej').attribute('age').eq(21); // username = blazej AND age = 21
 ```
 
 ## Condition.or
@@ -237,5 +237,5 @@ User.condition().attribute('username').eq('blazej').attribute('age').eq(21); // 
 This method specifies an `OR` operator between two conditions, condition will return true if either of two conditions are met.
 
 ```ts
-User.condition().attribute('username').eq('blazej').or.attribute('age').eq(21); // username = blazej OR age = 21
+UserManager.condition().attribute('username').eq('blazej').or.attribute('age').eq(21); // username = blazej OR age = 21
 ```

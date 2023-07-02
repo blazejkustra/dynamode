@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import Dynamode from '@lib/dynamode/index';
-import * as entity from '@lib/entity/entityManager';
-import tableManager from '@lib/table';
+import * as EntityManager from '@lib/entity/entityManager';
+import TableManager from '@lib/table';
 
 import { MockEntity, MockEntityManager, TEST_TABLE_NAME, TestTable } from '../../fixtures';
 
@@ -22,16 +22,16 @@ const metadata = {
 } as const;
 
 describe('Table', () => {
-  describe('tableManager', async () => {
+  describe('TableManager', async () => {
     describe('Initializers', async () => {
       let registerTableSpy = vi.spyOn(Dynamode.storage, 'registerTable');
       let registerEntitySpy = vi.spyOn(Dynamode.storage, 'registerEntity');
-      let entityManagerSpy = vi.spyOn(entity, 'EntityManager');
+      let entityManagerSpy = vi.spyOn(EntityManager, 'default');
 
       beforeEach(() => {
         registerTableSpy = vi.spyOn(Dynamode.storage, 'registerTable');
         registerEntitySpy = vi.spyOn(Dynamode.storage, 'registerEntity');
-        entityManagerSpy = vi.spyOn(entity, 'EntityManager');
+        entityManagerSpy = vi.spyOn(EntityManager, 'default');
       });
 
       afterEach(() => {
@@ -42,12 +42,12 @@ describe('Table', () => {
         registerTableSpy.mockReturnValue(undefined);
         registerEntitySpy.mockReturnValue(undefined);
 
-        const TableManager = tableManager(TestTable).metadata(metadata);
+        const TestTableManager = new TableManager(TestTable, metadata);
 
         expect(registerTableSpy).toBeCalledWith(TestTable, metadata);
         expect(registerEntitySpy).toBeCalledWith(TestTable, TEST_TABLE_NAME);
-        expect(TableManager.tableEntity).toEqual(TestTable);
-        expect(TableManager.tableMetadata).toEqual(metadata);
+        expect(TestTableManager.tableEntity).toEqual(TestTable);
+        expect(TestTableManager.tableMetadata).toEqual(metadata);
       });
 
       test('Should call entityManager with proper parameters', async () => {
@@ -55,9 +55,9 @@ describe('Table', () => {
         registerEntitySpy.mockReturnValue(undefined);
         entityManagerSpy.mockReturnValue(MockEntityManager as any);
 
-        const TableManager = tableManager(TestTable).metadata(metadata);
+        const TestTableManager = new TableManager(TestTable, metadata);
 
-        expect(TableManager.entityManager(MockEntity)).toEqual(MockEntityManager);
+        expect(TestTableManager.entityManager(MockEntity)).toEqual(MockEntityManager);
         expect(entityManagerSpy).toBeCalledWith(MockEntity, TEST_TABLE_NAME);
       });
 
@@ -66,9 +66,9 @@ describe('Table', () => {
         registerEntitySpy.mockReturnValue(undefined);
         entityManagerSpy.mockReturnValue({ testTable: 'testTable' } as any);
 
-        const TableManager = tableManager(TestTable).metadata(metadata);
+        const TestTableManager = new TableManager(TestTable, metadata);
 
-        expect(TableManager.entityManager()).toEqual({ testTable: 'testTable' });
+        expect(TestTableManager.entityManager()).toEqual({ testTable: 'testTable' });
         expect(entityManagerSpy).toBeCalledWith(TestTable, TEST_TABLE_NAME);
       });
     });

@@ -1,7 +1,7 @@
 import attribute from '../../dist/decorators';
 import Dynamode from '../../dist/dynamode';
 import Entity from '../../dist/entity';
-import tableManager from '../../dist/table';
+import TableManager from '../../dist/table';
 
 Dynamode.ddb.local();
 
@@ -27,7 +27,7 @@ export class KeyValue extends Entity {
   }
 }
 
-export const KeyValueTableManager = tableManager(KeyValue).metadata({
+export const KeyValueTableManager = new TableManager(KeyValue, {
   tableName: TABLE_NAME,
   partitionKey: 'key',
 });
