@@ -1,5 +1,5 @@
 import { AttributeDefinition } from '@aws-sdk/client-dynamodb';
-import { Dynamode } from '@lib/dynamode';
+import Dynamode from '@lib/dynamode';
 import Entity from '@lib/entity';
 import { getAttributeType } from '@lib/table/helpers/utils';
 import { Metadata } from '@lib/table/types';

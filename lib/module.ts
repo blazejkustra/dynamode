@@ -5,6 +5,7 @@ import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import Query from '@lib/query';
 import Scan from '@lib/scan';
+import tableManager from '@lib/table';
 import transactionGet from '@lib/transactionGet';
 import transactionWrite from '@lib/transactionWrite';
 
@@ -27,6 +28,9 @@ export {
 
   //Entity
   Entity,
+
+  //table manager
+  tableManager,
 
   //Query
   Query,

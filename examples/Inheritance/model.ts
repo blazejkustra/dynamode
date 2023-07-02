@@ -1,7 +1,7 @@
-import { Dynamode } from '../../dist';
+import Dynamode from '../../dist/dynamode';
 import attribute from '../../dist/decorators';
 import Entity from '../../dist/entity';
-import { tableManager } from '../../dist/table';
+import tableManager from '../../dist/table';
 
 Dynamode.ddb.local();
 

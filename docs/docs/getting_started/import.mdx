@@ -29,19 +29,6 @@ const dynamode = require('dynamode');
 </TabItem>
 </Tabs>
 
-## Import the whole Dynamode library
-
-```ts
-import dynamode from 'dynamode';
-const { Entity, decorators, Dynamode } = dynamode;
-```
-
-## Import specific classes/methods inside of curly brackets
-
-```ts
-import { Entity, decorators, Dynamode } from 'dynamode';
-```
-
 ## Import specific classes/methods individually
 
 :::info
@@ -50,6 +37,20 @@ This is recommended way of importing Dynamode.
 
 ```ts
 import Entity from 'dynamode/entity';
-import decorators from 'dynamode/decorators';
-import { Dynamode } from 'dynamode';
+import attribute from 'dynamode/decorators';
+import tableManager from 'dynamode/table';
+import Dynamode from 'dynamode/dynamode';
+```
+
+## Import the whole Dynamode library
+
+```ts
+import dynamode from 'dynamode';
+const { Entity, attribute, tableManager, Dynamode } = dynamode;
+```
+
+## Import specific classes/methods inside of curly brackets
+
+```ts
+import { Entity, attribute, tableManager, Dynamode } from 'dynamode';
 ```
