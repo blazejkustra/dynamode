@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import Dynamode from '@lib/dynamode/index';
-import { prefixSuffixValue, truncateValue } from '@lib/entity/helpers/prefixSuffix';
+import { prefixSuffixValue, truncateValue } from '@lib/entity/helpers/transformValues';
 
 import { MockEntity } from '../../../fixtures';
 

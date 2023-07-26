@@ -46,7 +46,7 @@ describe('Build operators entity helpers', () => {
 
   describe('buildUpdateOperators', async () => {
     test('Should properly build update operators with props.set', async () => {
-      expect(buildUpdateOperators<typeof MockEntity>({ set: { string: 'value', number: 1 } })).toEqual([
+      expect(buildUpdateOperators(MockEntity, { set: { string: 'value', number: 1 } })).toEqual([
         BASE_OPERATOR.set,
         BASE_OPERATOR.space,
         ...UPDATE_OPERATORS.set('string', 'value'),
@@ -57,7 +57,7 @@ describe('Build operators entity helpers', () => {
     });
 
     test('Should properly build update operators with props.setIfNotExists', async () => {
-      expect(buildUpdateOperators<typeof MockEntity>({ setIfNotExists: { string: 'value', number: 1 } })).toEqual([
+      expect(buildUpdateOperators(MockEntity, { setIfNotExists: { string: 'value', number: 1 } })).toEqual([
         BASE_OPERATOR.set,
         BASE_OPERATOR.space,
         ...UPDATE_OPERATORS.setIfNotExists('string', 'value'),
@@ -68,7 +68,7 @@ describe('Build operators entity helpers', () => {
     });
 
     test('Should properly build update operators with props.listAppend', async () => {
-      expect(buildUpdateOperators<typeof MockEntity>({ listAppend: { array: ['1'] } })).toEqual([
+      expect(buildUpdateOperators(MockEntity, { listAppend: { array: ['1'] } })).toEqual([
         BASE_OPERATOR.set,
         BASE_OPERATOR.space,
         ...UPDATE_OPERATORS.listAppend('array', ['1']),
@@ -76,7 +76,7 @@ describe('Build operators entity helpers', () => {
     });
 
     test('Should properly build update operators with props.increment', async () => {
-      expect(buildUpdateOperators<typeof MockEntity>({ increment: { number: 1, 'object.required': 2 } })).toEqual([
+      expect(buildUpdateOperators(MockEntity, { increment: { number: 1, 'object.required': 2 } })).toEqual([
         BASE_OPERATOR.set,
         BASE_OPERATOR.space,
         ...UPDATE_OPERATORS.increment('number', 1),
@@ -87,7 +87,7 @@ describe('Build operators entity helpers', () => {
     });
 
     test('Should properly build update operators with props.decrement', async () => {
-      expect(buildUpdateOperators<typeof MockEntity>({ decrement: { number: 1, 'object.required': 2 } })).toEqual([
+      expect(buildUpdateOperators(MockEntity, { decrement: { number: 1, 'object.required': 2 } })).toEqual([
         BASE_OPERATOR.set,
         BASE_OPERATOR.space,
         ...UPDATE_OPERATORS.decrement('number', 1),
@@ -99,7 +99,9 @@ describe('Build operators entity helpers', () => {
 
     test('Should properly build update operators with props.add', async () => {
       expect(
-        buildUpdateOperators<typeof MockEntity>({ add: { number: 1, 'object.required': 2, set: new Set('1') } }),
+        buildUpdateOperators(MockEntity, {
+          add: { number: 1, 'object.required': 2, set: new Set('1') },
+        }),
       ).toEqual([
         BASE_OPERATOR.add,
         BASE_OPERATOR.space,
@@ -114,7 +116,7 @@ describe('Build operators entity helpers', () => {
     });
 
     test('Should properly build update operators with props.delete', async () => {
-      expect(buildUpdateOperators<typeof MockEntity>({ delete: { set: new Set('1') } })).toEqual([
+      expect(buildUpdateOperators(MockEntity, { delete: { set: new Set('1') } })).toEqual([
         BASE_OPERATOR.delete,
         BASE_OPERATOR.space,
         ...UPDATE_OPERATORS.delete('set', new Set('1')),
@@ -122,7 +124,7 @@ describe('Build operators entity helpers', () => {
     });
 
     test('Should properly build update operators with props.remove', async () => {
-      expect(buildUpdateOperators<typeof MockEntity>({ remove: ['array', 'boolean'] })).toEqual([
+      expect(buildUpdateOperators(MockEntity, { remove: ['array', 'boolean'] })).toEqual([
         BASE_OPERATOR.remove,
         BASE_OPERATOR.space,
         ...UPDATE_OPERATORS.remove('array'),
@@ -134,7 +136,7 @@ describe('Build operators entity helpers', () => {
 
     test('Should properly build update operators with multiple props', async () => {
       expect(
-        buildUpdateOperators<typeof MockEntity>({
+        buildUpdateOperators(MockEntity, {
           set: { string: 'value', number: 1 },
           setIfNotExists: { string: 'value', number: 1 },
           listAppend: { array: ['1'] },
@@ -203,7 +205,7 @@ describe('Build operators entity helpers', () => {
     });
 
     test('Should properly build update operators with no props', async () => {
-      expect(buildUpdateOperators<typeof MockEntity>({} as any)).toEqual([]);
+      expect(buildUpdateOperators(MockEntity, {} as any)).toEqual([]);
     });
   });
 });

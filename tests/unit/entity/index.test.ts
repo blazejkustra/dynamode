@@ -223,6 +223,7 @@ describe('entityManager', () => {
       });
 
       expect(buildUpdateConditionExpressionSpy).toBeCalledWith(
+        MockEntity,
         { set: { string: 'value' } },
         MockEntityManager.condition().attribute('string').beginsWith('v'),
       );
@@ -250,13 +251,15 @@ describe('entityManager', () => {
 
       expect(buildUpdateConditionExpressionSpy).toHaveBeenNthCalledWith(
         1,
+        MockEntity,
         {
-          set: { string: 'value', updated: new Date() },
+          set: { string: 'value' },
         },
         undefined,
       );
       expect(buildUpdateConditionExpressionSpy).toHaveBeenNthCalledWith(
         2,
+        MockEntity,
         {
           set: { string: 'value', updated: 'override' },
         },
@@ -264,9 +267,9 @@ describe('entityManager', () => {
       );
       expect(buildUpdateConditionExpressionSpy).toHaveBeenNthCalledWith(
         3,
+        MockEntity,
         {
           increment: { number: 1 },
-          set: { updated: new Date() },
         },
         undefined,
       );
@@ -285,7 +288,7 @@ describe('entityManager', () => {
         UpdateExpression: 'updateExpression',
       });
 
-      expect(buildUpdateConditionExpressionSpy).toBeCalledWith({ set: { string: 'value' } }, undefined);
+      expect(buildUpdateConditionExpressionSpy).toBeCalledWith(MockEntity, { set: { string: 'value' } }, undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(mapReturnValuesSpy).toBeCalledWith('none');
       expect(updateItemMock).not.toBeCalled();
@@ -316,7 +319,7 @@ describe('entityManager', () => {
         ConditionExpression: 'conditionExpression',
       });
 
-      expect(buildUpdateConditionExpressionSpy).toBeCalledWith({ set: { string: 'value' } }, undefined);
+      expect(buildUpdateConditionExpressionSpy).toBeCalledWith(MockEntity, { set: { string: 'value' } }, undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(mapReturnValuesSpy).toBeCalledWith(undefined);
       expect(updateItemMock).not.toBeCalled();
@@ -334,7 +337,7 @@ describe('entityManager', () => {
         Attributes: mockInstance,
       });
 
-      expect(buildUpdateConditionExpressionSpy).toBeCalledWith({ set: { string: 'value' } }, undefined);
+      expect(buildUpdateConditionExpressionSpy).toBeCalledWith(MockEntity, { set: { string: 'value' } }, undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(mapReturnValuesSpy).toBeCalledWith(undefined);
       expect(updateItemMock).toBeCalledWith({
@@ -354,7 +357,7 @@ describe('entityManager', () => {
 
       await expect(MockEntityManager.update(primaryKey, { set: { string: 'value' } })).resolves.toEqual(mockInstance);
 
-      expect(buildUpdateConditionExpressionSpy).toBeCalledWith({ set: { string: 'value' } }, undefined);
+      expect(buildUpdateConditionExpressionSpy).toBeCalledWith(MockEntity, { set: { string: 'value' } }, undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(mapReturnValuesSpy).toBeCalledWith(undefined);
       expect(updateItemMock).toBeCalledWith({
@@ -374,7 +377,7 @@ describe('entityManager', () => {
 
       await expect(MockEntityManager.update(primaryKey, { set: { string: 'value' } })).resolves.toEqual({});
 
-      expect(buildUpdateConditionExpressionSpy).toBeCalledWith({ set: { string: 'value' } }, undefined);
+      expect(buildUpdateConditionExpressionSpy).toBeCalledWith(MockEntity, { set: { string: 'value' } }, undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(mapReturnValuesSpy).toBeCalledWith(undefined);
       expect(updateItemMock).toBeCalledWith({
@@ -1426,7 +1429,7 @@ describe('entityManager', () => {
         },
       });
 
-      expect(buildUpdateConditionExpressionSpy).toBeCalledWith({ set: { string: 'value' } }, undefined);
+      expect(buildUpdateConditionExpressionSpy).toBeCalledWith(MockEntity, { set: { string: 'value' } }, undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
     });
@@ -1456,7 +1459,7 @@ describe('entityManager', () => {
         },
       });
 
-      expect(buildUpdateConditionExpressionSpy).toBeCalledWith({ set: { string: 'value' } }, undefined);
+      expect(buildUpdateConditionExpressionSpy).toBeCalledWith(MockEntity, { set: { string: 'value' } }, undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(mapReturnValuesLimitedSpy).toBeCalledWith(undefined);
     });
@@ -1484,6 +1487,7 @@ describe('entityManager', () => {
       });
 
       expect(buildUpdateConditionExpressionSpy).toBeCalledWith(
+        MockEntity,
         { set: { string: 'value' } },
         MockEntityManager.condition().attribute('string').beginsWith('v'),
       );
@@ -1513,7 +1517,7 @@ describe('entityManager', () => {
         },
       });
 
-      expect(buildUpdateConditionExpressionSpy).toBeCalledWith({ set: { string: 'value' } }, undefined);
+      expect(buildUpdateConditionExpressionSpy).toBeCalledWith(MockEntity, { set: { string: 'value' } }, undefined);
       expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
       expect(mapReturnValuesLimitedSpy).toBeCalledWith('none');
     });

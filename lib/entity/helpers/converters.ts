@@ -1,6 +1,6 @@
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
-import { prefixSuffixValue, transformValue, truncateValue } from '@lib/entity/helpers/transformValues';
+import { transformValue, truncateValue } from '@lib/entity/helpers/transformValues';
 import { Metadata, TablePrimaryKey } from '@lib/table/types';
 import { AttributeValues, fromDynamo, GenericObject, objectToDynamo } from '@lib/utils';
 
@@ -69,10 +69,10 @@ export function convertPrimaryKeyToAttributeValues<M extends Metadata<E>, E exte
   const dynamoObject: GenericObject = {};
   const { partitionKey, sortKey } = Dynamode.storage.getEntityMetadata(entity.name);
 
-  dynamoObject[partitionKey] = prefixSuffixValue(entity, partitionKey, (<any>primaryKey)[partitionKey]);
+  dynamoObject[partitionKey] = transformValue(entity, partitionKey, (<any>primaryKey)[partitionKey]);
 
   if (sortKey) {
-    dynamoObject[sortKey] = prefixSuffixValue(entity, sortKey, (<any>primaryKey)[sortKey]);
+    dynamoObject[sortKey] = transformValue(entity, sortKey, (<any>primaryKey)[sortKey]);
   }
 
   return objectToDynamo(dynamoObject);

@@ -8,8 +8,7 @@ import {
   convertEntityToAttributeValues,
   convertPrimaryKeyToAttributeValues,
 } from '@lib/entity/helpers/converters';
-import * as prefixSuffixHelpers from '@lib/entity/helpers/prefixSuffix';
-import { InvalidParameter } from '@lib/utils';
+import * as transformValuesHelpers from '@lib/entity/helpers/transformValues';
 
 import { mockDate, MockEntity, mockInstance, TestTableMetadata } from '../../../fixtures';
 
@@ -107,18 +106,20 @@ const dynamoObject = {
 describe('Converters entity helpers', () => {
   let getEntityAttributesSpy = vi.spyOn(Dynamode.storage, 'getEntityAttributes');
   let getEntityMetadataSpy = vi.spyOn(Dynamode.storage, 'getEntityMetadata');
-  let truncateValueSpy = vi.spyOn(prefixSuffixHelpers, 'truncateValue');
-  let prefixSuffixValueSpy = vi.spyOn(prefixSuffixHelpers, 'prefixSuffixValue');
+  let truncateValueSpy = vi.spyOn(transformValuesHelpers, 'truncateValue');
+  let transformValueSpy = vi.spyOn(transformValuesHelpers, 'transformValue');
 
   beforeEach(() => {
     getEntityAttributesSpy = vi.spyOn(Dynamode.storage, 'getEntityAttributes');
     getEntityMetadataSpy = vi.spyOn(Dynamode.storage, 'getEntityMetadata');
 
-    truncateValueSpy = vi.spyOn(prefixSuffixHelpers, 'truncateValue');
+    truncateValueSpy = vi.spyOn(transformValuesHelpers, 'truncateValue');
     truncateValueSpy.mockImplementation((_1, _2, v) => v);
 
-    prefixSuffixValueSpy = vi.spyOn(prefixSuffixHelpers, 'prefixSuffixValue');
-    prefixSuffixValueSpy.mockImplementation((_1, _2, v) => v);
+    transformValueSpy = vi.spyOn(transformValuesHelpers, 'transformValue');
+    transformValueSpy.mockImplementation((_1, k, v) =>
+      v instanceof Date ? (k === 'updatedAt' ? v.getTime() : v.toISOString()) : v,
+    );
   });
 
   afterEach(() => {
@@ -157,31 +158,7 @@ describe('Converters entity helpers', () => {
       getEntityAttributesSpy.mockReturnValue(mockEntityAttributes);
 
       expect(convertEntityToAttributeValues(MockEntity, mockInstance)).toEqual(dynamoObject);
-      expect(prefixSuffixValueSpy).toBeCalledTimes(15);
-    });
-
-    test('Should throw an error if date has invalid format', async () => {
-      getEntityAttributesSpy.mockReturnValue({
-        createdAt: {
-          propertyName: 'createdAt',
-          type: Set,
-          role: 'date',
-        },
-      });
-
-      expect(() => convertEntityToAttributeValues(MockEntity, mockInstance)).toThrow(InvalidParameter);
-    });
-
-    test('Should throw an error if date has invalid role', async () => {
-      getEntityAttributesSpy.mockReturnValue({
-        createdAt: {
-          propertyName: 'createdAt',
-          type: String,
-          role: 'attribute',
-        },
-      });
-
-      expect(() => convertEntityToAttributeValues(MockEntity, mockInstance)).toThrow(InvalidParameter);
+      expect(transformValueSpy).toBeCalledTimes(15);
     });
   });
 
@@ -240,8 +217,8 @@ describe('Converters entity helpers', () => {
           S: 'sk_value',
         },
       });
-      expect(prefixSuffixValueSpy).toHaveBeenNthCalledWith(1, MockEntity, metadata.partitionKey, 'pk_value');
-      expect(prefixSuffixValueSpy).toHaveBeenNthCalledWith(2, MockEntity, metadata.sortKey, 'sk_value');
+      expect(transformValueSpy).toHaveBeenNthCalledWith(1, MockEntity, metadata.partitionKey, 'pk_value');
+      expect(transformValueSpy).toHaveBeenNthCalledWith(2, MockEntity, metadata.sortKey, 'sk_value');
     });
 
     test('Should return simple primary key in dynamo format', async () => {
@@ -256,8 +233,8 @@ describe('Converters entity helpers', () => {
           S: 'pk_value',
         },
       });
-      expect(prefixSuffixValueSpy).toBeCalledWith(MockEntity, metadata.partitionKey, 'pk_value');
-      expect(prefixSuffixValueSpy).toBeCalledTimes(1);
+      expect(transformValueSpy).toBeCalledWith(MockEntity, metadata.partitionKey, 'pk_value');
+      expect(transformValueSpy).toBeCalledTimes(1);
     });
   });
 });

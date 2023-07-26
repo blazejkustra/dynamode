@@ -87,8 +87,8 @@ describe('Build expressions entity helpers', () => {
     });
 
     test("Should return empty object if attributes doesn't exist or attributes are empty", async () => {
-      expect(buildGetProjectionExpression<typeof MockEntity>()).toEqual({});
-      expect(buildGetProjectionExpression<typeof MockEntity>([])).toEqual({});
+      expect(buildGetProjectionExpression()).toEqual({});
+      expect(buildGetProjectionExpression([])).toEqual({});
     });
 
     test('Should return undefined projection expression if expression builder returns empty string', async () => {
@@ -110,14 +110,14 @@ describe('Build expressions entity helpers', () => {
       ]);
       expressionBuilderRunSpy.mockReturnValueOnce('SET string = value');
 
-      expect(buildUpdateConditionExpression<typeof MockEntity>({ set: { string: 'value' } })).toEqual({
+      expect(buildUpdateConditionExpression(MockEntity, { set: { string: 'value' } })).toEqual({
         updateExpression: 'SET string = value',
         attributeNames: { attributeNames: 'value' },
         attributeValues: { attributeValues: 'value' },
         conditionExpression: undefined,
       });
 
-      expect(buildUpdateOperatorsSpy).toBeCalledWith({ set: { string: 'value' } });
+      expect(buildUpdateOperatorsSpy).toBeCalledWith(MockEntity, { set: { string: 'value' } });
       expect(expressionBuilderRunSpy).toBeCalledTimes(1);
       expect(expressionBuilderRunSpy).toBeCalledWith([
         BASE_OPERATOR.set,
@@ -137,7 +137,8 @@ describe('Build expressions entity helpers', () => {
       expressionBuilderRunSpy.mockReturnValueOnce('string = value');
 
       expect(
-        buildUpdateConditionExpression<typeof MockEntity>(
+        buildUpdateConditionExpression(
+          MockEntity,
           { set: { string: 'value' } },
           new Condition(MockEntity).attribute('string').eq('value'),
         ),
@@ -148,7 +149,7 @@ describe('Build expressions entity helpers', () => {
         conditionExpression: 'string = value',
       });
 
-      expect(buildUpdateOperatorsSpy).toBeCalledWith({ set: { string: 'value' } });
+      expect(buildUpdateOperatorsSpy).toBeCalledWith(MockEntity, { set: { string: 'value' } });
       expect(expressionBuilderRunSpy).toBeCalledTimes(2);
       expect(expressionBuilderRunSpy).toHaveBeenNthCalledWith(1, [
         BASE_OPERATOR.set,
@@ -163,9 +164,7 @@ describe('Build expressions entity helpers', () => {
     test('Should properly build condition expression (first condition)', async () => {
       expressionBuilderRunSpy.mockReturnValue('string = value');
 
-      expect(
-        buildPutConditionExpression<typeof MockEntity>(new Condition(MockEntity).attribute('string').eq('value')),
-      ).toEqual({
+      expect(buildPutConditionExpression(new Condition(MockEntity).attribute('string').eq('value'))).toEqual({
         conditionExpression: 'string = value',
         attributeNames: { attributeNames: 'value' },
         attributeValues: { attributeValues: 'value' },
@@ -178,7 +177,7 @@ describe('Build expressions entity helpers', () => {
       expressionBuilderRunSpy.mockReturnValue('string = value AND number = 1');
 
       expect(
-        buildPutConditionExpression<typeof MockEntity>(
+        buildPutConditionExpression(
           new Condition(MockEntity).attribute('string').eq('value'),
           new Condition(MockEntity).attribute('number').eq(1),
         ),
@@ -201,9 +200,7 @@ describe('Build expressions entity helpers', () => {
     test('Should properly build condition expression (second condition)', async () => {
       expressionBuilderRunSpy.mockReturnValue('number = 1');
 
-      expect(
-        buildPutConditionExpression<typeof MockEntity>(undefined, new Condition(MockEntity).attribute('number').eq(1)),
-      ).toEqual({
+      expect(buildPutConditionExpression(undefined, new Condition(MockEntity).attribute('number').eq(1))).toEqual({
         conditionExpression: 'number = 1',
         attributeNames: { attributeNames: 'value' },
         attributeValues: { attributeValues: 'value' },
@@ -216,7 +213,7 @@ describe('Build expressions entity helpers', () => {
     test('Should properly build condition expression (none conditions)', async () => {
       expressionBuilderRunSpy.mockReturnValue('');
 
-      expect(buildPutConditionExpression<typeof MockEntity>(undefined, undefined)).toEqual({
+      expect(buildPutConditionExpression(undefined, undefined)).toEqual({
         conditionExpression: undefined,
         attributeNames: { attributeNames: 'value' },
         attributeValues: { attributeValues: 'value' },
@@ -231,9 +228,7 @@ describe('Build expressions entity helpers', () => {
     test('Should properly build condition expression (first condition)', async () => {
       expressionBuilderRunSpy.mockReturnValue('string = value');
 
-      expect(
-        buildDeleteConditionExpression<typeof MockEntity>(new Condition(MockEntity).attribute('string').eq('value')),
-      ).toEqual({
+      expect(buildDeleteConditionExpression(new Condition(MockEntity).attribute('string').eq('value'))).toEqual({
         conditionExpression: 'string = value',
         attributeNames: { attributeNames: 'value' },
         attributeValues: { attributeValues: 'value' },
@@ -246,7 +241,7 @@ describe('Build expressions entity helpers', () => {
       expressionBuilderRunSpy.mockReturnValue('string = value AND number = 1');
 
       expect(
-        buildDeleteConditionExpression<typeof MockEntity>(
+        buildDeleteConditionExpression(
           new Condition(MockEntity).attribute('string').eq('value'),
           new Condition(MockEntity).attribute('number').eq(1),
         ),
@@ -269,12 +264,7 @@ describe('Build expressions entity helpers', () => {
     test('Should properly build condition expression (second condition)', async () => {
       expressionBuilderRunSpy.mockReturnValue('number = 1');
 
-      expect(
-        buildDeleteConditionExpression<typeof MockEntity>(
-          undefined,
-          new Condition(MockEntity).attribute('number').eq(1),
-        ),
-      ).toEqual({
+      expect(buildDeleteConditionExpression(undefined, new Condition(MockEntity).attribute('number').eq(1))).toEqual({
         conditionExpression: 'number = 1',
         attributeNames: { attributeNames: 'value' },
         attributeValues: { attributeValues: 'value' },
@@ -287,7 +277,7 @@ describe('Build expressions entity helpers', () => {
     test('Should properly build condition expression (none conditions)', async () => {
       expressionBuilderRunSpy.mockReturnValue('');
 
-      expect(buildDeleteConditionExpression<typeof MockEntity>(undefined, undefined)).toEqual({
+      expect(buildDeleteConditionExpression(undefined, undefined)).toEqual({
         conditionExpression: undefined,
         attributeNames: { attributeNames: 'value' },
         attributeValues: { attributeValues: 'value' },
