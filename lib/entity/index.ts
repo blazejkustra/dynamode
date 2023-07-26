@@ -4,8 +4,10 @@ import { DYNAMODE_ENTITY } from '@lib/utils';
 export default class Entity {
   public readonly dynamodeEntity!: string;
 
-  // eslint-disable-next-line unused-imports/no-unused-vars, @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
-  constructor(...args: unknown[]) {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
+  constructor(...args: unknown[]) {
+    this.dynamodeEntity = this.constructor.name;
+  }
 }
 
 Dynamode.storage.registerAttribute(Entity.name, DYNAMODE_ENTITY, {

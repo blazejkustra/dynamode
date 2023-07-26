@@ -58,8 +58,6 @@ import {
 import { AttributeValues, ExpressionBuilder, fromDynamo, NotFoundError } from '@lib/utils';
 
 export default function EntityManager<M extends Metadata<E>, E extends typeof Entity>(entity: E, tableName: string) {
-  (entity.prototype.dynamodeEntity as string) = entity.name;
-
   function condition(): Condition<E> {
     return new Condition(entity);
   }
