@@ -29,11 +29,12 @@ export function buildGetProjectionExpression<E extends typeof Entity>(
 }
 
 export function buildUpdateConditionExpression<E extends typeof Entity>(
+  entity: E,
   props: UpdateProps<E>,
   optionsCondition?: Condition<E>,
 ): BuildUpdateConditionExpression {
   const expressionsBuilder = new ExpressionBuilder();
-  const operators = buildUpdateOperators(props);
+  const operators = buildUpdateOperators(entity, props);
 
   return {
     updateExpression: expressionsBuilder.run(operators),

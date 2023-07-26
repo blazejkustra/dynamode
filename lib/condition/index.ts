@@ -1,6 +1,6 @@
 import type { AttributeType } from '@lib/condition/types';
 import Entity from '@lib/entity';
-import { prefixSuffixValue } from '@lib/entity/helpers/prefixSuffix';
+import { transformValue } from '@lib/entity/helpers/transformValues';
 import { EntityKey, EntityValue } from '@lib/entity/types';
 import { BASE_OPERATOR, OPERATORS, Operators, ValidationError } from '@lib/utils';
 
@@ -45,12 +45,12 @@ export default class Condition<E extends typeof Entity> {
         }
 
         this.operators.push(
-          ...OPERATORS.contains(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, processedValue)),
+          ...OPERATORS.contains(String(key), transformValue(this.entity, String(key), processedValue)),
         );
         return this;
       },
       in: (values: Array<EntityValue<E, K>>): C => {
-        const processedValues = values.map((value) => prefixSuffixValue(this.entity, key as EntityKey<E>, value));
+        const processedValues = values.map((value) => transformValue(this.entity, String(key), value));
         this.operators.push(...OPERATORS.in(String(key), processedValues));
         return this;
       },
@@ -113,13 +113,13 @@ export default class Condition<E extends typeof Entity> {
           }
 
           this.operators.push(
-            ...OPERATORS.notContains(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, processedValue)),
+            ...OPERATORS.notContains(String(key), transformValue(this.entity, String(key), processedValue)),
           );
 
           return this;
         },
         in: (values: Array<EntityValue<E, K>>): C => {
-          const processedValues = values.map((value) => prefixSuffixValue(this.entity, key as EntityKey<E>, value));
+          const processedValues = values.map((value) => transformValue(this.entity, String(key), value));
           this.operators.push(...OPERATORS.notIn(String(key), processedValues));
           return this;
         },
@@ -162,37 +162,37 @@ export default class Condition<E extends typeof Entity> {
   }
 
   protected eq<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.eq(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, value)));
+    operators.push(...OPERATORS.eq(String(key), transformValue(this.entity, String(key), value)));
     return this;
   }
 
   protected ne<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.ne(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, value)));
+    operators.push(...OPERATORS.ne(String(key), transformValue(this.entity, String(key), value)));
     return this;
   }
 
   protected lt<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.lt(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, value)));
+    operators.push(...OPERATORS.lt(String(key), transformValue(this.entity, String(key), value)));
     return this;
   }
 
   protected le<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.le(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, value)));
+    operators.push(...OPERATORS.le(String(key), transformValue(this.entity, String(key), value)));
     return this;
   }
 
   protected gt<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.gt(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, value)));
+    operators.push(...OPERATORS.gt(String(key), transformValue(this.entity, String(key), value)));
     return this;
   }
 
   protected ge<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.ge(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, value)));
+    operators.push(...OPERATORS.ge(String(key), transformValue(this.entity, String(key), value)));
     return this;
   }
 
   protected beginsWith<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.beginsWith(String(key), prefixSuffixValue(this.entity, key as EntityKey<E>, value)));
+    operators.push(...OPERATORS.beginsWith(String(key), transformValue(this.entity, String(key), value)));
     return this;
   }
 
@@ -205,8 +205,8 @@ export default class Condition<E extends typeof Entity> {
     operators.push(
       ...OPERATORS.between(
         String(key),
-        prefixSuffixValue(this.entity, key as EntityKey<E>, v1),
-        prefixSuffixValue(this.entity, key as EntityKey<E>, v2),
+        transformValue(this.entity, String(key), v1),
+        transformValue(this.entity, String(key), v2),
       ),
     );
     return this;

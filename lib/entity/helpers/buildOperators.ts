@@ -1,4 +1,6 @@
+import Dynamode from '@lib/dynamode';
 import Entity from '@lib/entity';
+import { transformValue } from '@lib/entity/helpers/transformValues';
 import { EntityKey, UpdateProps } from '@lib/entity/types';
 import {
   BASE_OPERATOR,
@@ -25,12 +27,14 @@ export function buildProjectionOperators<E extends typeof Entity>(attributes: Ar
   return insertBetween(operators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]);
 }
 
-export function buildUpdateOperators<E extends typeof Entity>(props: UpdateProps<E>): Operators {
+export function buildUpdateOperators<E extends typeof Entity>(entity: E, props: UpdateProps<E>): Operators {
   const operators: Operators = [];
+  const updatedAt = Dynamode.storage.getEntityMetadata(entity.name).updatedAt as string | undefined;
+  const extendedSet = updatedAt ? { [updatedAt]: new Date(), ...props.set } : props.set;
 
   if (
     isNotEmpty({
-      ...(props.set || {}),
+      ...(extendedSet || {}),
       ...(props.setIfNotExists || {}),
       ...(props.listAppend || {}),
       ...(props.increment || {}),
@@ -38,11 +42,21 @@ export function buildUpdateOperators<E extends typeof Entity>(props: UpdateProps
     })
   ) {
     const setOperators: Operators[] = [
-      ...Object.entries(props.set || {}).map(([key, value]) => UPDATE_OPERATORS.set(key, value)),
-      ...Object.entries(props.setIfNotExists || {}).map(([key, value]) => UPDATE_OPERATORS.setIfNotExists(key, value)),
-      ...Object.entries(props.listAppend || {}).map(([key, value]) => UPDATE_OPERATORS.listAppend(key, value)),
-      ...Object.entries(props.increment || {}).map(([key, value]) => UPDATE_OPERATORS.increment(key, value)),
-      ...Object.entries(props.decrement || {}).map(([key, value]) => UPDATE_OPERATORS.decrement(key, value)),
+      ...Object.entries(extendedSet || {}).map(([key, value]) =>
+        UPDATE_OPERATORS.set(key, transformValue(entity, key, value)),
+      ),
+      ...Object.entries(props.setIfNotExists || {}).map(([key, value]) =>
+        UPDATE_OPERATORS.setIfNotExists(key, transformValue(entity, key, value)),
+      ),
+      ...Object.entries(props.listAppend || {}).map(([key, value]) =>
+        UPDATE_OPERATORS.listAppend(key, transformValue(entity, key, value)),
+      ),
+      ...Object.entries(props.increment || {}).map(([key, value]) =>
+        UPDATE_OPERATORS.increment(key, transformValue(entity, key, value)),
+      ),
+      ...Object.entries(props.decrement || {}).map(([key, value]) =>
+        UPDATE_OPERATORS.decrement(key, transformValue(entity, key, value)),
+      ),
     ];
 
     operators.push(
@@ -53,7 +67,9 @@ export function buildUpdateOperators<E extends typeof Entity>(props: UpdateProps
   }
 
   if (props.add && isNotEmpty(props.add)) {
-    const addOperators: Operators[] = Object.entries(props.add).map(([key, value]) => UPDATE_OPERATORS.add(key, value));
+    const addOperators: Operators[] = Object.entries(props.add).map(([key, value]) =>
+      UPDATE_OPERATORS.add(key, transformValue(entity, key, value)),
+    );
 
     if (operators.length) {
       operators.push(BASE_OPERATOR.space);
@@ -68,7 +84,7 @@ export function buildUpdateOperators<E extends typeof Entity>(props: UpdateProps
 
   if (props.delete && isNotEmpty(props.delete)) {
     const deleteOperators: Operators[] = Object.entries(props.delete).map(([key, value]) =>
-      UPDATE_OPERATORS.delete(key, value),
+      UPDATE_OPERATORS.delete(key, transformValue(entity, key, value)),
     );
 
     if (operators.length) {

@@ -142,9 +142,9 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
     props: UpdateProps<E>,
     options?: EntityUpdateOptions<E>,
   ): Promise<InstanceType<E> | UpdateItemCommandOutput> | UpdateItemCommandInput {
-    const updatedAt = Dynamode.storage.getEntityMetadata(entity.name).updatedAt as string | undefined;
     const { updateExpression, conditionExpression, attributeNames, attributeValues } = buildUpdateConditionExpression(
-      updatedAt ? { ...props, set: { [updatedAt]: new Date(), ...props.set } } : props,
+      entity,
+      props,
       options?.condition,
     );
 
@@ -480,6 +480,7 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
     options?: EntityTransactionUpdateOptions<E>,
   ): TransactionUpdate<E> {
     const { updateExpression, conditionExpression, attributeNames, attributeValues } = buildUpdateConditionExpression(
+      entity,
       props,
       options?.condition,
     );
