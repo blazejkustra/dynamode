@@ -4,7 +4,7 @@ import { EntityReservedWord, ReservedWordManager } from '../model';
 async function transaction() {
   const transactions = await transactionWrite(
     [
-      ReservedWordManager.transactionUpdate(
+      ReservedWordManager.transaction.update(
         { COLUMN: 'pk1', OBJECT: 'sk1' },
         {
           add: {
@@ -12,7 +12,7 @@ async function transaction() {
           },
         },
       ),
-      ReservedWordManager.transactionPut(
+      ReservedWordManager.transaction.put(
         new EntityReservedWord({
           COLUMN: 'pk2',
           OBJECT: 'sk2',
@@ -21,7 +21,7 @@ async function transaction() {
           old: 105,
         }),
       ),
-      ReservedWordManager.transactionCreate(
+      ReservedWordManager.transaction.create(
         new EntityReservedWord({
           COLUMN: 'pk3',
           OBJECT: 'sk3',
@@ -30,8 +30,8 @@ async function transaction() {
           old: 105,
         }),
       ),
-      ReservedWordManager.transactionDelete({ COLUMN: 'pk5', OBJECT: 'sk5' }),
-      ReservedWordManager.transactionCondition(
+      ReservedWordManager.transaction.delete({ COLUMN: 'pk5', OBJECT: 'sk5' }),
+      ReservedWordManager.transaction.condition(
         { COLUMN: 'pk6', OBJECT: 'sk6' },
         ReservedWordManager.condition().attribute('COLUMN').not().exists(),
       ),

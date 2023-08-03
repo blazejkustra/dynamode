@@ -1391,7 +1391,7 @@ describe('entityManager', () => {
     });
   });
 
-  describe('transactionUpdate', async () => {
+  describe('transaction.update', async () => {
     let buildUpdateConditionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildUpdateConditionExpression');
     let convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
     let mapReturnValuesLimitedSpy = vi.spyOn(returnValuesHelpers, 'mapReturnValuesLimited');
@@ -1523,7 +1523,7 @@ describe('entityManager', () => {
     });
   });
 
-  describe('transactionPut', async () => {
+  describe('transaction.put', async () => {
     let getEntityMetadataSpy = vi.spyOn(Dynamode.storage, 'getEntityMetadata');
     let buildPutConditionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildPutConditionExpression');
     let convertEntityToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertEntityToAttributeValues');
@@ -1665,7 +1665,7 @@ describe('entityManager', () => {
     });
   });
 
-  describe('transactionCreate', async () => {
+  describe('transaction.create', async () => {
     test('Should call transactionPut item with overwrite = false', async () => {
       const convertEntityToAttributeValuesSpy = vi
         .spyOn(entityConvertHelpers, 'convertEntityToAttributeValues')
@@ -1694,7 +1694,7 @@ describe('entityManager', () => {
     });
   });
 
-  describe('transactionDelete', async () => {
+  describe('transaction.delete', async () => {
     let buildDeleteConditionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildDeleteConditionExpression');
     let convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
 
@@ -1773,7 +1773,7 @@ describe('entityManager', () => {
     });
   });
 
-  describe('transactionCondition', async () => {
+  describe('transaction.condition', async () => {
     let convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
 
     beforeEach(() => {

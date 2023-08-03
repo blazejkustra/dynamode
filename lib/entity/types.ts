@@ -163,7 +163,7 @@ export type EntityTransactionGetOptions<EntityKey> = {
   attributes?: Array<EntityKey>;
 };
 
-// entityManager.transactionUpdate
+// entityManager.transaction.update
 
 export type EntityTransactionUpdateOptions<E extends typeof Entity> = {
   extraInput?: Partial<Update>;
@@ -171,7 +171,7 @@ export type EntityTransactionUpdateOptions<E extends typeof Entity> = {
   returnValuesOnFailure?: ReturnValuesLimited;
 };
 
-// entityManager.transactionPut
+// entityManager.transaction.put
 
 export type EntityTransactionPutOptions<E extends typeof Entity> = {
   extraInput?: Partial<Put>;
@@ -180,7 +180,7 @@ export type EntityTransactionPutOptions<E extends typeof Entity> = {
   returnValuesOnFailure?: ReturnValuesLimited;
 };
 
-// entityManager.transactionDelete
+// entityManager.transaction.delete
 
 export type EntityTransactionDeleteOptions<E extends typeof Entity> = {
   extraInput?: Partial<Delete>;

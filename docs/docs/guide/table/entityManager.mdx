@@ -996,11 +996,11 @@ You can add optional **`options`** parameter that is an object. The table below 
 
 Check out [`transactionGet(transactions, options?)`](/docs/guide/transactions#transactiongettransactions-options) function to see example usage.
 
-## EntityManager.transactionPut(item, options?)
+## EntityManager.transaction.put(item, options?)
 
 ### Description
 
-This method is used to build an insert item operation. `EntityManager.transactionPut(item, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to insert multiple items in a single transaction
+This method is used to build an insert item operation. `EntityManager.transaction.put(item, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to insert multiple items in a single transaction
 
 ### Arguments
 
@@ -1010,7 +1010,7 @@ You can add optional **`options`** parameter that is an object. The table below 
 
 | Name                    | Description                                                                                                                                                                                                                                                                              | Type                                                                                                                                                        | Default     |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `overwrite`             | `TransactItems.Put` DynamoDB operation overwrites items on insertion by default. If you want to prevent overwrites use [`EntityManager.transactionCreate(item, options?)`](/docs/guide/table/entityManager#entitytransactioncreateitem-options) instead, or set overwrite prop to false. | `boolean`                                                                                                                                                   | `true`      |
+| `overwrite`             | `TransactItems.Put` DynamoDB operation overwrites items on insertion by default. If you want to prevent overwrites use [`EntityManager.transaction.create(item, options?)`](/docs/guide/table/entityManager#entitytransactioncreateitem-options) instead, or set overwrite prop to false. | `boolean`                                                                                                                                                   | `true`      |
 | `condition`             | This is an optional instance of a `Condition` for the save. Item won't be inserted in case condition fails.                                                                                                                                                                              | `Condition`                                                                                                                                                 | `undefined` |
 | `returnValuesOnFailure` | Whether or not to return the item if the `Put` condition fails. You can get the item attributes as they appear before insertion or none at all. This uses DynamoDB's `ReturnValuesOnConditionCheckFailure`.                                                                              | `'none'` \| `'allOld'`                                                                                                                                      | `'allOld'`  |
 | `extraInput`            | Extra input that is passed to `Put` DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                       | [`TransactItems.Put`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/transactwriteitemsinput.html#transactitems) | `undefined` |
@@ -1020,17 +1020,17 @@ You can add optional **`options`** parameter that is an object. The table below 
 
 Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function to see example usage.
 
-## EntityManager.transactionCreate(item, options?)
+## EntityManager.transaction.create(item, options?)
 
 ### Description
 
-This method is almost identical to [`EntityManager.transactionPut(item, options?)`](/docs/guide/table/entityManager#entitytransactionputitem-options). The only difference being that `EntityManager.transactionCreate(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
+This method is almost identical to [`EntityManager.transaction.put(item, options?)`](/docs/guide/table/entityManager#entitytransactionputitem-options). The only difference being that `EntityManager.transaction.create(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
 
-## EntityManager.transactionUpdate(primaryKey, props, options?)
+## EntityManager.transaction.update(primaryKey, props, options?)
 
 ### Description
 
-This method is used to build an update item operation. `EntityManager.transactionUpdate(primaryKey, props, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to update multiple items in a single transaction.
+This method is used to build an update item operation. `EntityManager.transaction.update(primaryKey, props, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to update multiple items in a single transaction.
 
 ### Arguments
 
@@ -1063,11 +1063,11 @@ You can add optional **`options`** parameter that is an object. The table below 
 
 Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function to see example usage.
 
-## EntityManager.transactionDelete(primaryKey, options?)
+## EntityManager.transaction.delete(primaryKey, options?)
 
 ### Description
 
-This method is used to build a delete item operation. `EntityManager.transactionDelete(primaryKey, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to delete multiple items in a single transaction.
+This method is used to build a delete item operation. `EntityManager.transaction.delete(primaryKey, options?)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows to delete multiple items in a single transaction.
 
 ### Arguments
 
@@ -1086,11 +1086,11 @@ You can add optional **`options`** parameter that is an object. The table below 
 
 Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function to see example usage.
 
-## EntityManager.transactionCondition(primaryKey, conditionInstance)
+## EntityManager.transaction.condition(primaryKey, conditionInstance)
 
 ### Description
 
-This method is used to build a `conditionCheck` when running a transaction. `EntityManager.transactionCondition(primaryKey, conditionInstance)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows add multiple condition to a single transaction.
+This method is used to build a `conditionCheck` when running a transaction. `EntityManager.transaction.condition(primaryKey, conditionInstance)` used separately won't make a DynamoDB API call. You need to pass it to [`transactionWrite(transactions, options?)`](/docs/guide/transactions#transactionwritetransactions-options) function. This allows add multiple condition to a single transaction.
 
 ### Arguments
 

@@ -149,11 +149,11 @@ This function is used to insert/update/delete multiple items in a single transac
 
 | Method                                                                                                                                                        | Description                                     |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| [`EntityManager.transactionPut(item, options?)`](/docs/guide/table/entityManager#entitytransactionputitem-options)                                            | Insert an item to DynamoDB.                     |
-| [`EntityManager.transactionCreate(item, options?)`](/docs/guide/table/entityManager#entitytransactioncreateitem-options)                                      | Insert an item to DynamoDB (without overwrite). |
-| [`EntityManager.transactionUpdate(primaryKey, props, options?)`](/docs/guide/table/entityManager#entitytransactionupdateprimarykey-props-options)             | Update an item in DynamoDB.                     |
-| [`EntityManager.transactionDelete(primaryKey, options?)`](/docs/guide/table/entityManager#entitytransactiondeleteprimarykey-options)                          | Delete an item in DynamoDB.                     |
-| [`EntityManager.transactionCondition(primaryKey, conditionInstance)`](/docs/guide/table/entityManager#entitytransactionconditionprimarykey-conditioninstance) | Condition for the transaction.                  |
+| [`EntityManager.transaction.put(item, options?)`](/docs/guide/table/entityManager#entitytransactionputitem-options)                                            | Insert an item to DynamoDB.                     |
+| [`EntityManager.transaction.create(item, options?)`](/docs/guide/table/entityManager#entitytransactioncreateitem-options)                                      | Insert an item to DynamoDB (without overwrite). |
+| [`EntityManager.transaction.update(primaryKey, props, options?)`](/docs/guide/table/entityManager#entitytransactionupdateprimarykey-props-options)             | Update an item in DynamoDB.                     |
+| [`EntityManager.transaction.delete(primaryKey, options?)`](/docs/guide/table/entityManager#entitytransactiondeleteprimarykey-options)                          | Delete an item in DynamoDB.                     |
+| [`EntityManager.transaction.condition(primaryKey, conditionInstance)`](/docs/guide/table/entityManager#entitytransactionconditionprimarykey-conditioninstance) | Condition for the transaction.                  |
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
@@ -171,7 +171,7 @@ You can add optional **`options`** parameter that is an object. The table below 
 ```ts
 const transactions = await transactionWrite(
   [
-    UserManager.transactionUpdate(
+    UserManager.transaction.update(
       { partitionKey: '1', sortKey: 'blazej' },
       {
         set: {
@@ -179,26 +179,26 @@ const transactions = await transactionWrite(
         },
       },
     ),
-    KeyValueManager.transactionPut(
+    KeyValueManager.transaction.put(
       new KeyValue({
         key: 'key2',
         value: { test: 'test2' },
       }),
     ),
-    KeyValueManager.transactionCreate(
+    KeyValueManager.transaction.create(
       new KeyValue({
         key: 'key3',
         value: { test: 'test3' },
       }),
     ),
-    KeyValueManager.transactionDelete({ key: 'key4' }),
-    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValueManager.condition().attribute('key').eq('key5')),
+    KeyValueManager.transaction.delete({ key: 'key4' }),
+    KeyValueManager.transaction.condition({ key: 'key5' }, KeyValueManager.condition().attribute('key').eq('key5')),
   ],
 );
 // OR
 const transactions = await transactionWrite(
   [
-    UserManager.transactionUpdate(
+    UserManager.transaction.update(
       { partitionKey: '1', sortKey: 'blazej' },
       {
         set: {
@@ -206,20 +206,20 @@ const transactions = await transactionWrite(
         },
       },
     ),
-    KeyValueManager.transactionPut(
+    KeyValueManager.transaction.put(
       new KeyValue({
         key: 'key2',
         value: { test: 'test2' },
       }),
     ),
-    KeyValueManager.transactionCreate(
+    KeyValueManager.transaction.create(
       new KeyValue({
         key: 'key3',
         value: { test: 'test3' },
       }),
     ),
-    KeyValueManager.transactionDelete({ key: 'key4' }),
-    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValueManager.condition().attribute('key').eq('key5')),
+    KeyValueManager.transaction.delete({ key: 'key4' }),
+    KeyValueManager.transaction.condition({ key: 'key5' }, KeyValueManager.condition().attribute('key').eq('key5')),
   ],
   { return: 'default' },
 );
@@ -251,7 +251,7 @@ Output:
 ```ts
 const input = transactionWrite(
   [
-    UserManager.transactionUpdate(
+    UserManager.transaction.update(
       { partitionKey: '1', sortKey: 'blazej' },
       {
         set: {
@@ -259,20 +259,20 @@ const input = transactionWrite(
         },
       },
     ),
-    KeyValueManager.transactionPut(
+    KeyValueManager.transaction.put(
       new KeyValue({
         key: 'key2',
         value: { test: 'test2' },
       }),
     ),
-    KeyValueManager.transactionCreate(
+    KeyValueManager.transaction.create(
       new KeyValue({
         key: 'key3',
         value: { test: 'test3' },
       }),
     ),
-    KeyValueManager.transactionDelete({ key: 'key4' }),
-    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValueManager.condition().attribute('key').eq('key5')),
+    KeyValueManager.transaction.delete({ key: 'key4' }),
+    KeyValueManager.transaction.condition({ key: 'key5' }, KeyValueManager.condition().attribute('key').eq('key5')),
   ],
   { return: 'input' },
 );
@@ -299,7 +299,7 @@ Output:
 ```ts
 const output = await transactionWrite(
   [
-    UserManager.transactionUpdate(
+    UserManager.transaction.update(
       { partitionKey: '1', sortKey: 'blazej' },
       {
         set: {
@@ -307,20 +307,20 @@ const output = await transactionWrite(
         },
       },
     ),
-    KeyValueManager.transactionPut(
+    KeyValueManager.transaction.put(
       new KeyValue({
         key: 'key2',
         value: { test: 'test2' },
       }),
     ),
-    KeyValueManager.transactionCreate(
+    KeyValueManager.transaction.create(
       new KeyValue({
         key: 'key3',
         value: { test: 'test3' },
       }),
     ),
-    KeyValueManager.transactionDelete({ key: 'key4' }),
-    KeyValueManager.transactionCondition({ key: 'key5' }, KeyValueManager.condition().attribute('key').eq('key5')),
+    KeyValueManager.transaction.delete({ key: 'key4' }),
+    KeyValueManager.transaction.condition({ key: 'key5' }, KeyValueManager.condition().attribute('key').eq('key5')),
   ],
   { return: 'output' },
 );
