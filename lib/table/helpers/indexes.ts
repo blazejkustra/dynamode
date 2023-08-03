@@ -2,6 +2,7 @@ import { LocalSecondaryIndex } from '@aws-sdk/client-dynamodb';
 import Entity from '@lib/entity';
 import { getKeySchema } from '@lib/table/helpers/schema';
 import { Metadata } from '@lib/table/types';
+import { StringOrUndefined } from '@lib/utils';
 
 export function getTableLocalSecondaryIndexes<M extends Metadata<TE>, TE extends typeof Entity>(
   metadata: M,
@@ -12,7 +13,7 @@ export function getTableLocalSecondaryIndexes<M extends Metadata<TE>, TE extends
     .filter(([, index]) => !index.partitionKey && index.sortKey)
     .map(([indexName, index]) => ({
       IndexName: indexName,
-      KeySchema: getKeySchema(String(partitionKey), String(index.sortKey)),
+      KeySchema: getKeySchema(String(partitionKey), StringOrUndefined(index.sortKey)),
       Projection: { ProjectionType: 'ALL' },
     }));
 }
@@ -26,7 +27,7 @@ export function getTableGlobalSecondaryIndexes<M extends Metadata<TE>, TE extend
     .filter(([, index]) => index.partitionKey)
     .map(([indexName, index]) => ({
       IndexName: indexName,
-      KeySchema: getKeySchema(String(index.partitionKey), String(index.sortKey)),
+      KeySchema: getKeySchema(String(index.partitionKey), StringOrUndefined(index.sortKey)),
       Projection: { ProjectionType: 'ALL' },
     }));
 }

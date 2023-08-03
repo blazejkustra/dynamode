@@ -22,7 +22,7 @@ import {
   TableInformation,
   TableValidateOptions,
 } from '@lib/table/types';
-import { isNotEmptyArray, Narrow, ValidationError } from '@lib/utils';
+import { isNotEmptyArray, Narrow, StringOrUndefined, ValidationError } from '@lib/utils';
 
 import { getTableGlobalSecondaryIndexes, getTableLocalSecondaryIndexes } from './helpers/indexes';
 
@@ -70,7 +70,7 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
 
     const commandInput: CreateTableCommandInput = {
       TableName: this.tableMetadata.tableName,
-      KeySchema: getKeySchema(String(this.tableMetadata.partitionKey), String(this.tableMetadata.sortKey)),
+      KeySchema: getKeySchema(String(this.tableMetadata.partitionKey), StringOrUndefined(this.tableMetadata.sortKey)),
       AttributeDefinitions: getTableAttributeDefinitions(this.tableMetadata, this.tableEntity.name),
       LocalSecondaryIndexes: isNotEmptyArray(localSecondaryIndexes) ? localSecondaryIndexes : undefined,
       GlobalSecondaryIndexes: isNotEmptyArray(globalSecondaryIndexes) ? globalSecondaryIndexes : undefined,
@@ -131,7 +131,7 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
       GlobalSecondaryIndexUpdates: buildIndexCreate({
         indexName,
         partitionKey: String(partitionKey),
-        sortKey: String(sortKey),
+        sortKey: sortKey ? String(sortKey) : undefined,
         options,
       }),
       ...options?.extraInput,
