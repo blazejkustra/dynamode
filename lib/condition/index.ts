@@ -44,47 +44,45 @@ export default class Condition<E extends typeof Entity> {
           processedValue = processedValue[0];
         }
 
-        this.operators.push(
-          ...OPERATORS.contains(String(key), transformValue(this.entity, String(key), processedValue)),
-        );
+        this.operators.push(...OPERATORS.contains(key, transformValue(this.entity, key, processedValue)));
         return this;
       },
       in: (values: Array<EntityValue<E, K>>): C => {
-        const processedValues = values.map((value) => transformValue(this.entity, String(key), value));
-        this.operators.push(...OPERATORS.in(String(key), processedValues));
+        const processedValues = values.map((value) => transformValue(this.entity, key, value));
+        this.operators.push(...OPERATORS.in(key, processedValues));
         return this;
       },
       type: (value: AttributeType): C => {
-        this.operators.push(...OPERATORS.attributeType(String(key), value));
+        this.operators.push(...OPERATORS.attributeType(key, value));
         return this;
       },
       exists: (): C => {
-        this.operators.push(...OPERATORS.attributeExists(String(key)));
+        this.operators.push(...OPERATORS.attributeExists(key));
         return this;
       },
       size: () => ({
         eq: (value: number): C => {
-          this.operators.push(...OPERATORS.sizeEq(String(key), value));
+          this.operators.push(...OPERATORS.sizeEq(key, value));
           return this;
         },
         ne: (value: number): C => {
-          this.operators.push(...OPERATORS.sizeNe(String(key), value));
+          this.operators.push(...OPERATORS.sizeNe(key, value));
           return this;
         },
         lt: (value: number): C => {
-          this.operators.push(...OPERATORS.sizeLt(String(key), value));
+          this.operators.push(...OPERATORS.sizeLt(key, value));
           return this;
         },
         le: (value: number): C => {
-          this.operators.push(...OPERATORS.sizeLe(String(key), value));
+          this.operators.push(...OPERATORS.sizeLe(key, value));
           return this;
         },
         gt: (value: number): C => {
-          this.operators.push(...OPERATORS.sizeGt(String(key), value));
+          this.operators.push(...OPERATORS.sizeGt(key, value));
           return this;
         },
         ge: (value: number): C => {
-          this.operators.push(...OPERATORS.sizeGe(String(key), value));
+          this.operators.push(...OPERATORS.sizeGe(key, value));
           return this;
         },
       }),
@@ -112,19 +110,17 @@ export default class Condition<E extends typeof Entity> {
             processedValue = processedValue[0];
           }
 
-          this.operators.push(
-            ...OPERATORS.notContains(String(key), transformValue(this.entity, String(key), processedValue)),
-          );
+          this.operators.push(...OPERATORS.notContains(key, transformValue(this.entity, key, processedValue)));
 
           return this;
         },
         in: (values: Array<EntityValue<E, K>>): C => {
-          const processedValues = values.map((value) => transformValue(this.entity, String(key), value));
-          this.operators.push(...OPERATORS.notIn(String(key), processedValues));
+          const processedValues = values.map((value) => transformValue(this.entity, key, value));
+          this.operators.push(...OPERATORS.notIn(key, processedValues));
           return this;
         },
         exists: (): C => {
-          this.operators.push(...OPERATORS.attributeNotExists(String(key)));
+          this.operators.push(...OPERATORS.attributeNotExists(key));
           return this;
         },
       }),
@@ -162,37 +158,37 @@ export default class Condition<E extends typeof Entity> {
   }
 
   protected eq<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.eq(String(key), transformValue(this.entity, String(key), value)));
+    operators.push(...OPERATORS.eq(key, transformValue(this.entity, key, value)));
     return this;
   }
 
   protected ne<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.ne(String(key), transformValue(this.entity, String(key), value)));
+    operators.push(...OPERATORS.ne(key, transformValue(this.entity, key, value)));
     return this;
   }
 
   protected lt<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.lt(String(key), transformValue(this.entity, String(key), value)));
+    operators.push(...OPERATORS.lt(key, transformValue(this.entity, key, value)));
     return this;
   }
 
   protected le<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.le(String(key), transformValue(this.entity, String(key), value)));
+    operators.push(...OPERATORS.le(key, transformValue(this.entity, key, value)));
     return this;
   }
 
   protected gt<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.gt(String(key), transformValue(this.entity, String(key), value)));
+    operators.push(...OPERATORS.gt(key, transformValue(this.entity, key, value)));
     return this;
   }
 
   protected ge<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.ge(String(key), transformValue(this.entity, String(key), value)));
+    operators.push(...OPERATORS.ge(key, transformValue(this.entity, key, value)));
     return this;
   }
 
   protected beginsWith<K extends EntityKey<E>>(operators: Operators, key: K, value: EntityValue<E, K>): this {
-    operators.push(...OPERATORS.beginsWith(String(key), transformValue(this.entity, String(key), value)));
+    operators.push(...OPERATORS.beginsWith(key, transformValue(this.entity, key, value)));
     return this;
   }
 
@@ -203,11 +199,7 @@ export default class Condition<E extends typeof Entity> {
     v2: EntityValue<E, K>,
   ): this {
     operators.push(
-      ...OPERATORS.between(
-        String(key),
-        transformValue(this.entity, String(key), v1),
-        transformValue(this.entity, String(key), v2),
-      ),
+      ...OPERATORS.between(key, transformValue(this.entity, key, v1), transformValue(this.entity, key, v2)),
     );
     return this;
   }

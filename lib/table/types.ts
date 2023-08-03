@@ -6,22 +6,24 @@ import { ReturnOption } from '@lib/entity/types';
 
 // Table metadata types
 
+type EntityKey<E extends typeof Entity> = keyof InstanceType<E> extends string ? keyof InstanceType<E> : never;
+
 type TableIndexesMetadata<E extends typeof Entity> = {
   [indexName: string]: {
-    partitionKey?: keyof InstanceType<E>;
-    sortKey?: keyof InstanceType<E>;
+    partitionKey?: EntityKey<E>;
+    sortKey?: EntityKey<E>;
   };
 };
 
 export type Metadata<E extends typeof Entity> = {
   tableName: string;
 
-  partitionKey: keyof InstanceType<E>;
-  sortKey?: keyof InstanceType<E>;
+  partitionKey: EntityKey<E>;
+  sortKey?: EntityKey<E>;
   indexes?: TableIndexesMetadata<E>;
 
-  createdAt?: keyof InstanceType<E>;
-  updatedAt?: keyof InstanceType<E>;
+  createdAt?: EntityKey<E>;
+  updatedAt?: EntityKey<E>;
 };
 
 type SK<M extends Metadata<E>, E extends typeof Entity> = M['sortKey'];
@@ -30,7 +32,7 @@ type Idx<M extends Metadata<E>, E extends typeof Entity> = M['indexes'];
 
 export type TablePrimaryKey<M extends Metadata<E>, E extends typeof Entity> = Pick<
   InstanceType<E>,
-  Extract<keyof InstanceType<E>, SK<M, E> extends string ? PK<M, E> | SK<M, E> : PK<M, E>>
+  Extract<EntityKey<E>, SK<M, E> extends string ? PK<M, E> | SK<M, E> : PK<M, E>>
 >;
 
 export type TableIndexNames<M extends Metadata<E>, E extends typeof Entity> = keyof Idx<M, E>;

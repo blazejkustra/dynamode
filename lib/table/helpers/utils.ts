@@ -20,10 +20,10 @@ export function compareDynamodeEntityWithDynamoTable<T>(aa: T[], bb: T[]): void 
 }
 
 export function getAttributeType(attributes: AttributesMetadata, attribute: string): 'S' | 'N' {
-  const attributeType = DYNAMODE_DYNAMO_KEY_TYPE_MAP.get(attributes[String(attribute)].type);
+  const attributeType = DYNAMODE_DYNAMO_KEY_TYPE_MAP.get(attributes[attribute].type);
 
   if (!attributeType) {
-    throw new ValidationError(`Attribute "${String(attribute)}" is registered with invalid type.`);
+    throw new ValidationError(`Attribute "${attribute}" is registered with invalid type.`);
   }
 
   return attributeType;

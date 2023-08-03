@@ -16,10 +16,6 @@ export function isNotEmptyString(str: string) {
   return true;
 }
 
-export function StringOrUndefined(str?: string | symbol | number): string | undefined {
-  return str ? String(str) : undefined;
-}
-
 export function isNotEmptyArray<T>(array?: Array<T>): array is Array<T> {
   return !!array && array.length > 0;
 }

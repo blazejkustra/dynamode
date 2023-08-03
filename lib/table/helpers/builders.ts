@@ -1,7 +1,6 @@
 import { GlobalSecondaryIndexUpdate } from '@aws-sdk/client-dynamodb';
 import { getKeySchema } from '@lib/table/helpers/schema';
 import { BuildIndexCreate } from '@lib/table/types';
-import { StringOrUndefined } from '@lib/utils';
 
 export function buildIndexCreate({
   indexName,
@@ -18,7 +17,7 @@ export function buildIndexCreate({
     {
       Create: {
         IndexName: indexName,
-        KeySchema: getKeySchema(String(partitionKey), StringOrUndefined(sortKey)),
+        KeySchema: getKeySchema(partitionKey, sortKey),
         Projection: { ProjectionType: 'ALL' },
         ProvisionedThroughput: throughput,
       },

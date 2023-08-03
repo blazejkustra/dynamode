@@ -9,8 +9,8 @@ export function prefixSuffixValue<E extends typeof Entity>(entity: E, key: strin
 
   const attributes = Dynamode.storage.getEntityAttributes(entity.name);
   const separator = Dynamode.separator.get();
-  const prefix = attributes[String(key)]?.prefix || '';
-  const suffix = attributes[String(key)]?.suffix || '';
+  const prefix = attributes[key]?.prefix || '';
+  const suffix = attributes[key]?.suffix || '';
 
   return [prefix, value, suffix].filter((p) => p).join(separator);
 }
@@ -22,8 +22,8 @@ export function truncateValue<E extends typeof Entity>(entity: E, key: string, v
 
   const attributes = Dynamode.storage.getEntityAttributes(entity.name);
   const separator = Dynamode.separator.get();
-  const prefix = attributes[String(key)].prefix || '';
-  const suffix = attributes[String(key)].suffix || '';
+  const prefix = attributes[key].prefix || '';
+  const suffix = attributes[key].suffix || '';
 
   const valueSections = value.split(separator);
 
@@ -40,7 +40,7 @@ export function truncateValue<E extends typeof Entity>(entity: E, key: string, v
 
 function transformDateValue<E extends typeof Entity>(entity: E, key: string, value: unknown): unknown {
   const attributes = Dynamode.storage.getEntityAttributes(entity.name);
-  const attribute = attributes[String(key)];
+  const attribute = attributes[key];
 
   if (value instanceof Date) {
     if (attribute.role !== 'date') {

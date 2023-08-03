@@ -27,7 +27,9 @@ export type ReturnValuesLimited = 'none' | 'allOld';
 // Entity Props
 
 export type EntityProperties<E extends typeof Entity> = Partial<FlattenObject<InstanceType<E>>>;
-export type EntityKey<E extends typeof Entity> = keyof EntityProperties<E>;
+export type EntityKey<E extends typeof Entity> = keyof EntityProperties<E> extends string
+  ? keyof EntityProperties<E>
+  : never;
 export type EntityValue<E extends typeof Entity, K extends EntityKey<E>> = FlattenObject<InstanceType<E>>[K];
 
 // entityManager.get

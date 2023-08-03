@@ -20,8 +20,8 @@ export function buildProjectionOperators<E extends typeof Entity>(attributes: Ar
   }
 
   const uniqueAttributes = Array.from(new Set([...attributes, DYNAMODE_ENTITY]));
-  const operators: Operators = uniqueAttributes.map((attribute) => ({
-    key: String(attribute),
+  const operators: Operators = uniqueAttributes.map((key) => ({
+    key,
   }));
 
   return insertBetween(operators, [BASE_OPERATOR.comma, BASE_OPERATOR.space]);
@@ -99,7 +99,7 @@ export function buildUpdateOperators<E extends typeof Entity>(entity: E, props: 
   }
 
   if (isNotEmptyArray(props.remove)) {
-    const removeOperators: Operators[] = props.remove.map((key) => UPDATE_OPERATORS.remove(String(key)));
+    const removeOperators: Operators[] = props.remove.map((key) => UPDATE_OPERATORS.remove(key));
 
     if (operators.length) {
       operators.push(BASE_OPERATOR.space);

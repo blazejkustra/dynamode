@@ -3,7 +3,6 @@ import Dynamode from '@lib/dynamode';
 import Entity from '@lib/entity';
 import { getAttributeType } from '@lib/table/helpers/utils';
 import { Metadata } from '@lib/table/types';
-import { StringOrUndefined } from '@lib/utils';
 
 export function getTableAttributeDefinitions<M extends Metadata<TE>, TE extends typeof Entity>(
   metadata: M,
@@ -11,8 +10,7 @@ export function getTableAttributeDefinitions<M extends Metadata<TE>, TE extends 
 ): AttributeDefinition[] {
   const definitions: AttributeDefinition[] = [];
   const attributes = Dynamode.storage.getEntityAttributes(tableEntityName);
-  const partitionKey = String(metadata.partitionKey);
-  const sortKey = StringOrUndefined(metadata.sortKey);
+  const { partitionKey, sortKey } = metadata;
 
   definitions.push({
     AttributeName: partitionKey,
@@ -28,8 +26,7 @@ export function getTableAttributeDefinitions<M extends Metadata<TE>, TE extends 
 
   if (metadata.indexes) {
     Object.values(metadata.indexes).forEach((index) => {
-      const partitionKey = String(index.partitionKey);
-      const sortKey = StringOrUndefined(index.sortKey);
+      const { partitionKey, sortKey } = index;
 
       if (partitionKey) {
         definitions.push({

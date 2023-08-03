@@ -4,7 +4,6 @@ import { getTableGlobalSecondaryIndexes, getTableLocalSecondaryIndexes } from '@
 import { getKeySchema } from '@lib/table/helpers/schema';
 import { compareDynamodeEntityWithDynamoTable } from '@lib/table/helpers/utils';
 import { Metadata, ValidateTableSync } from '@lib/table/types';
-import { StringOrUndefined } from '@lib/utils';
 
 export function validateTableSync<M extends Metadata<TE>, TE extends typeof Entity>({
   metadata,
@@ -22,7 +21,7 @@ export function validateTableSync<M extends Metadata<TE>, TE extends typeof Enti
     KeySchema: v.KeySchema,
   }));
 
-  const keySchema = getKeySchema(String(metadata.partitionKey), StringOrUndefined(metadata.sortKey));
+  const keySchema = getKeySchema(metadata.partitionKey, metadata.sortKey);
   const attributeDefinitions = getTableAttributeDefinitions(metadata, tableNameEntity);
   const localSecondaryIndexes = getTableLocalSecondaryIndexes(metadata).map((v) => ({
     IndexName: v.IndexName,
