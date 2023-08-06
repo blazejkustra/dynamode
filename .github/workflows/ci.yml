@@ -26,6 +26,10 @@ jobs:
         run: npm run lint
       - name: Tests 🧪
         run: npm run test
+      - name: Setup DynamoDB Local
+        uses: rrainn/dynamodb-action@v2.0.0
+      - name: E2E Tests ⚙️
+        run: npm run test:e2e
       - name: Coverage 📝
         run: npm run coverage
       - name: Coveralls

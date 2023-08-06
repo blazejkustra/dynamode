@@ -8,9 +8,10 @@
     "build": "tsc && tsc-alias",
     "postbuild": "cp package.json dist && cp README.md dist && cp LICENSE dist",
     "build:watch": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",
-    "test": "vitest run",
+    "test": "vitest run unit",
+    "test:watch": "vitest unit",
+    "test:e2e": "vitest run e2e",
     "test:ui": "vitest --ui",
-    "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "lint": "eslint lib --ext .ts,.js --max-warnings 0",
     "lint:fix": "npm run lint -- --fix"
@@ -23,7 +24,7 @@
     "@types/node": "^20.2.1",
     "@typescript-eslint/eslint-plugin": "^5.59.6",
     "@typescript-eslint/parser": "^5.59.6",
-    "@vitest/coverage-c8": "^0.31.1",
+    "@vitest/coverage-v8": "^0.34.1",
     "@vitest/ui": "^0.31.1",
     "c8": "^7.13.0",
     "concurrently": "^8.0.1",
@@ -39,7 +40,7 @@
     "type-fest": "^3.10.0",
     "typescript": "^5.0.4",
     "vite-tsconfig-paths": "^4.2.0",
-    "vitest": "^0.31.1"
+    "vitest": "^0.34.1"
   },
   "peerDependencies": {
     "typescript": ">=4.0.0"

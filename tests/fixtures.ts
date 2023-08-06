@@ -140,7 +140,7 @@ export class MockEntity extends TestTable {
   }
 }
 
-const TestTableManager = new TableManager(TestTable, {
+export const TestTableManager = new TableManager(TestTable, {
   tableName: TEST_TABLE_NAME,
   partitionKey: 'partitionKey',
   sortKey: 'sortKey',

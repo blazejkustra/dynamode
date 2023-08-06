@@ -96,6 +96,14 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     })();
   }
 
+  public async delete(tableName: string) {
+    if (tableName !== this.tableMetadata.tableName) {
+      throw new ValidationError(`To delete table "${this.tableMetadata.tableName}", pass the table name as argument`);
+    }
+
+    return await Dynamode.ddb.get().deleteTable({ TableName: this.tableMetadata.tableName });
+  }
+
   public createIndex(
     indexName: string,
     options?: TableCreateIndexOptions & { return?: 'default' },

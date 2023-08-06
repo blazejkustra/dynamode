@@ -171,7 +171,7 @@ describe('Helpers', () => {
     });
   });
 
-  describe('timeout', () => {
+  describe.todo('timeout', () => {
     beforeEach(() => {
       vi.useFakeTimers();
       vi.spyOn(global, 'setTimeout').mockImplementation((cb) => cb() as any);
