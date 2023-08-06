@@ -66,7 +66,11 @@ export const UserTableManager = new TableManager(User, {
 });
 
 export const UserManager = UserTableManager.entityManager();
-
+const UserManager2 = new TableManager(User, {
+  tableName: USERS_TABLE,
+  partitionKey: 'partitionKey',
+  sortKey: 'sortKey',
+});
 async function create() {
   const table = await UserTableManager.create();
   console.log(table);

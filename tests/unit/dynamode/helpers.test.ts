@@ -1,19 +1,27 @@
 import { describe, expect, test } from 'vitest';
 
-import { validateAttribute } from '@lib/dynamode/storage/helpers';
+import {
+  validateDecoratedAttribute,
+  validateMetadataAttribute,
+  validateMetadataUniqueness,
+} from '@lib/dynamode/storage/helpers/validator';
 import { AttributesMetadata } from '@lib/dynamode/storage/types';
+import { Metadata } from '@lib/table/types';
 
+import { MockEntity, TEST_TABLE_NAME } from '../../fixtures';
+
+const entityName = 'EntityName';
 const attributes: AttributesMetadata = {
-  pk: {
-    propertyName: 'pk',
+  partitionKey: {
+    propertyName: 'partitionKey',
     type: String,
     role: 'partitionKey',
     indexName: undefined,
     prefix: 'prefix',
     suffix: undefined,
   },
-  sk: {
-    propertyName: 'sk',
+  sortKey: {
+    propertyName: 'sortKey',
     type: String,
     role: 'sortKey',
     indexName: undefined,
@@ -44,82 +52,239 @@ const attributes: AttributesMetadata = {
     prefix: undefined,
     suffix: undefined,
   },
+  strDate: {
+    propertyName: 'strDate',
+    type: String,
+    role: 'date',
+    indexName: undefined,
+    prefix: undefined,
+    suffix: undefined,
+  },
+  numDate: {
+    propertyName: 'numDate',
+    type: Number,
+    role: 'date',
+    indexName: undefined,
+    prefix: undefined,
+    suffix: undefined,
+  },
+  attr: {
+    propertyName: 'attr',
+    type: String,
+    role: 'attribute',
+    indexName: undefined,
+    prefix: undefined,
+    suffix: undefined,
+  },
+};
+
+const metadata: Metadata<typeof MockEntity> = {
+  tableName: TEST_TABLE_NAME,
+  partitionKey: 'partitionKey',
+  sortKey: 'sortKey',
+  indexes: {
+    GSI_1_NAME: {
+      partitionKey: 'GSI_1_PK',
+      sortKey: 'GSI_1_SK',
+    },
+    LSI_1_NAME: {
+      sortKey: 'LSI_1_SK',
+    },
+  },
+  createdAt: 'strDate',
+  updatedAt: 'numDate',
+};
+
+const metadataInvalid: Metadata<typeof MockEntity> = {
+  tableName: TEST_TABLE_NAME,
+  partitionKey: 'partitionKey',
+  sortKey: 'sortKey',
+  indexes: {
+    GSI_1_NAME: {
+      partitionKey: 'partitionKey',
+      sortKey: 'GSI_1_SK',
+    },
+    LSI_1_NAME: {
+      sortKey: 'LSI_1_SK',
+    },
+  },
+  createdAt: 'strDate',
+  updatedAt: 'numDate',
 };
 
 describe('Dynamode helpers', () => {
-  describe('validateAttribute', async () => {
+  describe('validateMetadataAttribute', async () => {
     test('Should successfully validate attributes', async () => {
       expect(
-        validateAttribute({ name: 'pk', role: 'partitionKey', attributes: { pk: attributes.pk } }),
+        validateMetadataAttribute({
+          name: 'partitionKey',
+          role: 'partitionKey',
+          attributes: { partitionKey: attributes.partitionKey },
+          entityName,
+        }),
       ).toBeUndefined();
-      expect(validateAttribute({ name: 'sk', role: 'sortKey', attributes: { sk: attributes.sk } })).toBeUndefined();
       expect(
-        validateAttribute({
+        validateMetadataAttribute({
+          name: 'sortKey',
+          role: 'sortKey',
+          attributes: { sortKey: attributes.sortKey },
+          entityName,
+        }),
+      ).toBeUndefined();
+      expect(
+        validateMetadataAttribute({
           name: 'GSI_1_PK',
           role: 'gsiPartitionKey',
           attributes: { GSI_1_PK: attributes.GSI_1_PK },
           indexName: 'GSI_1_NAME',
+          entityName,
         }),
       ).toBeUndefined();
       expect(
-        validateAttribute({
+        validateMetadataAttribute({
           name: 'GSI_1_SK',
           role: 'gsiSortKey',
           attributes: { GSI_1_SK: attributes.GSI_1_SK },
           indexName: 'GSI_1_NAME',
+          entityName,
         }),
       ).toBeUndefined();
       expect(
-        validateAttribute({
+        validateMetadataAttribute({
           name: 'LSI_1_SK',
           role: 'lsiSortKey',
           attributes: { LSI_1_SK: attributes.LSI_1_SK },
           indexName: 'LSI_1_NAME',
+          entityName,
         }),
       ).toBeUndefined();
     });
 
-    test("Should throw an error if attribute isn't registered", async () => {
-      expect(() => validateAttribute({ name: 'name', role: 'partitionKey', attributes: {} })).toThrowError(
-        /^Attribute ".*" isn't registered in the entity.$/,
-      );
+    test("Should throw an error if attribute isn't decorated", async () => {
+      expect(() =>
+        validateMetadataAttribute({ name: 'name', role: 'partitionKey', attributes: {}, entityName }),
+      ).toThrowError(/^Attribute ".*" should be decorated in "EntityName" Entity.$/);
     });
 
     test("Should throw an error if attribute roles doesn't match", async () => {
-      expect(() => validateAttribute({ name: 'pk', role: 'sortKey', attributes: { pk: attributes.pk } })).toThrowError(
-        /^Attribute ".*" is registered with a wrong role.$/,
-      );
+      expect(() =>
+        validateMetadataAttribute({
+          name: 'partitionKey',
+          role: 'sortKey',
+          attributes: { partitionKey: attributes.partitionKey },
+          entityName,
+        }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
     });
 
     test('Should throw an error for indexName mismatch', async () => {
       expect(() =>
-        validateAttribute({ name: 'sk', role: 'sortKey', attributes: { sk: attributes.sk }, indexName: 'indexName' }),
-      ).toThrowError(/^Attribute ".*" is registered with a wrong index name\/shouldn't be registered with an index.$/);
+        validateMetadataAttribute({
+          name: 'sortKey',
+          role: 'sortKey',
+          attributes: { sortKey: attributes.sortKey },
+          indexName: 'indexName',
+          entityName,
+        }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong index in "EntityName" Entity.$/);
       expect(() =>
-        validateAttribute({
+        validateMetadataAttribute({
           name: 'GSI_1_SK',
           role: 'gsiSortKey',
           attributes: { GSI_1_SK: attributes.GSI_1_SK },
           indexName: 'indexName',
+          entityName,
         }),
-      ).toThrowError(/^Attribute ".*" is registered with a wrong index name\/shouldn't be registered with an index.$/);
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong index in "EntityName" Entity.$/);
       expect(() =>
-        validateAttribute({
+        validateMetadataAttribute({
           name: 'GSI_1_SK',
           role: 'gsiSortKey',
           attributes: { GSI_1_SK: attributes.GSI_1_SK },
+          entityName,
         }),
-      ).toThrowError(/^Attribute ".*" is registered with a wrong index name\/shouldn't be registered with an index.$/);
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong index in "EntityName" Entity.$/);
     });
 
     test("Should throw an error if attribute roles doesn't match", async () => {
       expect(() =>
-        validateAttribute({
-          name: 'pk',
+        validateMetadataAttribute({
+          name: 'partitionKey',
           role: 'partitionKey',
-          attributes: { pk: { ...attributes.pk, type: Date as any } },
+          attributes: { partitionKey: { ...attributes.partitionKey, type: Date as any } },
+          entityName,
         }),
-      ).toThrowError(/^Attribute ".*" is registered with invalid type.$/);
+      ).toThrowError(/^Attribute ".*" is decorated with invalid type in "EntityName" Entity.$/);
+    });
+  });
+
+  describe('validateDecoratedAttribute', async () => {
+    test('Should successfully validate decorated attributes', async () => {
+      expect(
+        validateDecoratedAttribute({ name: 'partitionKey', attribute: attributes.partitionKey, entityName, metadata }),
+      ).toBeUndefined();
+
+      expect(
+        validateDecoratedAttribute({ name: 'sortKey', attribute: attributes.sortKey, entityName, metadata }),
+      ).toBeUndefined();
+
+      expect(
+        validateDecoratedAttribute({ name: 'GSI_1_PK', attribute: attributes.GSI_1_PK, entityName, metadata }),
+      ).toBeUndefined();
+
+      expect(
+        validateDecoratedAttribute({ name: 'GSI_1_SK', attribute: attributes.GSI_1_SK, entityName, metadata }),
+      ).toBeUndefined();
+
+      expect(
+        validateDecoratedAttribute({ name: 'LSI_1_SK', attribute: attributes.LSI_1_SK, entityName, metadata }),
+      ).toBeUndefined();
+
+      expect(
+        validateDecoratedAttribute({ name: 'strDate', attribute: attributes.strDate, entityName, metadata }),
+      ).toBeUndefined();
+
+      expect(
+        validateDecoratedAttribute({ name: 'numDate', attribute: attributes.numDate, entityName, metadata }),
+      ).toBeUndefined();
+
+      expect(
+        validateDecoratedAttribute({ name: 'attr', attribute: attributes.attr, entityName, metadata }),
+      ).toBeUndefined();
+    });
+
+    test('Should throw an error if decorated attribute is different than this in metadata', async () => {
+      expect(() =>
+        validateDecoratedAttribute({ name: 'name', attribute: attributes.partitionKey, entityName, metadata }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+
+      expect(() =>
+        validateDecoratedAttribute({ name: 'name', attribute: attributes.sortKey, entityName, metadata }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+
+      expect(() =>
+        validateDecoratedAttribute({ name: 'name', attribute: attributes.GSI_1_PK, entityName, metadata }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+
+      expect(() =>
+        validateDecoratedAttribute({ name: 'name', attribute: attributes.GSI_1_SK, entityName, metadata }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+
+      expect(() =>
+        validateDecoratedAttribute({ name: 'name', attribute: attributes.LSI_1_SK, entityName, metadata }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+    });
+  });
+
+  describe('validateMetadataUniqueness', async () => {
+    test('Should successfully validate that all keys are unique', async () => {
+      expect(validateMetadataUniqueness(entityName, metadata)).toBeUndefined();
+    });
+
+    test('Should throw an error if decorated attribute is different than this in metadata', async () => {
+      expect(() => validateMetadataUniqueness(entityName, metadataInvalid)).toThrowError(
+        /^Duplicated metadata keys passed to "EntityName" TableManager.$/,
+      );
     });
   });
 });

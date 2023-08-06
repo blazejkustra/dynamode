@@ -108,6 +108,12 @@ export class MockEntity extends TestTable {
   @attribute.boolean()
   boolean: boolean;
 
+  @attribute.date.string()
+  strDate: Date;
+
+  @attribute.date.number()
+  numDate: Date;
+
   unsaved: string;
 
   constructor(props: MockEntityProps) {
@@ -120,6 +126,8 @@ export class MockEntity extends TestTable {
     this.set = props.set;
     this.number = props.number;
     this.boolean = props.boolean;
+    this.strDate = new Date();
+    this.numDate = new Date();
     this.unsaved = 'unsaved';
   }
 

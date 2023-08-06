@@ -110,6 +110,8 @@ describe('Converters entity helpers', () => {
   let transformValueSpy = vi.spyOn(transformValuesHelpers, 'transformValue');
 
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(mockDate);
     getEntityAttributesSpy = vi.spyOn(Dynamode.storage, 'getEntityAttributes');
     getEntityMetadataSpy = vi.spyOn(Dynamode.storage, 'getEntityMetadata');
 
@@ -124,6 +126,7 @@ describe('Converters entity helpers', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   describe('convertAttributeValuesToEntity', async () => {

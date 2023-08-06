@@ -1,4 +1,8 @@
-import { validateAttribute } from '@lib/dynamode/storage/helpers';
+import {
+  validateDecoratedAttribute,
+  validateMetadataAttribute,
+  validateMetadataUniqueness,
+} from '@lib/dynamode/storage/helpers/validator';
 import type {
   AttributeMetadata,
   AttributesMetadata,
@@ -53,7 +57,7 @@ export default class DynamodeStorage {
     }
 
     if (this.entities[entityName].attributes[propertyName]) {
-      throw new DynamodeStorageError(`Attribute "${propertyName}" already registered in entity "${entityName}"`);
+      throw new DynamodeStorageError(`Attribute "${propertyName}" was already decorated in entity "${entityName}"`);
     }
 
     this.entities[entityName].attributes[propertyName] = value;
@@ -112,23 +116,57 @@ export default class DynamodeStorage {
     const metadata = this.getEntityMetadata(entityName);
     const attributes = this.getEntityAttributes(entityName);
 
-    validateAttribute({ name: metadata.partitionKey, attributes, role: 'partitionKey' });
-    if (metadata.sortKey) validateAttribute({ name: metadata.sortKey, attributes, role: 'sortKey' });
+    // Validate metadata
+    validateMetadataUniqueness(entityName, metadata);
+
+    // Validate decorated attributes
+    Object.entries(attributes).forEach(([name, attribute]) =>
+      validateDecoratedAttribute({ name, attribute, metadata, entityName }),
+    );
+
+    // Validate table partition key
+    validateMetadataAttribute({ name: metadata.partitionKey, attributes, role: 'partitionKey', entityName });
+
+    // Validate table sort key
+    if (metadata.sortKey) {
+      validateMetadataAttribute({ name: metadata.sortKey, attributes, role: 'sortKey', entityName });
+    }
+
+    // Validate table timestamps
+    if (metadata.createdAt) {
+      validateMetadataAttribute({ name: metadata.createdAt, attributes, role: 'date', entityName });
+    }
+    if (metadata.updatedAt) {
+      validateMetadataAttribute({ name: metadata.updatedAt, attributes, role: 'date', entityName });
+    }
+
+    // Validate table indexes
     Object.entries(metadata.indexes ?? {}).forEach(([indexName, index]) => {
+      if (!index.partitionKey && !index.sortKey) {
+        throw new ValidationError(
+          `Index "${indexName}" should have a partition key or a sort key in "${entityName}" Entity.`,
+        );
+      }
+
       // Validate GSI
       if (index.partitionKey) {
-        validateAttribute({ name: index.partitionKey, attributes, role: 'gsiPartitionKey', indexName });
-        if (index.sortKey) validateAttribute({ name: index.sortKey, attributes, role: 'gsiSortKey', indexName });
-        return;
+        validateMetadataAttribute({
+          name: index.partitionKey,
+          attributes,
+          role: 'gsiPartitionKey',
+          indexName,
+          entityName,
+        });
+
+        if (index.sortKey) {
+          validateMetadataAttribute({ name: index.sortKey, attributes, role: 'gsiSortKey', indexName, entityName });
+        }
       }
 
       // Validate LSI
-      if (index.sortKey) {
-        validateAttribute({ name: index.sortKey, attributes, role: 'lsiSortKey', indexName });
-        return;
+      if (index.sortKey && !index.partitionKey) {
+        validateMetadataAttribute({ name: index.sortKey, attributes, role: 'lsiSortKey', indexName, entityName });
       }
-
-      throw new ValidationError(`Index "${indexName}" should have a partition key or a sort key.`);
     });
   }
 }

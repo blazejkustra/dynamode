@@ -57,9 +57,17 @@ export type TablesMetadata = {
 
 // helpers
 
-export type ValidateAttribute = {
+export type ValidateMetadataAttribute = {
+  entityName: string;
   name: string;
   attributes: AttributesMetadata;
   role: AttributeRole;
   indexName?: string;
+};
+
+export type ValidateDecoratedAttribute = {
+  entityName: string;
+  name: string;
+  attribute: AttributeMetadata;
+  metadata: Metadata<typeof Entity>;
 };

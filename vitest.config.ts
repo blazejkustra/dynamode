@@ -12,7 +12,7 @@ export default defineConfig({
     coverage: {
       reporter: ['text', 'html', 'lcovonly'],
       include: ['lib/**'],
-      exclude: ['lib/dynamode.ts', 'lib/index.ts', '**/types.ts'],
+      exclude: ['lib/module.ts', 'lib/index.ts', '**/types.ts'],
       all: true,
       lines: 80,
       functions: 80,

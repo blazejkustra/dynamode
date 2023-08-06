@@ -1,15 +1,12 @@
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 
 import { buildProjectionOperators, buildUpdateOperators } from '@lib/entity/helpers/buildOperators';
+import { Dynamode } from '@lib/module';
 import { BASE_OPERATOR, DYNAMODE_ENTITY, InvalidParameter, UPDATE_OPERATORS } from '@lib/utils';
 
 import { MockEntity } from '../../../fixtures';
 
 describe('Build operators entity helpers', () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   describe('buildProjectionOperators', async () => {
     test('Should properly build projection operators with multiple attributes', async () => {
       expect(buildProjectionOperators<typeof MockEntity>(['set', 'string', 'object.optional'])).toEqual([
@@ -206,6 +203,24 @@ describe('Build operators entity helpers', () => {
 
     test('Should properly build update operators with no props', async () => {
       expect(buildUpdateOperators(MockEntity, {} as any)).toEqual([]);
+    });
+
+    test('Should properly build update operators with updatedAt prop', async () => {
+      vi.useFakeTimers();
+      const getEntityMetadataSpy = vi.spyOn(Dynamode.storage, 'getEntityMetadata');
+      getEntityMetadataSpy.mockReturnValue({
+        updatedAt: 'updatedAt',
+      } as any);
+
+      expect(buildUpdateOperators(MockEntity, { set: { string: 'value' } })).toEqual([
+        BASE_OPERATOR.set,
+        BASE_OPERATOR.space,
+        ...UPDATE_OPERATORS.set('updatedAt', new Date().getTime()),
+        BASE_OPERATOR.comma,
+        BASE_OPERATOR.space,
+        ...UPDATE_OPERATORS.set('string', 'value'),
+      ]);
+      vi.useRealTimers();
     });
   });
 });

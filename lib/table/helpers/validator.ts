@@ -5,7 +5,7 @@ import { getKeySchema } from '@lib/table/helpers/schema';
 import { compareDynamodeEntityWithDynamoTable } from '@lib/table/helpers/utils';
 import { Metadata, ValidateTableSync } from '@lib/table/types';
 
-export function validateTableSync<M extends Metadata<TE>, TE extends typeof Entity>({
+export function validateTable<M extends Metadata<TE>, TE extends typeof Entity>({
   metadata,
   tableNameEntity,
   table,

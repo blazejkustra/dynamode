@@ -32,14 +32,14 @@ export default class Condition<E extends typeof Entity> {
 
         if (processedValue instanceof Set) {
           if (processedValue.size !== 1) {
-            throw new ValidationError('contains() only supports one value in the set');
+            throw new ValidationError('contains() supports only one value in the set');
           }
           processedValue = Array.from(processedValue)[0];
         }
 
         if (Array.isArray(processedValue)) {
           if (processedValue.length !== 1) {
-            throw new ValidationError('contains() only supports one value in the array');
+            throw new ValidationError('contains() supports only one value in the array');
           }
           processedValue = processedValue[0];
         }
@@ -98,14 +98,14 @@ export default class Condition<E extends typeof Entity> {
 
           if (processedValue instanceof Set) {
             if (processedValue.size !== 1) {
-              throw new ValidationError('contains() only supports one value in the set');
+              throw new ValidationError('contains() supports only one value in the set');
             }
             processedValue = Array.from(processedValue)[0];
           }
 
           if (Array.isArray(processedValue)) {
             if (processedValue.length !== 1) {
-              throw new ValidationError('contains() only supports one value in the array');
+              throw new ValidationError('contains() supports only one value in the array');
             }
             processedValue = processedValue[0];
           }

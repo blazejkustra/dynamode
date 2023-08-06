@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { convertToAttr, convertToNative, marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import DynamodeStorage from '@lib/dynamode/storage';
-import * as storageHelper from '@lib/dynamode/storage/helpers';
+import * as storageHelper from '@lib/dynamode/storage/helpers/validator';
 import { Metadata } from '@lib/table/types';
 import { DynamodeStorageError, ValidationError } from '@lib/utils/errors';
 
@@ -22,6 +22,8 @@ const metadata: Metadata<typeof MockEntity> = {
       sortKey: 'LSI_1_SK',
     },
   },
+  createdAt: 'strDate',
+  updatedAt: 'numDate',
 };
 
 describe('Dynamode', () => {
@@ -60,7 +62,7 @@ describe('Dynamode', () => {
         expect(storage.tables[TEST_TABLE_NAME].metadata).toEqual(metadata);
       });
 
-      test('Should throw an error when table is registered more than once', async () => {
+      test('Should throw an error when table is decorated more than once', async () => {
         expect(() => storage.registerTable(TestTable, metadata)).toThrow(DynamodeStorageError);
       });
     });
@@ -83,11 +85,11 @@ describe('Dynamode', () => {
         expect(storage.entities[MockEntity2.name].attributes).toEqual({ attr: {} });
       });
 
-      test('Should throw an error when entity is registered more than once', async () => {
+      test('Should throw an error when entity is decorated more than once', async () => {
         expect(() => storage.registerEntity(MockEntity, TEST_TABLE_NAME)).toThrow(DynamodeStorageError);
       });
 
-      test("Should throw an error when entity is registered and table isn't", async () => {
+      test("Should throw an error when entity is decorated and table isn't", async () => {
         expect(() => storage.registerEntity(MockEntity, 'unknownTableName')).toThrow(DynamodeStorageError);
       });
     });
@@ -123,7 +125,7 @@ describe('Dynamode', () => {
         expect(storage.entities[TestTable.name].attributes['parentPropertyName'].role).toEqual('attribute');
       });
 
-      test('Should throw an error when class property is registered more than once', async () => {
+      test('Should throw an error when class property is decorated more than once', async () => {
         expect(() =>
           storage.registerAttribute(TestTable.name, 'parentPropertyName', {
             propertyName: 'parentPropertyName',
@@ -200,12 +202,12 @@ describe('Dynamode', () => {
     });
 
     describe('validateTableMetadata', async () => {
-      let validateAttribute = vi.spyOn(storageHelper, 'validateAttribute');
+      let validateMetadataAttribute = vi.spyOn(storageHelper, 'validateMetadataAttribute');
       let getEntityMetadata = vi.spyOn(storage, 'getEntityMetadata');
       let getEntityAttributes = vi.spyOn(storage, 'getEntityAttributes');
 
       beforeEach(() => {
-        validateAttribute = vi.spyOn(storageHelper, 'validateAttribute');
+        validateMetadataAttribute = vi.spyOn(storageHelper, 'validateMetadataAttribute');
         getEntityMetadata = vi.spyOn(storage, 'getEntityMetadata');
         getEntityAttributes = vi.spyOn(storage, 'getEntityAttributes');
       });
@@ -217,17 +219,19 @@ describe('Dynamode', () => {
       test('Should successfully validate every attribute from metadata', async () => {
         getEntityMetadata.mockReturnValue(metadata);
         getEntityAttributes.mockReturnValue({});
-        validateAttribute.mockReturnValue();
+        validateMetadataAttribute.mockReturnValue();
         storage.validateTableMetadata(TestTable.name);
 
-        expect(validateAttribute).toHaveBeenCalledTimes(5);
-        expect(validateAttribute).toHaveBeenNthCalledWith(1, {
+        expect(validateMetadataAttribute).toHaveBeenCalledTimes(7);
+        expect(validateMetadataAttribute).toHaveBeenNthCalledWith(1, {
           name: 'partitionKey',
+          entityName: 'TestTable',
           role: 'partitionKey',
           attributes: {},
         });
-        expect(validateAttribute).toHaveBeenNthCalledWith(2, {
+        expect(validateMetadataAttribute).toHaveBeenNthCalledWith(2, {
           name: 'sortKey',
+          entityName: 'TestTable',
           role: 'sortKey',
           attributes: {},
         });
@@ -239,17 +243,19 @@ describe('Dynamode', () => {
           sortKey: 'sk',
         } as any);
         getEntityAttributes.mockReturnValue({});
-        validateAttribute.mockReturnValue();
+        validateMetadataAttribute.mockReturnValue();
         storage.validateTableMetadata(TestTable.name);
 
-        expect(validateAttribute).toHaveBeenCalledTimes(2);
-        expect(validateAttribute).toHaveBeenNthCalledWith(1, {
+        expect(validateMetadataAttribute).toHaveBeenCalledTimes(2);
+        expect(validateMetadataAttribute).toHaveBeenNthCalledWith(1, {
           name: 'pk',
+          entityName: 'TestTable',
           role: 'partitionKey',
           attributes: {},
         });
-        expect(validateAttribute).toHaveBeenNthCalledWith(2, {
+        expect(validateMetadataAttribute).toHaveBeenNthCalledWith(2, {
           name: 'sk',
+          entityName: 'TestTable',
           role: 'sortKey',
           attributes: {},
         });
@@ -263,12 +269,13 @@ describe('Dynamode', () => {
           },
         } as any);
         getEntityAttributes.mockReturnValue({});
-        validateAttribute.mockReturnValue();
+        validateMetadataAttribute.mockReturnValue();
         expect(() => storage.validateTableMetadata(TestTable.name)).toThrow(ValidationError);
 
-        expect(validateAttribute).toHaveBeenCalledTimes(1);
-        expect(validateAttribute).toHaveBeenNthCalledWith(1, {
+        expect(validateMetadataAttribute).toHaveBeenCalledTimes(1);
+        expect(validateMetadataAttribute).toHaveBeenNthCalledWith(1, {
           name: 'pk',
+          entityName: 'TestTable',
           role: 'partitionKey',
           attributes: {},
         });

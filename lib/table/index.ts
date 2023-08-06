@@ -13,7 +13,7 @@ import { buildIndexCreate, buildIndexDelete } from '@lib/table/helpers/builders'
 import { convertToTableInformation } from '@lib/table/helpers/converters';
 import { getTableAttributeDefinitions } from '@lib/table/helpers/definitions';
 import { getKeySchema } from '@lib/table/helpers/schema';
-import { validateTableSync } from '@lib/table/helpers/validator';
+import { validateTable } from '@lib/table/helpers/validator';
 import {
   Metadata,
   TableCreateIndexOptions,
@@ -117,7 +117,7 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
   ): Promise<TableInformation | UpdateTableCommandOutput> | UpdateTableCommandInput {
     const { indexes } = this.tableMetadata;
     if (!indexes || !indexes?.[indexName]) {
-      throw new ValidationError(`Index "${indexName}" not registered in ${this.tableEntity.name} entity`);
+      throw new ValidationError(`Index "${indexName}" not decorated in ${this.tableEntity.name} entity`);
     }
 
     const { partitionKey, sortKey } = indexes?.[indexName];
@@ -174,7 +174,7 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     const { indexes } = this.tableMetadata;
     if (indexes?.[indexName]) {
       throw new ValidationError(
-        `Before deleting index "${indexName}" make sure it is no longer registered in ${this.tableEntity.name} entity`,
+        `Before deleting index "${indexName}" make sure it is no longer decorated in ${this.tableEntity.name} entity`,
       );
     }
 
@@ -214,7 +214,7 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     return (async () => {
       const result = await Dynamode.ddb.get().describeTable(commandInput);
 
-      validateTableSync({
+      validateTable({
         metadata: this.tableMetadata,
         tableNameEntity: this.tableEntity.name,
         table: result.Table,

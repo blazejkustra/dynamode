@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import Dynamode from '@lib/dynamode/index';
-import { prefixSuffixValue, truncateValue } from '@lib/entity/helpers/transformValues';
+import { prefixSuffixValue, transformDateValue, truncateValue } from '@lib/entity/helpers/transformValues';
+import { InvalidParameter } from '@lib/utils';
 
 import { MockEntity } from '../../../fixtures';
 
@@ -114,6 +115,45 @@ describe('Prefix and suffix entity helpers', () => {
       expect(truncateValue(MockEntity, 'string', 'value:SUFFIX')).toEqual('value');
       expect(truncateValue(MockEntity, 'string', 'value1:value2:SUFFIX')).toEqual('value1:value2');
       expect(getEntityAttributesSpy).toBeCalledWith(MockEntity.name);
+    });
+  });
+
+  describe('transformDateValue', async () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    test('Should return plain value if value type is other than date', async () => {
+      expect(transformDateValue(MockEntity, 'number', 1)).toEqual(1);
+      expect(transformDateValue(MockEntity, 'object', {})).toEqual({});
+    });
+
+    test('Should transform Date into ISO string', async () => {
+      expect(transformDateValue(MockEntity, 'strDate', new Date())).toEqual(new Date().toISOString());
+    });
+
+    test('Should transform Date into number timestamp', async () => {
+      expect(transformDateValue(MockEntity, 'numDate', new Date())).toEqual(new Date().getTime());
+    });
+
+    test('Should throw an error for a Date with wrong role', async () => {
+      expect(() => transformDateValue(MockEntity, 'number', new Date())).toThrow(InvalidParameter);
+    });
+
+    test('Should throw an error for a Date with wrong attribute type', async () => {
+      getEntityAttributesSpy.mockReturnValue({
+        strDate: {
+          propertyName: 'strDate',
+          type: Set,
+          role: 'date',
+        },
+      });
+
+      expect(() => transformDateValue(MockEntity, 'strDate', new Date())).toThrow(InvalidParameter);
     });
   });
 });

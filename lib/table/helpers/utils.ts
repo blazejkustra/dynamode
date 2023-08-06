@@ -23,7 +23,7 @@ export function getAttributeType(attributes: AttributesMetadata, attribute: stri
   const attributeType = DYNAMODE_DYNAMO_KEY_TYPE_MAP.get(attributes[attribute].type);
 
   if (!attributeType) {
-    throw new ValidationError(`Attribute "${attribute}" is registered with invalid type.`);
+    throw new ValidationError(`Attribute "${attribute}" is decorated with invalid type.`);
   }
 
   return attributeType;

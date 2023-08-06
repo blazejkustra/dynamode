@@ -38,7 +38,7 @@ export function truncateValue<E extends typeof Entity>(entity: E, key: string, v
   return valueSections.join(separator);
 }
 
-function transformDateValue<E extends typeof Entity>(entity: E, key: string, value: unknown): unknown {
+export function transformDateValue<E extends typeof Entity>(entity: E, key: string, value: unknown): unknown {
   const attributes = Dynamode.storage.getEntityAttributes(entity.name);
   const attribute = attributes[key];
 

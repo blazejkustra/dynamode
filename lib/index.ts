@@ -1,4 +1,4 @@
-import * as dynamode from '@lib/dynamode';
+import * as dynamode from '@lib/module';
 
 export default dynamode;
-export * from '@lib/dynamode';
+export * from '@lib/module';
