@@ -1,13 +1,9 @@
 {
-  "cSpell.words": [
-    "dynamode",
-    "unmarshall"
-  ],
+  "cSpell.words": ["dynamode", "unmarshall"],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
   "files.associations": {
     "*.mdx": "markdown"
-},
-"typescript.tsdk": "node_modules/typescript/lib",
+  }
 }
