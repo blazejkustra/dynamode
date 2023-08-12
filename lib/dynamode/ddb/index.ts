@@ -21,6 +21,7 @@ export default function (): DDBType {
     set(
       new DynamoDB({
         endpoint,
+        region: 'local',
       }),
     );
     return get();
