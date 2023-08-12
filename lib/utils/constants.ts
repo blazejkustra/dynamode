@@ -722,16 +722,18 @@ export const OPERATORS = {
     BASE_OPERATOR.contains,
     ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
   ],
-  /** $K IN $V, $V, $V */
+  /** $K IN ($V, $V, $V) */
   in: (key: string, values: unknown[]): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.in,
     BASE_OPERATOR.space,
+    BASE_OPERATOR.leftParenthesis,
     ...insertBetween<OperatorExpression | OperatorValue>(
       values.map((value) => ({ value, key })),
       [BASE_OPERATOR.comma, BASE_OPERATOR.space],
     ),
+    BASE_OPERATOR.rightParenthesis,
   ],
   /** $K BETWEEN $V AND $V */
   between: (key: string, value1: unknown, value2: unknown): Operators => [

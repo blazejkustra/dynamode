@@ -1,4 +1,4 @@
-import type { AttributeType } from '@lib/condition/types';
+import { AttributeType } from '@lib/condition/types';
 import Entity from '@lib/entity';
 import { transformValue } from '@lib/entity/helpers/transformValues';
 import { EntityKey, EntityValue } from '@lib/entity/types';

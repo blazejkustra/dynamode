@@ -109,13 +109,16 @@ describe('Constants', () => {
         { expression: ' ' },
         { expression: 'IN' },
         { expression: ' ' },
+        { expression: '(' },
         { value: 'value1', key: 'key' },
+        { expression: ')' },
       ]);
       expect(OPERATORS.in('key', ['value1', 'value2', 'value3'])).toEqual([
         { key: 'key' },
         { expression: ' ' },
         { expression: 'IN' },
         { expression: ' ' },
+        { expression: '(' },
         { value: 'value1', key: 'key' },
         { expression: ',' },
         { expression: ' ' },
@@ -123,6 +126,7 @@ describe('Constants', () => {
         { expression: ',' },
         { expression: ' ' },
         { value: 'value3', key: 'key' },
+        { expression: ')' },
       ]);
     });
 
@@ -196,7 +200,9 @@ describe('Constants', () => {
         { expression: ' ' },
         { expression: 'IN' },
         { expression: ' ' },
+        { expression: '(' },
         { value: 'value1', key: 'key' },
+        { expression: ')' },
         { expression: ')' },
       ]);
       expect(OPERATORS.notIn('key', ['value1', 'value2', 'value3'])).toEqual([
@@ -207,6 +213,7 @@ describe('Constants', () => {
         { expression: ' ' },
         { expression: 'IN' },
         { expression: ' ' },
+        { expression: '(' },
         { value: 'value1', key: 'key' },
         { expression: ',' },
         { expression: ' ' },
@@ -214,6 +221,7 @@ describe('Constants', () => {
         { expression: ',' },
         { expression: ' ' },
         { value: 'value3', key: 'key' },
+        { expression: ')' },
         { expression: ')' },
       ]);
     });
