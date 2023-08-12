@@ -42,6 +42,9 @@ describe('Build operators entity helpers', () => {
   });
 
   describe('buildUpdateOperators', async () => {
+    const getEntityMetadataSpy = vi.spyOn(Dynamode.storage, 'getEntityMetadata');
+    getEntityMetadataSpy.mockReturnValue({} as any);
+
     test('Should properly build update operators with props.set', async () => {
       expect(buildUpdateOperators(MockEntity, { set: { string: 'value', number: 1 } })).toEqual([
         BASE_OPERATOR.set,
@@ -207,7 +210,6 @@ describe('Build operators entity helpers', () => {
 
     test('Should properly build update operators with updatedAt prop', async () => {
       vi.useFakeTimers();
-      const getEntityMetadataSpy = vi.spyOn(Dynamode.storage, 'getEntityMetadata');
       getEntityMetadataSpy.mockReturnValue({
         updatedAt: 'updatedAt',
       } as any);

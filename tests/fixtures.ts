@@ -153,6 +153,8 @@ export const TestTableManager = new TableManager(TestTable, {
       sortKey: 'LSI_1_SK',
     },
   },
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
 });
 
 export type TestTableMetadata = typeof TestTableManager.tableMetadata;
