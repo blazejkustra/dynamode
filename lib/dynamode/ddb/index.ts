@@ -22,6 +22,10 @@ export default function (): DDBType {
       new DynamoDB({
         endpoint,
         region: 'local',
+        credentials: {
+          accessKeyId: 'local',
+          secretAccessKey: 'local',
+        },
       }),
     );
     return get();

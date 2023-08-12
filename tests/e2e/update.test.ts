@@ -251,7 +251,7 @@ describe.sequential('EntityManager.update', () => {
       expect(mockEntityRetrieved.object.required).toEqual(0);
     });
 
-    test.todo('Should update.delete values from set', async () => {
+    test('Should update.delete values from set', async () => {
       // Arrange
       const mock = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK1' });
       await MockEntityManager.put(mock);
@@ -272,7 +272,7 @@ describe.sequential('EntityManager.update', () => {
       expect(mockEntityRetrieved.set).toEqual(new Set(['3']));
     });
 
-    test.todo('Should update.remove some of the fields', async () => {
+    test('Should update.remove some of the fields', async () => {
       // Arrange
       const mock = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK1' });
       await MockEntityManager.put(mock);
