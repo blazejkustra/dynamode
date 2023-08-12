@@ -131,6 +131,15 @@ describe.sequential('EntityManager.put', () => {
         MockEntityManager.condition()
           .attribute('map')
           .eq(new Map([['1', '2']])),
+
+        // composite
+        MockEntityManager.condition().attribute('string').eq('string').and.attribute('number').eq(1),
+        MockEntityManager.condition().attribute('string').eq('string').or.attribute('number').eq(0),
+        MockEntityManager.condition().attribute('string').eq('string').and.attribute('number').not().eq(0),
+        MockEntityManager.condition()
+          .attribute('string')
+          .eq('string')
+          .and.parenthesis(MockEntityManager.condition().attribute('number').eq(0).or.attribute('number').eq(1)),
       ];
 
       // Act & Assert
