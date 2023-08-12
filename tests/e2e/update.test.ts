@@ -340,7 +340,40 @@ describe.sequential('EntityManager.update', () => {
         'Invalid UpdateExpression: Two document paths overlap with each other; must remove or rewrite one of these paths;',
       );
     });
-    test.todo('Should be able to update with condition');
-    test.todo('Should be able to update with returnValues');
+
+    test('Should be able to update with condition', async () => {
+      // Arrange
+      const mock = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK1' });
+      await MockEntityManager.put(mock);
+
+      // Act
+      const mockAfterUpdate = await MockEntityManager.update(
+        { partitionKey: 'PK1', sortKey: 'SK1' },
+        { set: { string: 'string' } },
+        { condition: MockEntityManager.condition().attribute('object.optional').not().exists() },
+      );
+
+      // Assert
+      expect(mockAfterUpdate).toEqual(mock);
+    });
+
+    test('Should be able to update with returnValues', async () => {
+      // Arrange
+      const mock = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK1' });
+      await MockEntityManager.put(mock);
+
+      // Act
+      const mockAfterUpdate = await MockEntityManager.update(
+        { partitionKey: 'PK1', sortKey: 'SK1' },
+        { set: { string: 'after' } },
+        { returnValues: 'allOld' },
+      );
+
+      // Assert
+      expect(mockAfterUpdate).toEqual(mock);
+
+      const mockEntityRetrieved = await MockEntityManager.get({ partitionKey: 'PK1', sortKey: 'SK1' });
+      expect(mockEntityRetrieved.string).toEqual('after');
+    });
   });
 });
