@@ -35,7 +35,7 @@ export const KeyValueTableManager = new TableManager(KeyValue, {
 export const KeyValueManager = KeyValueTableManager.entityManager();
 
 async function create() {
-  const table = await KeyValueTableManager.create({
+  const table = await KeyValueTableManager.createTable({
     tags: {
       'dynamode:example': 'key-value',
     },
@@ -49,16 +49,16 @@ async function create() {
 }
 
 async function createIndex() {
-  const table = await KeyValueTableManager.createIndex('test');
+  const table = await KeyValueTableManager.createTableIndex('test');
   console.log(table);
 }
 
 async function deleteIndex() {
-  const table = await KeyValueTableManager.deleteIndex('test');
+  const table = await KeyValueTableManager.deleteTableIndex('test');
   console.log(table);
 }
 
 async function validateTable() {
-  const table = await KeyValueTableManager.validate();
+  const table = await KeyValueTableManager.validateTable();
   console.log(table);
 }

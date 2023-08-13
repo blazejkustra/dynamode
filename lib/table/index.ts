@@ -54,10 +54,10 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     return EntityManager<M, TE>(this.tableEntity, this.tableMetadata.tableName);
   }
 
-  public create(options?: TableCreateOptions & { return?: 'default' }): Promise<TableInformation>;
-  public create(options: TableCreateOptions & { return: 'output' }): Promise<CreateTableCommandOutput>;
-  public create(options: TableCreateOptions & { return: 'input' }): CreateTableCommandInput;
-  public create(
+  public createTable(options?: TableCreateOptions & { return?: 'default' }): Promise<TableInformation>;
+  public createTable(options: TableCreateOptions & { return: 'output' }): Promise<CreateTableCommandOutput>;
+  public createTable(options: TableCreateOptions & { return: 'input' }): CreateTableCommandInput;
+  public createTable(
     options?: TableCreateOptions,
   ): Promise<TableInformation | CreateTableCommandOutput> | CreateTableCommandInput {
     const localSecondaryIndexes = getTableLocalSecondaryIndexes(this.tableMetadata);
@@ -96,7 +96,7 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     })();
   }
 
-  public async delete(tableName: string) {
+  public async deleteTable(tableName: string) {
     if (tableName !== this.tableMetadata.tableName) {
       throw new ValidationError(`To delete table "${this.tableMetadata.tableName}", pass the table name as argument`);
     }
@@ -104,22 +104,22 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     return await Dynamode.ddb.get().deleteTable({ TableName: this.tableMetadata.tableName });
   }
 
-  public createIndex(
+  public createTableIndex(
     indexName: string,
     options?: TableCreateIndexOptions & { return?: 'default' },
   ): Promise<TableInformation>;
 
-  public createIndex(
+  public createTableIndex(
     indexName: string,
     options: TableCreateIndexOptions & { return: 'output' },
   ): Promise<UpdateTableCommandOutput>;
 
-  public createIndex(
+  public createTableIndex(
     indexName: string,
     options: TableCreateIndexOptions & { return: 'input' },
   ): UpdateTableCommandInput;
 
-  public createIndex(
+  public createTableIndex(
     indexName: string,
     options?: TableCreateIndexOptions,
   ): Promise<TableInformation | UpdateTableCommandOutput> | UpdateTableCommandInput {
@@ -160,22 +160,22 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     })();
   }
 
-  public deleteIndex(
+  public deleteTableIndex(
     indexName: string,
     options?: TableDeleteIndexOptions & { return?: 'default' },
   ): Promise<TableInformation>;
 
-  public deleteIndex(
+  public deleteTableIndex(
     indexName: string,
     options: TableDeleteIndexOptions & { return: 'output' },
   ): Promise<UpdateTableCommandOutput>;
 
-  public deleteIndex(
+  public deleteTableIndex(
     indexName: string,
     options: TableDeleteIndexOptions & { return: 'input' },
   ): UpdateTableCommandInput;
 
-  public deleteIndex(
+  public deleteTableIndex(
     indexName: string,
     options?: TableDeleteIndexOptions,
   ): Promise<TableInformation | UpdateTableCommandOutput> | UpdateTableCommandInput {
@@ -207,10 +207,10 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     })();
   }
 
-  public validate(options?: TableValidateOptions & { return?: 'default' }): Promise<TableInformation>;
-  public validate(options: TableValidateOptions & { return: 'output' }): Promise<DescribeTableCommandOutput>;
-  public validate(options: TableValidateOptions & { return: 'input' }): DescribeTableCommandInput;
-  public validate(
+  public validateTable(options?: TableValidateOptions & { return?: 'default' }): Promise<TableInformation>;
+  public validateTable(options: TableValidateOptions & { return: 'output' }): Promise<DescribeTableCommandOutput>;
+  public validateTable(options: TableValidateOptions & { return: 'input' }): DescribeTableCommandInput;
+  public validateTable(
     options?: TableValidateOptions,
   ): Promise<TableInformation | DescribeTableCommandOutput> | DescribeTableCommandInput {
     const commandInput: DescribeTableCommandInput = { TableName: this.tableMetadata.tableName, ...options?.extraInput };

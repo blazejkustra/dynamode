@@ -91,7 +91,7 @@ const EntityTwoManager = BaseTableManager.entityManager(EntityTwo);
 const EntityThreeManager = BaseTableManager.entityManager(EntityThree);
 ```
 
-## TableManager.create(options?)
+## TableManager.createTable(options?)
 
 This method creates a DynamoDB table.
 
@@ -99,7 +99,15 @@ This method creates a DynamoDB table.
 This method isn't tested yet. Use it at your own risk.
 :::
 
-## TableManager.createIndex(indexName, options?)
+## TableManager.deleteTable(tableName: string)
+
+This method deletes a DynamoDB table.
+
+:::danger
+This method isn't tested yet. Use it at your own risk.
+:::
+
+## TableManager.createTableIndex(indexName, options?)
 
 This method creates a secondary index in DynamoDB table.
 
@@ -107,7 +115,7 @@ This method creates a secondary index in DynamoDB table.
 This method isn't tested yet. Use it at your own risk.
 :::
 
-## TableManager.deleteIndex(indexName, options?)
+## TableManager.deleteTableIndex(indexName, options?)
 
 This method deletes a secondary index in DynamoDB table.
 
@@ -115,7 +123,7 @@ This method deletes a secondary index in DynamoDB table.
 This method isn't tested yet. Use it at your own risk.
 :::
 
-## TableManager.validate(options?)
+## TableManager.validateTable(options?)
 
 This method validates the integrity of TableEntity and DynamoDB table.
 

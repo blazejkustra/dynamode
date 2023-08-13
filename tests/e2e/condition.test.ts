@@ -10,11 +10,11 @@ describe.sequential('EntityManager.put', () => {
   beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(mockDate);
-    await TestTableManager.create();
+    await TestTableManager.createTable();
   });
 
   afterAll(async () => {
-    await TestTableManager.delete(TEST_TABLE_NAME);
+    await TestTableManager.deleteTable(TEST_TABLE_NAME);
     vi.useRealTimers();
     vi.restoreAllMocks();
   });

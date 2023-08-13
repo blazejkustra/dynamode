@@ -1,17 +1,16 @@
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 
-import { MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../fixtures';
-
-import { mockEntityFactory } from './mockEntityFactory';
+import { MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../../fixtures';
+import { mockEntityFactory } from '../mockEntityFactory';
 
 describe('EntityManager.batchGet', () => {
   beforeAll(async () => {
     vi.useFakeTimers();
-    await TestTableManager.create();
+    await TestTableManager.createTable();
   });
 
   afterAll(async () => {
-    await TestTableManager.delete(TEST_TABLE_NAME);
+    await TestTableManager.deleteTable(TEST_TABLE_NAME);
     vi.useRealTimers();
     vi.restoreAllMocks();
   });

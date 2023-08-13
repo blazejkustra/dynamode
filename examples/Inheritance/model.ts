@@ -93,6 +93,6 @@ export const EntityTwoManager = BaseTableManager.entityManager(EntityTwo);
 export const EntityThreeManager = BaseTableManager.entityManager(EntityThree);
 
 async function create() {
-  const table = await BaseTableManager.create();
+  const table = await BaseTableManager.createTable();
   console.log(table);
 }

@@ -1,18 +1,17 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 
-import { mockDate, MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../fixtures';
-
-import { mockEntityFactory } from './mockEntityFactory';
+import { mockDate, MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../../fixtures';
+import { mockEntityFactory } from '../mockEntityFactory';
 
 describe.sequential('EntityManager.update', () => {
   beforeAll(async () => {
     vi.useFakeTimers();
-    await TestTableManager.create();
+    await TestTableManager.createTable();
   });
 
   afterAll(async () => {
-    await TestTableManager.delete(TEST_TABLE_NAME);
+    await TestTableManager.deleteTable(TEST_TABLE_NAME);
     vi.useRealTimers();
     vi.restoreAllMocks();
   });

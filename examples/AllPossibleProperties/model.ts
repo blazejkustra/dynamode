@@ -135,21 +135,21 @@ const AllPossiblePropertiesTableManager = new TableManager(AllPossibleProperties
 export const AllPossiblePropertiesManager = AllPossiblePropertiesTableManager.entityManager();
 
 async function create() {
-  const table = await AllPossiblePropertiesTableManager.create();
+  const table = await AllPossiblePropertiesTableManager.createTable();
   console.log(table);
 }
 
 async function createIndex() {
-  const table = await AllPossiblePropertiesTableManager.createIndex('GSI_1_NAME');
+  const table = await AllPossiblePropertiesTableManager.createTableIndex('GSI_1_NAME');
   console.log(table);
 }
 
 async function deleteIndex() {
-  const table = await AllPossiblePropertiesTableManager.deleteIndex('GSI_1_NAME');
+  const table = await AllPossiblePropertiesTableManager.deleteTableIndex('GSI_1_NAME');
   console.log(table);
 }
 
 async function validateTable() {
-  const table = await AllPossiblePropertiesTableManager.validate();
+  const table = await AllPossiblePropertiesTableManager.validateTable();
   console.log(table);
 }
