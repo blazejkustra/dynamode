@@ -12,6 +12,7 @@
     "test:watch": "vitest unit",
     "test:e2e": "vitest run e2e --single-thread",
     "test:ui": "vitest --ui",
+    "test:typecheck": "vitest typecheck",
     "coverage": "vitest run unit --coverage",
     "lint": "eslint lib --ext .ts,.js --max-warnings 0",
     "lint:fix": "npm run lint -- --fix"
