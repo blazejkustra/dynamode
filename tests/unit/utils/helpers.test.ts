@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { describe, expect, test } from 'vitest';
 
 import {
   deepEqual,
@@ -171,24 +171,29 @@ describe('Helpers', () => {
     });
   });
 
-  describe.todo('timeout', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-      vi.spyOn(global, 'setTimeout').mockImplementation((cb) => cb() as any);
+  describe('timeout', () => {
+    test('It should resolve after the specified time', async () => {
+      const start = Date.now();
+      await timeout(100);
+      const end = Date.now();
+      const diff = end - start;
+      expect(diff).toBeGreaterThanOrEqual(100);
     });
 
-    afterEach(() => {
-      vi.useRealTimers();
+    test('It should resolve immediately when timeout is 0', async () => {
+      const start = Date.now();
+      await timeout(0);
+      const end = Date.now();
+      const diff = end - start;
+      expect(diff).toBeLessThan(10); // Considering that the operation should be close to immediate
     });
 
-    test('Should call setTimeout if argument is greater than 0', async () => {
-      expect(await timeout(1)).toEqual(undefined);
-      expect(setTimeout).toHaveBeenLastCalledWith(expect.anything(), 1);
-    });
-
-    test('Should call setTimeout if argument equals 0', async () => {
-      expect(await timeout(0)).toEqual(undefined);
-      expect(setTimeout).not.toHaveBeenCalled();
+    test('Negative timeout returns immediately', async () => {
+      const start = Date.now();
+      await timeout(-10);
+      const end = Date.now();
+      const diff = end - start;
+      expect(diff).toBeLessThan(10); // Operation should be close to immediate
     });
   });
 });
