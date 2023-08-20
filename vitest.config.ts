@@ -19,5 +19,12 @@ export default defineConfig({
       branches: 80,
       statements: 80,
     },
+    typecheck: {
+      checker: 'tsc',
+      include: ['tests/types/**/*.ts'],
+      exclude: ['node_modules/**'],
+      tsconfig: 'tests/tsconfig.json',
+      ignoreSourceErrors: true,
+    },
   },
 });

@@ -19,8 +19,14 @@ jobs:
         run: npm ci
       - name: Lint 🧹
         run: npm run lint
-      - name: Tests 🧪
+      - name: Test Unit 🧪
         run: npm run test
+      - name: Test types 🛠️
+        run: npm run test:typecheck
+      - name: Setup DynamoDB Local
+        uses: rrainn/dynamodb-action@v2.0.0
+      - name: Test E2E ⚙️
+        run: npm run test:e2e
       - name: Coverage 📝
         run: npm run coverage
       - name: Build 🔧

@@ -60,3 +60,6 @@ typings/
 .idea
 dist/
 examples/docker/
+
+# Vitest
+tsconfig.vitest-temp.json
