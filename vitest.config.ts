@@ -22,6 +22,7 @@ export default defineConfig({
     typecheck: {
       checker: 'tsc',
       include: ['tests/types/**/*.ts'],
+      exclude: ['node_modules/**'],
       tsconfig: 'tests/tsconfig.json',
       ignoreSourceErrors: true,
     },
