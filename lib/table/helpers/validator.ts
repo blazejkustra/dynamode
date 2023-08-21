@@ -8,19 +8,23 @@ import { Metadata, ValidateTableSync } from '@lib/table/types';
 export function validateTable<M extends Metadata<TE>, TE extends typeof Entity>({
   metadata,
   tableNameEntity,
-  table,
+  table = {},
 }: ValidateTableSync<M, TE>) {
-  const tableKeySchema = table?.KeySchema;
-  const tableAttributeDefinitions = table?.AttributeDefinitions;
-  const tableLocalSecondaryIndexes = table?.LocalSecondaryIndexes?.map((v) => ({
-    IndexName: v.IndexName,
-    KeySchema: v.KeySchema,
-  }));
-  const tableGlobalSecondaryIndexes = table?.GlobalSecondaryIndexes?.map((v) => ({
-    IndexName: v.IndexName,
-    KeySchema: v.KeySchema,
-  }));
+  const {
+    LocalSecondaryIndexes = [],
+    GlobalSecondaryIndexes = [],
+    AttributeDefinitions: tableAttributeDefinitions = [],
+    KeySchema: tableKeySchema = [],
+  } = table;
 
+  const tableLocalSecondaryIndexes = LocalSecondaryIndexes.map((v) => ({
+    IndexName: v.IndexName,
+    KeySchema: v.KeySchema,
+  }));
+  const tableGlobalSecondaryIndexes = GlobalSecondaryIndexes.map((v) => ({
+    IndexName: v.IndexName,
+    KeySchema: v.KeySchema,
+  }));
   const keySchema = getKeySchema(metadata.partitionKey, metadata.sortKey);
   const attributeDefinitions = getTableAttributeDefinitions(metadata, tableNameEntity);
   const localSecondaryIndexes = getTableLocalSecondaryIndexes(metadata).map((v) => ({
@@ -32,8 +36,8 @@ export function validateTable<M extends Metadata<TE>, TE extends typeof Entity>(
     KeySchema: v.KeySchema,
   }));
 
-  compareDynamodeEntityWithDynamoTable(keySchema, tableKeySchema || []);
-  compareDynamodeEntityWithDynamoTable(attributeDefinitions, tableAttributeDefinitions || []);
-  compareDynamodeEntityWithDynamoTable(localSecondaryIndexes, tableLocalSecondaryIndexes || []);
-  compareDynamodeEntityWithDynamoTable(globalSecondaryIndexes, tableGlobalSecondaryIndexes || []);
+  compareDynamodeEntityWithDynamoTable(keySchema, tableKeySchema);
+  compareDynamodeEntityWithDynamoTable(attributeDefinitions, tableAttributeDefinitions);
+  compareDynamodeEntityWithDynamoTable(localSecondaryIndexes, tableLocalSecondaryIndexes);
+  compareDynamodeEntityWithDynamoTable(globalSecondaryIndexes, tableGlobalSecondaryIndexes);
 }
