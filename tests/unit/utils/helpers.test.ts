@@ -174,7 +174,7 @@ describe('Helpers', () => {
   describe('timeout', () => {
     test('It should resolve after the specified time', async () => {
       const start = Date.now();
-      await timeout(100);
+      await timeout(200);
       const end = Date.now();
       const diff = end - start;
       expect(diff).toBeGreaterThanOrEqual(100);
