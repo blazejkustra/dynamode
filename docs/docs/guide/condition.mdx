@@ -7,13 +7,13 @@ hide_title: true
 
 # Condition
 
-Condition class represents a conditional that you can pass to [Entity Manager methods](/docs/guide/table/entityManager) and also to build more complex conditions in [Query](/docs/guide/query) and [Scan](/docs/guide/scan) classes.
+Condition class represents a conditional that you can pass to [Entity Manager methods](/docs/guide/managers/entityManager) and also to build more complex conditions in [Query](/docs/guide/query) and [Scan](/docs/guide/scan) classes.
 
 Condition is also a base class for [Query](/docs/guide/query) and [Scan](/docs/guide/scan), meaning that all methods listed here are also available in [Query](/docs/guide/query) and [Scan](/docs/guide/scan) classes.
 
 ## new Condition(Entity) or EntityManager.condition()
 
-Every condition has to be initialized with [Entity](/docs/guide/table/entityManager) to infer its underlying properties. You can achieve this in two ways:
+Every condition has to be initialized with [Entity](/docs/guide/managers/entityManager) to infer its underlying properties. You can achieve this in two ways:
 
 ```ts
 // Below definitions are equivalent
@@ -21,7 +21,7 @@ new Condition(User);
 UserManager.condition();
 ```
 
-[User](/docs/guide/entity/modeling#user) is an example class that extends [Entity](/docs/guide/table/entityManager).
+[User](/docs/guide/entity/modeling#user) is an example class that extends [Entity](/docs/guide/managers/entityManager).
 
 ## Condition.attribute(key)
 

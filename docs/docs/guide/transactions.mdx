@@ -20,7 +20,7 @@ This function is used to get multiple items in a single transaction. It uses the
 
 ### Arguments
 
-**`transactions`**: `TransactionGet[]` - Array of get operations generated with [`EntityManager.transactionGet(primaryKey, options?)`](/docs/guide/table/entityManager#entitytransactiongetprimarykey-options) method.
+**`transactions`**: `TransactionGet[]` - Array of get operations generated with [`EntityManager.transactionGet(primaryKey, options?)`](/docs/guide/managers/entityManager#entitytransactiongetprimarykey-options) method.
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
@@ -147,13 +147,13 @@ This function is used to insert/update/delete multiple items in a single transac
 
 **`transactions`**: `TransactionWrite[]` - Array of operations generated with methods that are described below:
 
-| Method                                                                                                                                                        | Description                                     |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| [`EntityManager.transaction.put(item, options?)`](/docs/guide/table/entityManager#entitytransactionputitem-options)                                            | Insert an item to DynamoDB.                     |
-| [`EntityManager.transaction.create(item, options?)`](/docs/guide/table/entityManager#entitytransactioncreateitem-options)                                      | Insert an item to DynamoDB (without overwrite). |
-| [`EntityManager.transaction.update(primaryKey, props, options?)`](/docs/guide/table/entityManager#entitytransactionupdateprimarykey-props-options)             | Update an item in DynamoDB.                     |
-| [`EntityManager.transaction.delete(primaryKey, options?)`](/docs/guide/table/entityManager#entitytransactiondeleteprimarykey-options)                          | Delete an item in DynamoDB.                     |
-| [`EntityManager.transaction.condition(primaryKey, conditionInstance)`](/docs/guide/table/entityManager#entitytransactionconditionprimarykey-conditioninstance) | Condition for the transaction.                  |
+| Method                                                                                                                                                            | Description                                     |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| [`EntityManager.transaction.put(item, options?)`](/docs/guide/managers/entityManager#entitytransactionputitem-options)                                            | Insert an item to DynamoDB.                     |
+| [`EntityManager.transaction.create(item, options?)`](/docs/guide/managers/entityManager#entitytransactioncreateitem-options)                                      | Insert an item to DynamoDB (without overwrite). |
+| [`EntityManager.transaction.update(primaryKey, props, options?)`](/docs/guide/managers/entityManager#entitytransactionupdateprimarykey-props-options)             | Update an item in DynamoDB.                     |
+| [`EntityManager.transaction.delete(primaryKey, options?)`](/docs/guide/managers/entityManager#entitytransactiondeleteprimarykey-options)                          | Delete an item in DynamoDB.                     |
+| [`EntityManager.transaction.condition(primaryKey, conditionInstance)`](/docs/guide/managers/entityManager#entitytransactionconditionprimarykey-conditioninstance) | Condition for the transaction.                  |
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 

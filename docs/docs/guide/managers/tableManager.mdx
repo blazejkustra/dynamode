@@ -10,7 +10,7 @@ import TabItem from '@theme/TabItem';
 
 # Table Manager
 
-`TableManager` is used to perform operations on DynamoDB table. It also initializes [`Entity Managers`](/docs/guide/table/entityManager) that act as repositories for your models. 
+`TableManager` is used to perform operations on DynamoDB table. It also initializes [`Entity Managers`](/docs/guide/managers/entityManager) that act as repositories for your models. 
 
 ## new TableManager(tableEntity, tableMetadata)
 
@@ -58,7 +58,7 @@ const AllPossiblePropertiesTableManager = new TableManager(AllPossibleProperties
 
 ## TableManager.entityManager(entity?)
 
-This method initializes [`EntityManager`](/docs/guide/table/entityManager) class that acts as a repository that is used to perform operations on a given model. To learn more check out [`Entity Manager`](/docs/guide/table/entityManager) page.
+This method initializes [`EntityManager`](/docs/guide/managers/entityManager) class that acts as a repository that is used to perform operations on a given model. To learn more check out [`Entity Manager`](/docs/guide/managers/entityManager) page.
 
 ### Arguments
 
@@ -71,7 +71,7 @@ You can add optional `entity` parameter which is a model that inherits from `tab
 
 ### Examples
 
-[BaseTable](/docs/guide/entity/modeling#inheritance) is an example class that extends [Entity](/docs/guide/table/entityManager).
+[BaseTable](/docs/guide/entity/modeling#inheritance) is an example class that extends [Entity](/docs/guide/managers/entityManager).
 
 ```ts
 import TableManager from 'dynamode/table';

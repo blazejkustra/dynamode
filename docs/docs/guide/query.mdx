@@ -20,7 +20,7 @@ Query is a child of [Condition](/docs/guide/condition) class, meaning that all m
 
 ## new Query(Entity) or EntityManager.query()
 
-Every query has to be initialized with [Entity](/docs/guide/table/entityManager) to infer its underlying properties. You can achieve this in two ways:
+Every query has to be initialized with [Entity](/docs/guide/managers/entityManager) to infer its underlying properties. You can achieve this in two ways:
 
 ```ts
 // Below definitions are equivalent
@@ -28,7 +28,7 @@ new Query(AllPossibleProperties);
 AllPossiblePropertiesManager.query();
 ```
 
-[AllPossibleProperties](/docs/guide/entity/modeling#all-possible-properties) is an example class that extends [Entity](/docs/guide/table/entityManager).
+[AllPossibleProperties](/docs/guide/entity/modeling#all-possible-properties) is an example class that extends [Entity](/docs/guide/managers/entityManager).
 
 ## Query.partitionKey(key)
 

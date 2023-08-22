@@ -14,18 +14,18 @@ import TabItem from '@theme/TabItem';
 - To read more about modeling entities check out [Decorators](/docs/guide/entity/decorators) and [Modeling](/docs/guide/entity/modeling) pages. 
   
 **Instance of a class** represents an item for a given model in DynamoDB. 
-- It can be created locally (meaning that is not yet saved in DynamoDB) with [entity constructor](/docs/guide/table/entityManager#new-entityprops), 
-- It can be already stored in DynamoDB (e.g. [`EntityManager.get(primaryKey, options?)`](/docs/guide/table/entityManager#entitygetprimarykey-options) or [`EntityManager.put(item, options?)`](/docs/guide/table/entityManager#entityputitem-options)).
+- It can be created locally (meaning that is not yet saved in DynamoDB) with [entity constructor](/docs/guide/managers/entityManager#new-entityprops), 
+- It can be already stored in DynamoDB (e.g. [`EntityManager.get(primaryKey, options?)`](/docs/guide/managers/entityManager#entitygetprimarykey-options) or [`EntityManager.put(item, options?)`](/docs/guide/managers/entityManager#entityputitem-options)).
   
 **Entity Manager class** is used to perform operations on a given model.
 - Exposes static methods that you can use to read, insert, update, delete items in DynamoDB. This page describes in detail all available methods.
-- To create an instance of Entity Manager use [`TableManager.entityManager(entity?)`](/docs/guide/table/tableManager#tablemanagerentitymanagerentity) method.
+- To create an instance of Entity Manager use [`TableManager.entityManager(entity?)`](/docs/guide/managers/tableManager#tablemanagerentitymanagerentity) method.
 
 ## new Entity(props)
 
 ### Description
 
-Entity constructor is used to initialize an item for a given model. When you construct an item using `new Entity(props)` the item is only created locally, meaning that it is not yet saved in DynamoDB. If you want to save it to the table use for example [`EntityManager.put(item, options?)`](/docs/guide/table/entityManager#entityputitem-options) method.
+Entity constructor is used to initialize an item for a given model. When you construct an item using `new Entity(props)` the item is only created locally, meaning that it is not yet saved in DynamoDB. If you want to save it to the table use for example [`EntityManager.put(item, options?)`](/docs/guide/managers/entityManager#entityputitem-options) method.
 
 ### Arguments
 
@@ -73,7 +73,7 @@ This method is used to retrieve an item from DynamoDB. It uses the [GetItem Dyna
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/managers/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 <!-- TODO: Add info that this function is async and returns a promise -->
@@ -293,7 +293,7 @@ Output:
 
 ### Description
 
-This method is almost identical to [`EntityManager.put(item, options?)`](/docs/guide/table/entityManager#entityputitem-options). The only difference being that `EntityManager.create(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
+This method is almost identical to [`EntityManager.put(item, options?)`](/docs/guide/managers/entityManager#entityputitem-options). The only difference being that `EntityManager.create(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
 
 ## EntityManager.update(primaryKey, props, options?)
 
@@ -303,7 +303,7 @@ This method is used to update an item in DynamoDB. It uses the [UpdateItem Dynam
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to update. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/table/tableManager#tablemanagertableentitymetadatatablemetadata) function.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to update. `[partitionKey]` and `[sortKey]` are inferred from the [`metadata(tableMetadata)`](/docs/guide/managers/tableManager#tablemanagertableentitymetadatatablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -477,7 +477,7 @@ This method is used to delete an item from DynamoDB. It uses the DeleteItem Dyna
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/managers/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -583,7 +583,7 @@ This method is used to retrieve multiple items from DynamoDB. It uses the [Batch
 
 ### Arguments
 
-**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
+**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/managers/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -887,7 +887,7 @@ This method is used to delete multiple items from DynamoDB. It uses the [BatchWr
 
 ### Arguments
 
-**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
+**`primaryKeys`**: `Array<{ [partitionKey]: string | number; [sortKey]?: string | number }>` - Primary keys of the items you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/managers/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
@@ -979,7 +979,7 @@ This method is used to build a retrieve item operation. `EntityManager.transacti
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to retrieve. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/managers/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 <!-- TODO: Add info that this function is async and returns a promise -->
@@ -1008,12 +1008,12 @@ This method is used to build an insert item operation. `EntityManager.transactio
 
 You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
 
-| Name                    | Description                                                                                                                                                                                                                                                                              | Type                                                                                                                                                        | Default     |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `overwrite`             | `TransactItems.Put` DynamoDB operation overwrites items on insertion by default. If you want to prevent overwrites use [`EntityManager.transaction.create(item, options?)`](/docs/guide/table/entityManager#entitytransactioncreateitem-options) instead, or set overwrite prop to false. | `boolean`                                                                                                                                                   | `true`      |
-| `condition`             | This is an optional instance of a `Condition` for the save. Item won't be inserted in case condition fails.                                                                                                                                                                              | `Condition`                                                                                                                                                 | `undefined` |
-| `returnValuesOnFailure` | Whether or not to return the item if the `Put` condition fails. You can get the item attributes as they appear before insertion or none at all. This uses DynamoDB's `ReturnValuesOnConditionCheckFailure`.                                                                              | `'none'` \| `'allOld'`                                                                                                                                      | `'allOld'`  |
-| `extraInput`            | Extra input that is passed to `Put` DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                       | [`TransactItems.Put`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/transactwriteitemsinput.html#transactitems) | `undefined` |
+| Name                    | Description                                                                                                                                                                                                                                                                                  | Type                                                                                                                                                        | Default     |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `overwrite`             | `TransactItems.Put` DynamoDB operation overwrites items on insertion by default. If you want to prevent overwrites use [`EntityManager.transaction.create(item, options?)`](/docs/guide/managers/entityManager#entitytransactioncreateitem-options) instead, or set overwrite prop to false. | `boolean`                                                                                                                                                   | `true`      |
+| `condition`             | This is an optional instance of a `Condition` for the save. Item won't be inserted in case condition fails.                                                                                                                                                                                  | `Condition`                                                                                                                                                 | `undefined` |
+| `returnValuesOnFailure` | Whether or not to return the item if the `Put` condition fails. You can get the item attributes as they appear before insertion or none at all. This uses DynamoDB's `ReturnValuesOnConditionCheckFailure`.                                                                                  | `'none'` \| `'allOld'`                                                                                                                                      | `'allOld'`  |
+| `extraInput`            | Extra input that is passed to `Put` DynamoDB operation. Use it only in case that you know what are you are doing as it may override other properties passed to DynamoDB operation.                                                                                                           | [`TransactItems.Put`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/interfaces/transactwriteitemsinput.html#transactitems) | `undefined` |
 
 
 ### Examples
@@ -1024,7 +1024,7 @@ Check out [`transactionWrite(transactions, options?)`](/docs/guide/transactions#
 
 ### Description
 
-This method is almost identical to [`EntityManager.transaction.put(item, options?)`](/docs/guide/table/entityManager#entitytransactionputitem-options). The only difference being that `EntityManager.transaction.create(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
+This method is almost identical to [`EntityManager.transaction.put(item, options?)`](/docs/guide/managers/entityManager#entitytransactionputitem-options). The only difference being that `EntityManager.transaction.create(item, options?)` won't overwrite existing item in DynamoDB (overwrite is set to `false` as default).
 
 ## EntityManager.transaction.update(primaryKey, props, options?)
 
@@ -1034,7 +1034,7 @@ This method is used to build an update item operation. `EntityManager.transactio
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to update. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to update. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/managers/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -1071,7 +1071,7 @@ This method is used to build a delete item operation. `EntityManager.transaction
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/managers/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 
@@ -1094,7 +1094,7 @@ This method is used to build a `conditionCheck` when running a transaction. `Ent
 
 ### Arguments
 
-**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/table/tableManager#new-tablemanagertableentity-tablemetadata) function.
+**`primaryKey`**: `{ [partitionKey]: string | number; [sortKey]?: string | number }` - Primary key of the item you want to delete. `[partitionKey]` and `[sortKey]` are inferred from the [`new TableManager(tableEntity, tableMetadata)`](/docs/guide/managers/tableManager#new-tablemanagertableentity-tablemetadata) function.
 
 <!-- TODO: ADd more info about inferring -->
 

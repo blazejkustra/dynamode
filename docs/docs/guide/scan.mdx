@@ -24,7 +24,7 @@ Scan is a child of [Condition](/docs/guide/condition) class, meaning that all me
 
 ## new Scan(Entity) or EntityManager.scan()
 
-Every scan has to be initialized with [Entity](/docs/guide/table/entityManager) to infer its underlying properties. You can achieve this in two ways:
+Every scan has to be initialized with [Entity](/docs/guide/managers/entityManager) to infer its underlying properties. You can achieve this in two ways:
 
 ```ts
 // Below definitions are equivalent
@@ -32,7 +32,7 @@ new Scan(AllPossibleProperties);
 AllPossiblePropertiesManager.scan();
 ```
 
-[AllPossibleProperties](/docs/guide/entity/modeling#all-possible-properties) is an example class that extends [Entity](/docs/guide/table/entityManager).
+[AllPossibleProperties](/docs/guide/entity/modeling#all-possible-properties) is an example class that extends [Entity](/docs/guide/managers/entityManager).
 
 ## Scan.indexName(name)
 
