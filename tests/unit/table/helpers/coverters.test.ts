@@ -1,62 +1,12 @@
 import { describe, expect, test } from 'vitest';
 
-import { TableDescription } from '@aws-sdk/client-dynamodb';
 import { convertToTableInformation } from '@lib/table/helpers/converters';
 import { ValidationError } from '@lib/utils';
 
+import { validTableDescription } from './fixtures';
+
 describe('Convert To Table Information', () => {
   /* Group of Valid Data */
-  const validTableDescription: TableDescription = {
-    TableName: 'TableName',
-    TableStatus: 'Active',
-    CreationDateTime: new Date(),
-    AttributeDefinitions: [{ AttributeName: 'Name', AttributeType: 'String' }],
-    KeySchema: [{ AttributeName: 'Name', KeyType: 'HASH' }],
-    ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
-    TableSizeBytes: 10,
-    ItemCount: 1,
-    TableArn: 'TableArn',
-    TableId: 'TableId',
-    BillingModeSummary: { BillingMode: 'BillingMode' },
-    LocalSecondaryIndexes: [
-      {
-        IndexName: 'Name',
-        KeySchema: [{ AttributeName: 'Name', KeyType: 'HASH' }],
-        IndexSizeBytes: 1,
-        ItemCount: 1,
-        IndexArn: 'IndexArn',
-      },
-    ],
-    GlobalSecondaryIndexes: [
-      {
-        IndexName: 'Name',
-        KeySchema: [{ AttributeName: 'Name', KeyType: 'HASH' }],
-        IndexSizeBytes: 1,
-        ItemCount: 1,
-        IndexArn: 'IndexArn',
-        ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
-      },
-    ],
-    StreamSpecification: { StreamEnabled: true, StreamViewType: 'StreamViewType' },
-    LatestStreamLabel: 'LatestStreamLabel',
-    LatestStreamArn: 'LatestStreamArn',
-    GlobalTableVersion: '2020.12.11',
-    Replicas: [{ RegionName: 'RegionName' }],
-    RestoreSummary: {
-      SourceBackupArn: 'SourceBackupArn',
-      SourceTableArn: 'SourceTableArn',
-      RestoreDateTime: new Date(),
-      RestoreInProgress: false,
-    },
-    SSEDescription: { Status: 'Status', SSEType: 'SSEType', KMSMasterKeyArn: 'KMSMasterKeyArn' },
-    ArchivalSummary: {
-      ArchivalDateTime: new Date(),
-      ArchivalReason: 'ArchivalReason',
-      ArchivalBackupArn: 'ArchivalBackupArn',
-    },
-    TableClassSummary: { TableClass: 'TableClass' },
-    DeletionProtectionEnabled: false,
-  };
 
   test('Should return correct value', () => {
     const tableInformation = convertToTableInformation(validTableDescription);
