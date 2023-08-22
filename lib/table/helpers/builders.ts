@@ -6,13 +6,8 @@ export function buildIndexCreate({
   indexName,
   partitionKey,
   sortKey,
-  options,
+  throughput,
 }: BuildIndexCreate): GlobalSecondaryIndexUpdate[] {
-  const throughput = options?.throughput && {
-    ReadCapacityUnits: options.throughput.read,
-    WriteCapacityUnits: options.throughput.write,
-  };
-
   return [
     {
       Create: {

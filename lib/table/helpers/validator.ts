@@ -9,7 +9,7 @@ export function validateTable<M extends Metadata<TE>, TE extends typeof Entity>(
   metadata,
   tableNameEntity,
   table = {},
-}: ValidateTableSync<M, TE>) {
+}: ValidateTableSync<M, TE>): void {
   const {
     LocalSecondaryIndexes = [],
     GlobalSecondaryIndexes = [],

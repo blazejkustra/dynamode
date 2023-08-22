@@ -21,8 +21,9 @@ describe('buildIndexCreate', () => {
       indexName: 'Index1',
       partitionKey: 'PK1',
       sortKey: 'SK1',
-      options: {
-        throughput,
+      throughput: throughput && {
+        ReadCapacityUnits: throughput.read,
+        WriteCapacityUnits: throughput.write,
       },
     };
   }
