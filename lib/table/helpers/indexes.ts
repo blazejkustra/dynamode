@@ -6,9 +6,9 @@ import { Metadata } from '@lib/table/types';
 export function getTableLocalSecondaryIndexes<M extends Metadata<TE>, TE extends typeof Entity>(
   metadata: M,
 ): LocalSecondaryIndex[] {
-  const { partitionKey, indexes } = metadata;
+  const { partitionKey, indexes = {} } = metadata;
 
-  return Object.entries(indexes || {})
+  return Object.entries(indexes)
     .filter(([, index]) => !index.partitionKey && index.sortKey)
     .map(([indexName, index]) => ({
       IndexName: indexName,
@@ -20,9 +20,9 @@ export function getTableLocalSecondaryIndexes<M extends Metadata<TE>, TE extends
 export function getTableGlobalSecondaryIndexes<M extends Metadata<TE>, TE extends typeof Entity>(
   metadata: M,
 ): LocalSecondaryIndex[] {
-  const { indexes } = metadata;
+  const { indexes = {} } = metadata;
 
-  return Object.entries(indexes || {})
+  return Object.entries(indexes)
     .filter(([, index]) => !!index.partitionKey)
     .map(([indexName, index]) => ({
       IndexName: indexName,

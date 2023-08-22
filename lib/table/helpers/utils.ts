@@ -13,10 +13,6 @@ export function compareDynamodeEntityWithDynamoTable<T>(dynamodeSchema: T[], ddb
       throw new ConflictError(`Key "${JSON.stringify(a)}" not found in entity`);
     }
   });
-
-  if (dynamodeSchema.length !== ddbSchema.length) {
-    throw new ConflictError('Key schema length mismatch between table and entity');
-  }
 }
 
 export function getAttributeType(attributes: AttributesMetadata, attribute: string): 'S' | 'N' {

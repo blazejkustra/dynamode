@@ -1,6 +1,8 @@
 import {
   CreateTableCommandInput,
   CreateTableCommandOutput,
+  DeleteTableCommandInput,
+  DeleteTableCommandOutput,
   DescribeTableCommandInput,
   DescribeTableCommandOutput,
   UpdateTableCommandInput,
@@ -19,6 +21,8 @@ import {
   TableCreateIndexOptions,
   TableCreateOptions,
   TableDeleteIndexOptions,
+  TableDeleteOptions,
+  TableIndexNames,
   TableInformation,
   TableValidateOptions,
 } from '@lib/table/types';
@@ -96,35 +100,64 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     })();
   }
 
-  public async deleteTable(tableName: string) {
+  public deleteTable(
+    tableName: string,
+    options?: TableDeleteOptions & { return?: 'default' },
+  ): Promise<TableInformation>;
+
+  public deleteTable(
+    tableName: string,
+    options: TableDeleteOptions & { return: 'output' },
+  ): Promise<DeleteTableCommandOutput>;
+
+  public deleteTable(tableName: string, options: TableDeleteOptions & { return: 'input' }): DeleteTableCommandInput;
+
+  public deleteTable(
+    tableName: string,
+    options?: TableDeleteOptions,
+  ): Promise<TableInformation | DeleteTableCommandOutput> | DeleteTableCommandInput {
     if (tableName !== this.tableMetadata.tableName) {
       throw new ValidationError(`To delete table "${this.tableMetadata.tableName}", pass the table name as argument`);
     }
 
-    return await Dynamode.ddb.get().deleteTable({ TableName: this.tableMetadata.tableName });
+    const commandInput: DeleteTableCommandInput = { TableName: this.tableMetadata.tableName };
+
+    if (options?.return === 'input') {
+      return commandInput;
+    }
+
+    return (async () => {
+      const result = await Dynamode.ddb.get().deleteTable(commandInput);
+
+      if (options?.return === 'output') {
+        return result;
+      }
+
+      return convertToTableInformation(result.TableDescription);
+    })();
   }
 
   public createTableIndex(
-    indexName: string,
+    indexName: TableIndexNames<M, TE>,
     options?: TableCreateIndexOptions & { return?: 'default' },
   ): Promise<TableInformation>;
 
   public createTableIndex(
-    indexName: string,
+    indexName: TableIndexNames<M, TE>,
     options: TableCreateIndexOptions & { return: 'output' },
   ): Promise<UpdateTableCommandOutput>;
 
   public createTableIndex(
-    indexName: string,
+    indexName: TableIndexNames<M, TE>,
     options: TableCreateIndexOptions & { return: 'input' },
   ): UpdateTableCommandInput;
 
   public createTableIndex(
-    indexName: string,
+    indexName: TableIndexNames<M, TE>,
     options?: TableCreateIndexOptions,
   ): Promise<TableInformation | UpdateTableCommandOutput> | UpdateTableCommandInput {
     const { indexes } = this.tableMetadata;
-    if (!indexes || !indexes?.[indexName]) {
+    if (!indexes || !indexes?.[indexName as string]) {
       throw new ValidationError(`Index "${indexName}" not decorated in ${this.tableEntity.name} entity`);
     }
 
@@ -133,6 +166,11 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
       throw new ValidationError(`Index "${indexName}" doesn't have a partition key`);
     }
 
+    const throughput = options?.throughput && {
+      ReadCapacityUnits: options.throughput.read,
+      WriteCapacityUnits: options.throughput.write,
+    };
+
     const commandInput: UpdateTableCommandInput = {
       TableName: this.tableMetadata.tableName,
       AttributeDefinitions: getTableAttributeDefinitions(this.tableMetadata, this.tableEntity.name),
@@ -140,7 +178,7 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
         indexName,
         partitionKey,
         sortKey,
-        options,
+        throughput,
       }),
       ...options?.extraInput,
     };

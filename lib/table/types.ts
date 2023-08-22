@@ -1,6 +1,6 @@
 import { ValueOf } from 'type-fest';
 
-import { CreateTableCommandInput, TableDescription } from '@aws-sdk/client-dynamodb';
+import { CreateTableCommandInput, ProvisionedThroughput, TableDescription } from '@aws-sdk/client-dynamodb';
 import Entity from '@lib/entity';
 import { ReturnOption } from '@lib/entity/types';
 
@@ -35,7 +35,9 @@ export type TablePrimaryKey<M extends Metadata<E>, E extends typeof Entity> = Pi
   Extract<EntityKey<E>, SK<M, E> extends string ? PK<M, E> | SK<M, E> : PK<M, E>>
 >;
 
-export type TableIndexNames<M extends Metadata<E>, E extends typeof Entity> = keyof Idx<M, E>;
+export type TableIndexNames<M extends Metadata<E>, E extends typeof Entity> = keyof Idx<M, E> extends string
+  ? keyof Idx<M, E>
+  : never;
 export type TablePartitionKeys<M extends Metadata<E>, E extends typeof Entity> =
   | PK<M, E>
   | ValueOf<{
@@ -66,6 +68,12 @@ export type TableCreateOptions = {
   };
   tags?: Record<string, string>;
   deletionProtection?: boolean;
+};
+
+// TableManager.deleteTable
+
+export type TableDeleteOptions = {
+  return?: ReturnOption;
 };
 
 // TableManager.createIndex
@@ -122,7 +130,7 @@ export type BuildIndexCreate = {
   indexName: string;
   partitionKey: string;
   sortKey: string | undefined;
-  options?: TableCreateIndexOptions;
+  throughput?: ProvisionedThroughput;
 };
 
 // helpers.validator
