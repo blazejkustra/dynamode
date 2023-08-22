@@ -132,7 +132,7 @@ describe('Table', () => {
     let getTableGlobalSecondaryIndexesSpy = vi.spyOn(indexesHelpers, 'getTableGlobalSecondaryIndexes');
     let getKeySchemaSpy = vi.spyOn(schemaHelper, 'getKeySchema');
     let getTableAttributeDefinitionsSpy = vi.spyOn(definitionsHelper, 'getTableAttributeDefinitions');
-    let convertToTableInformationSpy = vi.spyOn(converterHelper, 'convertToTableInformation');
+    let convertToTableDataSpy = vi.spyOn(converterHelper, 'convertToTableData');
 
     beforeEach(() => {
       vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ createTable: createTableMock } as any as DynamoDB);
@@ -140,7 +140,7 @@ describe('Table', () => {
       getTableGlobalSecondaryIndexesSpy = vi.spyOn(indexesHelpers, 'getTableGlobalSecondaryIndexes');
       getKeySchemaSpy = vi.spyOn(schemaHelper, 'getKeySchema');
       getTableAttributeDefinitionsSpy = vi.spyOn(definitionsHelper, 'getTableAttributeDefinitions');
-      convertToTableInformationSpy = vi.spyOn(converterHelper, 'convertToTableInformation');
+      convertToTableDataSpy = vi.spyOn(converterHelper, 'convertToTableData');
     });
 
     afterEach(() => {
@@ -158,6 +158,7 @@ describe('Table', () => {
         KeySchema: keySchema,
         AttributeDefinitions: definitions,
         BillingMode: 'PAY_PER_REQUEST',
+        DeletionProtectionEnabled: false,
       });
 
       expect(getTableLocalSecondaryIndexesSpy).toBeCalledWith(TestTableManager.tableMetadata);
@@ -172,7 +173,7 @@ describe('Table', () => {
       );
 
       expect(createTableMock).not.toBeCalled();
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test('Should create a table with extra options', async () => {
@@ -216,7 +217,7 @@ describe('Table', () => {
       );
 
       expect(createTableMock).not.toBeCalled();
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test("Should create a table with proper parameters (return: 'output')", async () => {
@@ -243,9 +244,10 @@ describe('Table', () => {
         KeySchema: keySchema,
         AttributeDefinitions: definitions,
         BillingMode: 'PAY_PER_REQUEST',
+        DeletionProtectionEnabled: false,
       });
 
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test("Should create a table with proper parameters (return: 'default')", async () => {
@@ -254,7 +256,7 @@ describe('Table', () => {
       getKeySchemaSpy.mockReturnValue(keySchema);
       getTableAttributeDefinitionsSpy.mockReturnValue(definitions);
       createTableMock.mockResolvedValue({ TableDescription: 'test' });
-      convertToTableInformationSpy.mockReturnValue({ tableName: 'converted' } as any);
+      convertToTableDataSpy.mockReturnValue({ tableName: 'converted' } as any);
 
       await expect(TestTableManager.createTable()).resolves.toEqual({ tableName: 'converted' });
 
@@ -273,18 +275,19 @@ describe('Table', () => {
         KeySchema: keySchema,
         AttributeDefinitions: definitions,
         BillingMode: 'PAY_PER_REQUEST',
+        DeletionProtectionEnabled: false,
       });
-      expect(convertToTableInformationSpy).toBeCalledWith('test');
+      expect(convertToTableDataSpy).toBeCalledWith('test');
     });
   });
 
   describe('deleteTable', async () => {
     const deleteTableMock = vi.fn();
-    let convertToTableInformationSpy = vi.spyOn(converterHelper, 'convertToTableInformation');
+    let convertToTableDataSpy = vi.spyOn(converterHelper, 'convertToTableData');
 
     beforeEach(() => {
       vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ deleteTable: deleteTableMock } as any as DynamoDB);
-      convertToTableInformationSpy = vi.spyOn(converterHelper, 'convertToTableInformation');
+      convertToTableDataSpy = vi.spyOn(converterHelper, 'convertToTableData');
     });
 
     afterEach(() => {
@@ -295,7 +298,7 @@ describe('Table', () => {
       expect(() => TestTableManager.deleteTable('wrongTableName')).toThrow(ValidationError);
 
       expect(deleteTableMock).not.toBeCalled();
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test("Should delete table with proper parameters (return: 'input')", async () => {
@@ -304,7 +307,7 @@ describe('Table', () => {
       });
 
       expect(deleteTableMock).not.toBeCalled();
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test("Should delete table with proper parameters (return: 'output')", async () => {
@@ -317,31 +320,31 @@ describe('Table', () => {
       expect(deleteTableMock).toBeCalledWith({
         TableName: TEST_TABLE_NAME,
       });
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test("Should delete table with proper parameters (return: 'default')", async () => {
       deleteTableMock.mockResolvedValue({ TableDescription: 'test' });
-      convertToTableInformationSpy.mockReturnValue({ tableName: 'converted' } as any);
+      convertToTableDataSpy.mockReturnValue({ tableName: 'converted' } as any);
 
       await expect(TestTableManager.deleteTable(TEST_TABLE_NAME)).resolves.toEqual({ tableName: 'converted' });
 
       expect(deleteTableMock).toBeCalledWith({
         TableName: TEST_TABLE_NAME,
       });
-      expect(convertToTableInformationSpy).toBeCalledWith('test');
+      expect(convertToTableDataSpy).toBeCalledWith('test');
     });
   });
 
   describe('createTableIndex', async () => {
     const updateTableMock = vi.fn();
-    let convertToTableInformationSpy = vi.spyOn(converterHelper, 'convertToTableInformation');
+    let convertToTableDataSpy = vi.spyOn(converterHelper, 'convertToTableData');
     let getTableAttributeDefinitionsSpy = vi.spyOn(definitionsHelper, 'getTableAttributeDefinitions');
     let buildIndexCreateSpy = vi.spyOn(builderHelper, 'buildIndexCreate');
 
     beforeEach(() => {
       vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ updateTable: updateTableMock } as any as DynamoDB);
-      convertToTableInformationSpy = vi.spyOn(converterHelper, 'convertToTableInformation');
+      convertToTableDataSpy = vi.spyOn(converterHelper, 'convertToTableData');
       getTableAttributeDefinitionsSpy = vi.spyOn(definitionsHelper, 'getTableAttributeDefinitions');
       buildIndexCreateSpy = vi.spyOn(builderHelper, 'buildIndexCreate');
     });
@@ -359,7 +362,7 @@ describe('Table', () => {
       );
 
       expect(updateTableMock).not.toBeCalled();
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test('Should not be able to create index without partition key', async () => {
@@ -369,7 +372,7 @@ describe('Table', () => {
       expect(() => TestTableManager.createTableIndex('LSI_1_NAME', { return: 'input' })).toThrow(ValidationError);
 
       expect(updateTableMock).not.toBeCalled();
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test("Should create a table index with proper parameters (return: 'input')", async () => {
@@ -393,7 +396,7 @@ describe('Table', () => {
         throughput: undefined,
       });
       expect(updateTableMock).not.toBeCalled();
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test('Should create a table index with additional options', async () => {
@@ -422,7 +425,7 @@ describe('Table', () => {
         },
       });
       expect(updateTableMock).not.toBeCalled();
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test("Should create a table index with proper parameters (return: 'output')", async () => {
@@ -450,14 +453,14 @@ describe('Table', () => {
         GlobalSecondaryIndexUpdates: indexCreateInput,
       });
 
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test("Should create a table index with proper parameters (return: 'default')", async () => {
       getTableAttributeDefinitionsSpy.mockReturnValue(definitions);
       buildIndexCreateSpy.mockReturnValue(indexCreateInput);
       updateTableMock.mockResolvedValue({ TableDescription: 'test' });
-      convertToTableInformationSpy.mockReturnValue({ tableName: 'converted' } as any);
+      convertToTableDataSpy.mockReturnValue({ tableName: 'converted' } as any);
 
       await expect(TestTableManager.createTableIndex('GSI_1_NAME')).resolves.toEqual({ tableName: 'converted' });
 
@@ -476,18 +479,18 @@ describe('Table', () => {
         AttributeDefinitions: definitions,
         GlobalSecondaryIndexUpdates: indexCreateInput,
       });
-      expect(convertToTableInformationSpy).toBeCalledWith('test');
+      expect(convertToTableDataSpy).toBeCalledWith('test');
     });
   });
 
   describe('deleteTableIndex', async () => {
     const updateTableMock = vi.fn();
-    let convertToTableInformationSpy = vi.spyOn(converterHelper, 'convertToTableInformation');
+    let convertToTableDataSpy = vi.spyOn(converterHelper, 'convertToTableData');
     let buildIndexDeleteSpy = vi.spyOn(builderHelper, 'buildIndexDelete');
 
     beforeEach(() => {
       vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ updateTable: updateTableMock } as any as DynamoDB);
-      convertToTableInformationSpy = vi.spyOn(converterHelper, 'convertToTableInformation');
+      convertToTableDataSpy = vi.spyOn(converterHelper, 'convertToTableData');
       buildIndexDeleteSpy = vi.spyOn(builderHelper, 'buildIndexDelete');
     });
 
@@ -503,7 +506,7 @@ describe('Table', () => {
 
       expect(buildIndexDeleteSpy).not.toBeCalled();
       expect(updateTableMock).not.toBeCalled();
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test("Should delete a table index with proper parameters (return: 'input')", async () => {
@@ -517,7 +520,7 @@ describe('Table', () => {
       expect(buildIndexDeleteSpy).toBeCalledWith('OtherIndex');
 
       expect(updateTableMock).not.toBeCalled();
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test("Should delete a table index with proper parameters (return: 'output')", async () => {
@@ -538,7 +541,7 @@ describe('Table', () => {
     test("Should delete a table index with proper parameters (return: 'default')", async () => {
       buildIndexDeleteSpy.mockReturnValue(indexDeleteInput);
       updateTableMock.mockResolvedValue({ TableDescription: 'test' });
-      convertToTableInformationSpy.mockReturnValue({ tableName: 'converted' } as any);
+      convertToTableDataSpy.mockReturnValue({ tableName: 'converted' } as any);
 
       await expect(TestTableManager.deleteTableIndex('OtherIndex')).resolves.toEqual({ tableName: 'converted' });
 
@@ -547,19 +550,19 @@ describe('Table', () => {
         TableName: TEST_TABLE_NAME,
         GlobalSecondaryIndexUpdates: indexDeleteInput,
       });
-      expect(convertToTableInformationSpy).toBeCalledWith('test');
+      expect(convertToTableDataSpy).toBeCalledWith('test');
     });
   });
 
   describe('validateTable', async () => {
     const describeTableMock = vi.fn();
     let validateTableSpy = vi.spyOn(validatorHelper, 'validateTable');
-    let convertToTableInformationSpy = vi.spyOn(converterHelper, 'convertToTableInformation');
+    let convertToTableDataSpy = vi.spyOn(converterHelper, 'convertToTableData');
 
     beforeEach(() => {
       vi.spyOn(Dynamode.ddb, 'get').mockReturnValue({ describeTable: describeTableMock } as any as DynamoDB);
       validateTableSpy = vi.spyOn(validatorHelper, 'validateTable');
-      convertToTableInformationSpy = vi.spyOn(converterHelper, 'convertToTableInformation');
+      convertToTableDataSpy = vi.spyOn(converterHelper, 'convertToTableData');
     });
 
     afterEach(() => {
@@ -573,7 +576,7 @@ describe('Table', () => {
 
       expect(describeTableMock).not.toBeCalled();
       expect(validateTableSpy).not.toBeCalled();
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test("Should validate a table with proper parameters (return: 'output')", async () => {
@@ -590,13 +593,13 @@ describe('Table', () => {
         tableNameEntity: TestTableManager.tableEntity.name,
         table: 'test',
       });
-      expect(convertToTableInformationSpy).not.toBeCalled();
+      expect(convertToTableDataSpy).not.toBeCalled();
     });
 
     test("Should validate a table with proper parameters (return: 'default')", async () => {
       describeTableMock.mockResolvedValue({ Table: 'test' });
       validateTableSpy.mockReturnValue();
-      convertToTableInformationSpy.mockReturnValue({ tableName: 'converted' } as any);
+      convertToTableDataSpy.mockReturnValue({ tableName: 'converted' } as any);
 
       await expect(TestTableManager.validateTable()).resolves.toEqual({ tableName: 'converted' });
 
@@ -608,7 +611,7 @@ describe('Table', () => {
         tableNameEntity: TestTableManager.tableEntity.name,
         table: 'test',
       });
-      expect(convertToTableInformationSpy).toBeCalledWith('test');
+      expect(convertToTableDataSpy).toBeCalledWith('test');
     });
   });
 });

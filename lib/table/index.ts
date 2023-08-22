@@ -12,7 +12,7 @@ import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import EntityManager from '@lib/entity/entityManager';
 import { buildIndexCreate, buildIndexDelete } from '@lib/table/helpers/builders';
-import { convertToTableInformation } from '@lib/table/helpers/converters';
+import { convertToTableData } from '@lib/table/helpers/converters';
 import { getTableAttributeDefinitions } from '@lib/table/helpers/definitions';
 import { getKeySchema } from '@lib/table/helpers/schema';
 import { validateTable } from '@lib/table/helpers/validator';
@@ -20,10 +20,10 @@ import {
   Metadata,
   TableCreateIndexOptions,
   TableCreateOptions,
+  TableData,
   TableDeleteIndexOptions,
   TableDeleteOptions,
   TableIndexNames,
-  TableInformation,
   TableValidateOptions,
 } from '@lib/table/types';
 import { isNotEmptyArray, Narrow, ValidationError } from '@lib/utils';
@@ -58,12 +58,12 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     return EntityManager<M, TE>(this.tableEntity, this.tableMetadata.tableName);
   }
 
-  public createTable(options?: TableCreateOptions & { return?: 'default' }): Promise<TableInformation>;
+  public createTable(options?: TableCreateOptions & { return?: 'default' }): Promise<TableData>;
   public createTable(options: TableCreateOptions & { return: 'output' }): Promise<CreateTableCommandOutput>;
   public createTable(options: TableCreateOptions & { return: 'input' }): CreateTableCommandInput;
   public createTable(
     options?: TableCreateOptions,
-  ): Promise<TableInformation | CreateTableCommandOutput> | CreateTableCommandInput {
+  ): Promise<TableData | CreateTableCommandOutput> | CreateTableCommandInput {
     const localSecondaryIndexes = getTableLocalSecondaryIndexes(this.tableMetadata);
     const globalSecondaryIndexes = getTableGlobalSecondaryIndexes(this.tableMetadata);
     const throughput = options?.throughput && {
@@ -78,7 +78,7 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
       AttributeDefinitions: getTableAttributeDefinitions(this.tableMetadata, this.tableEntity.name),
       LocalSecondaryIndexes: isNotEmptyArray(localSecondaryIndexes) ? localSecondaryIndexes : undefined,
       GlobalSecondaryIndexes: isNotEmptyArray(globalSecondaryIndexes) ? globalSecondaryIndexes : undefined,
-      DeletionProtectionEnabled: options?.deletionProtection,
+      DeletionProtectionEnabled: options?.deletionProtection ?? false,
       BillingMode: throughput ? 'PROVISIONED' : 'PAY_PER_REQUEST',
       ProvisionedThroughput: throughput,
       Tags: tags,
@@ -96,14 +96,11 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
         return result;
       }
 
-      return convertToTableInformation(result.TableDescription);
+      return convertToTableData(result.TableDescription);
     })();
   }
 
-  public deleteTable(
-    tableName: string,
-    options?: TableDeleteOptions & { return?: 'default' },
-  ): Promise<TableInformation>;
+  public deleteTable(tableName: string, options?: TableDeleteOptions & { return?: 'default' }): Promise<TableData>;
 
   public deleteTable(
     tableName: string,
@@ -115,12 +112,12 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
   public deleteTable(
     tableName: string,
     options?: TableDeleteOptions,
-  ): Promise<TableInformation | DeleteTableCommandOutput> | DeleteTableCommandInput {
+  ): Promise<TableData | DeleteTableCommandOutput> | DeleteTableCommandInput {
     if (tableName !== this.tableMetadata.tableName) {
       throw new ValidationError(`To delete table "${this.tableMetadata.tableName}", pass the table name as argument`);
     }
 
-    const commandInput: DeleteTableCommandInput = { TableName: this.tableMetadata.tableName };
+    const commandInput: DeleteTableCommandInput = { TableName: this.tableMetadata.tableName, ...options?.extraInput };
 
     if (options?.return === 'input') {
       return commandInput;
@@ -133,14 +130,14 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
         return result;
       }
 
-      return convertToTableInformation(result.TableDescription);
+      return convertToTableData(result.TableDescription);
     })();
   }
 
   public createTableIndex(
     indexName: TableIndexNames<M, TE>,
     options?: TableCreateIndexOptions & { return?: 'default' },
-  ): Promise<TableInformation>;
+  ): Promise<TableData>;
 
   public createTableIndex(
     indexName: TableIndexNames<M, TE>,
@@ -155,7 +152,7 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
   public createTableIndex(
     indexName: TableIndexNames<M, TE>,
     options?: TableCreateIndexOptions,
-  ): Promise<TableInformation | UpdateTableCommandOutput> | UpdateTableCommandInput {
+  ): Promise<TableData | UpdateTableCommandOutput> | UpdateTableCommandInput {
     const { indexes } = this.tableMetadata;
     if (!indexes || !indexes?.[indexName as string]) {
       throw new ValidationError(`Index "${indexName}" not decorated in ${this.tableEntity.name} entity`);
@@ -194,14 +191,14 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
         return result;
       }
 
-      return convertToTableInformation(result.TableDescription);
+      return convertToTableData(result.TableDescription);
     })();
   }
 
   public deleteTableIndex(
     indexName: string,
     options?: TableDeleteIndexOptions & { return?: 'default' },
-  ): Promise<TableInformation>;
+  ): Promise<TableData>;
 
   public deleteTableIndex(
     indexName: string,
@@ -216,7 +213,7 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
   public deleteTableIndex(
     indexName: string,
     options?: TableDeleteIndexOptions,
-  ): Promise<TableInformation | UpdateTableCommandOutput> | UpdateTableCommandInput {
+  ): Promise<TableData | UpdateTableCommandOutput> | UpdateTableCommandInput {
     const { indexes } = this.tableMetadata;
     if (indexes?.[indexName]) {
       throw new ValidationError(
@@ -241,16 +238,16 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
         return result;
       }
 
-      return convertToTableInformation(result.TableDescription);
+      return convertToTableData(result.TableDescription);
     })();
   }
 
-  public validateTable(options?: TableValidateOptions & { return?: 'default' }): Promise<TableInformation>;
+  public validateTable(options?: TableValidateOptions & { return?: 'default' }): Promise<TableData>;
   public validateTable(options: TableValidateOptions & { return: 'output' }): Promise<DescribeTableCommandOutput>;
   public validateTable(options: TableValidateOptions & { return: 'input' }): DescribeTableCommandInput;
   public validateTable(
     options?: TableValidateOptions,
-  ): Promise<TableInformation | DescribeTableCommandOutput> | DescribeTableCommandInput {
+  ): Promise<TableData | DescribeTableCommandOutput> | DescribeTableCommandInput {
     const commandInput: DescribeTableCommandInput = { TableName: this.tableMetadata.tableName, ...options?.extraInput };
 
     if (options?.return === 'input') {
@@ -270,7 +267,7 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
         return result;
       }
 
-      return convertToTableInformation(result.Table);
+      return convertToTableData(result.Table);
     })();
   }
 }
