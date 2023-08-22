@@ -1,6 +1,11 @@
 import { ValueOf } from 'type-fest';
 
-import { CreateTableCommandInput, ProvisionedThroughput, TableDescription } from '@aws-sdk/client-dynamodb';
+import {
+  CreateTableCommandInput,
+  DeleteTableCommandInput,
+  ProvisionedThroughput,
+  TableDescription,
+} from '@aws-sdk/client-dynamodb';
 import Entity from '@lib/entity';
 import { ReturnOption } from '@lib/entity/types';
 
@@ -74,6 +79,7 @@ export type TableCreateOptions = {
 
 export type TableDeleteOptions = {
   return?: ReturnOption;
+  extraInput?: Partial<DeleteTableCommandInput>;
 };
 
 // TableManager.createIndex
@@ -111,7 +117,7 @@ type IndexInformation = {
   itemCount: number;
 };
 
-export type TableInformation = {
+export type TableData = {
   tableName: string;
   status: string;
   attributeDefinitions: AttributeDefinition[];

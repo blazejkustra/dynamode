@@ -1,0 +1,512 @@
+---
+title: Table Manager | Dynamode
+description: Table Manager
+sidebar_label: Table Manager
+hide_title: true
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Table Manager
+
+`TableManager` is used to perform operations on DynamoDB table. It also initializes [`Entity Managers`](/docs/guide/table/entityManager) that act as repositories for your models. 
+
+## new TableManager(tableEntity, tableMetadata)
+
+This constructor initializes TableManager class that acts as a repository that is used to perform operations on a DynamoDB table.
+
+### Arguments
+
+**`tableEntity`** - Table class that inherits from [Entity](/docs/guide/entity/modeling) class. It has to define all primary and secondary indexes defined on the DynamoDB table. To learn more check out [Modeling](/docs/guide/entity/modeling) page.
+
+**`tableMetadata`** - Metadata that describes table name, primary key, secondary index keys and createdAt/updatedAt timestamps. Dynamode uses metadata in all underlying methods so be cautious when setting it up. 
+
+| Name         | Description                           | Type                                                                 | Default   |
+| :----------- | :------------------------------------ | :------------------------------------------------------------------- | :-------- |
+| tableName    | Name of the table in DynamoDB         | string                                                               | N/A       |
+| partitionKey | Name of the partition key             | string                                                               | N/A       |
+| sortKey      | Name of the sort key                  | string                                                               | N/A       |
+| indexes      | Object that defines secondary indexes | `{ [indexName: string], {partitionKey?: string; sortKey?:string } }` | N/A       |
+| createdAt    | Name of the createdAt timestamp       | string                                                               | undefined |
+| updatedAt    | Name of the updatedAt timestamp       | string                                                               | undefined |
+
+### Examples
+
+AllPossibleProperties model is defined [here](/docs/guide/entity/modeling#all-possible-properties). To initialize its table manager, use `TableManager` constructor.
+
+```ts
+import TableManager from 'dynamode/table';
+
+const AllPossiblePropertiesTableManager = new TableManager(AllPossibleProperties, {
+  tableName: TABLE_NAME,
+  partitionKey: 'partitionKey',
+  sortKey: 'sortKey',
+  indexes: {
+    GSI_1_NAME: {
+      partitionKey: 'GSI_1_PK',
+      sortKey: 'GSI_1_SK',
+    },
+    LSI_1_NAME: {
+      sortKey: 'LSI_1_SK',
+    },
+  },
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+});
+```
+
+## TableManager.entityManager(entity?)
+
+This method initializes [`EntityManager`](/docs/guide/table/entityManager) class that acts as a repository that is used to perform operations on a given model. To learn more check out [`Entity Manager`](/docs/guide/table/entityManager) page.
+
+### Arguments
+
+You can add optional `entity` parameter which is a model that inherits from `tableEntity` class.
+
+| Name   | Description | Type                                          | Default                                                       |
+| :----- | :---------- | :-------------------------------------------- | :------------------------------------------------------------ |
+| entity | `Entity`    | Entity class that inherits from `tableEntity` | `tableEntity` (argument passed in `TableManager` constructor) |
+
+
+### Examples
+
+[BaseTable](/docs/guide/entity/modeling#inheritance) is an example class that extends [Entity](/docs/guide/table/entityManager).
+
+```ts
+import TableManager from 'dynamode/table';
+
+const BaseTableManager = new TableManager(...);
+
+// BaseTable entity manager
+const BaseTableEntityManager = BaseTableManager.entityManager();
+
+// EntityOne entity manager
+const EntityOneManager = BaseTableManager.entityManager(EntityOne);
+
+// EntityTwo entity manager
+const EntityTwoManager = BaseTableManager.entityManager(EntityTwo);
+
+// EntityThree entity manager
+const EntityThreeManager = BaseTableManager.entityManager(EntityThree);
+```
+
+
+## TableManager.createTable(options?)
+
+### Description
+
+This method is used to create a new DynamoDB table. It uses the [CreateTable DynamoDB operation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_CreateTable.html).
+
+### Arguments
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+|         Name         | Description                                                                                                                                                                                                                                            |                                                                    Type                                                                     |   Default   |
+| :------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-----------------------------------------------------------------------------------------------------------------------------------------: | :---------: |
+|       `return`       | What the method should return. For `'default'`, method returns TableData. For `'input'`, method returns CreateTableCommandInput and no request is made to DynamoDB. For `'output'`, method returns the output from the CreateTable DynamoDB operation. |                                                   `'default'` \| `'input'` \| `'output'`                                                    | `'default'` |
+|     `extraInput`     | Extra input that is sent to CreateTable DynamoDB operation. Use only if you know what you are doing, as it may override other standard properties.                                                                                                     | [`CreateTableCommandInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/classes/createtablecommand.html) | `undefined` |
+|     `throughput`     | Provisioned throughput settings for the table. Defines the number of read and write capacity units.                                                                                                                                                    |                                                      `{ read: number; write: number }`                                                      | `undefined` |
+|        `tags`        | Metadata to assign to the table.                                                                                                                                                                                                                       |                                                          `Record<string, string>`                                                           | `undefined` |
+| `deletionProtection` | Protection from deletion. If this is enabled, the table cannot be deleted.                                                                                                                                                                             |                                                                  `boolean`                                                                  |   `false`   |
+
+### Examples
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+const table = await TableManager.createTable({
+  throughput: { read: 5, write: 5 }
+});
+const table = await TableManager.createTable({
+  throughput: { read: 5, write: 5 },
+  return: 'default'
+});
+```
+
+Output:
+
+```ts
+TableData {
+  tableName: 'users',
+  tableStatus: 'ACTIVE',
+  creationDateTime: '2021-08-23T10:00:00Z',
+  provisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+  tableSizeBytes: 0,
+  itemCount: 0,
+  tableArn: 'arn:aws:dynamodb:us-west-2:1234567890:table/users',
+  tableId: 'abcde12345',
+  billingModeSummary: { BillingMode: 'PROVISIONED' }
+}
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+const input = TableManager.createTable({
+  throughput: { read: 5, write: 5 },
+  return: 'input'
+});
+```
+
+Output:
+
+```ts
+{
+  TableName: 'users',
+  KeySchema: [...],
+  AttributeDefinitions: [...],
+  ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+  DeletionProtectionEnabled: false,
+  BillingMode: 'PROVISIONED'
+}
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+const output = await TableManager.createTable({
+  throughput: { read: 5, write: 5 },
+  return: 'output'
+});
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  TableDescription: {
+    ...
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+
+## TableManager.deleteTable(tableName, options?)
+
+### Description
+
+This method deletes a DynamoDB table. It uses the [DeleteTable DynamoDB operation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DeleteTable.html).
+
+### Arguments
+
+**`tableName`**: `string` - The name of the table to delete.
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name         | Description                                                                                                                                                                                                                                                                                 | Type                                                                                                                                        | Default     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `return`     | What the method should return. For `'default'`, method returns TableData. For `'input'`, method returns DeleteTableCommandInput and no request is made to DynamoDB (method no longer returns a promise). For `'output'`, method returns the output from the DeleteTable DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                                                                                      | `'default'` |
+| `extraInput` | Extra input that is sent to CreateTable DynamoDB operation. Use only if you know what you are doing, as it may override other standard properties.                                                                                                                                          | [`DeleteTableCommandInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/classes/deletetablecommand.html) | `undefined` |
+
+### Examples
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+const deletedTable = await TableManager.deleteTable('users');
+const deletedTable = await TableManager.deleteTable('users', { return: "default" });
+```
+
+Output:
+
+```ts
+TableData {
+  tableName: 'users',
+  tableStatus: 'DELETING',
+  ...
+}
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+const input = TableManager.deleteTable('users', { return: 'input' });
+```
+
+Output:
+
+```ts
+{
+  TableName: 'users'
+}
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+const output = await TableManager.deleteTable('users', { return: 'output' });
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  TableDescription: {
+    ...
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+
+## TableManager.createTableIndex(indexName, options?)
+
+### Description
+
+This method creates a new secondary index in a DynamoDB table. It uses the [UpdateTable DynamoDB operation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_UpdateTable.html).
+
+### Arguments
+
+**`indexName`**: `string` - The name of the global secondary index to create.
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name         | Description                                                                                                                                                                                                                                                                     | Type                                                                                                                                        | Default     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `return`     | What the method should return. For `'default'`, it returns TableData. For `'input'`, it returns UpdateTableCommandInput and no request is made to DynamoDB (method no longer returns a promise). For `'output'`, it returns the output from the UpdateTable DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                                                                                      | `'default'` |
+| `extraInput` | Extra input that is sent to UpdateTable DynamoDB operation. Use only in case that you know what you are doing as it may override other properties passed to DynamoDB operation.                                                                                                 | [`UpdateTableCommandInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/classes/updatetablecommand.html) | `undefined` |
+| `throughput` | Provisioned throughput settings for the table index. Defines the number of read and write capacity units.                                                                                                                                                                       | `{ read: number; write: number }`                                                                                                           | `undefined` |
+
+### Examples
+
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+const table = await TableManager.createTableIndex('MyIndex', {
+  throughput: { read: 5, write: 5 }
+});
+const table = await TableManager.createTableIndex('MyIndex', {
+  throughput: { read: 5, write: 5 }
+  return: 'default'
+});
+```
+
+Output:
+
+```ts
+TableData {
+  tableName: 'users',
+  tableStatus: 'UPDATING',
+  ...
+}
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+const input = TableManager.createTableIndex('MyIndex', {
+  throughput: { read: 5, write: 5 },
+  return: 'input'
+});
+```
+
+Output:
+
+```ts
+{
+  TableName: 'users',
+  AttributeDefinitions: [...],
+  GlobalSecondaryIndexUpdates: [...],
+  ...
+}
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+const output = await TableManager.createTableIndex('MyIndex', {
+  throughput: { read: 5, write: 5 },
+  return: 'output'
+});
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  TableDescription: {
+    ...
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+
+## TableManager.deleteTableIndex(indexName, options?)
+
+### Description
+
+This method deletes an existing global secondary index in a DynamoDB table. It uses the [UpdateTable DynamoDB operation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_UpdateTable.html).
+
+### Arguments
+
+**`indexName`**: `string` - The name of the table global secondary index to delete.
+
+You can add optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name         | Description                                                                                                                                                                                                                                                                     | Type                                                                                                                                        | Default     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `return`     | What the method should return. For `'default'`, it returns TableData. For `'input'`, it returns UpdateTableCommandInput and no request is made to DynamoDB (method no longer returns a promise). For `'output'`, it returns the output from the UpdateTable DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                                                                                      | `'default'` |
+| `extraInput` | Extra input that is sent to UpdateTable DynamoDB operation. Use only in case that you know what you are doing as it may override other properties passed to DynamoDB operation.                                                                                                 | [`UpdateTableCommandInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/classes/updatetablecommand.html) | `undefined` |
+
+### Examples
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+const table = await TableManager.deleteTableIndex('MyIndex');
+const table = await TableManager.deleteTableIndex('MyIndex', { return: 'default' });
+```
+
+Output:
+
+```ts
+TableData {
+  tableName: 'users',
+  tableStatus: 'UPDATING',
+  ...
+}
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+const input = TableManager.deleteTableIndex('MyIndex', { return: 'input' });
+```
+
+Output:
+
+```ts
+{
+  TableName: 'users',
+  GlobalSecondaryIndexUpdates: [...],
+  ...
+}
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+const output = await TableManager.deleteTableIndex('MyIndex', { return: 'output' });
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  TableDescription: {
+    ...
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+
+
+## TableManager.validateTable(options?)
+
+### Description
+
+This method validates the structure of a DynamoDB table against a known table structure. It uses the [DescribeTable DynamoDB operation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DescribeTable.html) to retrieve the current table's structure and validates it with Dynamode table metadata.
+
+### Arguments
+
+You can add an optional **`options`** parameter that is an object. The table below represents options that you can pass in:
+
+| Name         | Description                                                                                                                                                                                                                                                                         | Type                                                                                                                                            | Default     |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `return`     | What the method should return. For `'default'`, it returns TableData. For `'input'`, it returns DescribeTableCommandInput and no request is made to DynamoDB (method no longer returns a promise). For `'output'`, it returns the output from the DescribeTable DynamoDB operation. | `'default'` \| `'input'` \| `'output'`                                                                                                          | `'default'` |
+| `extraInput` | Extra input that is sent to DescribeTable DynamoDB operation. Use only in case that you know what you are doing as it may override other properties passed to DynamoDB operation.                                                                                                   | [`DescribeTableCommandInput`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/classes/describetablecommand.html) | `undefined` |
+
+
+### Examples
+<Tabs>
+<TabItem value="default" label="return: 'default'" default>
+
+```ts
+const tableData = await TableManager.validateTable();
+const tableData = await TableManager.validateTable({ return: 'default' });
+```
+
+Output:
+
+```ts
+TableData {
+  tableName: 'users',
+  tableStatus: 'ACTIVE',
+  creationDateTime: '2021-08-23T10:00:00Z',
+  provisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+  tableSizeBytes: 0,
+  itemCount: 0,
+  tableArn: 'arn:aws:dynamodb:us-west-2:1234567890:table/users',
+  tableId: 'abcde12345',
+  billingModeSummary: { BillingMode: 'PROVISIONED' }
+}
+```
+
+</TabItem>
+<TabItem value="input" label="return: 'input'">
+
+```ts
+const input = TableManager.validateTable({ return: 'input' });
+```
+
+Output:
+
+```ts
+{
+  TableName: 'users',
+  ...
+}
+```
+
+</TabItem>
+<TabItem value="output" label="return: 'output'">
+
+```ts
+const output = await TableManager.validateTable({ return: 'output' });
+```
+
+Output:
+
+```ts
+{
+  '$metadata': {
+    ...
+  },
+  Table: {
+    ...
+  }
+}
+```
+
+</TabItem>
+</Tabs>

@@ -1,8 +1,8 @@
 import { TableDescription } from '@aws-sdk/client-dynamodb';
-import { TableInformation } from '@lib/table/types';
+import { TableData } from '@lib/table/types';
 import { ValidationError } from '@lib/utils';
 
-export function convertToTableInformation({
+export function convertToTableData({
   TableName,
   TableStatus,
   AttributeDefinitions,
@@ -13,7 +13,7 @@ export function convertToTableInformation({
   CreationDateTime,
   LocalSecondaryIndexes = [],
   GlobalSecondaryIndexes = [],
-}: TableDescription = {}): TableInformation {
+}: TableDescription = {}): TableData {
   if (!TableName || !TableStatus || !CreationDateTime || !AttributeDefinitions || !KeySchema) {
     throw new ValidationError('Table description is invalid.');
   }

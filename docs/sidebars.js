@@ -27,14 +27,14 @@ module.exports = {
           ],
         },
         {
-          Table: [
+          Managers: [
             {
               type: 'doc',
-              id: 'guide/table/tableManager',
+              id: 'guide/managers/tableManager',
             },
             {
               type: 'doc',
-              id: 'guide/table/entityManager',
+              id: 'guide/managers/entityManager',
             },
           ],
         },
