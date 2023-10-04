@@ -33,7 +33,7 @@ Check out our dedicated documentation page [here](https://blazejkustra.github.io
 
 ## Installation
 
-Check out the [installation](https://blazejkustra.github.io/dynamode/docs/getting_started/install) section of our docs for the detailed installation instructions.
+Check out the [installation](https://blazejkustra.github.io/dynamode/docs/getting_started/installation) section of our docs for the detailed installation instructions.
 
 ## License
 
