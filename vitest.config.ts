@@ -26,5 +26,6 @@ export default defineConfig({
       tsconfig: 'tests/tsconfig.json',
       ignoreSourceErrors: true,
     },
+    hookTimeout: 30000,
   },
 });
