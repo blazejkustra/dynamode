@@ -1,5 +1,3 @@
-import { IsEqual } from 'type-fest';
-
 import type { AttributeValue } from '@aws-sdk/client-dynamodb';
 
 // Common
@@ -14,6 +12,10 @@ export type FlattenObject<TValue> = CollapseEntries<OmitExcludedTypes<TValue, TV
 type Entry = { key: string; value: unknown };
 type EmptyEntry<TValue> = { key: ''; value: TValue };
 type ExcludedTypes = Date | Set<unknown> | Map<unknown, unknown>;
+
+type EscapeArrayKey<TKey extends string> = TKey extends `${infer TKeyBefore}.[${bigint}]${infer TKeyAfter}`
+  ? EscapeArrayKey<`${TKeyBefore}[${bigint}]${TKeyAfter}`>
+  : TKey;
 
 // Transforms entries to one flattened type
 type CollapseEntries<TEntry extends Entry> = {
@@ -38,12 +40,6 @@ type OmitExcludedTypes<TValue, TValueInitial> = TValue extends ExcludedTypes
   ? EmptyEntry<TValue>
   : CreateObjectEntries<TValue, TValueInitial>;
 
-type EscapeArrayKey<TKey extends string> = TKey extends `${infer TKeyBefore}.[${bigint}]${infer TKeyAfter}`
-  ? EscapeArrayKey<`${TKeyBefore}[${bigint}]${TKeyAfter}`>
-  : TKey;
-
-type EncodeStringType<TKey extends string> = IsEqual<TKey, string> extends true ? TKey : TKey;
-
 type CreateObjectEntries<TValue, TValueInitial> = TValue extends object
   ? {
       // Checks that Key is of type string
@@ -53,16 +49,16 @@ type CreateObjectEntries<TValue, TValueInitial> = TValue extends object
           ? TNestedValue extends Entry
             ? TNestedValue['key'] extends ''
               ? {
-                  key: EncodeStringType<TKey>;
+                  key: TKey;
                   value: TNestedValue['value'];
                 }
               :
                   | {
-                      key: `${EncodeStringType<TKey>}.${TNestedValue['key']}`;
+                      key: `${TKey}.${TNestedValue['key']}`;
                       value: TNestedValue['value'];
                     }
                   | {
-                      key: EncodeStringType<TKey>;
+                      key: TKey;
                       value: TValue[TKey];
                     }
             : never
