@@ -31,7 +31,7 @@ jobs:
       - name: Test types 🛠️
         run: npm run test:typecheck
       - name: Setup DynamoDB Local
-        uses: rrainn/dynamodb-action@v2.0.0
+        uses: rrainn/dynamodb-action@v3.0.0
       - name: Test E2E ⚙️
         run: npm run test:e2e
       - name: Coverage 📝

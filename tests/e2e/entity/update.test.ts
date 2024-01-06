@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 import { mockDate, MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../../fixtures';
 import { mockEntityFactory } from '../mockEntityFactory';
 
-describe.skip.sequential('EntityManager.update', () => {
+describe.sequential('EntityManager.update', () => {
   beforeAll(async () => {
     vi.useFakeTimers();
     await TestTableManager.createTable();
