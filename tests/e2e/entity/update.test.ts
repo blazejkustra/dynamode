@@ -7,16 +7,12 @@ import { mockEntityFactory } from '../mockEntityFactory';
 describe.sequential('EntityManager.update', () => {
   beforeAll(async () => {
     vi.useFakeTimers();
-    console.log('create1');
     await TestTableManager.createTable();
-    console.log('create2');
   });
 
   afterAll(async () => {
     try {
-      console.log('delete1');
       await TestTableManager.deleteTable(TEST_TABLE_NAME);
-      console.log('delete2');
     } catch (e) {
       console.error('Failed deleting a table', e);
     }
@@ -26,7 +22,6 @@ describe.sequential('EntityManager.update', () => {
 
   describe.sequential('MockEntityManager', () => {
     test('Should be able to create an item with MockEntityManager.update', async () => {
-      console.log('test lol');
       // Act
       await MockEntityManager.update({ partitionKey: 'PK1', sortKey: 'SK1' }, { set: { string: 'string' } });
 
@@ -38,7 +33,6 @@ describe.sequential('EntityManager.update', () => {
     });
 
     test('Should update the updatedAt automatically', async () => {
-      console.log('test lol2');
       // Arrange
       const mock = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK1', string: 'before' });
       await MockEntityManager.put(mock);
@@ -56,7 +50,6 @@ describe.sequential('EntityManager.update', () => {
     });
 
     test('Should update multiple fields at once', async () => {
-      console.log('test lol3');
       // Arrange
       const mock = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK1' });
       await MockEntityManager.put(mock);
@@ -88,7 +81,6 @@ describe.sequential('EntityManager.update', () => {
     });
 
     test('Should update.add numbers and sets', async () => {
-      console.log('test lol4');
       // Arrange
       const mock = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK1' });
       await MockEntityManager.put(mock);
@@ -369,7 +361,6 @@ describe.sequential('EntityManager.update', () => {
     });
 
     test('Should be able to update with returnValues', async () => {
-      console.log('test lol6');
       // Arrange
       const mock = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK1' });
       await MockEntityManager.put(mock);
