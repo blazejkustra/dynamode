@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 import { MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../../fixtures';
 import { mockEntityFactory } from '../mockEntityFactory';
 
-describe('EntityManager.batchGet', () => {
+describe('EntityManager.batchPut', () => {
   beforeAll(async () => {
     vi.useFakeTimers();
     await TestTableManager.createTable();
