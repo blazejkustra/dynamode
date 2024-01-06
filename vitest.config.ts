@@ -10,14 +10,17 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     exclude: ['**.json'],
     coverage: {
+      provider: 'v8',
       reporter: ['text', 'html', 'lcovonly'],
       include: ['lib/**'],
       exclude: ['lib/module.ts', 'lib/index.ts', '**/types.ts'],
       all: true,
-      lines: 80,
-      functions: 80,
-      branches: 80,
-      statements: 80,
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
+      },
     },
     typecheck: {
       checker: 'tsc',
