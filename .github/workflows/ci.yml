@@ -32,6 +32,9 @@ jobs:
         run: npm run test:typecheck
       - name: Setup DynamoDB Local
         uses: rrainn/dynamodb-action@v3.0.0
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
       - name: Test E2E ⚙️
         run: npm run test:e2e
       - name: Coverage 📝
