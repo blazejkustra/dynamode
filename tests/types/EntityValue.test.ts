@@ -2,13 +2,16 @@ import { describe, expectTypeOf, test } from 'vitest';
 
 import { EntityValue } from '@lib/entity/types';
 
-import { MockEntity } from '../fixtures';
+import { MockEntity, Property } from '../fixtures';
 
 type DynamodeEntityValue = EntityValue<typeof MockEntity, 'dynamodeEntity'>;
 type StringValue = EntityValue<typeof MockEntity, 'string'>;
 type ObjectValue = EntityValue<typeof MockEntity, 'object'>;
 type ObjectOptionalValue = EntityValue<typeof MockEntity, 'object.optional'>;
 type ObjectRequiredValue = EntityValue<typeof MockEntity, 'object.required'>;
+type ObjectNestedArray = EntityValue<typeof MockEntity, 'object.nestedArray'>;
+type ObjectNestedArrayElement = EntityValue<typeof MockEntity, 'object.nestedArray[0]'>;
+type ObjectNestedArrayElementValue = EntityValue<typeof MockEntity, 'object.nestedArray[100].date'>;
 type ArrayValue = EntityValue<typeof MockEntity, 'array'>;
 type ArrayBigIntValue = EntityValue<typeof MockEntity, `array[${bigint}]`>;
 type MapValue = EntityValue<typeof MockEntity, 'map'>;
@@ -33,9 +36,13 @@ describe('EntityValue type tests', () => {
     expectTypeOf<ObjectValue>().toEqualTypeOf<{
       optional?: string | undefined;
       required: number;
+      nestedArray?: Property[] | undefined;
     }>();
     expectTypeOf<ObjectOptionalValue>().toEqualTypeOf<string | undefined>();
     expectTypeOf<ObjectRequiredValue>().toEqualTypeOf<number>();
+    expectTypeOf<ObjectNestedArray>().toEqualTypeOf<Property[] | undefined>();
+    expectTypeOf<ObjectNestedArrayElement>().toEqualTypeOf<Property>();
+    expectTypeOf<ObjectNestedArrayElementValue>().toEqualTypeOf<Date>();
     expectTypeOf<ArrayValue>().toEqualTypeOf<string[] | undefined>();
     expectTypeOf<ArrayBigIntValue>().toEqualTypeOf<string>();
     expectTypeOf<MapValue>().toEqualTypeOf<Map<string, string>>();

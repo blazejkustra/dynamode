@@ -1,3 +1,5 @@
+import { IsEqual } from 'type-fest';
+
 import type { AttributeValue } from '@aws-sdk/client-dynamodb';
 
 // Common
@@ -7,56 +9,67 @@ export type AttributeNames = Record<string, string>;
 export type GenericObject = Record<string, unknown>;
 
 // Flatten entity
-export type FlattenObject<T> = CollapseEntries<OmitExcludedTypes<T, T>>;
+export type FlattenObject<TValue> = CollapseEntries<OmitExcludedTypes<TValue, TValue>>;
 
 type Entry = { key: string; value: unknown };
-type EmptyEntry<T> = { key: ''; value: T };
+type EmptyEntry<TValue> = { key: ''; value: TValue };
 type ExcludedTypes = Date | Set<unknown> | Map<unknown, unknown>;
 
 // Transforms entries to one flattened type
-type CollapseEntries<T extends Entry> = {
-  [E in T as E['key']]: E['value'];
-} extends infer V
-  ? { [K in keyof V]: V[K] }
-  : never;
+type CollapseEntries<TEntry extends Entry> = {
+  [E in TEntry as EscapeArrayKey<E['key']>]: E['value'];
+};
+
+type ArrayEncoder = `[${bigint}]`;
 
 // Transforms array type to object
-type CreateArrayEntry<T, I> = OmitItself<T extends Array<unknown> ? { [k: `__${bigint}__`]: T[number] } : T, I>;
+type CreateArrayEntry<TValue, TValueInitial> = OmitItself<
+  TValue extends unknown[] ? { [k: ArrayEncoder]: TValue[number] } : TValue,
+  TValueInitial
+>;
 
 // Omit the type that references itself
-type OmitItself<T, I> = T extends I ? EmptyEntry<T> : OmitExcludedTypes<T, I>;
+type OmitItself<TValue, TValueInitial> = TValue extends TValueInitial
+  ? EmptyEntry<TValue>
+  : OmitExcludedTypes<TValue, TValueInitial>;
 
 // Omit the type that is listed in ExcludedTypes union
-type OmitExcludedTypes<T, I> = T extends ExcludedTypes ? EmptyEntry<T> : CreateObjectEntries<T, I>;
+type OmitExcludedTypes<TValue, TValueInitial> = TValue extends ExcludedTypes
+  ? EmptyEntry<TValue>
+  : CreateObjectEntries<TValue, TValueInitial>;
 
-type CreateObjectEntries<T, I> = T extends infer U
-  ? // Checks that U is an object
-    U extends object
-    ? {
-        // Checks that Key is of type string
-        [K in keyof U]-?: K extends string
-          ? // Nested key can be an object, run recursively to the bottom
-            CreateArrayEntry<U[K], I> extends infer E
-            ? E extends Entry
-              ?
+type EscapeArrayKey<TKey extends string> = TKey extends `${infer TKeyBefore}.[${bigint}]${infer TKeyAfter}`
+  ? EscapeArrayKey<`${TKeyBefore}[${bigint}]${TKeyAfter}`>
+  : TKey;
+
+type EncodeStringType<TKey extends string> = IsEqual<TKey, string> extends true ? TKey : TKey;
+
+type CreateObjectEntries<TValue, TValueInitial> = TValue extends object
+  ? {
+      // Checks that Key is of type string
+      [TKey in keyof TValue]-?: TKey extends string
+        ? // Nested key can be an object, run recursively to the bottom
+          CreateArrayEntry<TValue[TKey], TValueInitial> extends infer TNestedValue
+          ? TNestedValue extends Entry
+            ? TNestedValue['key'] extends ''
+              ? {
+                  key: EncodeStringType<TKey>;
+                  value: TNestedValue['value'];
+                }
+              :
                   | {
-                      key: E['key'] extends ''
-                        ? K
-                        : E['key'] extends `__${bigint}__`
-                        ? `${K}[${bigint}]`
-                        : `${K}.${E['key']}`;
-                      value: E['value'];
+                      key: `${EncodeStringType<TKey>}.${TNestedValue['key']}`;
+                      value: TNestedValue['value'];
                     }
                   | {
-                      key: K;
-                      value: U[K];
+                      key: EncodeStringType<TKey>;
+                      value: TValue[TKey];
                     }
-              : never
             : never
-          : never;
-      }[keyof U] // Builds entry for each key
-    : EmptyEntry<U>
-  : never;
+          : never
+        : never;
+    }[keyof TValue] // Builds entry for each key
+  : EmptyEntry<TValue>;
 
 // Narrow utility
 
