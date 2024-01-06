@@ -11,7 +11,11 @@ describe.sequential('EntityManager.update', () => {
   });
 
   afterAll(async () => {
-    await TestTableManager.deleteTable(TEST_TABLE_NAME);
+    try {
+      await TestTableManager.deleteTable(TEST_TABLE_NAME);
+    } catch (e) {
+      console.error('Failed deleting a table', e);
+    }
     vi.useRealTimers();
     vi.restoreAllMocks();
   });
