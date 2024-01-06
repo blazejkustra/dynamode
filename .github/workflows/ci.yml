@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [16, 18, 20]
+        node: [18, 20]
     name: Node ${{ matrix.node }}
     steps:
       - name: Checkout
@@ -31,7 +31,10 @@ jobs:
       - name: Test types 🛠️
         run: npm run test:typecheck
       - name: Setup DynamoDB Local
-        uses: rrainn/dynamodb-action@v2.0.0
+        uses: rrainn/dynamodb-action@v3.0.0
+      - name: Sleep for 10 seconds
+        run: sleep 10s
+        shell: bash
       - name: Test E2E ⚙️
         run: npm run test:e2e
       - name: Coverage 📝

@@ -70,11 +70,14 @@ export class TestTable extends Entity {
   }
 }
 
+export type Property = { date: Date };
+
 export type MockEntityProps = TestTableProps & {
   string: string;
   object: {
     optional?: string;
     required: number;
+    nestedArray?: Property[];
   };
   array: string[];
   map: Map<string, string>;
@@ -91,6 +94,7 @@ export class MockEntity extends TestTable {
   object: {
     optional?: string;
     required: number;
+    nestedArray?: Property[];
   };
 
   @attribute.array()

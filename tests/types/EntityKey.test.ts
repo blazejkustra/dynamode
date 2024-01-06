@@ -13,6 +13,9 @@ type MockEntityDeepKeys =
   | 'object'
   | 'object.optional'
   | 'object.required'
+  | 'object.nestedArray'
+  | `object.nestedArray[${bigint}]`
+  | `object.nestedArray[${bigint}].date`
   | 'array'
   | `array[${bigint}]`
   | 'map'

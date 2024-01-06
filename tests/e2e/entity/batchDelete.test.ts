@@ -5,7 +5,7 @@ import { NotFoundError } from '@lib/utils';
 import { MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../../fixtures';
 import { mockEntityFactory } from '../mockEntityFactory';
 
-describe('EntityManager.batchGet', () => {
+describe('EntityManager.batchDelete', () => {
   beforeAll(async () => {
     vi.useFakeTimers();
     await TestTableManager.createTable();

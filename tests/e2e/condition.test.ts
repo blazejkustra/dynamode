@@ -6,7 +6,7 @@ import { mockDate, MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '
 
 import { mockEntityFactory } from './mockEntityFactory';
 
-describe.sequential('EntityManager.put', () => {
+describe.sequential('EntityManager.condition', () => {
   beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(mockDate);
