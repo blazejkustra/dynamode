@@ -7,22 +7,21 @@ export type AttributeNames = Record<string, string>;
 export type GenericObject = Record<string, unknown>;
 
 // Flatten entity
-export type FlattenObject<TValue> = CollapseEntries<OmitExcludedTypes<TValue, TValue>>;
+export type FlattenObject<TValue> = CollapseEntries<CreateObjectEntries<TValue, TValue>>;
 
 type Entry = { key: string; value: unknown };
 type EmptyEntry<TValue> = { key: ''; value: TValue };
 type ExcludedTypes = Date | Set<unknown> | Map<unknown, unknown>;
+type ArrayEncoder = `[${bigint}]`;
 
-type EscapeArrayKey<TKey extends string> = TKey extends `${infer TKeyBefore}.[${bigint}]${infer TKeyAfter}`
-  ? EscapeArrayKey<`${TKeyBefore}[${bigint}]${TKeyAfter}`>
+type EscapeArrayKey<TKey extends string> = TKey extends `${infer TKeyBefore}.${ArrayEncoder}${infer TKeyAfter}`
+  ? EscapeArrayKey<`${TKeyBefore}${ArrayEncoder}${TKeyAfter}`>
   : TKey;
 
 // Transforms entries to one flattened type
 type CollapseEntries<TEntry extends Entry> = {
   [E in TEntry as EscapeArrayKey<E['key']>]: E['value'];
 };
-
-type ArrayEncoder = `[${bigint}]`;
 
 // Transforms array type to object
 type CreateArrayEntry<TValue, TValueInitial> = OmitItself<
