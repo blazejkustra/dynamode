@@ -18,6 +18,14 @@ describe('EntityManager.batchDelete', () => {
   });
 
   describe.sequential('MockEntityManager', () => {
+    test('Should return empty array if an empty array is passed', async () => {
+      // Act
+      const { unprocessedItems } = await MockEntityManager.batchDelete([]);
+
+      // Assert
+      expect(unprocessedItems).toEqual([]);
+    });
+
     test('Should be able to delete multiple items', async () => {
       // Arrange
       const mock1 = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK1' });

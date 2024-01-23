@@ -879,6 +879,18 @@ describe('entityManager', () => {
       expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
     });
 
+    test('Should return dynamode result of batch get with empty array input', async () => {
+      await expect(MockEntityManager.batchGet([])).resolves.toEqual({
+        items: [],
+        unprocessedKeys: [],
+      });
+
+      expect(buildGetProjectionExpressionSpy).toBeCalledTimes(1);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledTimes(0);
+      expect(batchGetItem).toBeCalledTimes(0);
+      expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(0);
+    });
+
     test('Should return dynamode result (all items found)', async () => {
       buildGetProjectionExpressionSpy.mockReturnValue({});
       batchGetItem.mockResolvedValue({
@@ -1073,6 +1085,17 @@ describe('entityManager', () => {
       expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
     });
 
+    test('Should return dynamode result of batch put with empty array input', async () => {
+      await expect(MockEntityManager.batchPut([])).resolves.toEqual({
+        items: [],
+        unprocessedItems: [],
+      });
+
+      expect(convertEntityToAttributeValuesSpy).toBeCalledTimes(0);
+      expect(batchWriteMock).toBeCalledTimes(0);
+      expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(0);
+    });
+
     test('Should return dynamode result of batch put item with no unprocessed items', async () => {
       batchWriteMock.mockResolvedValue({ UnprocessedItems: undefined });
       convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
@@ -1253,6 +1276,16 @@ describe('entityManager', () => {
         },
       });
       expect(fromDynamoSpy).not.toBeCalled();
+    });
+
+    test('Should return dynamode result of batch delete with empty array input', async () => {
+      await expect(MockEntityManager.batchDelete([])).resolves.toEqual({
+        unprocessedItems: [],
+      });
+
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledTimes(0);
+      expect(batchWriteMock).toBeCalledTimes(0);
+      expect(fromDynamoSpy).toBeCalledTimes(0);
     });
 
     test('Should return dynamode result of batch delete item with no unprocessed items', async () => {

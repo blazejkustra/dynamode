@@ -16,6 +16,15 @@ describe('EntityManager.batchGet', () => {
   });
 
   describe.sequential('MockEntityManager', () => {
+    test('Should return empty arrays if an empty array is passed', async () => {
+      // Act
+      const { items: mocks, unprocessedKeys } = await MockEntityManager.batchGet([]);
+
+      // Assert
+      expect(mocks).toEqual([]);
+      expect(unprocessedKeys).toEqual([]);
+    });
+
     test('Should be able to retrieve multiple items', async () => {
       // Arrange
       const mock1 = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK1' });
