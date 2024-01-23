@@ -36,6 +36,7 @@ describe.sequential('EntityManager.condition', () => {
         MockEntityManager.condition().attribute('string').beginsWith('any'),
         MockEntityManager.condition().attribute('string').between('a', 'c'),
         MockEntityManager.condition().attribute('string').in(['anything', 'anything2']),
+        MockEntityManager.condition().attribute('string').in([]),
         MockEntityManager.condition().attribute('string').not().in(['string', 'string2']),
         MockEntityManager.condition().attribute('string').not().eq('string'),
         MockEntityManager.condition().attribute('string').not().ne('anything'),
@@ -100,6 +101,7 @@ describe.sequential('EntityManager.condition', () => {
         MockEntityManager.condition().attribute('number').between(0, 2),
         MockEntityManager.condition().attribute('number').in([1]),
         MockEntityManager.condition().attribute('number').not().in([0]),
+        MockEntityManager.condition().attribute('string').not().in([]),
 
         // boolean
         MockEntityManager.condition().attribute('boolean').exists(),

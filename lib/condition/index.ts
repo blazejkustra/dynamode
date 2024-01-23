@@ -49,6 +49,8 @@ export default class Condition<E extends typeof Entity> {
       },
       in: (values: Array<EntityValue<E, K>>): C => {
         if (values.length === 0) {
+          // DynamoDB does not support an empty IN condition because it is logically impossible to have any value in an empty array. Therefore, an impossible condition is added to handle this case.
+          this.operators.push(...OPERATORS.impossibleCondition(key));
           return this;
         }
 

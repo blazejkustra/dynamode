@@ -130,10 +130,10 @@ describe('Condition', () => {
       });
 
       describe('in', () => {
-        test('Should not push in expression for en empty array', async () => {
+        test('Should push an impossible condition for an empty array', async () => {
           condition.attribute('partitionKey').in([]);
 
-          expect(condition['operators']).toEqual([]);
+          expect(condition['operators']).toEqual([...OPERATORS.impossibleCondition('partitionKey')]);
         });
 
         test('Should push in expression', async () => {
