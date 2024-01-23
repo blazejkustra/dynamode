@@ -67,8 +67,8 @@ const boxes = [
   },
 ];
 
-const exampleUrl = 'https://github.com/blazejkustra/dynamode';
-const playgroundUrl = 'https://github.com/blazejkustra/dynamode';
+const exampleUrl = 'https://www.github.com/blazejkustra/dynamode';
+const playgroundUrl = 'https://www.github.com/blazejkustra/dynamode';
 
 function InfoBox({ title, description }) {
   return (

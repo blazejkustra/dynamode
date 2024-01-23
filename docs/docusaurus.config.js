@@ -76,7 +76,7 @@ module.exports = {
   customFields: {
     shortTitle: 'Dynamode',
   },
-  url: 'https://blazejkustra.github.io',
+  url: 'https://www.blazejkustra.github.io',
   baseUrl: '/dynamode/',
   organizationName: 'blazejkustra',
   projectName: 'dynamode',
@@ -110,7 +110,7 @@ module.exports = {
           position: 'right',
         },
         {
-          href: 'https://github.com/blazejkustra/dynamode',
+          href: 'https://www.github.com/blazejkustra/dynamode',
           className: 'github-navbar-logo',
           'aria-label': 'GitHub',
           position: 'right',
@@ -121,7 +121,7 @@ module.exports = {
       logo: {
         alt: 'Dynamode',
         src: 'img/dynamode.svg',
-        href: 'https://github.com/blazejkustra/dynamode',
+        href: 'https://www.github.com/blazejkustra/dynamode',
       },
     },
     prism: {
@@ -135,7 +135,7 @@ module.exports = {
         docs: {
           path: 'docs',
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/blazejkustra/dynamode/tree/master/docs', 
+          editUrl: 'https://www.github.com/blazejkustra/dynamode/tree/master/docs', 
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
