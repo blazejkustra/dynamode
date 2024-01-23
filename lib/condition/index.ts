@@ -48,6 +48,10 @@ export default class Condition<E extends typeof Entity> {
         return this;
       },
       in: (values: Array<EntityValue<E, K>>): C => {
+        if (values.length === 0) {
+          return this;
+        }
+
         const processedValues = values.map((value) => transformValue(this.entity, key, value));
         this.operators.push(...OPERATORS.in(key, processedValues));
         return this;
@@ -115,6 +119,10 @@ export default class Condition<E extends typeof Entity> {
           return this;
         },
         in: (values: Array<EntityValue<E, K>>): C => {
+          if (values.length === 0) {
+            return this;
+          }
+
           const processedValues = values.map((value) => transformValue(this.entity, key, value));
           this.operators.push(...OPERATORS.notIn(key, processedValues));
           return this;

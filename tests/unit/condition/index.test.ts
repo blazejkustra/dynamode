@@ -130,6 +130,12 @@ describe('Condition', () => {
       });
 
       describe('in', () => {
+        test('Should not push in expression for en empty array', async () => {
+          condition.attribute('partitionKey').in([]);
+
+          expect(condition['operators']).toEqual([]);
+        });
+
         test('Should push in expression', async () => {
           condition.attribute('partitionKey').in(['value1', 'value2']);
 
@@ -304,6 +310,12 @@ describe('Condition', () => {
         });
 
         describe('in', () => {
+          test('Should not push in expression for en empty array', async () => {
+            condition.attribute('partitionKey').not().in([]);
+
+            expect(condition['operators']).toEqual([]);
+          });
+
           test('Should push in expression', async () => {
             condition.attribute('partitionKey').not().in(['value1', 'value2']);
 
