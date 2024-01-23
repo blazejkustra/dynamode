@@ -880,8 +880,6 @@ describe('entityManager', () => {
     });
 
     test('Should return dynamode result of batch get with empty array input', async () => {
-      batchGetItem.mockResolvedValue({ UnprocessedItems: undefined });
-
       await expect(MockEntityManager.batchGet([])).resolves.toEqual({
         items: [],
         unprocessedKeys: [],
@@ -1088,8 +1086,6 @@ describe('entityManager', () => {
     });
 
     test('Should return dynamode result of batch put with empty array input', async () => {
-      batchWriteMock.mockResolvedValue({ UnprocessedItems: undefined });
-
       await expect(MockEntityManager.batchPut([])).resolves.toEqual({
         items: [],
         unprocessedItems: [],
