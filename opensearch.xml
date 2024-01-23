@@ -4,8 +4,8 @@
   <ShortName>Dynamode - DynamoDB Modeling Tool</ShortName>
   <Description>Search Dynamode - DynamoDB Modeling Tool</Description>
   <InputEncoding>UTF-8</InputEncoding>
-  <Image width="16" height="16" type="image/x-icon">https://www.blazejkustra.github.io/dynamode/img/fav_192x192.png</Image>
-  <Url type="text/html" method="get" template="https://www.blazejkustra.github.io/dynamode/search?q={searchTerms}"/>
-  <Url type="application/opensearchdescription+xml" rel="self" template="https://www.blazejkustra.github.io/dynamode/opensearch.xml" />
-  <moz:SearchForm>https://www.blazejkustra.github.io/dynamode/</moz:SearchForm>
+  <Image width="16" height="16" type="image/x-icon">https://www.blazejkustra.github.io/img/fav_192x192.png</Image>
+  <Url type="text/html" method="get" template="https://www.blazejkustra.github.io/search?q={searchTerms}"/>
+  <Url type="application/opensearchdescription+xml" rel="self" template="https://www.blazejkustra.github.io/opensearch.xml" />
+  <moz:SearchForm>https://www.blazejkustra.github.io/</moz:SearchForm>
 </OpenSearchDescription>
