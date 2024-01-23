@@ -77,7 +77,7 @@ module.exports = {
     shortTitle: 'Dynamode - NoSQL Database ORM',
   },
   url: 'https://www.blazejkustra.github.io',
-  baseUrl: '/dynamode/',
+  baseUrl: '/',
   organizationName: 'blazejkustra',
   projectName: 'dynamode',
   deploymentBranch: 'gh-pages',
