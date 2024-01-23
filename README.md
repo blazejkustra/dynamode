@@ -29,11 +29,11 @@ Dynamode is highly influenced by other ORMs/ODMs, such as [TypeORM](https://gith
 
 ## Documentation
 
-Check out our dedicated documentation page [here](https://blazejkustra.github.io/docs/getting_started/introduction) for info about the library, guide and more.
+Check out our dedicated documentation page [here](https://blazejkustra.github.io/dynamode/docs/getting_started/introduction) for info about the library, guide and more.
 
 ## Installation
 
-Check out the [installation](https://blazejkustra.github.io/docs/getting_started/installation) section of our docs for the detailed installation instructions.
+Check out the [installation](https://blazejkustra.github.io/dynamode/docs/getting_started/installation) section of our docs for the detailed installation instructions.
 
 ## License
 
