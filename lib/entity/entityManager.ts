@@ -329,6 +329,13 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
     }
 
     return (async () => {
+      if (primaryKeys.length === 0) {
+        return {
+          items: [],
+          unprocessedKeys: [],
+        };
+      }
+
       const result = await Dynamode.ddb.get().batchGetItem(commandInput);
 
       if (options?.return === 'output') {
@@ -382,6 +389,13 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
     }
 
     return (async () => {
+      if (items.length === 0) {
+        return {
+          items: [],
+          unprocessedItems: [],
+        };
+      }
+
       const result = await Dynamode.ddb.get().batchWriteItem(commandInput);
 
       if (options?.return === 'output') {
@@ -438,6 +452,12 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
     }
 
     return (async () => {
+      if (primaryKeys.length === 0) {
+        return {
+          unprocessedItems: [],
+        };
+      }
+
       const result = await Dynamode.ddb.get().batchWriteItem(commandInput);
 
       if (options?.return === 'output') {
