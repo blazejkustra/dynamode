@@ -363,6 +363,22 @@ describe('Constants', () => {
         { value: 'value', key: 'key' },
       ]);
     });
+
+    test('impossibleCondition', async () => {
+      expect(OPERATORS.impossibleCondition('key')).toEqual([
+        { expression: 'attribute_exists' },
+        { expression: '(' },
+        { key: 'key' },
+        { expression: ')' },
+        { expression: ' ' },
+        { expression: 'AND' },
+        { expression: ' ' },
+        { expression: 'attribute_not_exists' },
+        { expression: '(' },
+        { key: 'key' },
+        { expression: ')' },
+      ]);
+    });
   });
 
   describe('UPDATE_OPERATORS', () => {

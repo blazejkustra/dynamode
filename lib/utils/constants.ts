@@ -842,6 +842,14 @@ export const OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
+  /** attribute_exists(Id) AND attribute_not_exists(Id) */
+  impossibleCondition: (key: string): Operators => [
+    ...OPERATORS.attributeExists(key),
+    BASE_OPERATOR.space,
+    BASE_OPERATOR.and,
+    BASE_OPERATOR.space,
+    ...OPERATORS.attributeNotExists(key),
+  ],
 };
 
 export const UPDATE_OPERATORS = {
