@@ -68,13 +68,13 @@ In swizzled components look for "SWM -" string to see our modifications
 */
 
 module.exports = {
-  title: 'Dynamode',
-  tagline: "Modeling tool for Amazon's DynamoDB",
+  title: 'Dynamode - DynamoDB Modeling Tool',
+  tagline: "An intuitive ORM for Amazon's DynamoDB with full TypeScript Support and Validation",
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/fav_192x192.png',
   customFields: {
-    shortTitle: 'Dynamode',
+    shortTitle: 'Dynamode - NoSQL Database ORM',
   },
   url: 'https://www.blazejkustra.github.io',
   baseUrl: '/dynamode/',
@@ -84,10 +84,14 @@ module.exports = {
   trailingSlash: false,
   themeConfig: {
     algolia: {
-      appId: "S40J7WL1BI",
-      apiKey: "3d80058ec47985dd7ad5dee251c95019",
-      indexName: "dynamode",
+      appId: 'S40J7WL1BI',
+      apiKey: '3d80058ec47985dd7ad5dee251c95019',
+      indexName: 'dynamode',
     },
+    metadata: [
+      { name: 'keywords', content: 'dynamode, dynamodb, modeling tool, amazon, serverless, ODM, ORM' },
+      { name: 'twitter:card', content: 'summary_large_image' },
+    ],
     colorMode: {
       disableSwitch: true,
     },
@@ -135,7 +139,7 @@ module.exports = {
         docs: {
           path: 'docs',
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://www.github.com/blazejkustra/dynamode/tree/master/docs', 
+          editUrl: 'https://www.github.com/blazejkustra/dynamode/tree/master/docs',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
