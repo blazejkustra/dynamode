@@ -7,7 +7,7 @@
 	<a href="https://www.npmjs.com/package/dynamode" style="text-decoration: none;">
 		<img src="https://img.shields.io/npm/v/dynamode?style=flat-square&color=001A72" alt="npm">
 	</a>
-  <a href="https://github.com/blazejkustra/dynamode/blob/master/LICENSE" style="text-decoration: none;">
+  <a href="https://github.com/blazejkustra/dynamode/blob/main/LICENSE" style="text-decoration: none;">
 		<img src="https://img.shields.io/github/license/blazejkustra/dynamode?style=flat-square&color=33488E" alt="License">
 	</a>
 	<a href="https://www.npmjs.com/package/dynamode" style="text-decoration: none;">
@@ -106,4 +106,4 @@ export const ExampleEntityManager = ExampleTableManager.entityManager(ExampleEnt
 await ExampleEntityManager.put(new ExampleEntityManager({ ... }));
 ```
 
-Find more examples under the [`examples/`](https://github.com/blazejkustra/dynamode/blob/master/examples/) directory.
+Find more examples under the [`examples/`](https://github.com/blazejkustra/dynamode/blob/main/examples/) directory.

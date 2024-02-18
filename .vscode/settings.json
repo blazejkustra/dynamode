@@ -1,7 +1,7 @@
 {
   "cSpell.words": ["dynamode", "unmarshall"],
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
   "files.associations": {
     "*.mdx": "markdown"

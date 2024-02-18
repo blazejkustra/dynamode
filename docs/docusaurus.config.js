@@ -139,7 +139,7 @@ module.exports = {
         docs: {
           path: 'docs',
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://www.github.com/blazejkustra/dynamode/tree/master/docs',
+          editUrl: 'https://www.github.com/blazejkustra/dynamode/tree/main/docs',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
