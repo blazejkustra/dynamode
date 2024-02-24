@@ -16,3 +16,4 @@ export const InvalidParameter = createError('Invalid Parameter', 'InvalidParamet
 export const ValidationError = createError('Validation failed', 'ValidationError');
 export const ConflictError = createError('Conflict', 'ConflictError');
 export const DynamodeStorageError = createError('Dynamode storage failed', 'DynamodeStorageError');
+export const DynamodeStreamError = createError('Dynamode stream failed', 'DynamodeStreamError');

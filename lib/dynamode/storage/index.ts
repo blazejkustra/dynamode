@@ -90,6 +90,22 @@ export default class DynamodeStorage {
     return mergeObjects(...entitiesAttributes.reverse());
   }
 
+  public getEntityClass(entityName: string): typeof Entity {
+    const entityMetadata = this.entities[entityName];
+
+    if (!entityMetadata) {
+      throw new DynamodeStorageError(`Invalid entity name "${entityName}`);
+    }
+
+    if (!entityMetadata.entity) {
+      throw new DynamodeStorageError(
+        `Entity "${entityName}" not registered, use TableManager.entityManager(${entityName}) first.`,
+      );
+    }
+
+    return entityMetadata.entity;
+  }
+
   public getEntityTableName(entityName: string): string {
     if (!this.entities[entityName]) {
       throw new DynamodeStorageError(`Invalid entity name "${entityName}`);
