@@ -1,7 +1,7 @@
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import { convertAttributeValuesToEntity } from '@lib/entity/helpers/converters';
-import { DynamodeStreamError, fromDynamo } from '@lib/utils';
+import { AttributeValues, DynamodeStreamError, fromDynamo } from '@lib/utils';
 
 import { DynamoDBRecord, StreamHandlerOptions } from './types';
 
@@ -37,7 +37,7 @@ class Stream<E extends typeof Entity = typeof Entity> {
       throw new DynamodeStreamError("Stream of 'KEYS_ONLY' type is not supported");
     }
 
-    const item = fromDynamo(record.NewImage ?? record.OldImage ?? {});
+    const item = fromDynamo((record.NewImage as AttributeValues) ?? (record.OldImage as AttributeValues) ?? {});
     const dynamodeEntity = item?.dynamodeEntity;
 
     if (!dynamodeEntity || typeof dynamodeEntity !== 'string') {
@@ -46,10 +46,10 @@ class Stream<E extends typeof Entity = typeof Entity> {
 
     this.entity = Dynamode.storage.getEntityClass(dynamodeEntity) as E;
     if (record.OldImage) {
-      this.oldImage = convertAttributeValuesToEntity(this.entity, record.OldImage);
+      this.oldImage = convertAttributeValuesToEntity(this.entity, record.OldImage as AttributeValues);
     }
     if (record.NewImage) {
-      this.newImage = convertAttributeValuesToEntity(this.entity, record.NewImage);
+      this.newImage = convertAttributeValuesToEntity(this.entity, record.NewImage as AttributeValues);
     }
   }
 }
