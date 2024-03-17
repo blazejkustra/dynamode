@@ -1,0 +1,198 @@
+---
+title: Quick Start | Dynamode
+description: Quick Start
+sidebar_label: Quick Start
+hide_title: true
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Quick Start
+
+## Installation
+
+First be sure to have Node.js installed, initialize a new project with `npm init`. Next install Dynamode by running the following command.
+
+<Tabs>
+<TabItem value="npm" label="npm" default>
+
+```bash
+npm install dynamode
+```
+
+</TabItem>
+<TabItem value="yarn" label="yarn">
+
+```bash
+yarn add dynamode
+```
+
+</TabItem>
+<TabItem value="pnpm" label="pnpm">
+
+```bash
+pnpm add dynamode
+```
+
+</TabItem>
+</Tabs>
+
+## Setting up DynamoDB 
+
+To setup DynamoDB locally use the following [guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html). This way you can test your application without incurring any costs.
+
+## Connect to DynamoDB
+
+At the top of your file, import Dynamode and connect to local DynamoDB instance.
+
+```ts
+import Dynamode from 'dynamode/dynamode';
+
+Dynamode.ddb.local();
+```
+
+In a real-world scenario, you would authenticate with AWS. For more information, check out the [Configure](/docs/getting_started/configure#authenticate-programmatically) section. 
+
+:::info
+Always authenticate at the top/beginning of your application.
+:::
+
+## Create a table
+
+With Dynamode, everything is derived from an [Entity](/docs/guide/entity/modeling#modeling-with-typescript). Let's import it and define our table with a [composite primary key](https://repost.aws/knowledge-center/primary-key-dynamodb-table). 
+
+:::caution
+In case you are using TypeScript, you need to add following lines in `tsconfig.json` in order to use decorators:
+
+```ts
+{
+  "compilerOptions": {
+    ...
+    "experimentalDecorators": true,
+    ...
+  }
+}
+```
+:::
+
+
+```ts
+import attribute from 'dynamode/decorators';
+import Entity from 'dynamode/entity';
+
+export default class Table extends Entity {
+  @attribute.partitionKey.string()
+  pk: string;
+
+  @attribute.sortKey.string()
+  sk: string;
+
+  constructor(props: { pk: string; sk: string; }) {
+    super(props);
+
+    this.pk = props.pk;
+    this.sk = props.sk;
+  }
+}
+
+```
+
+Every attribute you want to save in database should be defined as a class property with the `@attribute` decorator. You can read more about it [here](/docs/guide/entity/decorators). 
+
+Now, let's initialize a [table manager](/docs/guide/managers/tableManager) that will allow us to create the table in DynamoDB.
+
+```ts
+import TableManager from 'dynamode/table';
+
+const FirstTableManager = new TableManager(Table, {
+  tableName: 'TABLE_NAME',
+  partitionKey: 'pk', // attribute that will be used as the partition key
+  sortKey: 'sk', // attribute that will be used as the sort key
+});
+```
+
+You can create the table by running the following command. 
+
+```ts
+await FirstTableManager.createTable();
+```
+
+:::info
+You only need to run this command once.
+:::
+
+## Create your model
+
+Let's say we like kittens and want to record every kitten we ever meet. In order to create a model for our kitten, we will create a class that extends the `Table` class. You can add any methods you want to this class, and use later on.
+
+```ts
+class Kitten extends Table {
+  @attribute.string()
+  name: string;
+
+  constructor(props: { pk: string; sk: string; name: string }) {
+    super(props);
+
+    this.name = props.name;
+  }
+
+  speak() {
+    return `Meow, my name is ${this.name}!`;
+  }
+}
+```
+
+A model is a class with which we construct items. In this case, each item will be a kitten with properties and behaviors as declared in our class. Let's create a kitten item representing the little guy we just met on the sidewalk outside:
+
+```ts
+const fluffball = new Kitten({ 
+    pk:'kitten', 
+    sk:'fluffball', 
+    name: 'Fluffball' 
+  });
+console.log(fluffball.name); // 'Fluffball'
+console.log(fluffball.speak()); // 'Meow, my name is Fluffball!'
+```
+
+
+## Save your model in the database
+
+This item is not yet saved in the database. To save it, we need to create an [entity manager](/docs/guide/managers/entityManager) for the `Kitten` model.
+
+```ts
+const KittenManager = FirstTableManager.entityManager(Kitten);
+```
+
+Now that we have a kitten and a manager, we can save it in the database.
+
+```ts
+await KittenManager.put(fluffball);
+```
+
+## Fetch your model from the database
+
+You can also use the [`get` method](/docs/guide/managers/entityManager#entitymanagergetprimarykey-options) to fetch the kitten from the database.
+```ts
+const fluffball = await KittenManager.get({ pk: 'kitten', sk: 'fluffball' });
+```
+
+Say time goes by and we want to display all the kittens we've seen. We can access all of the kittens we've seen by using the [`query` method](/docs/guide/query).
+
+```ts
+const data = await KittenManager.query().partitionKey('pk').eq('kitten').run();
+```
+
+You can also add filters to your query if you want to query all kittens with name that begins with 'fluff'.
+
+```ts
+const data = await KittenManager.query().partitionKey('pk').eq('kitten').sortKey('sk').beginsWith('fluff').run();
+```
+
+## Congratulations!
+
+That's the end of our quick start. We connected to a DynamoDB instance, created a table and a model, added a custom method to a model, saved and queried kittens in DynamoDB using Dynamode.
+
+Now, head over to the [guide](/docs/guide/entity/modeling) for more info on how to model your data with Dynamode!
+
+

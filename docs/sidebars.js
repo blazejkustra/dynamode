@@ -6,6 +6,7 @@ module.exports = {
       items: [
         'getting_started/introduction',
         'getting_started/installation',
+        'getting_started/quick_start',
         'getting_started/import',
         'getting_started/configure',
       ],
