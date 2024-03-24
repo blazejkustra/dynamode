@@ -3,18 +3,18 @@ import Entity from '@lib/entity';
 import { convertAttributeValuesToEntity } from '@lib/entity/helpers/converters';
 import { AttributeValues, DynamodeStreamError, fromDynamo } from '@lib/utils';
 
-import { DynamoDBRecord, StreamHandlerOptions } from './types';
+import { DynamoDBRecord } from './types';
 
-class Stream<E extends typeof Entity = typeof Entity> {
+export default class Stream<E extends typeof Entity = typeof Entity> {
   streamType: 'newImage' | 'oldImage' | 'newAndOldImages';
   operation: 'insert' | 'modify' | 'remove';
-  entity: E;
   oldImage?: InstanceType<E>;
   newImage?: InstanceType<E>;
 
-  constructor({ dynamodb: record, eventName }: DynamoDBRecord, options?: StreamHandlerOptions) {
-    this.streamType = options?.streamType ?? 'newAndOldImages';
+  // Dynamode entity class
+  entity: E;
 
+  constructor({ dynamodb: record, eventName }: DynamoDBRecord) {
     switch (eventName) {
       case 'INSERT':
         this.operation = 'insert';
@@ -33,8 +33,20 @@ class Stream<E extends typeof Entity = typeof Entity> {
       throw new DynamodeStreamError('Invalid record');
     }
 
-    if (record.StreamViewType === 'KEYS_ONLY') {
-      throw new DynamodeStreamError("Stream of 'KEYS_ONLY' type is not supported");
+    switch (record.StreamViewType) {
+      case 'KEYS_ONLY':
+        throw new DynamodeStreamError("Stream of 'KEYS_ONLY' type is not supported");
+      case 'NEW_IMAGE':
+        this.streamType = 'newImage';
+        break;
+      case 'OLD_IMAGE':
+        this.streamType = 'oldImage';
+        break;
+      case 'NEW_AND_OLD_IMAGES':
+        this.streamType = 'newAndOldImages';
+        break;
+      default:
+        throw new DynamodeStreamError('Invalid streamType');
     }
 
     const item = fromDynamo((record.NewImage as AttributeValues) ?? (record.OldImage as AttributeValues) ?? {});
@@ -45,6 +57,7 @@ class Stream<E extends typeof Entity = typeof Entity> {
     }
 
     this.entity = Dynamode.storage.getEntityClass(dynamodeEntity) as E;
+
     if (record.OldImage) {
       this.oldImage = convertAttributeValuesToEntity(this.entity, record.OldImage as AttributeValues);
     }
@@ -57,5 +70,3 @@ class Stream<E extends typeof Entity = typeof Entity> {
     return this.entity === entity;
   }
 }
-
-export default Stream;

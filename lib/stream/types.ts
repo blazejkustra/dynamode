@@ -1,6 +1,6 @@
 import type { AttributeValue } from '@aws-sdk/client-dynamodb';
 
-// https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/aws-lambda/trigger/dynamodb-stream.d.ts
+// For compatibility with aws lambda: https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/aws-lambda/trigger/dynamodb-stream.d.ts
 type AttributeValueAWSLambda = {
   B?: string | undefined;
   BS?: string[] | undefined;
@@ -23,8 +23,4 @@ export type StreamPayload = {
 export type DynamoDBRecord = {
   eventName?: 'INSERT' | 'MODIFY' | 'REMOVE' | undefined;
   dynamodb?: StreamPayload | undefined;
-};
-
-export type StreamHandlerOptions = {
-  streamType?: 'newImage' | 'oldImage' | 'newAndOldImages';
 };
