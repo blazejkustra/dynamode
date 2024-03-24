@@ -6,7 +6,7 @@ import { AttributeValues, DynamodeStreamError, fromDynamo } from '@lib/utils';
 import { DynamoDBRecord } from './types';
 
 export default class Stream<E extends typeof Entity = typeof Entity> {
-  streamType: 'newImage' | 'oldImage' | 'newAndOldImages';
+  streamType: 'newImage' | 'oldImage' | 'both';
   operation: 'insert' | 'modify' | 'remove';
   oldImage?: InstanceType<E>;
   newImage?: InstanceType<E>;
@@ -43,7 +43,7 @@ export default class Stream<E extends typeof Entity = typeof Entity> {
         this.streamType = 'oldImage';
         break;
       case 'NEW_AND_OLD_IMAGES':
-        this.streamType = 'newAndOldImages';
+        this.streamType = 'both';
         break;
       default:
         throw new DynamodeStreamError('Invalid streamType');

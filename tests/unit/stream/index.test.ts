@@ -95,7 +95,7 @@ describe('Stream', () => {
       expect(stream['entity']).toEqual(MockEntity);
 
       const stream2 = new Stream(validNewAndOldImageStream);
-      expect(stream2['streamType']).toEqual('newAndOldImages');
+      expect(stream2['streamType']).toEqual('both');
       expect(stream2['operation']).toEqual('insert');
       expect(stream2['oldImage']).toEqual(mockInstance);
       expect(stream2['newImage']).toEqual(mockInstance);
@@ -121,7 +121,7 @@ describe('Stream', () => {
           ...validNewImageStream,
           dynamodb: { ...validNewImageStream.dynamodb, StreamViewType: 'NEW_AND_OLD_IMAGES' },
         }).streamType,
-      ).toEqual('newAndOldImages');
+      ).toEqual('both');
     });
 
     test('Should throw an error for invalid operation', async () => {
