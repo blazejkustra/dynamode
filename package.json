@@ -1,6 +1,6 @@
 {
   "name": "dynamode",
-  "version": "0.7.9-rc.5",
+  "version": "1.0.0",
   "description": "Dynamode is a modeling tool for Amazon's DynamoDB",
   "main": "index.js",
   "types": "index.d.ts",
