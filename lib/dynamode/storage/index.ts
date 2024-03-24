@@ -94,7 +94,7 @@ export default class DynamodeStorage {
     const entityMetadata = this.entities[entityName];
 
     if (!entityMetadata) {
-      throw new DynamodeStorageError(`Invalid entity name "${entityName}`);
+      throw new DynamodeStorageError(`Invalid entity name "${entityName}"`);
     }
 
     if (!entityMetadata.entity) {
