@@ -1,0 +1,93 @@
+---
+title: Stream | Dynamode
+description: DynamoDB streams processing with Dynamode
+sidebar_label: Stream
+hide_title: true
+---
+
+# Stream
+
+The `Stream` class is designed to process [DynamoDB streams](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html#Streams.Enabling) and convert them into corresponding Dynamode entity instances. 
+
+This simplifies the process of handling DynamoDB streams and allows you to work with Dynamode entities directly.
+
+:::info
+DynamoDB streams of type `KEYS_ONLY` are not supported in Dynamode.
+:::
+
+## Stream constructor - new Stream(Entity)
+
+Every stream has to be initialized with data from a DynamoDB stream record. The `Stream` class constructor takes a DynamoDB [`Record`](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_streams_Record.html) and initializes a `Stream` instance.
+
+```ts
+import Stream from 'dynamode/stream';
+
+const stream = new Stream(dynamoDBRecord);
+```
+
+## Stream properties
+
+The `Stream` class has the following properties:
+- `streamType`: The type of the stream. It can be one of the following: `newImage`, `oldImage`, or `both`.
+- `operation`: The operation that was performed on the entity. It can be one of the following: `insert`, `modify`, or `remove`.
+- `newImage`: The new entity image after the operation. Instance of the [entity](/docs/guide/entity/modeling) class.
+- `oldImage`: The old entity image before the operation. Instance of the [entity](/docs/guide/entity/modeling) class.
+- `entity`: The entity class that the stream corresponds to.
+
+## stream.isEntity(entity)
+
+### Description
+
+A method to check if the stream entity corresponds to the provided entity class. It also narrows down the type of the stream entity to the provided entity class.
+
+### Arguments
+
+`entity: Entity`: The entity class you want to check the stream entity against.
+
+### Returns
+
+Returns `true` if it's the same entity type, otherwise `false`.
+
+### Examples
+
+Let's say you have a stream that you want to check if it corresponds to the [`User`](/docs/guide/entity/modeling#user) entity. This way you can easily check if the stream entity is a `User` entity and work with it accordingly.
+
+```ts
+const stream = new Stream(dynamoDBRecord);
+
+// Check that the stream refers to the User entity
+if (stream.isEntity(User)) { 
+  // images are narrowed down here (Stream<Entity> -> Stream<User>)
+  const newUser = stream.newImage;
+  const oldUser = stream.oldImage;
+  
+  // Do logic based on custom logic
+  if(oldUser.username !== newUser.username && newUser.age > 18) {
+    // Do something
+  }
+}
+```
+
+## Support for `aws-lambda`
+
+The `Stream` class is designed to work with AWS Lambda functions that process DynamoDB streams. Here is an example of how you can use the `Stream` class in a Lambda function.
+
+```ts
+import type { Context, DynamoDBStreamEvent } from 'aws-lambda';
+import Stream from 'dynamode/stream';
+
+async function itemStream(event: DynamoDBStreamEvent, context: Context): void {
+  const stream = new Stream(event.Records[0]);
+
+  // Update list progress when an item is created
+  if (stream.isEntity(List)) {
+    if (stream.operation === 'insert' && stream.newImage) {
+      await ListManager.update(List.getPrimaryKey(stream.newImage.listId), {
+        increment: {
+          'progress.checked': 1,
+        },
+      });
+    }
+  }
+}
+```
