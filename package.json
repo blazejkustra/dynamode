@@ -1,6 +1,6 @@
 {
   "name": "dynamode",
-  "version": "0.7.8",
+  "version": "0.7.9-rc.4",
   "description": "Dynamode is a modeling tool for Amazon's DynamoDB",
   "main": "index.js",
   "types": "index.d.ts",
@@ -18,8 +18,8 @@
     "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.335.0",
-    "@aws-sdk/util-dynamodb": "^3.335.0"
+    "@aws-sdk/client-dynamodb": "^3.474.0",
+    "@aws-sdk/util-dynamodb": "^3.474.0"
   },
   "devDependencies": {
     "@types/node": "^20.2.1",

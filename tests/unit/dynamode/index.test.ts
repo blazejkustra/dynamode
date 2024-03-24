@@ -176,6 +176,27 @@ describe('Dynamode', () => {
       });
     });
 
+    describe('getEntityClass', async () => {
+      test('Should successfully get entity class', async () => {
+        expect(storage.getEntityClass(MockEntity.name)).toEqual(MockEntity);
+      });
+
+      test('Should throw an error if no entity is found', async () => {
+        expect(() => storage.getEntityClass('unknownEntityName')).toThrow(DynamodeStorageError);
+        expect(() => storage.getEntityClass('unknownEntityName')).toThrow(`Invalid entity name "unknownEntityName"`);
+      });
+
+      test('Should throw an error if entity is not yet registered', async () => {
+        class UnregisteredMockEntity extends MockEntity {}
+        storage.entities[UnregisteredMockEntity.name] = { attributes: { attr: {} } } as any;
+
+        expect(() => storage.getEntityClass(UnregisteredMockEntity.name)).toThrow(DynamodeStorageError);
+        expect(() => storage.getEntityClass(UnregisteredMockEntity.name)).toThrow(
+          `Entity "${UnregisteredMockEntity.name}" not registered, use TableManager.entityManager(${UnregisteredMockEntity.name}) first.`,
+        );
+      });
+    });
+
     describe('getEntityTableName', async () => {
       test('Should successfully get entity table name', async () => {
         expect(storage.getEntityTableName(MockEntity.name)).toEqual(TEST_TABLE_NAME);

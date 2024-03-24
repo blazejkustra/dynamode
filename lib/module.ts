@@ -5,6 +5,7 @@ import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import Query from '@lib/query';
 import Scan from '@lib/scan';
+import Stream from '@lib/stream';
 import TableManager from '@lib/table';
 import transactionGet from '@lib/transactionGet';
 import transactionWrite from '@lib/transactionWrite';
@@ -44,4 +45,7 @@ export {
   //transactions
   transactionGet,
   transactionWrite,
+
+  //Stream
+  Stream,
 };

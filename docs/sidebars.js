@@ -43,6 +43,7 @@ module.exports = {
         'guide/query',
         'guide/scan',
         'guide/transactions',
+        'guide/stream',
         'guide/dynamode',
       ],
     },
