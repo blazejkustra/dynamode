@@ -47,8 +47,6 @@ import {
 } from '@lib/entity/types';
 import Query from '@lib/query';
 import Scan from '@lib/scan';
-import Stream from '@lib/stream';
-import { DynamoDBRecord, StreamHandlerOptions } from '@lib/stream/types';
 import { Metadata, TablePrimaryKey } from '@lib/table/types';
 import { TransactionGet } from '@lib/transactionGet/types';
 import {
@@ -596,14 +594,6 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
     return commandInput;
   }
 
-  function stream(record: DynamoDBRecord, options?: StreamHandlerOptions): Stream<E> {
-    return new Stream<E>(record, options);
-  }
-
-  stream.check = function streamRefers(stream: Stream<typeof Entity>): stream is Stream<E> {
-    return stream.entity === entity;
-  };
-
   return {
     query,
     scan,
@@ -627,7 +617,5 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
       delete: transactionDelete,
       condition: transactionCondition,
     },
-
-    stream,
   };
 }

@@ -52,6 +52,10 @@ class Stream<E extends typeof Entity = typeof Entity> {
       this.newImage = convertAttributeValuesToEntity(this.entity, record.NewImage as AttributeValues);
     }
   }
+
+  isEntity<TargetEntity extends E>(entity: TargetEntity): this is Stream<TargetEntity> {
+    return this.entity === entity;
+  }
 }
 
 export default Stream;
