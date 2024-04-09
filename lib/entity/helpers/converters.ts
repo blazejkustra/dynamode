@@ -1,7 +1,7 @@
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import { transformValue, truncateValue } from '@lib/entity/helpers/transformValues';
-import { Metadata, TablePrimaryKey } from '@lib/table/types';
+import { Metadata, TablePrimaryKey, TableRetrieverLastKey } from '@lib/table/types';
 import { AttributeValues, fromDynamo, GenericObject, objectToDynamo } from '@lib/utils';
 
 export function convertAttributeValuesToEntity<E extends typeof Entity>(
@@ -46,12 +46,12 @@ export function convertEntityToAttributeValues<E extends typeof Entity>(
   return objectToDynamo(dynamoObject);
 }
 
-export function convertAttributeValuesToPrimaryKey<M extends Metadata<E>, E extends typeof Entity>(
+export function convertAttributeValuesToLastKey<M extends Metadata<E>, E extends typeof Entity>(
   entity: E,
   dynamoItem: AttributeValues,
-): TablePrimaryKey<M, E> {
+): TableRetrieverLastKey<M, E> {
   const object = fromDynamo(dynamoItem);
-  const { partitionKey, sortKey } = Dynamode.storage.getEntityMetadata(entity.name);
+  const { partitionKey, sortKey, indexes } = Dynamode.storage.getEntityMetadata(entity.name);
 
   object[partitionKey] = truncateValue(entity, partitionKey, object[partitionKey]);
 
@@ -59,7 +59,17 @@ export function convertAttributeValuesToPrimaryKey<M extends Metadata<E>, E exte
     object[sortKey] = truncateValue(entity, sortKey, object[sortKey]);
   }
 
-  return object as TablePrimaryKey<M, E>;
+  Object.values(indexes ?? {}).forEach((index) => {
+    if (index.partitionKey) {
+      object[index.partitionKey] = truncateValue(entity, index.partitionKey, object[index.partitionKey]);
+    }
+
+    if (index.sortKey) {
+      object[index.sortKey] = truncateValue(entity, index.sortKey, object[index.sortKey]);
+    }
+  });
+
+  return object as TableRetrieverLastKey<M, E>;
 }
 
 export function convertPrimaryKeyToAttributeValues<M extends Metadata<E>, E extends typeof Entity>(
