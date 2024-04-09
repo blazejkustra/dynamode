@@ -1,7 +1,7 @@
 import { ScanCommandOutput, ScanInput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
-import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } from '@lib/entity/helpers/converters';
+import { convertAttributeValuesToEntity, convertAttributeValuesToLastKey } from '@lib/entity/helpers/converters';
 import RetrieverBase from '@lib/retriever';
 import type { ScanRunOptions, ScanRunOutput } from '@lib/scan/types';
 import { Metadata, TableIndexNames } from '@lib/table/types';
@@ -14,10 +14,10 @@ export default class Scan<M extends Metadata<E>, E extends typeof Entity> extend
     super(entity);
   }
 
-  public run(options?: ScanRunOptions & { return?: 'default' }): Promise<ScanRunOutput<E>>;
+  public run(options?: ScanRunOptions & { return?: 'default' }): Promise<ScanRunOutput<M, E>>;
   public run(options: ScanRunOptions & { return: 'output' }): Promise<ScanCommandOutput>;
   public run(options: ScanRunOptions & { return: 'input' }): ScanInput;
-  public run(options?: ScanRunOptions): Promise<ScanRunOutput<E> | ScanCommandOutput> | ScanInput {
+  public run(options?: ScanRunOptions): Promise<ScanRunOutput<M, E> | ScanCommandOutput> | ScanInput {
     this.buildScanInput(options?.extraInput);
 
     if (options?.return === 'input') {
@@ -38,7 +38,7 @@ export default class Scan<M extends Metadata<E>, E extends typeof Entity> extend
         count: result.Count || 0,
         scannedCount: result.ScannedCount || 0,
         lastKey: result.LastEvaluatedKey
-          ? convertAttributeValuesToPrimaryKey(this.entity, result.LastEvaluatedKey)
+          ? convertAttributeValuesToLastKey(this.entity, result.LastEvaluatedKey)
           : undefined,
       };
     })();

@@ -1,7 +1,7 @@
 import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
-import { convertAttributeValuesToEntity, convertAttributeValuesToPrimaryKey } from '@lib/entity/helpers/converters';
+import { convertAttributeValuesToEntity, convertAttributeValuesToLastKey } from '@lib/entity/helpers/converters';
 import { EntityKey, EntityValue } from '@lib/entity/types';
 import type { QueryRunOptions, QueryRunOutput } from '@lib/query/types';
 import RetrieverBase from '@lib/retriever';
@@ -16,10 +16,10 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
     super(entity);
   }
 
-  public run(options?: QueryRunOptions & { return?: 'default' }): Promise<QueryRunOutput<E>>;
+  public run(options?: QueryRunOptions & { return?: 'default' }): Promise<QueryRunOutput<M, E>>;
   public run(options: QueryRunOptions & { return: 'output' }): Promise<QueryCommandOutput>;
   public run(options: QueryRunOptions & { return: 'input' }): QueryInput;
-  public run(options?: QueryRunOptions): Promise<QueryRunOutput<E> | QueryCommandOutput> | QueryInput {
+  public run(options?: QueryRunOptions): Promise<QueryRunOutput<M, E> | QueryCommandOutput> | QueryInput {
     this.buildQueryInput(options?.extraInput);
 
     if (options?.return === 'input') {
@@ -57,7 +57,7 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
 
       return {
         items: items.map((item) => convertAttributeValuesToEntity(this.entity, item)),
-        lastKey: lastKey && convertAttributeValuesToPrimaryKey(this.entity, lastKey),
+        lastKey: lastKey && convertAttributeValuesToLastKey(this.entity, lastKey),
         count,
         scannedCount,
       };

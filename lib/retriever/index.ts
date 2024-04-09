@@ -3,9 +3,9 @@ import Condition from '@lib/condition';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import { buildGetProjectionExpression } from '@lib/entity/helpers/buildExpressions';
-import { convertPrimaryKeyToAttributeValues } from '@lib/entity/helpers/converters';
+import { convertRetrieverLastKeyToAttributeValues } from '@lib/entity/helpers/converters';
 import { EntityKey } from '@lib/entity/types';
-import { Metadata, TablePrimaryKey } from '@lib/table/types';
+import { Metadata, TableRetrieverLastKey } from '@lib/table/types';
 import { AttributeNames, AttributeValues } from '@lib/utils';
 
 export default class RetrieverBase<M extends Metadata<E>, E extends typeof Entity> extends Condition<E> {
@@ -25,9 +25,9 @@ export default class RetrieverBase<M extends Metadata<E>, E extends typeof Entit
     return this;
   }
 
-  public startAt(key?: TablePrimaryKey<M, E>) {
+  public startAt(key?: TableRetrieverLastKey<M, E>) {
     if (key) {
-      this.input.ExclusiveStartKey = convertPrimaryKeyToAttributeValues(this.entity, key);
+      this.input.ExclusiveStartKey = convertRetrieverLastKeyToAttributeValues(this.entity, key);
     }
 
     return this;
