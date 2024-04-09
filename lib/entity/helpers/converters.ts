@@ -91,3 +91,31 @@ export function convertPrimaryKeyToAttributeValues<M extends Metadata<E>, E exte
 
   return objectToDynamo(dynamoObject);
 }
+
+export function convertRetrieverLastKeyToAttributeValues<M extends Metadata<E>, E extends typeof Entity>(
+  entity: E,
+  lastKey: TableRetrieverLastKey<M, E>,
+): AttributeValues {
+  const dynamoObject: GenericObject = {};
+  const { indexes } = Dynamode.storage.getEntityMetadata(entity.name);
+
+  Object.values(indexes ?? {}).forEach((index) => {
+    if (index.partitionKey) {
+      dynamoObject[index.partitionKey] = transformValue(
+        entity,
+        index.partitionKey,
+        lastKey[index.partitionKey as keyof typeof lastKey],
+      );
+    }
+
+    if (index.sortKey) {
+      dynamoObject[index.sortKey] = transformValue(
+        entity,
+        index.sortKey,
+        lastKey[index.sortKey as keyof typeof lastKey],
+      );
+    }
+  });
+
+  return { ...convertPrimaryKeyToAttributeValues(entity, lastKey), ...objectToDynamo(dynamoObject) };
+}
