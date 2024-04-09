@@ -40,6 +40,11 @@ export type TablePrimaryKey<M extends Metadata<E>, E extends typeof Entity> = Pi
   Extract<EntityKey<E>, SK<M, E> extends string ? PK<M, E> | SK<M, E> : PK<M, E>>
 >;
 
+export type TableRetrieverLastKey<M extends Metadata<E>, E extends typeof Entity> = Pick<
+  InstanceType<E>,
+  Extract<EntityKey<E>, TablePartitionKeys<M, E> | TableSortKeys<M, E>>
+>;
+
 export type TableIndexNames<M extends Metadata<E>, E extends typeof Entity> = keyof Idx<M, E> extends string
   ? keyof Idx<M, E>
   : never;
