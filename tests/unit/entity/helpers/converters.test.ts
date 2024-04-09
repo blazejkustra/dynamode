@@ -165,7 +165,7 @@ describe('Converters entity helpers', () => {
     });
   });
 
-  describe('convertAttributeValuesToPrimaryKey', async () => {
+  describe('convertAttributeValuesToLastKey', async () => {
     test('Should return composite primary key in dynamode format', async () => {
       getEntityMetadataSpy.mockReturnValue(metadata as any);
 
