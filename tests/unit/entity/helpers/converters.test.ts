@@ -4,7 +4,7 @@ import Dynamode from '@lib/dynamode/index';
 import { AttributesMetadata } from '@lib/dynamode/storage/types';
 import {
   convertAttributeValuesToEntity,
-  convertAttributeValuesToPrimaryKey,
+  convertAttributeValuesToLastKey,
   convertEntityToAttributeValues,
   convertPrimaryKeyToAttributeValues,
 } from '@lib/entity/helpers/converters';
@@ -169,7 +169,7 @@ describe('Converters entity helpers', () => {
     test('Should return composite primary key in dynamode format', async () => {
       getEntityMetadataSpy.mockReturnValue(metadata as any);
 
-      const dynamodePrimaryKey = convertAttributeValuesToPrimaryKey<TestTableMetadata, typeof MockEntity>(MockEntity, {
+      const dynamodePrimaryKey = convertAttributeValuesToLastKey<TestTableMetadata, typeof MockEntity>(MockEntity, {
         partitionKey: {
           S: 'pk_value',
         },
@@ -189,7 +189,7 @@ describe('Converters entity helpers', () => {
     test('Should return simple primary key in dynamode format', async () => {
       getEntityMetadataSpy.mockReturnValue({ partitionKey: 'partitionKey' } as any);
 
-      const dynamodePrimaryKey = convertAttributeValuesToPrimaryKey<TestTableMetadata, typeof MockEntity>(MockEntity, {
+      const dynamodePrimaryKey = convertAttributeValuesToLastKey<TestTableMetadata, typeof MockEntity>(MockEntity, {
         partitionKey: {
           S: 'pk_value',
         },
