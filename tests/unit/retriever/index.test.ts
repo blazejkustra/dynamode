@@ -32,12 +32,15 @@ describe('RetrieverBase', () => {
   });
 
   describe('startAt', () => {
-    const convertPrimaryKeyToAttributeValuesSpy = vi.spyOn(entityConvertHelpers, 'convertPrimaryKeyToAttributeValues');
-    convertPrimaryKeyToAttributeValuesSpy.mockImplementation(() => ({
+    const convertRetrieverLastKeyToAttributeValuesSpy = vi.spyOn(
+      entityConvertHelpers,
+      'convertRetrieverLastKeyToAttributeValues',
+    );
+    convertRetrieverLastKeyToAttributeValuesSpy.mockImplementation(() => ({
       partitionKey: { S: 'partitionKey' },
       sortKey: { S: 'sortKey' },
     }));
-    beforeEach(async () => convertPrimaryKeyToAttributeValuesSpy.mockReset);
+    beforeEach(async () => convertRetrieverLastKeyToAttributeValuesSpy.mockReset);
 
     test('Should set ExclusiveStartKey on query/scan input', async () => {
       retriever.startAt({ partitionKey: 'partitionKey', sortKey: 'sortKey' });
@@ -46,7 +49,7 @@ describe('RetrieverBase', () => {
         partitionKey: { S: 'partitionKey' },
         sortKey: { S: 'sortKey' },
       });
-      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, {
+      expect(convertRetrieverLastKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, {
         partitionKey: 'partitionKey',
         sortKey: 'sortKey',
       });
@@ -56,7 +59,7 @@ describe('RetrieverBase', () => {
       retriever.startAt(undefined);
 
       expect(retriever['input']['ExclusiveStartKey']).toEqual(undefined);
-      expect(convertPrimaryKeyToAttributeValuesSpy).not.toBeCalled();
+      expect(convertRetrieverLastKeyToAttributeValuesSpy).not.toBeCalled();
     });
   });
 

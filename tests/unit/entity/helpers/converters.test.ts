@@ -4,9 +4,10 @@ import Dynamode from '@lib/dynamode/index';
 import { AttributesMetadata } from '@lib/dynamode/storage/types';
 import {
   convertAttributeValuesToEntity,
-  convertAttributeValuesToPrimaryKey,
+  convertAttributeValuesToLastKey,
   convertEntityToAttributeValues,
   convertPrimaryKeyToAttributeValues,
+  convertRetrieverLastKeyToAttributeValues,
 } from '@lib/entity/helpers/converters';
 import * as transformValuesHelpers from '@lib/entity/helpers/transformValues';
 
@@ -165,11 +166,11 @@ describe('Converters entity helpers', () => {
     });
   });
 
-  describe('convertAttributeValuesToPrimaryKey', async () => {
+  describe('convertAttributeValuesToLastKey', async () => {
     test('Should return composite primary key in dynamode format', async () => {
       getEntityMetadataSpy.mockReturnValue(metadata as any);
 
-      const dynamodePrimaryKey = convertAttributeValuesToPrimaryKey<TestTableMetadata, typeof MockEntity>(MockEntity, {
+      const dynamodePrimaryKey = convertAttributeValuesToLastKey<TestTableMetadata, typeof MockEntity>(MockEntity, {
         partitionKey: {
           S: 'pk_value',
         },
@@ -189,7 +190,7 @@ describe('Converters entity helpers', () => {
     test('Should return simple primary key in dynamode format', async () => {
       getEntityMetadataSpy.mockReturnValue({ partitionKey: 'partitionKey' } as any);
 
-      const dynamodePrimaryKey = convertAttributeValuesToPrimaryKey<TestTableMetadata, typeof MockEntity>(MockEntity, {
+      const dynamodePrimaryKey = convertAttributeValuesToLastKey<TestTableMetadata, typeof MockEntity>(MockEntity, {
         partitionKey: {
           S: 'pk_value',
         },
@@ -238,6 +239,90 @@ describe('Converters entity helpers', () => {
       });
       expect(transformValueSpy).toBeCalledWith(MockEntity, metadata.partitionKey, 'pk_value');
       expect(transformValueSpy).toBeCalledTimes(1);
+    });
+  });
+
+  describe('convertRetrieverLastKeyToAttributeValues', async () => {
+    test('Should return composite last key in dynamo format', async () => {
+      getEntityMetadataSpy.mockReturnValue({ ...metadata, indexes: undefined } as any);
+
+      const dynamoPrimaryKey = convertRetrieverLastKeyToAttributeValues<TestTableMetadata, typeof MockEntity>(
+        MockEntity,
+        {
+          partitionKey: 'pk_value',
+          sortKey: 'sk_value',
+        },
+      );
+
+      expect(dynamoPrimaryKey).toEqual({
+        partitionKey: {
+          S: 'pk_value',
+        },
+        sortKey: {
+          S: 'sk_value',
+        },
+      });
+      expect(transformValueSpy).toHaveBeenNthCalledWith(1, MockEntity, metadata.partitionKey, 'pk_value');
+      expect(transformValueSpy).toHaveBeenNthCalledWith(2, MockEntity, metadata.sortKey, 'sk_value');
+    });
+
+    test('Should return simple last key in dynamo format', async () => {
+      getEntityMetadataSpy.mockReturnValue({ partitionKey: 'partitionKey' } as any);
+
+      const dynamoPrimaryKey = convertRetrieverLastKeyToAttributeValues(MockEntity, {
+        partitionKey: 'pk_value',
+      } as any);
+
+      expect(dynamoPrimaryKey).toEqual({
+        partitionKey: {
+          S: 'pk_value',
+        },
+      });
+      expect(transformValueSpy).toBeCalledWith(MockEntity, metadata.partitionKey, 'pk_value');
+      expect(transformValueSpy).toBeCalledTimes(1);
+    });
+
+    test('Should return composite (+ indexes) last key in dynamo format', async () => {
+      getEntityMetadataSpy.mockReturnValue(metadata as any);
+
+      const dynamoPrimaryKey = convertRetrieverLastKeyToAttributeValues<TestTableMetadata, typeof MockEntity>(
+        MockEntity,
+        {
+          partitionKey: 'pk_value',
+          sortKey: 'sk_value',
+          GSI_1_PK: 'gsi_1_pk_value',
+          GSI_1_SK: 111,
+          LSI_1_SK: 222,
+        },
+      );
+
+      expect(dynamoPrimaryKey).toEqual({
+        partitionKey: {
+          S: 'pk_value',
+        },
+        sortKey: {
+          S: 'sk_value',
+        },
+        GSI_1_PK: {
+          S: 'gsi_1_pk_value',
+        },
+        GSI_1_SK: {
+          N: '111',
+        },
+        LSI_1_SK: {
+          N: '222',
+        },
+      });
+      expect(transformValueSpy).toHaveBeenNthCalledWith(
+        1,
+        MockEntity,
+        metadata.indexes.GSI_1_NAME.partitionKey,
+        'gsi_1_pk_value',
+      );
+      expect(transformValueSpy).toHaveBeenNthCalledWith(2, MockEntity, metadata.indexes.GSI_1_NAME.sortKey, 111);
+      expect(transformValueSpy).toHaveBeenNthCalledWith(3, MockEntity, metadata.indexes.LSI_1_NAME.sortKey, 222);
+      expect(transformValueSpy).toHaveBeenNthCalledWith(4, MockEntity, metadata.partitionKey, 'pk_value');
+      expect(transformValueSpy).toHaveBeenNthCalledWith(5, MockEntity, metadata.sortKey, 'sk_value');
     });
   });
 });

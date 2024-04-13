@@ -46,7 +46,7 @@ describe('Scan', () => {
 
     let buildScanInputSpy = vi.spyOn(scan, 'buildScanInput' as any);
     let convertAttributeValuesToEntitySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity');
-    let convertAttributeValuesToPrimaryKeySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToPrimaryKey');
+    let convertAttributeValuesToLastKeySpy = vi.spyOn(entityConvertHelpers, 'convertAttributeValuesToLastKey');
 
     const scanInput: ScanInput = {
       TableName: TEST_TABLE_NAME,
@@ -60,8 +60,8 @@ describe('Scan', () => {
       convertAttributeValuesToEntitySpy = vi
         .spyOn(entityConvertHelpers, 'convertAttributeValuesToEntity')
         .mockReturnValue(mockInstance);
-      convertAttributeValuesToPrimaryKeySpy = vi
-        .spyOn(entityConvertHelpers, 'convertAttributeValuesToPrimaryKey')
+      convertAttributeValuesToLastKeySpy = vi
+        .spyOn(entityConvertHelpers, 'convertAttributeValuesToLastKey')
         .mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
     });
 
@@ -74,13 +74,13 @@ describe('Scan', () => {
       scan.run({ return: 'input', extraInput: { IndexName: 'indexName' } });
       expect(buildScanInputSpy).toBeCalledWith({ IndexName: 'indexName' });
       expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
-      expect(convertAttributeValuesToPrimaryKeySpy).not.toBeCalled();
+      expect(convertAttributeValuesToLastKeySpy).not.toBeCalled();
     });
 
     test('Should return scan input for return = "input"', async () => {
       expect(scan.run({ return: 'input' })).toEqual(scanInput);
       expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
-      expect(convertAttributeValuesToPrimaryKeySpy).not.toBeCalled();
+      expect(convertAttributeValuesToLastKeySpy).not.toBeCalled();
     });
 
     test('Should return scan output for return = "output"', async () => {
@@ -90,7 +90,7 @@ describe('Scan', () => {
 
       await expect(scan.run({ return: 'output' })).resolves.toEqual({ Items: 'test' });
       expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
-      expect(convertAttributeValuesToPrimaryKeySpy).not.toBeCalled();
+      expect(convertAttributeValuesToLastKeySpy).not.toBeCalled();
     });
 
     test('Should return no items with no values returned for return = "output"', async () => {
@@ -116,7 +116,7 @@ describe('Scan', () => {
       });
 
       expect(convertAttributeValuesToEntitySpy).not.toBeCalled();
-      expect(convertAttributeValuesToPrimaryKeySpy).not.toBeCalled();
+      expect(convertAttributeValuesToLastKeySpy).not.toBeCalled();
     });
 
     test('Should return items with values returned for return = "output"', async () => {
@@ -129,7 +129,7 @@ describe('Scan', () => {
         };
       });
       convertAttributeValuesToEntitySpy.mockReturnValue(mockInstance);
-      convertAttributeValuesToPrimaryKeySpy.mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
+      convertAttributeValuesToLastKeySpy.mockReturnValue({ partitionKey: 'lastValue', sortKey: 'lastValue' } as any);
 
       await expect(scan.run({ return: 'default' })).resolves.toEqual({
         items: [mockInstance],
@@ -140,8 +140,8 @@ describe('Scan', () => {
 
       expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(1);
       expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, { key: 'value' });
-      expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledTimes(1);
-      expect(convertAttributeValuesToPrimaryKeySpy).toBeCalledWith(MockEntity, {
+      expect(convertAttributeValuesToLastKeySpy).toBeCalledTimes(1);
+      expect(convertAttributeValuesToLastKeySpy).toBeCalledWith(MockEntity, {
         partitionKey: 'lastValue',
         sortKey: 'lastValue',
       });
