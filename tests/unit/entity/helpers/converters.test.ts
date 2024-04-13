@@ -243,7 +243,7 @@ describe('Converters entity helpers', () => {
   });
 
   describe('convertRetrieverLastKeyToAttributeValues', async () => {
-    test('Should return composite primary key in dynamo format', async () => {
+    test('Should return composite last key in dynamo format', async () => {
       getEntityMetadataSpy.mockReturnValue({ ...metadata, indexes: undefined } as any);
 
       const dynamoPrimaryKey = convertRetrieverLastKeyToAttributeValues<TestTableMetadata, typeof MockEntity>(
@@ -266,7 +266,7 @@ describe('Converters entity helpers', () => {
       expect(transformValueSpy).toHaveBeenNthCalledWith(2, MockEntity, metadata.sortKey, 'sk_value');
     });
 
-    test('Should return simple primary key in dynamo format', async () => {
+    test('Should return simple last key in dynamo format', async () => {
       getEntityMetadataSpy.mockReturnValue({ partitionKey: 'partitionKey' } as any);
 
       const dynamoPrimaryKey = convertRetrieverLastKeyToAttributeValues(MockEntity, {
@@ -282,7 +282,7 @@ describe('Converters entity helpers', () => {
       expect(transformValueSpy).toBeCalledTimes(1);
     });
 
-    test('Should return composite primary key in dynamo format', async () => {
+    test('Should return composite (+ indexes) last key in dynamo format', async () => {
       getEntityMetadataSpy.mockReturnValue(metadata as any);
 
       const dynamoPrimaryKey = convertRetrieverLastKeyToAttributeValues<TestTableMetadata, typeof MockEntity>(
