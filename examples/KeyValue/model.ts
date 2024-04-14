@@ -48,16 +48,6 @@ async function create() {
   console.log(table);
 }
 
-async function createIndex() {
-  const table = await KeyValueTableManager.createTableIndex('test');
-  console.log(table);
-}
-
-async function deleteIndex() {
-  const table = await KeyValueTableManager.deleteTableIndex('test');
-  console.log(table);
-}
-
 async function validateTable() {
   const table = await KeyValueTableManager.validateTable();
   console.log(table);

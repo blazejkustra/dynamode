@@ -6,6 +6,8 @@
     "paths": {
       "@lib/*": ["./lib/*"],
     },
+    "noEmit": true,
+    "skipLibCheck": true
   },
   "include": ["lib", "examples", "tests"],
   "exclude": ["node_modules", "dist", "docs"]

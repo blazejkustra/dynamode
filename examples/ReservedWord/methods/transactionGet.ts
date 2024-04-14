@@ -3,8 +3,8 @@ import { ReservedWordManager } from '../model';
 
 async function transaction() {
   const transactions = await transactionGet([
-    ReservedWordManager.transactionGet({ COLUMN: 'pk1', OBJECT: 'sk1' }),
-    ReservedWordManager.transactionGet({ COLUMN: 'pk2', OBJECT: 'sk2' }),
+    ReservedWordManager.transaction.get({ COLUMN: 'pk1', OBJECT: 'sk1' }),
+    ReservedWordManager.transaction.get({ COLUMN: 'pk2', OBJECT: 'sk2' }),
   ]);
 
   console.log();

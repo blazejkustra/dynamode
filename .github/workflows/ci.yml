@@ -24,6 +24,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - name: Install dependencies ⏳
         run: npm ci
+      - name: Typecheck 🏷️
+        run: npm run typecheck
       - name: Lint 🧹
         run: npm run lint
       - name: Test Unit 🧪
