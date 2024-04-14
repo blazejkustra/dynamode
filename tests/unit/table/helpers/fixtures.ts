@@ -1,4 +1,13 @@
-import { TableDescription } from '@aws-sdk/client-dynamodb';
+import {
+  BillingMode,
+  ScalarAttributeType,
+  SSEStatus,
+  SSEType,
+  StreamViewType,
+  TableClass,
+  TableDescription,
+  TableStatus,
+} from '@aws-sdk/client-dynamodb';
 
 export const tableMetadata = {
   tableName: 'TableName',
@@ -15,16 +24,16 @@ export const tableMetadata = {
 
 export const validTableDescription = {
   TableName: 'TableName',
-  TableStatus: 'Active',
+  TableStatus: TableStatus.ACTIVE,
   CreationDateTime: new Date(),
-  AttributeDefinitions: [{ AttributeName: 'PK', AttributeType: 'String' }],
+  AttributeDefinitions: [{ AttributeName: 'PK', AttributeType: ScalarAttributeType.S }],
   KeySchema: [{ AttributeName: 'PK', KeyType: 'HASH' }],
   ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
   TableSizeBytes: 10,
   ItemCount: 1,
   TableArn: 'TableArn',
   TableId: 'TableId',
-  BillingModeSummary: { BillingMode: 'BillingMode' },
+  BillingModeSummary: { BillingMode: BillingMode.PAY_PER_REQUEST },
   LocalSecondaryIndexes: [
     {
       IndexName: 'LSI',
@@ -44,7 +53,7 @@ export const validTableDescription = {
       ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
     },
   ],
-  StreamSpecification: { StreamEnabled: true, StreamViewType: 'StreamViewType' },
+  StreamSpecification: { StreamEnabled: true, StreamViewType: StreamViewType.NEW_AND_OLD_IMAGES },
   LatestStreamLabel: 'LatestStreamLabel',
   LatestStreamArn: 'LatestStreamArn',
   GlobalTableVersion: '2020.12.11',
@@ -55,12 +64,12 @@ export const validTableDescription = {
     RestoreDateTime: new Date(),
     RestoreInProgress: false,
   },
-  SSEDescription: { Status: 'Status', SSEType: 'SSEType', KMSMasterKeyArn: 'KMSMasterKeyArn' },
+  SSEDescription: { Status: SSEStatus.ENABLED, SSEType: SSEType.AES256, KMSMasterKeyArn: 'KMSMasterKeyArn' },
   ArchivalSummary: {
     ArchivalDateTime: new Date(),
     ArchivalReason: 'ArchivalReason',
     ArchivalBackupArn: 'ArchivalBackupArn',
   },
-  TableClassSummary: { TableClass: 'TableClass' },
+  TableClassSummary: { TableClass: TableClass.STANDARD },
   DeletionProtectionEnabled: false,
 } satisfies TableDescription;

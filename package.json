@@ -6,13 +6,14 @@
   "types": "index.d.ts",
   "scripts": {
     "build": "tsc && tsc-alias",
+    "typecheck": "tsc --project tsconfig.typecheck.json",
     "postbuild": "cp package.json dist && cp README.md dist && cp LICENSE dist",
     "build:watch": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",
     "test": "vitest run unit",
     "test:watch": "vitest unit",
     "test:e2e": "vitest run e2e --no-file-parallelism",
     "test:ui": "vitest --ui",
-    "test:typecheck": "vitest run types --typecheck",
+    "test:types": "vitest run types --typecheck",
     "coverage": "vitest run unit --coverage",
     "lint": "eslint lib --ext .ts,.js --max-warnings 0",
     "lint:fix": "npm run lint -- --fix"

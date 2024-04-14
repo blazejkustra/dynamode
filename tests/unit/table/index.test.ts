@@ -1,6 +1,13 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { DynamoDB } from '@aws-sdk/client-dynamodb';
+import {
+  AttributeDefinition,
+  BillingMode,
+  DynamoDB,
+  GlobalSecondaryIndexUpdate,
+  KeySchemaElement,
+  LocalSecondaryIndex,
+} from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
 import * as EntityManager from '@lib/entity/entityManager';
 import TableManager from '@lib/table';
@@ -29,15 +36,15 @@ const metadata = {
   },
 } as const;
 
-const keySchema = [
+const keySchema: KeySchemaElement[] = [
   { AttributeName: 'PK1', KeyType: 'HASH' },
   { AttributeName: 'SK1', KeyType: 'RANGE' },
 ];
-const definitions = [
+const definitions: AttributeDefinition[] = [
   { AttributeName: 'PK1', AttributeType: 'S' },
   { AttributeName: 'SK1', AttributeType: 'N' },
 ];
-const lsis = [
+const lsis: LocalSecondaryIndex[] = [
   {
     IndexName: 'LSI_1_NAME',
     KeySchema: [
@@ -47,7 +54,7 @@ const lsis = [
     Projection: { ProjectionType: 'ALL' },
   },
 ];
-const gsis = [
+const gsis: LocalSecondaryIndex[] = [
   {
     IndexName: 'GSI_1_NAME',
     KeySchema: [
@@ -57,7 +64,7 @@ const gsis = [
     Projection: { ProjectionType: 'ALL' },
   },
 ];
-const indexCreateInput = [
+const indexCreateInput: GlobalSecondaryIndexUpdate[] = [
   {
     Create: {
       IndexName: 'LSI_1_NAME',
@@ -66,7 +73,7 @@ const indexCreateInput = [
     },
   },
 ];
-const indexDeleteInput = [
+const indexDeleteInput: GlobalSecondaryIndexUpdate[] = [
   {
     Delete: {
       IndexName: 'GSI_1_NAME',
@@ -188,7 +195,7 @@ describe('Table', () => {
           tags: { tag: 'test' },
           throughput: { read: 10, write: 20 },
           deletionProtection: true,
-          extraInput: { BillingMode: 'TEST' },
+          extraInput: { BillingMode: BillingMode.PAY_PER_REQUEST },
         }),
       ).toEqual({
         TableName: TEST_TABLE_NAME,
@@ -196,7 +203,7 @@ describe('Table', () => {
         AttributeDefinitions: definitions,
         LocalSecondaryIndexes: lsis,
         GlobalSecondaryIndexes: gsis,
-        BillingMode: 'TEST',
+        BillingMode: BillingMode.PAY_PER_REQUEST,
         Tags: [{ Key: 'tag', Value: 'test' }],
         ProvisionedThroughput: {
           ReadCapacityUnits: 10,

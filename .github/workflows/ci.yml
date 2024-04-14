@@ -24,12 +24,14 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - name: Install dependencies ⏳
         run: npm ci
+      - name: Typecheck 🏷️
+        run: npm run typecheck
       - name: Lint 🧹
         run: npm run lint
       - name: Test Unit 🧪
         run: npm run test
       - name: Test types 🛠️
-        run: npm run test:typecheck
+        run: npm run test:types
       - name: Setup DynamoDB Local
         uses: rrainn/dynamodb-action@v3.0.0
       - name: Sleep for 10 seconds
