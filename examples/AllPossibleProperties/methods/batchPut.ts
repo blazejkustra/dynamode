@@ -12,6 +12,9 @@ async function batchPut() {
       number: 10,
       map: new Map<string, string>([['1', 'test']]),
       boolean: true,
+      binary: new Uint8Array([1, 2, 3]),
+      GSI_1_PK: 'test',
+      GSI_1_SK: 1,
     }),
     new AllPossibleProperties({
       partitionKey: 'pk2',
@@ -23,6 +26,9 @@ async function batchPut() {
       number: 10,
       map: new Map<string, string>([['1', 'test']]),
       boolean: true,
+      binary: new Uint8Array([1, 2, 3]),
+      GSI_1_PK: 'test',
+      GSI_1_SK: 2,
     }),
   ]);
 

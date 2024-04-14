@@ -11,6 +11,13 @@ export function number(): <T extends Partial<Record<K, number>>, K extends strin
   return decorateAttribute(Number, 'attribute');
 }
 
+export function binary(): <T extends Partial<Record<K, Uint8Array>>, K extends string>(
+  Entity: T,
+  propertyName: K,
+) => void {
+  return decorateAttribute(Uint8Array, 'attribute');
+}
+
 export function boolean(): <T extends Partial<Record<K, boolean>>, K extends string>(
   Entity: T,
   propertyName: K,

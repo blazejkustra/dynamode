@@ -24,6 +24,7 @@ type AllPossiblePropertiesProps = {
   set: Set<string>;
   number?: number;
   boolean: boolean;
+  binary: Uint8Array;
 };
 
 const TABLE_NAME = 'all-possible-properties';
@@ -79,6 +80,9 @@ export class AllPossibleProperties extends Entity {
   @attribute.boolean()
   boolean: boolean;
 
+  @attribute.binary()
+  binary: Uint8Array;
+
   unsaved: string;
 
   constructor(props: AllPossiblePropertiesProps) {
@@ -104,6 +108,8 @@ export class AllPossibleProperties extends Entity {
     this.set = props.set;
     this.number = props.number;
     this.boolean = props.boolean;
+    this.binary = props.binary;
+
     this.unsaved = 'unsaved';
   }
 

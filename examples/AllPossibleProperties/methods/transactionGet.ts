@@ -8,8 +8,8 @@ async function transaction() {
       sortKey: 'sk1',
     }),
     AllPossiblePropertiesManager.transaction.get({
-      partitionKey: 'pk1',
-      sortKey: 'sk1',
+      partitionKey: 'pk2',
+      sortKey: 'sk2',
     }),
   ]);
 

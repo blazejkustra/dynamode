@@ -24,6 +24,7 @@ type MockEntityDeepKeys =
   | 'boolean'
   | 'strDate'
   | 'numDate'
+  | 'binary'
   | 'unsaved'
   | 'partitionKey'
   | 'sortKey'

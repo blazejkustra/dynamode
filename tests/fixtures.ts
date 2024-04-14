@@ -84,6 +84,7 @@ export type MockEntityProps = TestTableProps & {
   set: Set<string>;
   number?: number;
   boolean: boolean;
+  binary: Uint8Array;
 };
 
 export class MockEntity extends TestTable {
@@ -118,6 +119,9 @@ export class MockEntity extends TestTable {
   @attribute.date.number()
   numDate: Date;
 
+  @attribute.binary()
+  binary: Uint8Array;
+
   unsaved: string;
 
   constructor(props: MockEntityProps) {
@@ -132,6 +136,7 @@ export class MockEntity extends TestTable {
     this.boolean = props.boolean;
     this.strDate = new Date();
     this.numDate = new Date();
+    this.binary = props.binary;
     this.unsaved = 'unsaved';
   }
 
@@ -181,6 +186,7 @@ export const mockInstance = new MockEntity({
   set: new Set(['1', '2', '3']),
   array: ['1', '2'],
   boolean: true,
+  binary: new Uint8Array([1, 2, 3]),
 });
 
 vi.useRealTimers();

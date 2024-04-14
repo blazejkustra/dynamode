@@ -12,6 +12,7 @@ async function create() {
       number: 10,
       map: new Map<string, string>([['1', 'test']]),
       boolean: true,
+      binary: new Uint8Array([1, 2, 3]),
     }),
   );
 

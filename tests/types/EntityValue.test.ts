@@ -20,6 +20,7 @@ type NumberValue = EntityValue<typeof MockEntity, 'number'>;
 type BooleanValue = EntityValue<typeof MockEntity, 'boolean'>;
 type StrDateValue = EntityValue<typeof MockEntity, 'strDate'>;
 type NumDateValue = EntityValue<typeof MockEntity, 'numDate'>;
+type BinaryValue = EntityValue<typeof MockEntity, 'binary'>;
 type UnsavedValue = EntityValue<typeof MockEntity, 'unsaved'>;
 type PartitionKeyValue = EntityValue<typeof MockEntity, 'partitionKey'>;
 type SortKeyValue = EntityValue<typeof MockEntity, 'sortKey'>;
@@ -51,6 +52,7 @@ describe('EntityValue type tests', () => {
     expectTypeOf<BooleanValue>().toEqualTypeOf<boolean>();
     expectTypeOf<StrDateValue>().toEqualTypeOf<Date>();
     expectTypeOf<NumDateValue>().toEqualTypeOf<Date>();
+    expectTypeOf<BinaryValue>().toEqualTypeOf<Uint8Array>();
     expectTypeOf<UnsavedValue>().toEqualTypeOf<string>();
     expectTypeOf<PartitionKeyValue>().toEqualTypeOf<string>();
     expectTypeOf<SortKeyValue>().toEqualTypeOf<string>();
