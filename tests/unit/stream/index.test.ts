@@ -21,6 +21,7 @@ const validMockEntityImage = {
   boolean: { BOOL: true },
   strDate: { S: '2001-09-09T01:46:40.000Z' },
   numDate: { N: '1000000000000' },
+  binary: { B: new Uint8Array([1, 2, 3]) },
 };
 
 const validNewImageStream: DynamoDBRecord = {
