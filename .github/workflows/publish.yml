@@ -22,7 +22,7 @@ jobs:
       - name: Test Unit 🧪
         run: npm run test
       - name: Test types 🛠️
-        run: npm run test:typecheck
+        run: npm run test:types
       - name: Setup DynamoDB Local
         uses: rrainn/dynamodb-action@v2.0.0
       - name: Sleep for 10 seconds
