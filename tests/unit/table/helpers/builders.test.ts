@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { GlobalSecondaryIndexUpdate } from '@aws-sdk/client-dynamodb';
+import { GlobalSecondaryIndexUpdate, KeySchemaElement } from '@aws-sdk/client-dynamodb';
 import { buildIndexCreate, buildIndexDelete } from '@lib/table/helpers/builders';
 import * as schemaHelper from '@lib/table/helpers/schema';
 import { BuildIndexCreate } from '@lib/table/types';
@@ -33,7 +33,7 @@ describe('buildIndexCreate', () => {
     const keySchema = [
       { AttributeName: 'PK1', KeyType: 'HASH' },
       { AttributeName: 'SK1', KeyType: 'RANGE' },
-    ];
+    ] as KeySchemaElement[];
     getKeySchemaSpy.mockReturnValue(keySchema);
 
     const expectedOutput: GlobalSecondaryIndexUpdate[] = [

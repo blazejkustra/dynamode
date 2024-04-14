@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { DynamoDB, ReturnValue, ReturnValuesOnConditionCheckFailure } from '@aws-sdk/client-dynamodb';
+import {
+  DynamoDB,
+  ReturnConsumedCapacity,
+  ReturnValue,
+  ReturnValuesOnConditionCheckFailure,
+} from '@aws-sdk/client-dynamodb';
 import Condition from '@lib/condition';
 import Dynamode from '@lib/dynamode/index';
 import * as entityExpressionsHelpers from '@lib/entity/helpers/buildExpressions';
@@ -1027,7 +1032,7 @@ describe('entityManager', () => {
       expect(
         MockEntityManager.batchPut([mockInstance, testTableInstance as any], {
           return: 'input',
-          extraInput: { ReturnConsumedCapacity: 'returnConsumedCapacity' },
+          extraInput: { ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL },
         }),
       ).toEqual({
         RequestItems: {
@@ -1044,7 +1049,7 @@ describe('entityManager', () => {
             },
           ],
         },
-        ReturnConsumedCapacity: 'returnConsumedCapacity',
+        ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
       });
 
       expect(convertEntityToAttributeValuesSpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance);
@@ -1222,7 +1227,7 @@ describe('entityManager', () => {
       expect(
         MockEntityManager.batchDelete([primaryKey, primaryKey], {
           return: 'input',
-          extraInput: { ReturnConsumedCapacity: 'returnConsumedCapacity' },
+          extraInput: { ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL },
         }),
       ).toEqual({
         RequestItems: {
@@ -1239,7 +1244,7 @@ describe('entityManager', () => {
             },
           ],
         },
-        ReturnConsumedCapacity: 'returnConsumedCapacity',
+        ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
       });
 
       expect(convertPrimaryKeyToAttributeValuesSpy).toHaveBeenNthCalledWith(1, MockEntity, primaryKey);

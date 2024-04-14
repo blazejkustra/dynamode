@@ -50,7 +50,7 @@ describe('Convert To Table Information', () => {
         },
       ],
     };
-    expect(() => convertToTableData(invalidLSI)).toThrow(ValidationError);
+    expect(() => convertToTableData(invalidLSI as any)).toThrow(ValidationError);
   });
 
   test('Should throw ValidationError when GlobalSecondaryIndexes is not valid.', () => {
@@ -66,7 +66,7 @@ describe('Convert To Table Information', () => {
         },
       ],
     };
-    expect(() => convertToTableData(invalidGSI)).toThrow(ValidationError);
+    expect(() => convertToTableData(invalidGSI as any)).toThrow(ValidationError);
   });
 
   test('Should throw ValidationError when KeySchema of LocalSecondaryIndexes is not valid.', () => {
@@ -82,7 +82,7 @@ describe('Convert To Table Information', () => {
         },
       ],
     };
-    expect(() => convertToTableData(invalidLSIKeySchema)).toThrow(ValidationError);
+    expect(() => convertToTableData(invalidLSIKeySchema as any)).toThrow(ValidationError);
   });
 
   test('Should throw ValidationError when KeySchema of GlobalSecondaryIndexes is not valid.', () => {
@@ -98,7 +98,7 @@ describe('Convert To Table Information', () => {
         },
       ],
     };
-    expect(() => convertToTableData(invalidGSIKeySchema)).toThrow(ValidationError);
+    expect(() => convertToTableData(invalidGSIKeySchema as any)).toThrow(ValidationError);
   });
 
   test('Should throw ValidationError when AttributeDefinitions.AttributeName is undefined', () => {
@@ -106,7 +106,7 @@ describe('Convert To Table Information', () => {
       ...validTableDescription,
       AttributeDefinitions: [{ AttributeName: undefined, AttributeType: 'String' }],
     };
-    expect(() => convertToTableData(invalidAttrDefAttributeName)).toThrow(ValidationError);
+    expect(() => convertToTableData(invalidAttrDefAttributeName as any)).toThrow(ValidationError);
   });
 
   test('Should throw ValidationError when AttributeDefinitions.AttributeType is undefined', () => {
@@ -122,7 +122,7 @@ describe('Convert To Table Information', () => {
       ...validTableDescription,
       KeySchema: [{ AttributeName: undefined, KeyType: 'HASH' }],
     };
-    expect(() => convertToTableData(invalidKeySchemaAttributeName)).toThrow(ValidationError);
+    expect(() => convertToTableData(invalidKeySchemaAttributeName as any)).toThrow(ValidationError);
   });
 
   test('Should throw ValidationError when KeySchema.KeyType is undefined', () => {
@@ -146,7 +146,7 @@ describe('Convert To Table Information', () => {
         },
       ],
     };
-    const result = convertToTableData(tableNoLSIItemCounts);
+    const result = convertToTableData(tableNoLSIItemCounts as any);
 
     expect(result.localSecondaryIndexes[0].itemCount).toBe(0);
   });
@@ -164,7 +164,7 @@ describe('Convert To Table Information', () => {
         },
       ],
     };
-    const result = convertToTableData(tableNoGSIItemCounts);
+    const result = convertToTableData(tableNoGSIItemCounts as any);
 
     expect(result.globalSecondaryIndexes[0].itemCount).toBe(0);
   });
