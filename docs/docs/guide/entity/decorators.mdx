@@ -334,6 +334,23 @@ class YourModel extends Entity {
 }
 ```
 
+## attribute.binary()
+
+### Description
+
+This decorator is used to tag an attribute of type `UInt8Array` (binary data).
+
+### Examples
+
+```ts
+class YourModel extends Entity { 
+  ...
+  @attribute.binary()
+  key: UInt8Array;
+  ...
+}
+```
+
 ## attribute.object()
 
 ### Description
