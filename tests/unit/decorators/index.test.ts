@@ -9,7 +9,7 @@ import {
   stringGsiSortKey,
 } from '@lib/decorators/helpers/gsi';
 import { numberLsiSortKey, stringLsiSortKey } from '@lib/decorators/helpers/lsi';
-import { array, boolean, number, object, set, string } from '@lib/decorators/helpers/other';
+import { array, binary, boolean, number, object, set, string } from '@lib/decorators/helpers/other';
 import { prefix, suffix } from '@lib/decorators/helpers/prefixSuffix';
 import {
   numberPartitionKey,
@@ -27,6 +27,7 @@ describe('Decorators', () => {
       expect(attribute.object).toEqual(object);
       expect(attribute.array).toEqual(array);
       expect(attribute.set).toEqual(set);
+      expect(attribute.binary).toEqual(binary);
     });
 
     test('Should return proper date attribute decorators', async () => {
