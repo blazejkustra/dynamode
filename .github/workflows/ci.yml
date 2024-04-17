@@ -24,6 +24,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - name: Install dependencies ⏳
         run: npm ci
+      - name: Build 🔧
+        run: npm run build
       - name: Typecheck 🏷️
         run: npm run typecheck
       - name: Lint 🧹
@@ -47,5 +49,3 @@ jobs:
         with:
           path-to-lcov: ./coverage/lcov.info
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build 🔧
-        run: npm run build

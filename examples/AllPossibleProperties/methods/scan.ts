@@ -1,16 +1,24 @@
 import { AllPossiblePropertiesManager } from '../model';
 
 async function scan() {
-  const userScan = await AllPossiblePropertiesManager.scan()
+  const scan1 = await AllPossiblePropertiesManager.scan()
     .attribute('string')
     .beginsWith('k')
-    .startAt({ sortKey: 'user', partitionKey: 'pk3' })
+    .indexName('GSI_1_NAME')
+    .limit(1)
+    .run();
+
+  const scan2 = await AllPossiblePropertiesManager.scan()
+    .attribute('string')
+    .beginsWith('k')
+    .startAt(scan1.lastKey)
     .indexName('GSI_1_NAME')
     .run();
 
   console.log();
   console.log('OUTPUT:');
-  console.log(userScan);
+  console.log(scan1);
+  console.log(scan2);
 }
 
 scan();

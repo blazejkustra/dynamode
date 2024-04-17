@@ -6,7 +6,7 @@ import {
   stringGsiSortKey,
 } from '@lib/decorators/helpers/gsi';
 import { numberLsiSortKey, stringLsiSortKey } from '@lib/decorators/helpers/lsi';
-import { array, boolean, map, number, object, set, string } from '@lib/decorators/helpers/other';
+import { array, binary, boolean, map, number, object, set, string } from '@lib/decorators/helpers/other';
 import { prefix, suffix } from '@lib/decorators/helpers/prefixSuffix';
 import {
   numberPartitionKey,
@@ -23,6 +23,7 @@ const attribute = {
   array,
   set,
   map,
+  binary,
 
   date: {
     string: stringDate,

@@ -88,6 +88,10 @@ const mockEntityAttributes = {
     propertyName: 'boolean',
     type: Boolean,
   },
+  binary: {
+    propertyName: 'binary',
+    type: Uint8Array,
+  },
 } as any as AttributesMetadata;
 
 const dynamoObject = {
@@ -102,6 +106,7 @@ const dynamoObject = {
   set: { SS: ['1', '2', '3'] },
   array: { L: [{ S: '1' }, { S: '2' }] },
   boolean: { BOOL: true },
+  binary: { B: new Uint8Array([1, 2, 3]) },
 };
 
 describe('Converters entity helpers', () => {
@@ -136,7 +141,7 @@ describe('Converters entity helpers', () => {
       getEntityMetadataSpy.mockReturnValue(metadata as any);
 
       expect(convertAttributeValuesToEntity(MockEntity, dynamoObject)).toEqual(mockInstance);
-      expect(truncateValueSpy).toBeCalledTimes(15);
+      expect(truncateValueSpy).toBeCalledTimes(16);
     });
 
     test('Should return object in dynamode format', async () => {
@@ -144,7 +149,7 @@ describe('Converters entity helpers', () => {
       getEntityMetadataSpy.mockReturnValue(metadata as any);
 
       expect(convertAttributeValuesToEntity(MockEntity, dynamoObject)).toEqual(mockInstance);
-      expect(truncateValueSpy).toBeCalledTimes(15);
+      expect(truncateValueSpy).toBeCalledTimes(16);
     });
   });
 
@@ -162,7 +167,7 @@ describe('Converters entity helpers', () => {
       getEntityAttributesSpy.mockReturnValue(mockEntityAttributes);
 
       expect(convertEntityToAttributeValues(MockEntity, mockInstance)).toEqual(dynamoObject);
-      expect(transformValueSpy).toBeCalledTimes(15);
+      expect(transformValueSpy).toBeCalledTimes(16);
     });
   });
 

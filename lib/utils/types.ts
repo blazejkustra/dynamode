@@ -11,7 +11,7 @@ export type FlattenObject<TValue> = CollapseEntries<CreateObjectEntries<TValue, 
 
 type Entry = { key: string; value: unknown };
 type EmptyEntry<TValue> = { key: ''; value: TValue };
-type ExcludedTypes = Date | Set<unknown> | Map<unknown, unknown>;
+type ExcludedTypes = Date | Set<unknown> | Map<unknown, unknown> | Uint8Array;
 type ArrayEncoder = `[${bigint}]`;
 
 type EscapeArrayKey<TKey extends string> = TKey extends `${infer TKeyBefore}.${ArrayEncoder}${infer TKeyAfter}`

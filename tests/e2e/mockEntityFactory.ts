@@ -13,6 +13,7 @@ export function mockEntityFactory(props?: Partial<MockEntityProps>): MockEntity 
     set: new Set(['1', '2', '3']),
     array: ['1', '2'],
     boolean: true,
+    binary: new Uint8Array([1, 2, 3]),
     ...props,
   });
 }

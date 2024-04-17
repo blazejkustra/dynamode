@@ -11,7 +11,8 @@ export type AttributeType =
   | ObjectConstructor
   | ArrayConstructor
   | SetConstructor
-  | MapConstructor;
+  | MapConstructor
+  | Uint8ArrayConstructor;
 
 export type AttributeRole =
   | 'partitionKey'

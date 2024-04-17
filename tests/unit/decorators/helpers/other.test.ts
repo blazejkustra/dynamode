@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import * as decorateAttribute from '@lib/decorators/helpers/decorateAttribute';
-import { array, boolean, map, number, object, set, string } from '@lib/decorators/helpers/other';
+import { array, binary, boolean, map, number, object, set, string } from '@lib/decorators/helpers/other';
 
 describe('Decorators', () => {
   let decorateAttributeSpy = vi.spyOn(decorateAttribute, 'decorateAttribute');
@@ -66,6 +66,13 @@ describe('Decorators', () => {
     test('Should call decorateAttribute with Map attribute type', async () => {
       map();
       expect(decorateAttributeSpy).toHaveBeenNthCalledWith(1, Map, 'attribute');
+    });
+  });
+
+  describe('binary', async () => {
+    test('Should call decorateAttribute with Uint8Array attribute type', async () => {
+      binary();
+      expect(decorateAttributeSpy).toHaveBeenNthCalledWith(1, Uint8Array, 'attribute');
     });
   });
 });
