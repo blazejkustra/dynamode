@@ -1,16 +1,27 @@
 import { QueryCommandOutput, QueryInput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
+import { AttributeMetadata, IndexMetadata } from '@lib/dynamode/storage/types';
 import Entity from '@lib/entity';
 import { convertAttributeValuesToEntity, convertAttributeValuesToLastKey } from '@lib/entity/helpers/converters';
 import { EntityKey, EntityValue } from '@lib/entity/types';
 import type { QueryRunOptions, QueryRunOutput } from '@lib/query/types';
 import RetrieverBase from '@lib/retriever';
 import { Metadata, TablePartitionKeys, TableSortKeys } from '@lib/table/types';
-import { AttributeValues, BASE_OPERATOR, ExpressionBuilder, isNotEmptyString, Operators, timeout } from '@lib/utils';
+import {
+  AttributeValues,
+  BASE_OPERATOR,
+  ExpressionBuilder,
+  isNotEmptyString,
+  Operators,
+  timeout,
+  ValidationError,
+} from '@lib/utils';
 
 export default class Query<M extends Metadata<E>, E extends typeof Entity> extends RetrieverBase<M, E> {
   protected declare input: QueryInput;
   protected keyOperators: Operators = [];
+  protected partitionKeyMetadata?: AttributeMetadata;
+  protected sortKeyMetadata?: AttributeMetadata;
 
   constructor(entity: E) {
     super(entity);
@@ -20,6 +31,7 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
   public run(options: QueryRunOptions & { return: 'output' }): Promise<QueryCommandOutput>;
   public run(options: QueryRunOptions & { return: 'input' }): QueryInput;
   public run(options?: QueryRunOptions): Promise<QueryRunOutput<M, E> | QueryCommandOutput> | QueryInput {
+    this.setAssociatedIndexName();
     this.buildQueryInput(options?.extraInput);
 
     if (options?.return === 'input') {
@@ -66,7 +78,8 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
 
   public partitionKey<Q extends Query<M, E>, K extends EntityKey<E> & TablePartitionKeys<M, E>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
-    this.setAssociatedIndexName(key);
+    const attributes = Dynamode.storage.getEntityAttributes(this.entity.name);
+    this.partitionKeyMetadata = attributes[key as string];
 
     return {
       eq: (value: EntityValue<E, K>): Q => this.eq(this.keyOperators, key, value),
@@ -75,7 +88,8 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
 
   public sortKey<Q extends Query<M, E>, K extends EntityKey<E> & TableSortKeys<M, E>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
-    this.setAssociatedIndexName(key);
+    const attributes = Dynamode.storage.getEntityAttributes(this.entity.name);
+    this.sortKeyMetadata = attributes[key as string];
 
     return {
       eq: (value: EntityValue<E, K>): Q => this.eq(this.keyOperators, key, value),
@@ -101,12 +115,71 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
     }
   }
 
-  private setAssociatedIndexName<K extends EntityKey<E> & TablePartitionKeys<M, E>>(key: K) {
-    const attributes = Dynamode.storage.getEntityAttributes(this.entity.name);
-    const { indexName } = attributes[key as string];
+  private setAssociatedIndexName() {
+    if (this.input.IndexName) {
+      return;
+    }
 
-    if (indexName) {
-      this.input.IndexName = indexName;
+    const { partitionKeyMetadata, sortKeyMetadata } = this;
+    if (!partitionKeyMetadata) {
+      throw new ValidationError('Partition key is required for query');
+    }
+
+    // Primary key
+    if (partitionKeyMetadata.role === 'partitionKey' && sortKeyMetadata?.role !== 'index') {
+      return;
+    }
+
+    // GSI with sort key
+    if (partitionKeyMetadata.role === 'index' && sortKeyMetadata?.role === 'index') {
+      const pkIndexes: IndexMetadata[] = partitionKeyMetadata.indexes;
+      const skIndexes: IndexMetadata[] = sortKeyMetadata.indexes;
+
+      const commonIndexes = pkIndexes.filter((pkIndex) => skIndexes.some((skIndex) => skIndex.name === pkIndex.name));
+      if (commonIndexes.length === 0) {
+        throw new ValidationError(
+          `No common indexes found for "${partitionKeyMetadata.propertyName}" and "${sortKeyMetadata.propertyName}"`,
+        );
+      }
+
+      if (commonIndexes.length > 1) {
+        throw new ValidationError(
+          `Multiple common indexes found for "${partitionKeyMetadata.propertyName}" and "${sortKeyMetadata.propertyName}"`,
+        );
+      }
+
+      this.input.IndexName = commonIndexes[0].name;
+      return;
+    }
+
+    // GSI without sort key
+    if (partitionKeyMetadata.role === 'index' && !sortKeyMetadata) {
+      const possibleIndexes = partitionKeyMetadata.indexes;
+
+      if (possibleIndexes.length > 1) {
+        throw new ValidationError(
+          `Multiple indexes found for "${partitionKeyMetadata.propertyName}", please use ".indexName(${possibleIndexes
+            .map((index) => index.name)
+            .join(' | ')})" method to specify the index name`,
+        );
+      }
+
+      this.input.IndexName = possibleIndexes[0].name;
+      return;
+    }
+
+    // LSI with sort key
+    if (partitionKeyMetadata.role === 'partitionKey' && sortKeyMetadata?.role === 'index') {
+      const possibleIndexes = sortKeyMetadata.indexes;
+
+      if (possibleIndexes.length > 1) {
+        throw new ValidationError(
+          `Multiple indexes found for "${sortKeyMetadata.propertyName}", an LSI can only have one index`,
+        );
+      }
+
+      this.input.IndexName = possibleIndexes[0].name;
+      return;
     }
   }
 

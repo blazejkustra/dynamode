@@ -17,7 +17,8 @@ type TestTableProps = {
   partitionKey: string;
   sortKey: string;
   GSI_1_PK?: string;
-  GSI_1_SK?: number;
+  GSI_2_PK?: string;
+  GSI_SK?: number;
   LSI_1_SK?: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -39,8 +40,12 @@ export class TestTable extends Entity {
   @attribute.gsi.partitionKey.string({ indexName: 'GSI_1_NAME' })
   GSI_1_PK?: string;
 
+  @attribute.gsi.partitionKey.string({ indexName: 'GSI_2_NAME' })
+  GSI_2_PK?: string;
+
   @attribute.gsi.sortKey.number({ indexName: 'GSI_1_NAME' })
-  GSI_1_SK?: number;
+  @attribute.gsi.sortKey.number({ indexName: 'GSI_2_NAME' })
+  GSI_SK?: number;
 
   @attribute.lsi.sortKey.number({ indexName: 'LSI_1_NAME' })
   LSI_1_SK?: number;
@@ -61,7 +66,8 @@ export class TestTable extends Entity {
 
     // Indexes
     this.GSI_1_PK = props.GSI_1_PK;
-    this.GSI_1_SK = props.GSI_1_SK;
+    this.GSI_2_PK = props.GSI_2_PK;
+    this.GSI_SK = props.GSI_SK;
     this.LSI_1_SK = props.LSI_1_SK;
 
     // Timestamps
@@ -156,7 +162,11 @@ export const TestTableManager = new TableManager(TestTable, {
   indexes: {
     GSI_1_NAME: {
       partitionKey: 'GSI_1_PK',
-      sortKey: 'GSI_1_SK',
+      sortKey: 'GSI_SK',
+    },
+    GSI_2_NAME: {
+      partitionKey: 'GSI_2_PK',
+      sortKey: 'GSI_SK',
     },
     LSI_1_NAME: {
       sortKey: 'LSI_1_SK',

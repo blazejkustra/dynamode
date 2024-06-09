@@ -18,7 +18,7 @@ const metadata = {
   partitionKey: 'partitionKey',
   sortKey: 'sortKey',
   indexes: {
-    GSI_1_NAME: { partitionKey: 'GSI_1_PK', sortKey: 'GSI_1_SK' },
+    GSI_1_NAME: { partitionKey: 'GSI_1_PK', sortKey: 'GSI_SK' },
     LSI_1_NAME: { sortKey: 'LSI_1_SK' },
   },
   createdAt: 'createdAt',
@@ -42,8 +42,8 @@ const mockEntityAttributes = {
     propertyName: 'GSI_1_PK',
     type: String,
   },
-  GSI_1_SK: {
-    propertyName: 'GSI_1_SK',
+  GSI_SK: {
+    propertyName: 'GSI_SK',
     type: Number,
   },
   LSI_1_SK: {
@@ -296,7 +296,7 @@ describe('Converters entity helpers', () => {
           partitionKey: 'pk_value',
           sortKey: 'sk_value',
           GSI_1_PK: 'gsi_1_pk_value',
-          GSI_1_SK: 111,
+          GSI_SK: 111,
           LSI_1_SK: 222,
         },
       );
@@ -311,7 +311,7 @@ describe('Converters entity helpers', () => {
         GSI_1_PK: {
           S: 'gsi_1_pk_value',
         },
-        GSI_1_SK: {
+        GSI_SK: {
           N: '111',
         },
         LSI_1_SK: {

@@ -25,7 +25,7 @@ type UnsavedValue = EntityValue<typeof MockEntity, 'unsaved'>;
 type PartitionKeyValue = EntityValue<typeof MockEntity, 'partitionKey'>;
 type SortKeyValue = EntityValue<typeof MockEntity, 'sortKey'>;
 type GSI_1_PKValue = EntityValue<typeof MockEntity, 'GSI_1_PK'>;
-type GSI_1_SKValue = EntityValue<typeof MockEntity, 'GSI_1_SK'>;
+type GSI_SKValue = EntityValue<typeof MockEntity, 'GSI_SK'>;
 type LSI_1_SKValue = EntityValue<typeof MockEntity, 'LSI_1_SK'>;
 type CreatedAtValue = EntityValue<typeof MockEntity, 'createdAt'>;
 type UpdatedAtValue = EntityValue<typeof MockEntity, 'updatedAt'>;
@@ -57,7 +57,7 @@ describe('EntityValue type tests', () => {
     expectTypeOf<PartitionKeyValue>().toEqualTypeOf<string>();
     expectTypeOf<SortKeyValue>().toEqualTypeOf<string>();
     expectTypeOf<GSI_1_PKValue>().toEqualTypeOf<string | undefined>();
-    expectTypeOf<GSI_1_SKValue>().toEqualTypeOf<number | undefined>();
+    expectTypeOf<GSI_SKValue>().toEqualTypeOf<number | undefined>();
     expectTypeOf<LSI_1_SKValue>().toEqualTypeOf<number | undefined>();
     expectTypeOf<CreatedAtValue>().toEqualTypeOf<Date>();
     expectTypeOf<UpdatedAtValue>().toEqualTypeOf<Date>();

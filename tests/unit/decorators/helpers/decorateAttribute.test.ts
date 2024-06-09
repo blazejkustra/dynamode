@@ -38,8 +38,8 @@ describe('Decorators', () => {
       expect(registerAttributeSpy).toBeCalledWith(MockEntity.name, 'gsiKey', {
         propertyName: 'gsiKey',
         type: String,
-        role: 'gsiPartitionKey',
-        indexName: 'GSI',
+        role: 'index',
+        indexes: [{ name: 'GSI', role: 'gsiPartitionKey' }],
         prefix: 'PREFIX',
         suffix: 'SUFFIX',
       });

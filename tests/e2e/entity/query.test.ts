@@ -124,10 +124,10 @@ describe('EntityManager.query', () => {
 
     test('Should be able to retrieve multiple items with pagination (with GSI)', async () => {
       // Arrange
-      const mock = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK1', GSI_1_PK: 'GPK1', GSI_1_SK: 1 });
-      const mock2 = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK2', GSI_1_PK: 'GPK1', GSI_1_SK: 2 });
-      const mock3 = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK3', GSI_1_PK: 'GPK1', GSI_1_SK: 3 });
-      const mock4 = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK4', GSI_1_PK: 'GPK1', GSI_1_SK: 4 });
+      const mock = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK1', GSI_1_PK: 'GPK1', GSI_SK: 1 });
+      const mock2 = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK2', GSI_1_PK: 'GPK1', GSI_SK: 2 });
+      const mock3 = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK3', GSI_1_PK: 'GPK1', GSI_SK: 3 });
+      const mock4 = mockEntityFactory({ partitionKey: 'PK1', sortKey: 'SK4', GSI_1_PK: 'GPK1', GSI_SK: 4 });
       await MockEntityManager.put(mock);
       await MockEntityManager.put(mock2);
       await MockEntityManager.put(mock3);
@@ -154,7 +154,7 @@ describe('EntityManager.query', () => {
         partitionKey: 'PK1',
         sortKey: 'SK2',
         GSI_1_PK: 'GPK1',
-        GSI_1_SK: 2,
+        GSI_SK: 2,
       });
       expect(mockEntityRetrieved2.lastKey).toEqual(undefined);
     });

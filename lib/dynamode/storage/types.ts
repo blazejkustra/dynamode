@@ -14,24 +14,29 @@ export type AttributeType =
   | MapConstructor
   | Uint8ArrayConstructor;
 
-export type AttributeRole =
-  | 'partitionKey'
-  | 'sortKey'
-  | 'gsiPartitionKey'
-  | 'gsiSortKey'
-  | 'lsiSortKey'
-  | 'date'
-  | 'attribute'
-  | 'dynamodeEntity';
+export type AttributeRole = 'partitionKey' | 'sortKey' | 'index' | 'date' | 'attribute' | 'dynamodeEntity';
+export type AttributeIndexRole = 'gsiPartitionKey' | 'gsiSortKey' | 'lsiSortKey';
 
-export type AttributeMetadata = {
+type BaseAttributeMetadata = {
   propertyName: string;
   type: AttributeType;
-  role: AttributeRole;
-  indexName?: string;
   prefix?: string;
   suffix?: string;
 };
+
+export type NonIndexAttributeMetadata = BaseAttributeMetadata & {
+  role: Exclude<AttributeRole, 'index'>;
+  indexName?: never;
+};
+
+export type IndexMetadata = { name: string; role: AttributeIndexRole };
+
+export type IndexAttributeMetadata = BaseAttributeMetadata & {
+  role: 'index';
+  indexes: IndexMetadata[];
+};
+
+export type AttributeMetadata = NonIndexAttributeMetadata | IndexAttributeMetadata;
 
 export type AttributesMetadata = {
   [attributeName: string]: AttributeMetadata;
