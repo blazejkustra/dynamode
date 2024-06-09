@@ -31,6 +31,7 @@ type MockEntityDeepKeys =
   | 'GSI_1_PK'
   | 'GSI_2_PK'
   | 'GSI_SK'
+  | 'GSI_3_SK'
   | 'LSI_1_SK'
   | 'createdAt'
   | 'updatedAt';
