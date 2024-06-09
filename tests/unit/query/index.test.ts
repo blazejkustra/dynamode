@@ -371,40 +371,40 @@ describe('Query', () => {
     });
   });
 
-  describe.skip('setAssociatedIndexName', () => {
-    const getEntityAttributesSpy = vi.spyOn(Dynamode.storage, 'getEntityAttributes');
+  // describe('setAssociatedIndexName', () => {
+  //   const getEntityAttributesSpy = vi.spyOn(Dynamode.storage, 'getEntityAttributes');
 
-    beforeEach(() => {
-      vi.restoreAllMocks();
-    });
+  //   beforeEach(() => {
+  //     vi.restoreAllMocks();
+  //   });
 
-    // test('Should set proper IndexName on query input for primary partitionKey', async () => {
-    //   getEntityAttributesSpy.mockReturnValue({
-    //     partitionKey: {
-    //       propertyName: 'partitionKey',
-    //       role: 'partitionKey',
-    //       type: String,
-    //     },
-    //   });
-    //   query['setAssociatedIndexName']('partitionKey');
+  //   test('Should set proper IndexName on query input for primary partitionKey', async () => {
+  //     getEntityAttributesSpy.mockReturnValue({
+  //       partitionKey: {
+  //         propertyName: 'partitionKey',
+  //         role: 'partitionKey',
+  //         type: String,
+  //       },
+  //     });
+  //     query['setAssociatedIndexName']('partitionKey');
 
-    //   expect(query['input'].IndexName).toEqual(undefined);
-    // });
+  //     expect(query['input'].IndexName).toEqual(undefined);
+  //   });
 
-    // test('Should set proper IndexName on query input for an attribute associated with index', async () => {
-    //   getEntityAttributesSpy.mockReturnValue({
-    //     GSI_1_PK: {
-    //       indexName: 'GSI_1_NAME',
-    //       propertyName: 'GSI_1_PK',
-    //       role: 'gsiPartitionKey',
-    //       type: String,
-    //     },
-    //   });
-    //   query['setAssociatedIndexName']('GSI_1_PK');
+  //   test('Should set proper IndexName on query input for an attribute associated with index', async () => {
+  //     getEntityAttributesSpy.mockReturnValue({
+  //       GSI_1_PK: {
+  //         indexName: 'GSI_1_NAME',
+  //         propertyName: 'GSI_1_PK',
+  //         role: 'gsiPartitionKey',
+  //         type: String,
+  //       },
+  //     });
+  //     query['setAssociatedIndexName']('GSI_1_PK');
 
-    //   expect(query['input'].IndexName).toEqual('GSI_1_NAME');
-    // });
-  });
+  //     expect(query['input'].IndexName).toEqual('GSI_1_NAME');
+  //   });
+  // });
 
   describe('buildQueryInput', () => {
     test('Should successfully build query input without extraInput', async () => {

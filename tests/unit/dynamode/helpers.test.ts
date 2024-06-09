@@ -149,7 +149,7 @@ describe('Dynamode helpers', () => {
       expect(
         validateMetadataAttribute({
           name: 'GSI_1_PK',
-          role: 'index', // TODO: validate this
+          role: 'index',
           attributes: { GSI_1_PK: attributes.GSI_1_PK },
           indexName: 'GSI_1_NAME',
           entityName,
@@ -158,7 +158,7 @@ describe('Dynamode helpers', () => {
       expect(
         validateMetadataAttribute({
           name: 'GSI_SK',
-          role: 'index', // TODO: validate this
+          role: 'index',
           attributes: { GSI_SK: attributes.GSI_SK },
           indexName: 'GSI_1_NAME',
           entityName,
@@ -167,7 +167,7 @@ describe('Dynamode helpers', () => {
       expect(
         validateMetadataAttribute({
           name: 'LSI_1_SK',
-          role: 'index', // TODO: validate this
+          role: 'index',
           attributes: { LSI_1_SK: attributes.LSI_1_SK },
           indexName: 'LSI_1_NAME',
           entityName,
