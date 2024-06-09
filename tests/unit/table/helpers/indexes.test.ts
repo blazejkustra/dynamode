@@ -85,11 +85,19 @@ describe('getTableGlobalSecondaryIndexes', () => {
         ],
         Projection: { ProjectionType: 'ALL' },
       },
+      {
+        IndexName: 'GSI_3_NAME',
+        KeySchema: [
+          { AttributeName: 'GSI_1_PK', KeyType: 'HASH' },
+          { AttributeName: 'GSI_3_SK', KeyType: 'RANGE' },
+        ],
+        Projection: { ProjectionType: 'ALL' },
+      },
     ];
 
     expect(getTableGlobalSecondaryIndexes<TestTableMetadata, typeof TestTable>(TestTableManager.tableMetadata)).toEqual(
       expectedResult,
     );
-    expect(getKeySchemaSpy).toHaveBeenCalledTimes(2);
+    expect(getKeySchemaSpy).toHaveBeenCalledTimes(3);
   });
 });

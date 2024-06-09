@@ -58,10 +58,10 @@ export function validateDecoratedAttribute({
       return attribute.indexes.some((index) => {
         switch (index.role) {
           case 'gsiPartitionKey':
-            return metadata.indexes?.[index.name].partitionKey !== name;
+            return metadata.indexes?.[index.name]?.partitionKey !== name;
           case 'gsiSortKey':
           case 'lsiSortKey':
-            return metadata.indexes?.[index.name].sortKey !== name;
+            return metadata.indexes?.[index.name]?.sortKey !== name;
           default:
             return true;
         }
@@ -74,7 +74,9 @@ export function validateDecoratedAttribute({
 
   const validateAttributeRole = roleValidationMap[attribute.role];
   if (validateAttributeRole({ attribute, name, metadata, entityName })) {
-    throw new ValidationError(`Attribute "${name}" is decorated with a wrong role in "${entityName}" Entity.`);
+    throw new ValidationError(
+      `Attribute "${name}" is decorated with a wrong role in "${entityName}" Entity. This could mean two things:\n1. The attribute is not defined in the metadata.\n2. The attribute is defined in the metadata but in the class a a wrong decorator was used.`,
+    );
   }
 }
 

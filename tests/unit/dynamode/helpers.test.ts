@@ -189,7 +189,7 @@ describe('Dynamode helpers', () => {
           attributes: { partitionKey: attributes.partitionKey },
           entityName,
         }),
-      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
     });
 
     test('Should throw an error for indexName mismatch', async () => {
@@ -271,23 +271,23 @@ describe('Dynamode helpers', () => {
     test('Should throw an error if decorated attribute is different than this in metadata', async () => {
       expect(() =>
         validateDecoratedAttribute({ name: 'name', attribute: attributes.partitionKey, entityName, metadata }),
-      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
 
-      // expect(() =>
-      //   validateDecoratedAttribute({ name: 'name', attribute: attributes.sortKey, entityName, metadata }),
-      // ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+      expect(() =>
+        validateDecoratedAttribute({ name: 'name', attribute: attributes.sortKey, entityName, metadata }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
 
-      // expect(() =>
-      //   validateDecoratedAttribute({ name: 'name', attribute: attributes.GSI_1_PK, entityName, metadata }),
-      // ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+      expect(() =>
+        validateDecoratedAttribute({ name: 'name', attribute: attributes.GSI_1_PK, entityName, metadata }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
 
-      // expect(() =>
-      //   validateDecoratedAttribute({ name: 'name', attribute: attributes.GSI_SK, entityName, metadata }),
-      // ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+      expect(() =>
+        validateDecoratedAttribute({ name: 'name', attribute: attributes.GSI_SK, entityName, metadata }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
 
-      // expect(() =>
-      //   validateDecoratedAttribute({ name: 'name', attribute: attributes.LSI_1_SK, entityName, metadata }),
-      // ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+      expect(() =>
+        validateDecoratedAttribute({ name: 'name', attribute: attributes.LSI_1_SK, entityName, metadata }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
     });
   });
 

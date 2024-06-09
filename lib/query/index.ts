@@ -122,7 +122,7 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
 
     const { partitionKeyMetadata, sortKeyMetadata } = this;
     if (!partitionKeyMetadata) {
-      throw new ValidationError('Partition key is required for query');
+      throw new ValidationError('You need to use ".partitionKey()" method before calling ".run()"');
     }
 
     // Primary key
