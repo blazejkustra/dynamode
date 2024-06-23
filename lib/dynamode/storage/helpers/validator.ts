@@ -75,7 +75,7 @@ export function validateDecoratedAttribute({
   const validateAttributeRole = roleValidationMap[attribute.role];
   if (validateAttributeRole({ attribute, name, metadata, entityName })) {
     throw new ValidationError(
-      `Attribute "${name}" is decorated with a wrong role in "${entityName}" Entity. This could mean two things:\n1. The attribute is not defined in the metadata.\n2. The attribute is defined in the metadata but in the class a a wrong decorator was used.`,
+      `Attribute "${name}" is decorated with a wrong role in "${entityName}" Entity. This could mean two things:\n1. The attribute is not defined in the table metadata.\n2. The attribute is defined in the table metadata but wrong decorator was used.\n`,
     );
   }
 }
