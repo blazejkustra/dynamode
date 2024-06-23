@@ -4,6 +4,7 @@ import { convertToAttr, convertToNative, marshall, unmarshall } from '@aws-sdk/u
 import Dynamode from '@lib/dynamode/index';
 import DynamodeStorage from '@lib/dynamode/storage';
 import * as storageHelper from '@lib/dynamode/storage/helpers/validator';
+import { IndexAttributeMetadata } from '@lib/dynamode/storage/types';
 import { Metadata } from '@lib/table/types';
 import { DynamodeStorageError, ValidationError } from '@lib/utils/errors';
 
@@ -16,7 +17,7 @@ const metadata: Metadata<typeof MockEntity> = {
   indexes: {
     GSI_1_NAME: {
       partitionKey: 'GSI_1_PK',
-      sortKey: 'GSI_1_SK',
+      sortKey: 'GSI_SK',
     },
     LSI_1_NAME: {
       sortKey: 'LSI_1_SK',
@@ -98,18 +99,20 @@ describe('Dynamode', () => {
       test('Should successfully register child class property', async () => {
         storage.registerAttribute(MockEntity.name, 'propertyName', {
           propertyName: 'propertyName',
-          indexName: 'indexName',
           prefix: 'prefix',
           suffix: 'suffix',
           type: String,
-          role: 'partitionKey',
+          role: 'index',
+          indexes: [{ name: 'indexName', role: 'gsiPartitionKey' }],
         });
         expect(storage.entities[MockEntity.name].attributes['propertyName'].propertyName).toEqual('propertyName');
-        expect(storage.entities[MockEntity.name].attributes['propertyName'].indexName).toEqual('indexName');
+        expect(
+          (storage.entities[MockEntity.name].attributes['propertyName'] as IndexAttributeMetadata).indexes,
+        ).toEqual([{ name: 'indexName', role: 'gsiPartitionKey' }]);
         expect(storage.entities[MockEntity.name].attributes['propertyName'].prefix).toEqual('prefix');
         expect(storage.entities[MockEntity.name].attributes['propertyName'].suffix).toEqual('suffix');
         expect(storage.entities[MockEntity.name].attributes['propertyName'].type).toEqual(String);
-        expect(storage.entities[MockEntity.name].attributes['propertyName'].role).toEqual('partitionKey');
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].role).toEqual('index');
       });
 
       test('Should successfully register parent class property', async () => {
@@ -161,10 +164,10 @@ describe('Dynamode', () => {
             type: Number,
           },
           propertyName: {
-            indexName: 'indexName',
+            indexes: [{ name: 'indexName', role: 'gsiPartitionKey' }],
             prefix: 'PREFIX',
             propertyName: 'propertyName',
-            role: 'partitionKey',
+            role: 'index',
             suffix: 'SUFFIX',
             type: String,
           },

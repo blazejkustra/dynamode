@@ -61,11 +61,11 @@ describe('getTableGlobalSecondaryIndexes', () => {
     getKeySchemaSpy
       .mockReturnValueOnce([
         { AttributeName: 'GSI_1_PK', KeyType: 'HASH' },
-        { AttributeName: 'GSI_1_SK', KeyType: 'RANGE' },
+        { AttributeName: 'GSI_SK', KeyType: 'RANGE' },
       ])
       .mockReturnValueOnce([
         { AttributeName: 'GSI_2_PK', KeyType: 'HASH' },
-        { AttributeName: 'GSI_2_SK', KeyType: 'RANGE' },
+        { AttributeName: 'GSI_SK', KeyType: 'RANGE' },
       ]);
 
     const expectedResult: GlobalSecondaryIndex[] = [
@@ -73,7 +73,23 @@ describe('getTableGlobalSecondaryIndexes', () => {
         IndexName: 'GSI_1_NAME',
         KeySchema: [
           { AttributeName: 'GSI_1_PK', KeyType: 'HASH' },
-          { AttributeName: 'GSI_1_SK', KeyType: 'RANGE' },
+          { AttributeName: 'GSI_SK', KeyType: 'RANGE' },
+        ],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'GSI_2_NAME',
+        KeySchema: [
+          { AttributeName: 'GSI_2_PK', KeyType: 'HASH' },
+          { AttributeName: 'GSI_SK', KeyType: 'RANGE' },
+        ],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'GSI_3_NAME',
+        KeySchema: [
+          { AttributeName: 'GSI_1_PK', KeyType: 'HASH' },
+          { AttributeName: 'GSI_3_SK', KeyType: 'RANGE' },
         ],
         Projection: { ProjectionType: 'ALL' },
       },
@@ -82,6 +98,6 @@ describe('getTableGlobalSecondaryIndexes', () => {
     expect(getTableGlobalSecondaryIndexes<TestTableMetadata, typeof TestTable>(TestTableManager.tableMetadata)).toEqual(
       expectedResult,
     );
-    expect(getKeySchemaSpy).toHaveBeenCalledTimes(1);
+    expect(getKeySchemaSpy).toHaveBeenCalledTimes(3);
   });
 });

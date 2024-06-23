@@ -44,5 +44,9 @@ export function getTableAttributeDefinitions<M extends Metadata<TE>, TE extends 
     });
   }
 
-  return definitions;
+  const uniqueDefinitions = [
+    ...new Map(definitions.map((definition) => [definition.AttributeName, definition])).values(),
+  ];
+
+  return uniqueDefinitions;
 }

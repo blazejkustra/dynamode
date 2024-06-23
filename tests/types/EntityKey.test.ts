@@ -29,7 +29,9 @@ type MockEntityDeepKeys =
   | 'partitionKey'
   | 'sortKey'
   | 'GSI_1_PK'
-  | 'GSI_1_SK'
+  | 'GSI_2_PK'
+  | 'GSI_SK'
+  | 'GSI_3_SK'
   | 'LSI_1_SK'
   | 'createdAt'
   | 'updatedAt';

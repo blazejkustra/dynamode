@@ -4,7 +4,7 @@ import Entity from '@lib/entity';
 import { convertAttributeValuesToEntity, convertAttributeValuesToLastKey } from '@lib/entity/helpers/converters';
 import RetrieverBase from '@lib/retriever';
 import type { ScanRunOptions, ScanRunOutput } from '@lib/scan/types';
-import { Metadata, TableIndexNames } from '@lib/table/types';
+import { Metadata } from '@lib/table/types';
 import { ExpressionBuilder, isNotEmptyString } from '@lib/utils';
 
 export default class Scan<M extends Metadata<E>, E extends typeof Entity> extends RetrieverBase<M, E> {
@@ -42,11 +42,6 @@ export default class Scan<M extends Metadata<E>, E extends typeof Entity> extend
           : undefined,
       };
     })();
-  }
-
-  public indexName(name: TableIndexNames<M, E>) {
-    this.input.IndexName = String(name);
-    return this;
   }
 
   public segment(value: number) {

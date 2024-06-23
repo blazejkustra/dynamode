@@ -5,7 +5,7 @@ import Entity from '@lib/entity';
 import { buildGetProjectionExpression } from '@lib/entity/helpers/buildExpressions';
 import { convertRetrieverLastKeyToAttributeValues } from '@lib/entity/helpers/converters';
 import { EntityKey } from '@lib/entity/types';
-import { Metadata, TableRetrieverLastKey } from '@lib/table/types';
+import { Metadata, TableIndexNames, TableRetrieverLastKey } from '@lib/table/types';
 import { AttributeNames, AttributeValues } from '@lib/utils';
 
 export default class RetrieverBase<M extends Metadata<E>, E extends typeof Entity> extends Condition<E> {
@@ -18,6 +18,11 @@ export default class RetrieverBase<M extends Metadata<E>, E extends typeof Entit
     this.input = {
       TableName: Dynamode.storage.getEntityTableName(entity.name),
     };
+  }
+
+  public indexName(name: TableIndexNames<M, E>) {
+    this.input.IndexName = String(name);
+    return this;
   }
 
   public limit(count: number) {

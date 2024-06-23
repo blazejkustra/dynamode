@@ -34,8 +34,8 @@ describe('getTableAttributeDefinitions', () => {
       indexPartitionKeyName: {
         propertyName: 'indexPartitionKey',
         type: String,
-        role: 'gsiPartitionKey',
-        indexName: 'indexName',
+        role: 'index',
+        indexes: [{ name: 'indexName', role: 'gsiPartitionKey' }],
       },
     });
 

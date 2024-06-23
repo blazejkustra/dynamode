@@ -28,7 +28,7 @@ const metadata = {
   indexes: {
     GSI_1_NAME: {
       partitionKey: 'GSI_1_PK',
-      sortKey: 'GSI_1_SK',
+      sortKey: 'GSI_SK',
     },
     LSI_1_NAME: {
       sortKey: 'LSI_1_SK',
@@ -59,7 +59,7 @@ const gsis: LocalSecondaryIndex[] = [
     IndexName: 'GSI_1_NAME',
     KeySchema: [
       { AttributeName: 'GSI_1_PK', KeyType: 'HASH' },
-      { AttributeName: 'GSI_1_SK', KeyType: 'RANGE' },
+      { AttributeName: 'GSI_SK', KeyType: 'RANGE' },
     ],
     Projection: { ProjectionType: 'ALL' },
   },
@@ -399,7 +399,7 @@ describe('Table', () => {
       expect(buildIndexCreateSpy).toBeCalledWith({
         indexName: 'GSI_1_NAME',
         partitionKey: 'GSI_1_PK',
-        sortKey: 'GSI_1_SK',
+        sortKey: 'GSI_SK',
         throughput: undefined,
       });
       expect(updateTableMock).not.toBeCalled();
@@ -425,7 +425,7 @@ describe('Table', () => {
       expect(buildIndexCreateSpy).toBeCalledWith({
         indexName: 'GSI_1_NAME',
         partitionKey: 'GSI_1_PK',
-        sortKey: 'GSI_1_SK',
+        sortKey: 'GSI_SK',
         throughput: {
           ReadCapacityUnits: 10,
           WriteCapacityUnits: 20,
@@ -451,7 +451,7 @@ describe('Table', () => {
       expect(buildIndexCreateSpy).toBeCalledWith({
         indexName: 'GSI_1_NAME',
         partitionKey: 'GSI_1_PK',
-        sortKey: 'GSI_1_SK',
+        sortKey: 'GSI_SK',
         throughput: undefined,
       });
       expect(updateTableMock).toBeCalledWith({
@@ -478,7 +478,7 @@ describe('Table', () => {
       expect(buildIndexCreateSpy).toBeCalledWith({
         indexName: 'GSI_1_NAME',
         partitionKey: 'GSI_1_PK',
-        sortKey: 'GSI_1_SK',
+        sortKey: 'GSI_SK',
         throughput: undefined,
       });
       expect(updateTableMock).toBeCalledWith({

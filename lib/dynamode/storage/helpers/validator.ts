@@ -20,8 +20,20 @@ export function validateMetadataAttribute({
     throw new ValidationError(`Attribute "${name}" is decorated with a wrong role in "${entityName}" Entity.`);
   }
 
-  if (attribute.indexName !== indexName) {
-    throw new ValidationError(`Attribute "${name}" is decorated with a wrong index in "${entityName}" Entity.`);
+  if (!indexName && attribute.role === 'index') {
+    throw new ValidationError(`Index for attribute "${name}" should be added to "${entityName}" Entity metadata.`);
+  }
+
+  if (indexName && attribute.role !== 'index') {
+    throw new ValidationError(
+      `Attribute "${name}" should be decorated with index "${indexName}" in "${entityName}" Entity.`,
+    );
+  }
+
+  if (indexName && attribute.role === 'index' && !attribute.indexes.some((index) => index.name === indexName)) {
+    throw new ValidationError(
+      `Attribute "${name}" is not decorated with index "${indexName}" in "${entityName}" Entity.`,
+    );
   }
 
   if (!DYNAMODE_ALLOWED_KEY_TYPES.includes(attribute.type)) {
@@ -38,12 +50,23 @@ export function validateDecoratedAttribute({
   const roleValidationMap: Record<AttributeRole, (v: ValidateDecoratedAttribute) => boolean> = {
     partitionKey: ({ name, metadata }) => metadata.partitionKey !== name,
     sortKey: ({ name, metadata }) => metadata.sortKey !== name,
-    gsiPartitionKey: ({ attribute, name, metadata }) =>
-      !!attribute.indexName && metadata.indexes?.[attribute.indexName]?.partitionKey !== name,
-    gsiSortKey: ({ attribute, name, metadata }) =>
-      !!attribute.indexName && metadata.indexes?.[attribute.indexName]?.sortKey !== name,
-    lsiSortKey: ({ attribute, name, metadata }) =>
-      !!attribute.indexName && metadata.indexes?.[attribute.indexName]?.sortKey !== name,
+    index: ({ attribute, name, metadata }) => {
+      if (!('indexes' in attribute) || !attribute.indexes.length) {
+        return true;
+      }
+
+      return attribute.indexes.some((index) => {
+        switch (index.role) {
+          case 'gsiPartitionKey':
+            return metadata.indexes?.[index.name]?.partitionKey !== name;
+          case 'gsiSortKey':
+          case 'lsiSortKey':
+            return metadata.indexes?.[index.name]?.sortKey !== name;
+          default:
+            return true;
+        }
+      });
+    },
     date: () => false,
     attribute: () => false,
     dynamodeEntity: () => false,
@@ -51,17 +74,21 @@ export function validateDecoratedAttribute({
 
   const validateAttributeRole = roleValidationMap[attribute.role];
   if (validateAttributeRole({ attribute, name, metadata, entityName })) {
-    throw new ValidationError(`Attribute "${name}" is decorated with a wrong role in "${entityName}" Entity.`);
+    throw new ValidationError(
+      `Attribute "${name}" is decorated with a wrong role in "${entityName}" Entity. This could mean two things:\n1. The attribute is not defined in the table metadata.\n2. The attribute is defined in the table metadata but wrong decorator was used.\n`,
+    );
   }
 }
 
 export function validateMetadataUniqueness(entityName: string, metadata: Metadata<typeof Entity>): void {
+  const allIndexes = Object.values(metadata.indexes ?? {}).flatMap((index) => [index.partitionKey, index.sortKey]);
+
   const metadataKeys = [
     metadata.partitionKey,
     metadata.sortKey,
     metadata.createdAt,
     metadata.updatedAt,
-    ...Object.values(metadata.indexes ?? {}).flatMap((index) => [index.partitionKey, index.sortKey]),
+    ...new Set(allIndexes),
   ].filter((attribute) => !!attribute);
 
   if (metadataKeys.length !== new Set(metadataKeys).size) {

@@ -79,6 +79,16 @@ describe('RetrieverBase', () => {
     });
   });
 
+  describe('indexName', () => {
+    test('Should set IndexName on scan input', async () => {
+      retriever.indexName('GSI_1_NAME');
+      expect(retriever['input'].IndexName).toEqual('GSI_1_NAME');
+
+      retriever.indexName('LSI_1_NAME');
+      expect(retriever['input'].IndexName).toEqual('LSI_1_NAME');
+    });
+  });
+
   describe('attributes', () => {
     const buildProjectionExpressionSpy = vi.spyOn(entityExpressionsHelpers, 'buildGetProjectionExpression');
     buildProjectionExpressionSpy.mockReturnValue({

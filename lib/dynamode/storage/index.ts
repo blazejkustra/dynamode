@@ -56,8 +56,14 @@ export default class DynamodeStorage {
       this.entities[entityName] = { attributes: {} } as EntityMetadata;
     }
 
-    if (this.entities[entityName].attributes[propertyName]) {
+    const attributeMetadata = this.entities[entityName].attributes[propertyName];
+
+    if (attributeMetadata && (attributeMetadata.role !== 'index' || value.role !== 'index')) {
       throw new DynamodeStorageError(`Attribute "${propertyName}" was already decorated in entity "${entityName}"`);
+    }
+
+    if (attributeMetadata && attributeMetadata.role === 'index' && value.role === 'index') {
+      return void attributeMetadata.indexes.push(...value.indexes);
     }
 
     this.entities[entityName].attributes[propertyName] = value;
@@ -169,19 +175,19 @@ export default class DynamodeStorage {
         validateMetadataAttribute({
           name: index.partitionKey,
           attributes,
-          role: 'gsiPartitionKey',
+          role: 'index',
           indexName,
           entityName,
         });
 
         if (index.sortKey) {
-          validateMetadataAttribute({ name: index.sortKey, attributes, role: 'gsiSortKey', indexName, entityName });
+          validateMetadataAttribute({ name: index.sortKey, attributes, role: 'index', indexName, entityName });
         }
       }
 
       // Validate LSI
       if (index.sortKey && !index.partitionKey) {
-        validateMetadataAttribute({ name: index.sortKey, attributes, role: 'lsiSortKey', indexName, entityName });
+        validateMetadataAttribute({ name: index.sortKey, attributes, role: 'index', indexName, entityName });
       }
     });
   }

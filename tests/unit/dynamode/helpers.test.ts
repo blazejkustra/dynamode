@@ -5,7 +5,7 @@ import {
   validateMetadataAttribute,
   validateMetadataUniqueness,
 } from '@lib/dynamode/storage/helpers/validator';
-import { AttributesMetadata } from '@lib/dynamode/storage/types';
+import { AttributesMetadata, IndexAttributeMetadata } from '@lib/dynamode/storage/types';
 import { Metadata } from '@lib/table/types';
 
 import { MockEntity, TEST_TABLE_NAME } from '../../fixtures';
@@ -31,24 +31,35 @@ const attributes: AttributesMetadata = {
   GSI_1_PK: {
     propertyName: 'GSI_1_PK',
     type: String,
-    role: 'gsiPartitionKey',
-    indexName: 'GSI_1_NAME',
+    role: 'index',
+    indexes: [{ name: 'GSI_1_NAME', role: 'gsiPartitionKey' }],
     prefix: undefined,
     suffix: undefined,
   },
-  GSI_1_SK: {
-    propertyName: 'GSI_1_SK',
+  GSI_2_PK: {
+    propertyName: 'GSI_2_PK',
+    type: String,
+    role: 'index',
+    indexes: [{ name: 'GSI_2_NAME', role: 'gsiPartitionKey' }],
+    prefix: undefined,
+    suffix: undefined,
+  },
+  GSI_SK: {
+    propertyName: 'GSI_SK',
     type: Number,
-    role: 'gsiSortKey',
-    indexName: 'GSI_1_NAME',
+    role: 'index',
+    indexes: [
+      { name: 'GSI_1_NAME', role: 'gsiSortKey' },
+      { name: 'GSI_2_NAME', role: 'gsiSortKey' },
+    ],
     prefix: undefined,
     suffix: undefined,
   },
   LSI_1_SK: {
     propertyName: 'LSI_1_SK',
     type: Number,
-    role: 'lsiSortKey',
-    indexName: 'LSI_1_NAME',
+    role: 'index',
+    indexes: [{ name: 'LSI_1_NAME', role: 'gsiSortKey' }],
     prefix: undefined,
     suffix: undefined,
   },
@@ -85,7 +96,11 @@ const metadata: Metadata<typeof MockEntity> = {
   indexes: {
     GSI_1_NAME: {
       partitionKey: 'GSI_1_PK',
-      sortKey: 'GSI_1_SK',
+      sortKey: 'GSI_SK',
+    },
+    GSI_2_NAME: {
+      partitionKey: 'GSI_2_PK',
+      sortKey: 'GSI_SK',
     },
     LSI_1_NAME: {
       sortKey: 'LSI_1_SK',
@@ -102,7 +117,7 @@ const metadataInvalid: Metadata<typeof MockEntity> = {
   indexes: {
     GSI_1_NAME: {
       partitionKey: 'partitionKey',
-      sortKey: 'GSI_1_SK',
+      sortKey: 'GSI_SK',
     },
     LSI_1_NAME: {
       sortKey: 'LSI_1_SK',
@@ -134,7 +149,7 @@ describe('Dynamode helpers', () => {
       expect(
         validateMetadataAttribute({
           name: 'GSI_1_PK',
-          role: 'gsiPartitionKey',
+          role: 'index',
           attributes: { GSI_1_PK: attributes.GSI_1_PK },
           indexName: 'GSI_1_NAME',
           entityName,
@@ -142,9 +157,9 @@ describe('Dynamode helpers', () => {
       ).toBeUndefined();
       expect(
         validateMetadataAttribute({
-          name: 'GSI_1_SK',
-          role: 'gsiSortKey',
-          attributes: { GSI_1_SK: attributes.GSI_1_SK },
+          name: 'GSI_SK',
+          role: 'index',
+          attributes: { GSI_SK: attributes.GSI_SK },
           indexName: 'GSI_1_NAME',
           entityName,
         }),
@@ -152,7 +167,7 @@ describe('Dynamode helpers', () => {
       expect(
         validateMetadataAttribute({
           name: 'LSI_1_SK',
-          role: 'lsiSortKey',
+          role: 'index',
           attributes: { LSI_1_SK: attributes.LSI_1_SK },
           indexName: 'LSI_1_NAME',
           entityName,
@@ -174,7 +189,7 @@ describe('Dynamode helpers', () => {
           attributes: { partitionKey: attributes.partitionKey },
           entityName,
         }),
-      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
     });
 
     test('Should throw an error for indexName mismatch', async () => {
@@ -186,24 +201,24 @@ describe('Dynamode helpers', () => {
           indexName: 'indexName',
           entityName,
         }),
-      ).toThrowError(/^Attribute ".*" is decorated with a wrong index in "EntityName" Entity.$/);
+      ).toThrowError(/^Attribute ".*" should be decorated with index "indexName" in "EntityName" Entity.$/);
       expect(() =>
         validateMetadataAttribute({
-          name: 'GSI_1_SK',
-          role: 'gsiSortKey',
-          attributes: { GSI_1_SK: attributes.GSI_1_SK },
+          name: 'GSI_SK',
+          role: 'index',
+          attributes: { GSI_SK: attributes.GSI_SK },
           indexName: 'indexName',
           entityName,
         }),
-      ).toThrowError(/^Attribute ".*" is decorated with a wrong index in "EntityName" Entity.$/);
+      ).toThrowError(/^Attribute ".*" is not decorated with index "indexName" in "EntityName" Entity.$/);
       expect(() =>
         validateMetadataAttribute({
-          name: 'GSI_1_SK',
-          role: 'gsiSortKey',
-          attributes: { GSI_1_SK: attributes.GSI_1_SK },
+          name: 'GSI_SK',
+          role: 'index',
+          attributes: { GSI_SK: attributes.GSI_SK },
           entityName,
         }),
-      ).toThrowError(/^Attribute ".*" is decorated with a wrong index in "EntityName" Entity.$/);
+      ).toThrowError(/^Index for attribute ".*" should be added to "EntityName" Entity metadata.$/);
     });
 
     test("Should throw an error if attribute roles doesn't match", async () => {
@@ -233,7 +248,7 @@ describe('Dynamode helpers', () => {
       ).toBeUndefined();
 
       expect(
-        validateDecoratedAttribute({ name: 'GSI_1_SK', attribute: attributes.GSI_1_SK, entityName, metadata }),
+        validateDecoratedAttribute({ name: 'GSI_SK', attribute: attributes.GSI_SK, entityName, metadata }),
       ).toBeUndefined();
 
       expect(
@@ -256,23 +271,44 @@ describe('Dynamode helpers', () => {
     test('Should throw an error if decorated attribute is different than this in metadata', async () => {
       expect(() =>
         validateDecoratedAttribute({ name: 'name', attribute: attributes.partitionKey, entityName, metadata }),
-      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
 
       expect(() =>
         validateDecoratedAttribute({ name: 'name', attribute: attributes.sortKey, entityName, metadata }),
-      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
 
       expect(() =>
         validateDecoratedAttribute({ name: 'name', attribute: attributes.GSI_1_PK, entityName, metadata }),
-      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
 
       expect(() =>
-        validateDecoratedAttribute({ name: 'name', attribute: attributes.GSI_1_SK, entityName, metadata }),
-      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+        validateDecoratedAttribute({ name: 'name', attribute: attributes.GSI_SK, entityName, metadata }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
 
       expect(() =>
         validateDecoratedAttribute({ name: 'name', attribute: attributes.LSI_1_SK, entityName, metadata }),
-      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.$/);
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
+
+      expect(() =>
+        validateDecoratedAttribute({
+          name: 'LSI_1_SK',
+          attribute: { ...attributes.LSI_1_SK, indexes: [] } as IndexAttributeMetadata,
+          entityName,
+          metadata,
+        }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
+
+      expect(() =>
+        validateDecoratedAttribute({
+          name: 'LSI_1_SK',
+          attribute: {
+            ...attributes.LSI_1_SK,
+            indexes: [{ name: 'LSI_1_NAME', role: 'invalid' as any }],
+          } as IndexAttributeMetadata,
+          entityName,
+          metadata,
+        }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
     });
   });
 

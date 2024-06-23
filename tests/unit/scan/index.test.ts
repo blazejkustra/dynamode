@@ -148,16 +148,6 @@ describe('Scan', () => {
     });
   });
 
-  describe('indexName', () => {
-    test('Should set IndexName on scan input', async () => {
-      scan.indexName('GSI_1_NAME');
-      expect(scan['input'].IndexName).toEqual('GSI_1_NAME');
-
-      scan.indexName('LSI_1_NAME');
-      expect(scan['input'].IndexName).toEqual('LSI_1_NAME');
-    });
-  });
-
   describe('segment', () => {
     test('Should set Segment on scan input', async () => {
       scan.segment(1);
