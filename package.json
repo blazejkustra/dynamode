@@ -12,7 +12,7 @@
     "test": "vitest run unit",
     "test:watch": "vitest unit",
     "test:e2e": "vitest run e2e --no-file-parallelism",
-    "test:ui": "vitest --ui",
+    "test:ui": "vitest unit --ui",
     "test:types": "vitest run types --typecheck",
     "coverage": "vitest run unit --coverage",
     "lint": "eslint lib --ext .ts,.js --max-warnings 0",

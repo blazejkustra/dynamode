@@ -44,5 +44,14 @@ describe('Decorators', () => {
         suffix: 'SUFFIX',
       });
     });
+
+    test('Should call storage registerAttribute method with additional options', async () => {
+      expect(() =>
+        decorateAttribute(String, 'gsiPartitionKey', {
+          prefix: 'PREFIX',
+          suffix: 'SUFFIX',
+        })(mockInstance, 'gsiKey'),
+      ).toThrowError('Index name is required for gsiPartitionKey attribute');
+    });
   });
 });

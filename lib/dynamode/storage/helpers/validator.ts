@@ -51,7 +51,7 @@ export function validateDecoratedAttribute({
     partitionKey: ({ name, metadata }) => metadata.partitionKey !== name,
     sortKey: ({ name, metadata }) => metadata.sortKey !== name,
     index: ({ attribute, name, metadata }) => {
-      if (!('indexes' in attribute)) {
+      if (!('indexes' in attribute) || !attribute.indexes.length) {
         return true;
       }
 

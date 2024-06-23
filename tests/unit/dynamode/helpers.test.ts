@@ -5,7 +5,7 @@ import {
   validateMetadataAttribute,
   validateMetadataUniqueness,
 } from '@lib/dynamode/storage/helpers/validator';
-import { AttributesMetadata } from '@lib/dynamode/storage/types';
+import { AttributesMetadata, IndexAttributeMetadata } from '@lib/dynamode/storage/types';
 import { Metadata } from '@lib/table/types';
 
 import { MockEntity, TEST_TABLE_NAME } from '../../fixtures';
@@ -287,6 +287,27 @@ describe('Dynamode helpers', () => {
 
       expect(() =>
         validateDecoratedAttribute({ name: 'name', attribute: attributes.LSI_1_SK, entityName, metadata }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
+
+      expect(() =>
+        validateDecoratedAttribute({
+          name: 'LSI_1_SK',
+          attribute: { ...attributes.LSI_1_SK, indexes: [] } as IndexAttributeMetadata,
+          entityName,
+          metadata,
+        }),
+      ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
+
+      expect(() =>
+        validateDecoratedAttribute({
+          name: 'LSI_1_SK',
+          attribute: {
+            ...attributes.LSI_1_SK,
+            indexes: [{ name: 'LSI_1_NAME', role: 'invalid' as any }],
+          } as IndexAttributeMetadata,
+          entityName,
+          metadata,
+        }),
       ).toThrowError(/^Attribute ".*" is decorated with a wrong role in "EntityName" Entity.*/);
     });
   });
