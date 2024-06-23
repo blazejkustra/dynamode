@@ -152,6 +152,14 @@ This comparison function will check if the given key is between the values that 
 UserManager.query().sortKey('sortKey').between('bla', 'cla'); // Resulting in: `sortKey BETWEEN 'bla' AND 'cla'`
 ```
 
+## Query.indexName(name)
+
+The name of a secondary index to query. This index can be any local secondary index or global secondary index. The `name` parameter is a string, narrowed down to entity index names. It uses DynamoDB's `IndexName`.
+
+```ts  
+UserManager.query().partitionKey('partitionKey').eq('1').indexName('LSI_1_NAME') // Resulting in: `IndexName: LSI_1_NAME`
+```
+
 ## Query.sort(order)
 
 This method sorts the items you receive by using sort key. It uses DynamoDB's `ScanIndexForward`.
