@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { DynamoDB, QueryInput } from '@aws-sdk/client-dynamodb';
 import Dynamode from '@lib/dynamode/index';
+import { AttributesMetadata } from '@lib/dynamode/storage/types';
 import * as entityConvertHelpers from '@lib/entity/helpers/converters';
 import Query from '@lib/query';
 import { Metadata } from '@lib/table/types';
@@ -9,6 +10,83 @@ import { BASE_OPERATOR } from '@lib/utils';
 import * as utils from '@lib/utils/helpers';
 
 import { MockEntity, MockEntityManager, mockInstance, TEST_TABLE_NAME } from '../../fixtures';
+
+const attributes = {
+  partitionKey: {
+    propertyName: 'partitionKey',
+    type: String,
+    role: 'partitionKey',
+    indexName: undefined,
+    prefix: 'prefix',
+    suffix: undefined,
+  },
+  sortKey: {
+    propertyName: 'sortKey',
+    type: String,
+    role: 'sortKey',
+    indexName: undefined,
+    prefix: undefined,
+    suffix: undefined,
+  },
+  GSI_1_PK: {
+    propertyName: 'GSI_1_PK',
+    type: String,
+    role: 'index',
+    indexes: [{ name: 'GSI_1_NAME', role: 'gsiPartitionKey' }],
+    prefix: undefined,
+    suffix: undefined,
+  },
+  GSI_2_PK: {
+    propertyName: 'GSI_2_PK',
+    type: String,
+    role: 'index',
+    indexes: [
+      { name: 'GSI_2_NAME', role: 'gsiPartitionKey' },
+      { name: 'GSI_3_NAME', role: 'gsiPartitionKey' },
+    ],
+    prefix: undefined,
+    suffix: undefined,
+  },
+  GSI_SK: {
+    propertyName: 'GSI_SK',
+    type: Number,
+    role: 'index',
+    indexes: [
+      { name: 'GSI_1_NAME', role: 'gsiSortKey' },
+      { name: 'GSI_2_NAME', role: 'gsiSortKey' },
+      { name: 'GSI_3_NAME', role: 'gsiSortKey' },
+    ],
+    prefix: undefined,
+    suffix: undefined,
+  },
+  LSI_1_SK: {
+    propertyName: 'LSI_1_SK',
+    type: Number,
+    role: 'index',
+    indexes: [{ name: 'LSI_1_NAME', role: 'gsiSortKey' }],
+    prefix: undefined,
+    suffix: undefined,
+  },
+  LSI_1_SK_invalid: {
+    propertyName: 'LSI_1_SK',
+    type: Number,
+    role: 'index',
+    indexes: [
+      { name: 'LSI_1_NAME', role: 'gsiSortKey' },
+      { name: 'LSI_2_NAME', role: 'gsiSortKey' },
+    ],
+    prefix: undefined,
+    suffix: undefined,
+  },
+  attr: {
+    propertyName: 'attr',
+    type: String,
+    role: 'attribute',
+    indexName: undefined,
+    prefix: undefined,
+    suffix: undefined,
+  },
+} satisfies AttributesMetadata;
 
 vi.mock('@lib/utils/ExpressionBuilder', () => {
   const ExpressionBuilder = vi.fn(() => ({
@@ -371,40 +449,103 @@ describe('Query', () => {
     });
   });
 
-  // describe('setAssociatedIndexName', () => {
-  //   const getEntityAttributesSpy = vi.spyOn(Dynamode.storage, 'getEntityAttributes');
+  describe('setAssociatedIndexName', () => {
+    const getEntityAttributesSpy = vi.spyOn(Dynamode.storage, 'getEntityAttributes');
 
-  //   beforeEach(() => {
-  //     vi.restoreAllMocks();
-  //   });
+    beforeEach(() => {
+      vi.restoreAllMocks();
+    });
 
-  //   test('Should set proper IndexName on query input for primary partitionKey', async () => {
-  //     getEntityAttributesSpy.mockReturnValue({
-  //       partitionKey: {
-  //         propertyName: 'partitionKey',
-  //         role: 'partitionKey',
-  //         type: String,
-  //       },
-  //     });
-  //     query['setAssociatedIndexName']('partitionKey');
+    test("Should not set IndexName if it's already set", async () => {
+      query['input'].IndexName = 'test';
+      query['setAssociatedIndexName']();
 
-  //     expect(query['input'].IndexName).toEqual(undefined);
-  //   });
+      expect(query['input'].IndexName).toEqual('test');
+    });
 
-  //   test('Should set proper IndexName on query input for an attribute associated with index', async () => {
-  //     getEntityAttributesSpy.mockReturnValue({
-  //       GSI_1_PK: {
-  //         indexName: 'GSI_1_NAME',
-  //         propertyName: 'GSI_1_PK',
-  //         role: 'gsiPartitionKey',
-  //         type: String,
-  //       },
-  //     });
-  //     query['setAssociatedIndexName']('GSI_1_PK');
+    test("Should throw if partitionKey method wasn't used", async () => {
+      expect(() => query['setAssociatedIndexName']()).toThrowError(
+        'You need to use ".partitionKey()" method before calling ".run()"',
+      );
+    });
 
-  //     expect(query['input'].IndexName).toEqual('GSI_1_NAME');
-  //   });
-  // });
+    test("Should not set IndexName if it's already set", async () => {
+      query['input'].IndexName = 'test';
+      query['setAssociatedIndexName']();
+
+      expect(query['input'].IndexName).toEqual('test');
+    });
+
+    test('Should not set IndexName for primary partitionKey', async () => {
+      query['partitionKeyMetadata'] = attributes.partitionKey;
+      query['sortKeyMetadata'] = undefined;
+      query['setAssociatedIndexName']();
+      expect(query['input'].IndexName).toEqual(undefined);
+
+      query['partitionKeyMetadata'] = attributes.partitionKey;
+      query['sortKeyMetadata'] = attributes.sortKey;
+      query['setAssociatedIndexName']();
+      expect(query['input'].IndexName).toEqual(undefined);
+
+      query['partitionKeyMetadata'] = attributes.partitionKey;
+      query['sortKeyMetadata'] = attributes.attr;
+      query['setAssociatedIndexName']();
+      expect(query['input'].IndexName).toEqual(undefined);
+    });
+
+    test('Should set IndexName for GSI with sort key', async () => {
+      query['partitionKeyMetadata'] = attributes.GSI_1_PK;
+      query['sortKeyMetadata'] = attributes.GSI_SK;
+      query['setAssociatedIndexName']();
+      expect(query['input'].IndexName).toEqual('GSI_1_NAME');
+    });
+
+    test('Should set IndexName for LSI with sort key', async () => {
+      query['partitionKeyMetadata'] = attributes.partitionKey;
+      query['sortKeyMetadata'] = attributes.LSI_1_SK;
+      query['setAssociatedIndexName']();
+      expect(query['input'].IndexName).toEqual('LSI_1_NAME');
+    });
+
+    test('Should set IndexName for GSI without sort key', async () => {
+      query['partitionKeyMetadata'] = attributes.GSI_1_PK;
+      query['sortKeyMetadata'] = undefined;
+      query['setAssociatedIndexName']();
+      expect(query['input'].IndexName).toEqual('GSI_1_NAME');
+    });
+
+    test('Should throw error for LSI with multiple indexes', async () => {
+      query['partitionKeyMetadata'] = attributes.partitionKey;
+      query['sortKeyMetadata'] = attributes.LSI_1_SK_invalid;
+      expect(() => query['setAssociatedIndexName']()).toThrowError(
+        'Multiple indexes found for "LSI_1_SK", an LSI can only have one index',
+      );
+    });
+
+    test('Should throw error for GSI with multiple indexes', async () => {
+      query['partitionKeyMetadata'] = attributes.GSI_2_PK;
+      query['sortKeyMetadata'] = undefined;
+      expect(() => query['setAssociatedIndexName']()).toThrowError(
+        'Multiple indexes found for "GSI_2_PK", please use ".indexName(GSI_2_NAME | GSI_3_NAME)" method to specify the index name',
+      );
+    });
+
+    test('Should throw error for no common indexes', async () => {
+      query['partitionKeyMetadata'] = attributes.GSI_1_PK;
+      query['sortKeyMetadata'] = attributes.LSI_1_SK;
+      expect(() => query['setAssociatedIndexName']()).toThrowError(
+        'No common indexes found for "GSI_1_PK" and "LSI_1_SK"',
+      );
+    });
+
+    test('Should throw error for multiple common indexes', async () => {
+      query['partitionKeyMetadata'] = attributes.GSI_2_PK;
+      query['sortKeyMetadata'] = attributes.GSI_SK;
+      expect(() => query['setAssociatedIndexName']()).toThrowError(
+        'Multiple common indexes found for "GSI_2_PK" and "GSI_SK"',
+      );
+    });
+  });
 
   describe('buildQueryInput', () => {
     test('Should successfully build query input without extraInput', async () => {
