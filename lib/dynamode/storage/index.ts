@@ -1,9 +1,8 @@
-import {
-  validateDecoratedAttribute,
-  validateMetadataAttribute,
-  validateMetadataUniqueness,
-} from '@lib/dynamode/storage/helpers/validator';
+import { Except } from 'type-fest';
+
+import { validateDecoratedAttribute, validateMetadataAttribute } from '@lib/dynamode/storage/helpers/validator';
 import type {
+  AttributeIndexMetadata,
   AttributeMetadata,
   AttributesMetadata,
   EntitiesMetadata,
@@ -51,21 +50,43 @@ export default class DynamodeStorage {
     this.entities[entity.name] = entityMetadata;
   }
 
-  public registerAttribute(entityName: string, propertyName: string, value: AttributeMetadata): void {
+  public registerAttribute(
+    entityName: string,
+    propertyName: string,
+    value: Except<AttributeMetadata, 'indexes'>,
+  ): void {
     if (!this.entities[entityName]) {
       this.entities[entityName] = { attributes: {} } as EntityMetadata;
     }
 
     const attributeMetadata = this.entities[entityName].attributes[propertyName];
 
-    if (attributeMetadata && (attributeMetadata.role !== 'index' || value.role !== 'index')) {
+    // Throw error if attribute was already decorated and it's not an index
+    if (attributeMetadata && attributeMetadata.role !== 'index') {
       throw new DynamodeStorageError(`Attribute "${propertyName}" was already decorated in entity "${entityName}"`);
     }
 
-    if (attributeMetadata && attributeMetadata.role === 'index' && value.role === 'index') {
-      return void attributeMetadata.indexes.push(...value.indexes);
+    // Otherwise, register attribute and copy over indexes
+    this.entities[entityName].attributes[propertyName] = {
+      ...value,
+      indexes: attributeMetadata?.indexes,
+    };
+  }
+
+  public registerIndex(entityName: string, propertyName: string, value: AttributeIndexMetadata): void {
+    if (!this.entities[entityName]) {
+      this.entities[entityName] = { attributes: {} } as EntityMetadata;
     }
 
+    const attributeMetadata = this.entities[entityName].attributes[propertyName];
+
+    // Merge indexes if attribute was already decorated
+    if (attributeMetadata) {
+      attributeMetadata.indexes = [...(attributeMetadata.indexes ?? []), ...value.indexes];
+      return;
+    }
+
+    // Register attribute with indexes
     this.entities[entityName].attributes[propertyName] = value;
   }
 
@@ -138,28 +159,25 @@ export default class DynamodeStorage {
     const metadata = this.getEntityMetadata(entityName);
     const attributes = this.getEntityAttributes(entityName);
 
-    // Validate metadata
-    validateMetadataUniqueness(entityName, metadata);
-
     // Validate decorated attributes
     Object.entries(attributes).forEach(([name, attribute]) =>
       validateDecoratedAttribute({ name, attribute, metadata, entityName }),
     );
 
     // Validate table partition key
-    validateMetadataAttribute({ name: metadata.partitionKey, attributes, role: 'partitionKey', entityName });
+    validateMetadataAttribute({ name: metadata.partitionKey, attributes, validRoles: ['partitionKey'], entityName });
 
     // Validate table sort key
     if (metadata.sortKey) {
-      validateMetadataAttribute({ name: metadata.sortKey, attributes, role: 'sortKey', entityName });
+      validateMetadataAttribute({ name: metadata.sortKey, attributes, validRoles: ['sortKey'], entityName });
     }
 
     // Validate table timestamps
     if (metadata.createdAt) {
-      validateMetadataAttribute({ name: metadata.createdAt, attributes, role: 'date', entityName });
+      validateMetadataAttribute({ name: metadata.createdAt, attributes, validRoles: ['date'], entityName });
     }
     if (metadata.updatedAt) {
-      validateMetadataAttribute({ name: metadata.updatedAt, attributes, role: 'date', entityName });
+      validateMetadataAttribute({ name: metadata.updatedAt, attributes, validRoles: ['date'], entityName });
     }
 
     // Validate table indexes
@@ -175,19 +193,31 @@ export default class DynamodeStorage {
         validateMetadataAttribute({
           name: index.partitionKey,
           attributes,
-          role: 'index',
           indexName,
           entityName,
+          validRoles: ['partitionKey', 'index'],
         });
 
         if (index.sortKey) {
-          validateMetadataAttribute({ name: index.sortKey, attributes, role: 'index', indexName, entityName });
+          validateMetadataAttribute({
+            name: index.sortKey,
+            attributes,
+            indexName,
+            entityName,
+            validRoles: ['sortKey', 'index'],
+          });
         }
       }
 
       // Validate LSI
       if (index.sortKey && !index.partitionKey) {
-        validateMetadataAttribute({ name: index.sortKey, attributes, role: 'index', indexName, entityName });
+        validateMetadataAttribute({
+          name: index.sortKey,
+          attributes,
+          indexName,
+          entityName,
+          validRoles: ['sortKey', 'index'],
+        });
       }
     });
   }

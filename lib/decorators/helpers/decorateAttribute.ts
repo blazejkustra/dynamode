@@ -19,7 +19,7 @@ export function decorateAttribute(
         throw new Error(`Index name is required for ${role} attribute`);
       }
 
-      return Dynamode.storage.registerAttribute(entityName, propertyName, {
+      return Dynamode.storage.registerIndex(entityName, propertyName, {
         propertyName,
         type,
         role: 'index',
