@@ -4,7 +4,6 @@ import { convertToAttr, convertToNative, marshall, unmarshall } from '@aws-sdk/u
 import Dynamode from '@lib/dynamode/index';
 import DynamodeStorage from '@lib/dynamode/storage';
 import * as storageHelper from '@lib/dynamode/storage/helpers/validator';
-import { IndexAttributeMetadata } from '@lib/dynamode/storage/types';
 import { Metadata } from '@lib/table/types';
 import { DynamodeStorageError, ValidationError } from '@lib/utils/errors';
 
@@ -102,17 +101,14 @@ describe('Dynamode', () => {
           prefix: 'prefix',
           suffix: 'suffix',
           type: String,
-          role: 'index',
-          indexes: [{ name: 'indexName', role: 'gsiPartitionKey' }],
+          role: 'partitionKey',
         });
         expect(storage.entities[MockEntity.name].attributes['propertyName'].propertyName).toEqual('propertyName');
-        expect(
-          (storage.entities[MockEntity.name].attributes['propertyName'] as IndexAttributeMetadata).indexes,
-        ).toEqual([{ name: 'indexName', role: 'gsiPartitionKey' }]);
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].indexes).toEqual(undefined);
         expect(storage.entities[MockEntity.name].attributes['propertyName'].prefix).toEqual('prefix');
         expect(storage.entities[MockEntity.name].attributes['propertyName'].suffix).toEqual('suffix');
         expect(storage.entities[MockEntity.name].attributes['propertyName'].type).toEqual(String);
-        expect(storage.entities[MockEntity.name].attributes['propertyName'].role).toEqual('index');
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].role).toEqual('partitionKey');
       });
 
       test('Should successfully register parent class property', async () => {
@@ -164,10 +160,9 @@ describe('Dynamode', () => {
             type: Number,
           },
           propertyName: {
-            indexes: [{ name: 'indexName', role: 'gsiPartitionKey' }],
             prefix: 'PREFIX',
             propertyName: 'propertyName',
-            role: 'index',
+            role: 'partitionKey',
             suffix: 'SUFFIX',
             type: String,
           },
@@ -250,13 +245,13 @@ describe('Dynamode', () => {
         expect(validateMetadataAttribute).toHaveBeenNthCalledWith(1, {
           name: 'partitionKey',
           entityName: 'TestTable',
-          role: 'partitionKey',
+          validRoles: ['partitionKey'],
           attributes: {},
         });
         expect(validateMetadataAttribute).toHaveBeenNthCalledWith(2, {
           name: 'sortKey',
           entityName: 'TestTable',
-          role: 'sortKey',
+          validRoles: ['sortKey'],
           attributes: {},
         });
       });
@@ -274,13 +269,13 @@ describe('Dynamode', () => {
         expect(validateMetadataAttribute).toHaveBeenNthCalledWith(1, {
           name: 'pk',
           entityName: 'TestTable',
-          role: 'partitionKey',
+          validRoles: ['partitionKey'],
           attributes: {},
         });
         expect(validateMetadataAttribute).toHaveBeenNthCalledWith(2, {
           name: 'sk',
           entityName: 'TestTable',
-          role: 'sortKey',
+          validRoles: ['sortKey'],
           attributes: {},
         });
       });
@@ -300,7 +295,7 @@ describe('Dynamode', () => {
         expect(validateMetadataAttribute).toHaveBeenNthCalledWith(1, {
           name: 'pk',
           entityName: 'TestTable',
-          role: 'partitionKey',
+          validRoles: ['partitionKey'],
           attributes: {},
         });
       });

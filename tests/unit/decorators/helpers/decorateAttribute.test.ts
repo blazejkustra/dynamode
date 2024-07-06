@@ -7,10 +7,14 @@ import { MockEntity, mockInstance } from '../../../fixtures';
 
 describe('Decorators', () => {
   let registerAttributeSpy = vi.spyOn(Dynamode.storage, 'registerAttribute');
+  let registerIndexSpy = vi.spyOn(Dynamode.storage, 'registerIndex');
 
   beforeEach(() => {
     registerAttributeSpy = vi.spyOn(Dynamode.storage, 'registerAttribute');
     registerAttributeSpy.mockReturnValue(undefined);
+
+    registerIndexSpy = vi.spyOn(Dynamode.storage, 'registerIndex');
+    registerIndexSpy.mockReturnValue(undefined);
   });
 
   afterEach(() => {
@@ -35,7 +39,7 @@ describe('Decorators', () => {
         indexName: 'GSI',
       })(mockInstance, 'gsiKey');
 
-      expect(registerAttributeSpy).toBeCalledWith(MockEntity.name, 'gsiKey', {
+      expect(registerIndexSpy).toBeCalledWith(MockEntity.name, 'gsiKey', {
         propertyName: 'gsiKey',
         type: String,
         role: 'index',
