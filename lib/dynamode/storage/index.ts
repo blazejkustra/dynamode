@@ -195,7 +195,7 @@ export default class DynamodeStorage {
           attributes,
           indexName,
           entityName,
-          validRoles: ['partitionKey', 'index'],
+          validRoles: ['partitionKey', 'sortKey', 'index'],
         });
 
         if (index.sortKey) {
@@ -204,7 +204,7 @@ export default class DynamodeStorage {
             attributes,
             indexName,
             entityName,
-            validRoles: ['sortKey', 'index'],
+            validRoles: ['partitionKey', 'sortKey', 'index'],
           });
         }
       }
