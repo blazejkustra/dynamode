@@ -4,7 +4,7 @@ import { GlobalSecondaryIndex, LocalSecondaryIndex } from '@aws-sdk/client-dynam
 import { getTableGlobalSecondaryIndexes, getTableLocalSecondaryIndexes } from '@lib/table/helpers/indexes';
 import * as schemaHelper from '@lib/table/helpers/schema';
 
-import { TestTable, TestTableManager, TestTableMetadata } from '../../../fixtures';
+import { TestTable, TestTableManager, TestTableMetadata } from '../../../fixtures/TestTable';
 
 describe('getTableLocalSecondaryIndexes', () => {
   let getKeySchemaSpy = vi.spyOn(schemaHelper, 'getKeySchema');

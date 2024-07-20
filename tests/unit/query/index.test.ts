@@ -9,7 +9,7 @@ import { Metadata } from '@lib/table/types';
 import { BASE_OPERATOR } from '@lib/utils';
 import * as utils from '@lib/utils/helpers';
 
-import { MockEntity, MockEntityManager, mockInstance, TEST_TABLE_NAME } from '../../fixtures';
+import { MockEntity, MockEntityManager, mockInstance, TEST_TABLE_NAME } from '../../fixtures/TestTable';
 
 const attributes = {
   partitionKey: {

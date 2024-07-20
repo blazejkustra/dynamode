@@ -19,7 +19,7 @@ import * as schemaHelper from '@lib/table/helpers/schema';
 import * as validatorHelper from '@lib/table/helpers/validator';
 import { ValidationError } from '@lib/utils';
 
-import { MockEntity, MockEntityManager, TEST_TABLE_NAME, TestTable, TestTableManager } from '../../fixtures';
+import { MockEntity, MockEntityManager, TEST_TABLE_NAME, TestTable, TestTableManager } from '../../fixtures/TestTable';
 
 const metadata = {
   tableName: TEST_TABLE_NAME,

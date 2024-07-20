@@ -5,7 +5,7 @@ import Stream from '@lib/stream';
 import { DynamoDBRecord } from '@lib/stream/types';
 import { DynamodeStreamError } from '@lib/utils';
 
-import { mockDate, MockEntity, mockInstance, TestTable } from '../../fixtures';
+import { mockDate, MockEntity, mockInstance, TestTable } from '../../fixtures/TestTable';
 
 const validMockEntityImage = {
   dynamodeEntity: { S: 'MockEntity' },

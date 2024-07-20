@@ -5,7 +5,7 @@ import * as entityConvertHelpers from '@lib/entity/helpers/converters';
 import RetrieverBase from '@lib/retriever';
 import { BASE_OPERATOR } from '@lib/utils';
 
-import { MockEntity, TEST_TABLE_NAME, TestTableMetadata } from '../../fixtures';
+import { MockEntity, TEST_TABLE_NAME, TestTableMetadata } from '../../fixtures/TestTable';
 
 describe('RetrieverBase', () => {
   let retriever = new RetrieverBase<TestTableMetadata, typeof MockEntity>(MockEntity);

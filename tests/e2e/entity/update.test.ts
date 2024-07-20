@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 
-import { mockDate, MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../../fixtures';
+import { mockDate, MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../../fixtures/TestTable';
 import { mockEntityFactory } from '../mockEntityFactory';
 
 describe.sequential('EntityManager.update', () => {

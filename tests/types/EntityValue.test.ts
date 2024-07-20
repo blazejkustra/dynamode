@@ -2,7 +2,7 @@ import { describe, expectTypeOf, test } from 'vitest';
 
 import { EntityValue } from '@lib/entity/types';
 
-import { MockEntity, Property } from '../fixtures';
+import { MockEntity, Property } from '../fixtures/TestTable';
 
 type DynamodeEntityValue = EntityValue<typeof MockEntity, 'dynamodeEntity'>;
 type StringValue = EntityValue<typeof MockEntity, 'string'>;

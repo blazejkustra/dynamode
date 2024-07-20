@@ -4,7 +4,7 @@ import { validateDecoratedAttribute, validateMetadataAttribute } from '@lib/dyna
 import { AttributesMetadata } from '@lib/dynamode/storage/types';
 import { Metadata } from '@lib/table/types';
 
-import { MockEntity, TEST_TABLE_NAME } from '../../fixtures';
+import { MockEntity, TEST_TABLE_NAME } from '../../fixtures/TestTable';
 
 const entityName = 'EntityName';
 const attributes: AttributesMetadata = {

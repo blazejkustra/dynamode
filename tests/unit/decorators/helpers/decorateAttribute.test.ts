@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { decorateAttribute } from '@lib/decorators/helpers/decorateAttribute';
 import Dynamode from '@lib/dynamode/index';
 
-import { MockEntity, mockInstance } from '../../../fixtures';
+import { MockEntity, mockInstance } from '../../../fixtures/TestTable';
 
 describe('Decorators', () => {
   let registerAttributeSpy = vi.spyOn(Dynamode.storage, 'registerAttribute');

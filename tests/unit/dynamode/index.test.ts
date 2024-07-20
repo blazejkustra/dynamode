@@ -7,7 +7,7 @@ import * as storageHelper from '@lib/dynamode/storage/helpers/validator';
 import { Metadata } from '@lib/table/types';
 import { DynamodeStorageError, ValidationError } from '@lib/utils/errors';
 
-import { MockEntity, TEST_TABLE_NAME, TestTable } from '../../fixtures';
+import { MockEntity, TEST_TABLE_NAME, TestTable } from '../../fixtures/TestTable';
 
 const metadata: Metadata<typeof MockEntity> = {
   tableName: TEST_TABLE_NAME,
