@@ -24,19 +24,17 @@ type BaseAttributeMetadata = {
   suffix?: string;
 };
 
-export type NonIndexAttributeMetadata = BaseAttributeMetadata & {
-  role: Exclude<AttributeRole, 'index'>;
-  indexName?: never;
-};
-
 export type IndexMetadata = { name: string; role: AttributeIndexRole };
 
-export type IndexAttributeMetadata = BaseAttributeMetadata & {
+export type AttributeMetadata = BaseAttributeMetadata & {
+  role: AttributeRole;
+  indexes?: IndexMetadata[];
+};
+
+export type AttributeIndexMetadata = BaseAttributeMetadata & {
   role: 'index';
   indexes: IndexMetadata[];
 };
-
-export type AttributeMetadata = NonIndexAttributeMetadata | IndexAttributeMetadata;
 
 export type AttributesMetadata = {
   [attributeName: string]: AttributeMetadata;
@@ -67,7 +65,7 @@ export type ValidateMetadataAttribute = {
   entityName: string;
   name: string;
   attributes: AttributesMetadata;
-  role: AttributeRole;
+  validRoles: AttributeRole[];
   indexName?: string;
 };
 

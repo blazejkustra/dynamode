@@ -125,13 +125,18 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
       throw new ValidationError('You need to use ".partitionKey()" method before calling ".run()"');
     }
 
-    // Primary key
-    if (partitionKeyMetadata.role === 'partitionKey' && sortKeyMetadata?.role !== 'index') {
+    // Primary key without sort key
+    if (partitionKeyMetadata.role === 'partitionKey' && !sortKeyMetadata) {
+      return;
+    }
+
+    // Primary key with sort key
+    if (partitionKeyMetadata.role === 'partitionKey' && sortKeyMetadata?.role === 'sortKey') {
       return;
     }
 
     // GSI with sort key
-    if (partitionKeyMetadata.role === 'index' && sortKeyMetadata?.role === 'index') {
+    if (partitionKeyMetadata.indexes && sortKeyMetadata?.indexes) {
       const pkIndexes: IndexMetadata[] = partitionKeyMetadata.indexes;
       const skIndexes: IndexMetadata[] = sortKeyMetadata.indexes;
 
@@ -153,7 +158,7 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
     }
 
     // GSI without sort key
-    if (partitionKeyMetadata.role === 'index' && !sortKeyMetadata) {
+    if (partitionKeyMetadata.indexes && !sortKeyMetadata) {
       const possibleIndexes = partitionKeyMetadata.indexes;
 
       if (possibleIndexes.length > 1) {
@@ -169,7 +174,7 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
     }
 
     // LSI with sort key
-    if (partitionKeyMetadata.role === 'partitionKey' && sortKeyMetadata?.role === 'index') {
+    if (partitionKeyMetadata.role === 'partitionKey' && sortKeyMetadata?.indexes) {
       const possibleIndexes = sortKeyMetadata.indexes;
 
       if (possibleIndexes.length > 1) {

@@ -17,7 +17,13 @@ import { AttributeValues, NotFoundError } from '@lib/utils';
 import { OPERATORS } from '@lib/utils/constants';
 import * as converterUtils from '@lib/utils/converter';
 
-import { MockEntity, MockEntityManager, mockInstance, TEST_TABLE_NAME, testTableInstance } from '../../fixtures';
+import {
+  MockEntity,
+  MockEntityManager,
+  mockInstance,
+  TEST_TABLE_NAME,
+  testTableInstance,
+} from '../../fixtures/TestTable';
 
 const expressionBuilderRunSpy = vi.fn();
 

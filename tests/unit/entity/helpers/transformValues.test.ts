@@ -4,7 +4,7 @@ import Dynamode from '@lib/dynamode/index';
 import { prefixSuffixValue, transformDateValue, truncateValue } from '@lib/entity/helpers/transformValues';
 import { InvalidParameter } from '@lib/utils';
 
-import { MockEntity } from '../../../fixtures';
+import { MockEntity } from '../../../fixtures/TestTable';
 
 describe('Prefix and suffix entity helpers', () => {
   let getEntityAttributesSpy = vi.spyOn(Dynamode.storage, 'getEntityAttributes');

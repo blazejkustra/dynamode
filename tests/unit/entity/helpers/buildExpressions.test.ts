@@ -10,7 +10,7 @@ import {
 import * as buildOperators from '@lib/entity/helpers/buildOperators';
 import { BASE_OPERATOR, DYNAMODE_ENTITY, OPERATORS, UPDATE_OPERATORS } from '@lib/utils';
 
-import { MockEntity } from '../../../fixtures';
+import { MockEntity } from '../../../fixtures/TestTable';
 
 const expressionBuilderRunSpy = vi.fn();
 

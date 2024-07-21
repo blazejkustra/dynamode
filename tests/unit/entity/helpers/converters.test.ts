@@ -11,7 +11,7 @@ import {
 } from '@lib/entity/helpers/converters';
 import * as transformValuesHelpers from '@lib/entity/helpers/transformValues';
 
-import { mockDate, MockEntity, mockInstance, TestTableMetadata } from '../../../fixtures';
+import { mockDate, MockEntity, mockInstance, TestTableMetadata } from '../../../fixtures/TestTable';
 
 const metadata = {
   tableName: 'test-table',

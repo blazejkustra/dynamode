@@ -4,7 +4,7 @@ import { buildProjectionOperators, buildUpdateOperators } from '@lib/entity/help
 import { Dynamode } from '@lib/module';
 import { BASE_OPERATOR, DYNAMODE_ENTITY, InvalidParameter, UPDATE_OPERATORS } from '@lib/utils';
 
-import { MockEntity } from '../../../fixtures';
+import { MockEntity } from '../../../fixtures/TestTable';
 
 describe('Build operators entity helpers', () => {
   describe('buildProjectionOperators', async () => {

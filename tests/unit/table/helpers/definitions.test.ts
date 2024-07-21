@@ -4,7 +4,7 @@ import { Dynamode } from '@lib/module';
 import { getTableAttributeDefinitions } from '@lib/table/helpers/definitions';
 import * as attributeHelper from '@lib/table/helpers/utils';
 
-import { TestTable, TestTableManager, TestTableMetadata } from '../../../fixtures';
+import { TestTable, TestTableManager, TestTableMetadata } from '../../../fixtures/TestTable';
 
 describe('getTableAttributeDefinitions', () => {
   let getAttributeTypeSpy = vi.spyOn(attributeHelper, 'getAttributeType');

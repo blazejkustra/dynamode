@@ -3,7 +3,7 @@ import { describe, expectTypeOf, test } from 'vitest';
 import Entity from '@lib/entity';
 import { EntityKey } from '@lib/entity/types';
 
-import { MockEntity } from '../fixtures';
+import { MockEntity } from '../fixtures/TestTable';
 
 type BaseKeys = 'dynamodeEntity';
 

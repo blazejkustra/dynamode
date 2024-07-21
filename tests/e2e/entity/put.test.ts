@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 
-import { MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../../fixtures';
+import { MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../../fixtures/TestTable';
 import { mockEntityFactory } from '../mockEntityFactory';
 
 describe.sequential('EntityManager.put', () => {

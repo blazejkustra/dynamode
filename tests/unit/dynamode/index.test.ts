@@ -4,11 +4,10 @@ import { convertToAttr, convertToNative, marshall, unmarshall } from '@aws-sdk/u
 import Dynamode from '@lib/dynamode/index';
 import DynamodeStorage from '@lib/dynamode/storage';
 import * as storageHelper from '@lib/dynamode/storage/helpers/validator';
-import { IndexAttributeMetadata } from '@lib/dynamode/storage/types';
 import { Metadata } from '@lib/table/types';
 import { DynamodeStorageError, ValidationError } from '@lib/utils/errors';
 
-import { MockEntity, TEST_TABLE_NAME, TestTable } from '../../fixtures';
+import { MockEntity, TEST_TABLE_NAME, TestTable } from '../../fixtures/TestTable';
 
 const metadata: Metadata<typeof MockEntity> = {
   tableName: TEST_TABLE_NAME,
@@ -102,17 +101,14 @@ describe('Dynamode', () => {
           prefix: 'prefix',
           suffix: 'suffix',
           type: String,
-          role: 'index',
-          indexes: [{ name: 'indexName', role: 'gsiPartitionKey' }],
+          role: 'partitionKey',
         });
         expect(storage.entities[MockEntity.name].attributes['propertyName'].propertyName).toEqual('propertyName');
-        expect(
-          (storage.entities[MockEntity.name].attributes['propertyName'] as IndexAttributeMetadata).indexes,
-        ).toEqual([{ name: 'indexName', role: 'gsiPartitionKey' }]);
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].indexes).toEqual(undefined);
         expect(storage.entities[MockEntity.name].attributes['propertyName'].prefix).toEqual('prefix');
         expect(storage.entities[MockEntity.name].attributes['propertyName'].suffix).toEqual('suffix');
         expect(storage.entities[MockEntity.name].attributes['propertyName'].type).toEqual(String);
-        expect(storage.entities[MockEntity.name].attributes['propertyName'].role).toEqual('index');
+        expect(storage.entities[MockEntity.name].attributes['propertyName'].role).toEqual('partitionKey');
       });
 
       test('Should successfully register parent class property', async () => {
@@ -139,6 +135,124 @@ describe('Dynamode', () => {
       });
     });
 
+    describe('registerIndex', () => {
+      test('Should successfully register index', async () => {
+        storage.registerIndex(MockEntity.name, 'propertyNameIndex', {
+          propertyName: 'propertyNameIndex',
+          prefix: 'prefix',
+          suffix: 'suffix',
+          type: String,
+          role: 'index',
+          indexes: [{ name: 'index', role: 'gsiPartitionKey' }],
+        });
+
+        expect(storage.entities[MockEntity.name].attributes['propertyNameIndex'].propertyName).toEqual(
+          'propertyNameIndex',
+        );
+        expect(storage.entities[MockEntity.name].attributes['propertyNameIndex'].indexes).toEqual([
+          { name: 'index', role: 'gsiPartitionKey' },
+        ]);
+        expect(storage.entities[MockEntity.name].attributes['propertyNameIndex'].prefix).toEqual('prefix');
+        expect(storage.entities[MockEntity.name].attributes['propertyNameIndex'].suffix).toEqual('suffix');
+        expect(storage.entities[MockEntity.name].attributes['propertyNameIndex'].type).toEqual(String);
+        expect(storage.entities[MockEntity.name].attributes['propertyNameIndex'].role).toEqual('index');
+      });
+
+      test('Should successfully register parent class property', async () => {
+        storage.registerIndex(TestTable.name, 'parentPropertyNameIndex', {
+          propertyName: 'parentPropertyNameIndex',
+          type: Number,
+          role: 'index',
+          indexes: [{ name: 'index', role: 'lsiSortKey' }],
+        });
+
+        expect(storage.entities[TestTable.name].attributes['parentPropertyNameIndex'].propertyName).toEqual(
+          'parentPropertyNameIndex',
+        );
+        expect(storage.entities[TestTable.name].attributes['parentPropertyNameIndex'].indexes).toEqual([
+          { name: 'index', role: 'lsiSortKey' },
+        ]);
+        expect(storage.entities[TestTable.name].attributes['parentPropertyNameIndex'].type).toEqual(Number);
+        expect(storage.entities[TestTable.name].attributes['parentPropertyNameIndex'].role).toEqual('index');
+      });
+
+      test('Should successfully register indexes multiple times', async () => {
+        storage.registerIndex(TestTable.name, 'propertyNameIndex2', {
+          propertyName: 'propertyNameIndex2',
+          type: Number,
+          role: 'index',
+          indexes: [{ name: 'index1', role: 'lsiSortKey' }],
+        });
+
+        storage.registerIndex(TestTable.name, 'propertyNameIndex2', {
+          propertyName: 'propertyNameIndex2',
+          type: String,
+          role: 'index',
+          indexes: [{ name: 'index2', role: 'gsiSortKey' }],
+        });
+
+        expect(storage.entities[TestTable.name].attributes['propertyNameIndex2'].propertyName).toEqual(
+          'propertyNameIndex2',
+        );
+        expect(storage.entities[TestTable.name].attributes['propertyNameIndex2'].indexes).toEqual([
+          { name: 'index1', role: 'lsiSortKey' },
+          { name: 'index2', role: 'gsiSortKey' },
+        ]);
+        expect(storage.entities[TestTable.name].attributes['propertyNameIndex2'].type).toEqual(Number);
+        expect(storage.entities[TestTable.name].attributes['propertyNameIndex2'].role).toEqual('index');
+      });
+    });
+
+    describe('registerAttribute and registerIndex', () => {
+      test('Should successfully register attribute first then index', async () => {
+        const emptyStorage = new DynamodeStorage();
+
+        emptyStorage.registerAttribute(MockEntity.name, 'propertyName', {
+          propertyName: 'propertyName',
+          type: String,
+          role: 'partitionKey',
+        });
+
+        emptyStorage.registerIndex(MockEntity.name, 'propertyName', {
+          propertyName: 'propertyName',
+          type: String,
+          role: 'index',
+          indexes: [{ name: 'index', role: 'gsiPartitionKey' }],
+        });
+
+        expect(emptyStorage.entities[MockEntity.name].attributes['propertyName'].propertyName).toEqual('propertyName');
+        expect(emptyStorage.entities[MockEntity.name].attributes['propertyName'].indexes).toEqual([
+          { name: 'index', role: 'gsiPartitionKey' },
+        ]);
+        expect(emptyStorage.entities[MockEntity.name].attributes['propertyName'].type).toEqual(String);
+        expect(emptyStorage.entities[MockEntity.name].attributes['propertyName'].role).toEqual('partitionKey');
+      });
+
+      test('Should successfully register index first then attribute', async () => {
+        const emptyStorage = new DynamodeStorage();
+
+        emptyStorage.registerIndex(MockEntity.name, 'propertyName', {
+          propertyName: 'propertyName',
+          type: String,
+          role: 'index',
+          indexes: [{ name: 'index', role: 'gsiPartitionKey' }],
+        });
+
+        emptyStorage.registerAttribute(MockEntity.name, 'propertyName', {
+          propertyName: 'propertyName',
+          type: String,
+          role: 'partitionKey',
+        });
+
+        expect(emptyStorage.entities[MockEntity.name].attributes['propertyName'].propertyName).toEqual('propertyName');
+        expect(emptyStorage.entities[MockEntity.name].attributes['propertyName'].indexes).toEqual([
+          { name: 'index', role: 'gsiPartitionKey' },
+        ]);
+        expect(emptyStorage.entities[MockEntity.name].attributes['propertyName'].type).toEqual(String);
+        expect(emptyStorage.entities[MockEntity.name].attributes['propertyName'].role).toEqual('partitionKey');
+      });
+    });
+
     describe('updateAttributePrefix', () => {
       test('Should successfully update class property with a prefix', async () => {
         expect(storage.entities[MockEntity.name].attributes['propertyName'].prefix).toEqual('prefix');
@@ -162,14 +276,54 @@ describe('Dynamode', () => {
             propertyName: 'parentPropertyName',
             role: 'attribute',
             type: Number,
+            indexes: undefined,
           },
           propertyName: {
-            indexes: [{ name: 'indexName', role: 'gsiPartitionKey' }],
             prefix: 'PREFIX',
             propertyName: 'propertyName',
-            role: 'index',
+            role: 'partitionKey',
             suffix: 'SUFFIX',
             type: String,
+            indexes: undefined,
+          },
+          propertyNameIndex: {
+            indexes: [
+              {
+                name: 'index',
+                role: 'gsiPartitionKey',
+              },
+            ],
+            prefix: 'prefix',
+            propertyName: 'propertyNameIndex',
+            role: 'index',
+            suffix: 'suffix',
+            type: String,
+          },
+          propertyNameIndex2: {
+            indexes: [
+              {
+                name: 'index1',
+                role: 'lsiSortKey',
+              },
+              {
+                name: 'index2',
+                role: 'gsiSortKey',
+              },
+            ],
+            propertyName: 'propertyNameIndex2',
+            role: 'index',
+            type: Number,
+          },
+          parentPropertyNameIndex: {
+            indexes: [
+              {
+                name: 'index',
+                role: 'lsiSortKey',
+              },
+            ],
+            propertyName: 'parentPropertyNameIndex',
+            role: 'index',
+            type: Number,
           },
         });
       });
@@ -250,13 +404,13 @@ describe('Dynamode', () => {
         expect(validateMetadataAttribute).toHaveBeenNthCalledWith(1, {
           name: 'partitionKey',
           entityName: 'TestTable',
-          role: 'partitionKey',
+          validRoles: ['partitionKey'],
           attributes: {},
         });
         expect(validateMetadataAttribute).toHaveBeenNthCalledWith(2, {
           name: 'sortKey',
           entityName: 'TestTable',
-          role: 'sortKey',
+          validRoles: ['sortKey'],
           attributes: {},
         });
       });
@@ -274,13 +428,13 @@ describe('Dynamode', () => {
         expect(validateMetadataAttribute).toHaveBeenNthCalledWith(1, {
           name: 'pk',
           entityName: 'TestTable',
-          role: 'partitionKey',
+          validRoles: ['partitionKey'],
           attributes: {},
         });
         expect(validateMetadataAttribute).toHaveBeenNthCalledWith(2, {
           name: 'sk',
           entityName: 'TestTable',
-          role: 'sortKey',
+          validRoles: ['sortKey'],
           attributes: {},
         });
       });
@@ -300,7 +454,7 @@ describe('Dynamode', () => {
         expect(validateMetadataAttribute).toHaveBeenNthCalledWith(1, {
           name: 'pk',
           entityName: 'TestTable',
-          role: 'partitionKey',
+          validRoles: ['partitionKey'],
           attributes: {},
         });
       });

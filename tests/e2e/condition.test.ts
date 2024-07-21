@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { AttributeType } from '@lib/condition';
 
-import { mockDate, MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../fixtures';
+import { mockDate, MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../fixtures/TestTable';
 
 import { mockEntityFactory } from './mockEntityFactory';
 

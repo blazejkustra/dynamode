@@ -9,14 +9,14 @@ import { Metadata } from '@lib/table/types';
 import { BASE_OPERATOR } from '@lib/utils';
 import * as utils from '@lib/utils/helpers';
 
-import { MockEntity, MockEntityManager, mockInstance, TEST_TABLE_NAME } from '../../fixtures';
+import { MockEntity, MockEntityManager, mockInstance, TEST_TABLE_NAME } from '../../fixtures/TestTable';
 
 const attributes = {
   partitionKey: {
     propertyName: 'partitionKey',
     type: String,
     role: 'partitionKey',
-    indexName: undefined,
+    indexes: undefined,
     prefix: 'prefix',
     suffix: undefined,
   },
@@ -24,7 +24,7 @@ const attributes = {
     propertyName: 'sortKey',
     type: String,
     role: 'sortKey',
-    indexName: undefined,
+    indexes: undefined,
     prefix: undefined,
     suffix: undefined,
   },
@@ -82,7 +82,7 @@ const attributes = {
     propertyName: 'attr',
     type: String,
     role: 'attribute',
-    indexName: undefined,
+    indexes: undefined,
     prefix: undefined,
     suffix: undefined,
   },

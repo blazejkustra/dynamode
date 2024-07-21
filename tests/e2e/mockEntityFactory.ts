@@ -1,4 +1,4 @@
-import { MockEntity, MockEntityProps } from '../fixtures';
+import { MockEntity, MockEntityProps } from '../fixtures/TestTable';
 
 export function mockEntityFactory(props?: Partial<MockEntityProps>): MockEntity {
   return new MockEntity({
