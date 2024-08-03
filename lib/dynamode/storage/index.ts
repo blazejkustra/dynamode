@@ -156,7 +156,7 @@ export default class DynamodeStorage {
   }
 
   public renameEntity(oldName: string, newName: string): void {
-    this.entities[newName] = { ...this.entities[newName], ...this.entities[oldName] };
+    this.entities[newName].attributes = this.entities[oldName].attributes;
     delete this.entities[oldName];
   }
 
