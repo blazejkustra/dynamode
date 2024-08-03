@@ -155,6 +155,11 @@ export default class DynamodeStorage {
     return this.tables[tableName].metadata;
   }
 
+  public renameEntity(oldName: string, newName: string): void {
+    this.entities[newName] = { ...this.entities[newName], ...this.entities[oldName] };
+    delete this.entities[oldName];
+  }
+
   public validateTableMetadata(entityName: string): void {
     const metadata = this.getEntityMetadata(entityName);
     const attributes = this.getEntityAttributes(entityName);
