@@ -16,7 +16,12 @@
     "test:types": "vitest run types --typecheck",
     "coverage": "vitest run unit --coverage",
     "lint": "eslint lib --ext .ts,.js --max-warnings 0",
-    "lint:fix": "npm run lint -- --fix"
+    "lint:fix": "npm run lint -- --fix",
+    "bump:patch": "npm version patch",
+    "bump:minor": "npm version minor",
+    "bump:major": "npm version major",
+    "bump:next": "npm version prerelease --preid rc",
+    "publish:next": "npm run build && cd dist && npm publish --tag next"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.474.0",
