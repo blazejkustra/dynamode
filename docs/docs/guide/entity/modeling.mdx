@@ -50,7 +50,7 @@ class YourModel extends Entity {
 
 ### Decorators
 
-**Only decorated properties will be saved in the database.** Thanks to this you can add undecorated properties to your entity that won't be saved but can be useful for your application logic.
+**Only decorated properties will be saved in the database.** Thanks to this you can add undecorated properties to your entity that won't be saved but can be useful for your application logic. Check out the list of decorators [here](/docs/guide/entity/decorators).
 
 :::caution
 There are no limits to the number of attributes that you can add, but keep in mind the [DynamoDB size limits](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html).
@@ -89,12 +89,44 @@ class YourModel extends Entity {
 }
 ```
 
+### dynamodeEntity property
+
+Every entity has a `dynamodeEntity` property that is used to identify the entity in the database. It is a string that represents the class name of the entity. 
+
+:::danger
+Each of your entities names must be unique within a table. Dynamode uses class names to identify entities.
+:::
+
+```ts
+import Entity from 'dynamode/entity';
+
+class YourModel extends Entity {
+  ...
+}
+
+const instance = YourModelManager.get({ key: '...' });
+console.log(instance.dynamodeEntity); // YourModel
+```
+
+```ts
+import Entity from 'dynamode/entity';
+import {entity} from 'dynamode/decorators';
+
+@entity.customName('CustomName')
+class YourModel extends Entity {
+  ...
+}
+
+const instance = YourModelManager.get({ key: '...' });
+console.log(instance.dynamodeEntity); // CustomName
+```
+
 ### Additional methods
 
 You can add non-static and static methods to your entities that you can call later. You can also add static properties that will be available in your class.
 
 :::danger
-Do not override `Entity.dynamodeEntity` static property, unless you know what you are doing.
+Do not override `Entity.dynamodeEntity` property, unless you know what you are doing. 
 :::
 
 ```ts

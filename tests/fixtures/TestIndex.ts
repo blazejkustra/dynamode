@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 
-import attribute from '@lib/decorators';
+import attribute, { entity } from '@lib/decorators';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import TableManager from '@lib/table';
@@ -28,6 +28,7 @@ export class TestIndex extends Entity {
   }
 }
 
+@entity.customName('TEST_INDEX_GSI')
 export class TestIndexWithGSI extends TestIndex {
   // TODO: Make it so that partitionKey decorator is not required for a second time
   @attribute.partitionKey.number()
