@@ -1,13 +1,13 @@
 import Dynamode from '@lib/dynamode/index';
 
-function customName(newName: string): ClassDecorator {
+function customName(newNameEntity: string): ClassDecorator {
   return (entity: any) => {
-    const oldName = entity.name;
+    const oldNameEntity = entity.name;
     Object.defineProperty(entity, 'name', {
       writable: true,
-      value: newName,
+      value: newNameEntity,
     });
-    Dynamode.storage.renameEntity(oldName, newName);
+    Dynamode.storage.transferMetadata(oldNameEntity, newNameEntity);
   };
 }
 

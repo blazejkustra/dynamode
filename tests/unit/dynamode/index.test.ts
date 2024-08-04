@@ -379,6 +379,47 @@ describe('Dynamode', () => {
       });
     });
 
+    describe('transferMetadata', async () => {
+      test('Should transfer metadata to a different name', async () => {
+        storage.registerAttribute('OLD_NAME', 'prop', {
+          propertyName: 'prop',
+          type: Number,
+          role: 'attribute',
+        });
+        storage.transferMetadata('OLD_NAME', 'NEW_NAME');
+
+        expect(storage.entities['NEW_NAME']).toEqual({
+          attributes: {
+            prop: {
+              propertyName: 'prop',
+              type: Number,
+              role: 'attribute',
+            },
+          },
+        });
+        expect(storage.entities['OLD_NAME']).toEqual(undefined);
+      });
+
+      test('Should preserve metadata when the same name was used', async () => {
+        storage.registerAttribute('OLD_NAME', 'prop', {
+          propertyName: 'prop',
+          type: Number,
+          role: 'attribute',
+        });
+        storage.transferMetadata('OLD_NAME', 'OLD_NAME');
+
+        expect(storage.entities['OLD_NAME']).toEqual({
+          attributes: {
+            prop: {
+              propertyName: 'prop',
+              type: Number,
+              role: 'attribute',
+            },
+          },
+        });
+      });
+    });
+
     describe('validateTableMetadata', async () => {
       let validateMetadataAttribute = vi.spyOn(storageHelper, 'validateMetadataAttribute');
       let getEntityMetadata = vi.spyOn(storage, 'getEntityMetadata');
