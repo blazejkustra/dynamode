@@ -1,3 +1,4 @@
+import customName from '@lib/decorators/helpers/customName';
 import { numberDate, stringDate } from '@lib/decorators/helpers/dates';
 import {
   numberGsiPartitionKey,
@@ -58,4 +59,9 @@ const attribute = {
   suffix,
 };
 
+const entity = {
+  customName,
+};
+
 export default attribute;
+export { entity };

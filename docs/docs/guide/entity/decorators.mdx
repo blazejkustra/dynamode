@@ -27,6 +27,28 @@ Add following lines in `tsconfig.json` in order to use decorators with Typescrip
 
 To see examples of decorators in use - check out [modeling](/docs/guide/entity/modeling) page.
 
+## entity.customName(entityName)
+### Description
+
+This decorator is used to change the name of the entity. By default, the name of the entity is the name of the class. This is especially useful when you use minification or obfuscation tools.
+
+### Arguments
+
+`entityName: string` - String that will be used as the new name for the entity.
+
+### Examples
+
+```ts
+import {entity} from 'dynamode/decorators';
+
+@entity.customName("CustomName")
+class YourModel extends Entity { 
+  ...
+}
+
+console.log(YourModel.constructor.name); // CustomName
+```
+
 ## attribute.partitionKey.string(options?)
 ### Description
 

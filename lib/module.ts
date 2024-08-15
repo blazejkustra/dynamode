@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 import Condition, { AttributeType } from '@lib/condition';
-import attribute from '@lib/decorators';
+import attribute, { entity } from '@lib/decorators';
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
 import Query from '@lib/query';
@@ -26,6 +26,7 @@ export {
 
   //decorators
   attribute,
+  entity,
 
   //Entity
   Entity,
