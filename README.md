@@ -107,3 +107,5 @@ await ExampleEntityManager.put(new ExampleEntityManager({ ... }));
 ```
 
 Find more examples under the [`examples/`](https://github.com/blazejkustra/dynamode/blob/main/examples/) directory.
+
+REDACTEDxd
