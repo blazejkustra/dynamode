@@ -1,15 +1,40 @@
 import { AttributeType } from '@lib/dynamode/storage/types';
 import { insertBetween } from '@lib/utils';
 
+/**
+ * Core constants for Dynamode operations.
+ */
+
+/**
+ * The property name used to identify Dynamode entities.
+ * This is automatically added to all entity instances.
+ */
 export const DYNAMODE_ENTITY = 'dynamodeEntity';
 
+/**
+ * Mapping of JavaScript types to DynamoDB attribute types for keys.
+ * Only String and Number types are allowed for partition and sort keys.
+ */
 export const DYNAMODE_DYNAMO_KEY_TYPE_MAP = new Map<AttributeType, 'S' | 'N'>([
   [String, 'S'],
   [Number, 'N'],
 ]);
 
+/**
+ * Array of attribute types that are allowed for DynamoDB keys.
+ * DynamoDB only supports String and Number types for partition and sort keys.
+ */
 export const DYNAMODE_ALLOWED_KEY_TYPES: AttributeType[] = [String, Number];
 
+/**
+ * Set of reserved words that cannot be used as attribute names in DynamoDB.
+ *
+ * These are SQL and DynamoDB reserved words that would cause conflicts
+ * if used as attribute names in expressions. Dynamode automatically
+ * handles these by using expression attribute names when needed.
+ *
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html}
+ */
 export const RESERVED_WORDS = new Set([
   'ABORT',
   'ABSOLUTE',
@@ -586,87 +611,132 @@ export const RESERVED_WORDS = new Set([
   'ZONE',
 ]);
 
+/**
+ * Expression operator types for building DynamoDB expressions.
+ */
+
+/**
+ * Represents a literal expression string in an operator chain.
+ */
 export type OperatorExpression = { expression: string };
+
+/**
+ * Represents an attribute name reference in an operator chain.
+ */
 export type OperatorKey = { key: string };
+
+/**
+ * Represents an attribute value with its corresponding key in an operator chain.
+ */
 export type OperatorValue = { value: unknown; key: string };
+
+/**
+ * Union type for all possible operator elements in an expression.
+ */
 export type Operators = Array<OperatorExpression | OperatorKey | OperatorValue>;
 
+/**
+ * Base operators for building DynamoDB expressions.
+ *
+ * These are the fundamental building blocks for constructing
+ * condition expressions, update expressions, and other DynamoDB
+ * expression types.
+ */
 export const BASE_OPERATOR = {
-  /** space */
+  /** Space character */
   space: { expression: ' ' },
-  /** , */
+  /** Comma separator */
   comma: { expression: ',' },
 
-  /** ( */
+  /** Left parenthesis */
   leftParenthesis: { expression: '(' },
-  /** ) */
+  /** Right parenthesis */
   rightParenthesis: { expression: ')' },
 
-  /** + */
+  /** Plus operator */
   plus: { expression: '+' },
-  /** - */
+  /** Minus operator */
   minus: { expression: '-' },
 
-  /** NOT */
+  /** NOT logical operator */
   not: { expression: 'NOT' },
 
-  /** AND */
+  /** AND logical operator */
   and: { expression: 'AND' },
-  /** OR */
+  /** OR logical operator */
   or: { expression: 'OR' },
-  /** = */
+  /** Equal comparison operator */
   eq: { expression: '=' },
-  /** <> */
+  /** Not equal comparison operator */
   ne: { expression: '<>' },
-  /** < */
+  /** Less than comparison operator */
   lt: { expression: '<' },
-  /** <= */
+  /** Less than or equal comparison operator */
   le: { expression: '<=' },
-  /** > */
+  /** Greater than comparison operator */
   gt: { expression: '>' },
-  /** >= */
+  /** Greater than or equal comparison operator */
   ge: { expression: '>=' },
 
-  /** attribute_exists */
+  /** attribute_exists function */
   attributeExists: { expression: 'attribute_exists' },
-  /** contains */
+  /** contains function */
   contains: { expression: 'contains' },
-  /** IN */
+  /** IN operator */
   in: { expression: 'IN' },
-  /** BETWEEN */
+  /** BETWEEN operator */
   between: { expression: 'BETWEEN' },
-  /** attribute_type */
+  /** attribute_type function */
   attributeType: { expression: 'attribute_type' },
-  /** begins_with */
+  /** begins_with function */
   beginsWith: { expression: 'begins_with' },
-  /** attribute_not_exists */
+  /** attribute_not_exists function */
   attributeNotExists: { expression: 'attribute_not_exists' },
-  /** size */
+  /** size function */
   size: { expression: 'size' },
-  /** if_not_exists */
+  /** if_not_exists function */
   ifNotExists: { expression: 'if_not_exists' },
-  /** list_append */
+  /** list_append function */
   listAppend: { expression: 'list_append' },
 
-  /** SET */
+  /** SET update action */
   set: { expression: 'SET' },
-  /** ADD */
+  /** ADD update action */
   add: { expression: 'ADD' },
-  /** REMOVE */
+  /** REMOVE update action */
   remove: { expression: 'REMOVE' },
-  /** DELETE */
+  /** DELETE update action */
   delete: { expression: 'DELETE' },
 } as const;
 
+/**
+ * Condition operators for building DynamoDB condition expressions.
+ *
+ * These operators construct complex condition expressions by combining
+ * attribute names, values, and comparison operators. Each operator
+ * returns an array of operator elements that can be processed to
+ * generate the final expression string.
+ */
 export const OPERATORS = {
-  /** parenthesis */
+  /**
+   * Wraps an operator structure in parentheses.
+   *
+   * @param operatorStructure - The operators to wrap in parentheses
+   * @returns Operators wrapped in parentheses
+   */
   parenthesis: (operatorStructure: Operators): Operators => [
     BASE_OPERATOR.leftParenthesis,
     ...operatorStructure,
     BASE_OPERATOR.rightParenthesis,
   ],
 
-  /** $K = $V */
+  /**
+   * Creates an equality comparison: $K = $V
+   *
+   * @param key - The attribute name
+   * @param value - The value to compare against
+   * @returns Operators for equality comparison
+   */
   eq: (key: string, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
@@ -674,7 +744,13 @@ export const OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** $K <> $V */
+  /**
+   * Creates a not equal comparison: $K <> $V
+   *
+   * @param key - The attribute name
+   * @param value - The value to compare against
+   * @returns Operators for not equal comparison
+   */
   ne: (key: string, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
@@ -682,7 +758,13 @@ export const OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** $K < $V */
+  /**
+   * Creates a less than comparison: $K < $V
+   *
+   * @param key - The attribute name
+   * @param value - The value to compare against
+   * @returns Operators for less than comparison
+   */
   lt: (key: string, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
@@ -690,7 +772,13 @@ export const OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** $K <= $V */
+  /**
+   * Creates a less than or equal comparison: $K <= $V
+   *
+   * @param key - The attribute name
+   * @param value - The value to compare against
+   * @returns Operators for less than or equal comparison
+   */
   le: (key: string, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
@@ -698,7 +786,13 @@ export const OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** $K > $V */
+  /**
+   * Creates a greater than comparison: $K > $V
+   *
+   * @param key - The attribute name
+   * @param value - The value to compare against
+   * @returns Operators for greater than comparison
+   */
   gt: (key: string, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
@@ -706,7 +800,13 @@ export const OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** $K >= $V */
+  /**
+   * Creates a greater than or equal comparison: $K >= $V
+   *
+   * @param key - The attribute name
+   * @param value - The value to compare against
+   * @returns Operators for greater than or equal comparison
+   */
   ge: (key: string, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
@@ -715,14 +815,31 @@ export const OPERATORS = {
     { value, key },
   ],
 
-  /** attribute_exists($K) */
+  /**
+   * Creates an attribute_exists function: attribute_exists($K)
+   *
+   * @param key - The attribute name to check for existence
+   * @returns Operators for attribute_exists function
+   */
   attributeExists: (key: string): Operators => [BASE_OPERATOR.attributeExists, ...OPERATORS.parenthesis([{ key }])],
-  /** contains($K, $V) */
+  /**
+   * Creates a contains function: contains($K, $V)
+   *
+   * @param key - The attribute name
+   * @param value - The value to check if the attribute contains
+   * @returns Operators for contains function
+   */
   contains: (key: string, value: unknown): Operators => [
     BASE_OPERATOR.contains,
     ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
   ],
-  /** $K IN ($V, $V, $V) */
+  /**
+   * Creates an IN operator: $K IN ($V, $V, $V)
+   *
+   * @param key - The attribute name
+   * @param values - Array of values to check against
+   * @returns Operators for IN comparison
+   */
   in: (key: string, values: unknown[]): Operators => [
     { key },
     BASE_OPERATOR.space,
@@ -735,7 +852,14 @@ export const OPERATORS = {
     ),
     BASE_OPERATOR.rightParenthesis,
   ],
-  /** $K BETWEEN $V AND $V */
+  /**
+   * Creates a BETWEEN operator: $K BETWEEN $V AND $V
+   *
+   * @param key - The attribute name
+   * @param value1 - The lower bound value
+   * @param value2 - The upper bound value
+   * @returns Operators for BETWEEN comparison
+   */
   between: (key: string, value1: unknown, value2: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
@@ -747,48 +871,119 @@ export const OPERATORS = {
     BASE_OPERATOR.space,
     { value: value2, key },
   ],
-  /** attribute_type($K, $V) */
+  /**
+   * Creates an attribute_type function: attribute_type($K, $V)
+   *
+   * @param key - The attribute name
+   * @param value - The expected attribute type
+   * @returns Operators for attribute_type function
+   */
   attributeType: (key: string, value: unknown): Operators => [
     BASE_OPERATOR.attributeType,
     ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
   ],
-  /** begins_with($K, $V) */
+  /**
+   * Creates a begins_with function: begins_with($K, $V)
+   *
+   * @param key - The attribute name
+   * @param value - The prefix to check for
+   * @returns Operators for begins_with function
+   */
   beginsWith: (key: string, value: unknown): Operators => [
     BASE_OPERATOR.beginsWith,
     ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
   ],
 
-  /** attribute_not_exists($K) */
+  /**
+   * Creates an attribute_not_exists function: attribute_not_exists($K)
+   *
+   * @param key - The attribute name to check for non-existence
+   * @returns Operators for attribute_not_exists function
+   */
   attributeNotExists: (key: string): Operators => [
     BASE_OPERATOR.attributeNotExists,
     ...OPERATORS.parenthesis([{ key }]),
   ],
-  /** NOT contains($K, $V) */
+  /**
+   * Creates a NOT contains function: NOT contains($K, $V)
+   *
+   * @param key - The attribute name
+   * @param value - The value to check if the attribute does not contain
+   * @returns Operators for NOT contains function
+   */
   notContains: (key: string, value: unknown): Operators => [
     BASE_OPERATOR.not,
     BASE_OPERATOR.space,
     ...OPERATORS.contains(key, value),
   ],
-  /** NOT ($K IN $V, $V, $V) */
+  /**
+   * Creates a NOT IN operator: NOT ($K IN $V, $V, $V)
+   *
+   * @param key - The attribute name
+   * @param values - Array of values to check against
+   * @returns Operators for NOT IN comparison
+   */
   notIn: (key: string, values: unknown[]): Operators => [
     BASE_OPERATOR.not,
     BASE_OPERATOR.space,
     ...OPERATORS.parenthesis(OPERATORS.in(key, values)),
   ],
-  /** NOT $K = $V */
+  /**
+   * Creates a NOT equal comparison: NOT $K = $V (equivalent to $K <> $V)
+   *
+   * @param key - The attribute name
+   * @param value - The value to compare against
+   * @returns Operators for NOT equal comparison
+   */
   notEq: (key: string, value: unknown): Operators => OPERATORS.ne(key, value),
-  /** NOT $K <> $V */
+  /**
+   * Creates a NOT not equal comparison: NOT $K <> $V (equivalent to $K = $V)
+   *
+   * @param key - The attribute name
+   * @param value - The value to compare against
+   * @returns Operators for NOT not equal comparison
+   */
   notNe: (key: string, value: unknown): Operators => OPERATORS.eq(key, value),
-  /** NOT $K < $V */
+  /**
+   * Creates a NOT less than comparison: NOT $K < $V (equivalent to $K >= $V)
+   *
+   * @param key - The attribute name
+   * @param value - The value to compare against
+   * @returns Operators for NOT less than comparison
+   */
   notLt: (key: string, value: unknown): Operators => OPERATORS.ge(key, value),
-  /** NOT $K <= $V */
+  /**
+   * Creates a NOT less than or equal comparison: NOT $K <= $V (equivalent to $K > $V)
+   *
+   * @param key - The attribute name
+   * @param value - The value to compare against
+   * @returns Operators for NOT less than or equal comparison
+   */
   notLe: (key: string, value: unknown): Operators => OPERATORS.gt(key, value),
-  /** NOT $K > $V */
+  /**
+   * Creates a NOT greater than comparison: NOT $K > $V (equivalent to $K <= $V)
+   *
+   * @param key - The attribute name
+   * @param value - The value to compare against
+   * @returns Operators for NOT greater than comparison
+   */
   notGt: (key: string, value: unknown): Operators => OPERATORS.le(key, value),
-  /** NOT $K >= $V */
+  /**
+   * Creates a NOT greater than or equal comparison: NOT $K >= $V (equivalent to $K < $V)
+   *
+   * @param key - The attribute name
+   * @param value - The value to compare against
+   * @returns Operators for NOT greater than or equal comparison
+   */
   notGe: (key: string, value: unknown): Operators => OPERATORS.lt(key, value),
 
-  /** size($K) = $V */
+  /**
+   * Creates a size function with equality: size($K) = $V
+   *
+   * @param key - The attribute name
+   * @param value - The size value to compare against
+   * @returns Operators for size equality comparison
+   */
   sizeEq: (key: string, value: unknown): Operators => [
     BASE_OPERATOR.size,
     ...OPERATORS.parenthesis([{ key }]),
@@ -797,7 +992,13 @@ export const OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** size($K) <> $V */
+  /**
+   * Creates a size function with not equal: size($K) <> $V
+   *
+   * @param key - The attribute name
+   * @param value - The size value to compare against
+   * @returns Operators for size not equal comparison
+   */
   sizeNe: (key: string, value: unknown): Operators => [
     BASE_OPERATOR.size,
     ...OPERATORS.parenthesis([{ key }]),
@@ -806,7 +1007,13 @@ export const OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** size($K) < $V */
+  /**
+   * Creates a size function with less than: size($K) < $V
+   *
+   * @param key - The attribute name
+   * @param value - The size value to compare against
+   * @returns Operators for size less than comparison
+   */
   sizeLt: (key: string, value: unknown): Operators => [
     BASE_OPERATOR.size,
     ...OPERATORS.parenthesis([{ key }]),
@@ -815,7 +1022,13 @@ export const OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** size($K) <= $V */
+  /**
+   * Creates a size function with less than or equal: size($K) <= $V
+   *
+   * @param key - The attribute name
+   * @param value - The size value to compare against
+   * @returns Operators for size less than or equal comparison
+   */
   sizeLe: (key: string, value: unknown): Operators => [
     BASE_OPERATOR.size,
     ...OPERATORS.parenthesis([{ key }]),
@@ -824,7 +1037,13 @@ export const OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** size($K) > $V */
+  /**
+   * Creates a size function with greater than: size($K) > $V
+   *
+   * @param key - The attribute name
+   * @param value - The size value to compare against
+   * @returns Operators for size greater than comparison
+   */
   sizeGt: (key: string, value: unknown): Operators => [
     BASE_OPERATOR.size,
     ...OPERATORS.parenthesis([{ key }]),
@@ -833,7 +1052,13 @@ export const OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** size($K) >= $V */
+  /**
+   * Creates a size function with greater than or equal: size($K) >= $V
+   *
+   * @param key - The attribute name
+   * @param value - The size value to compare against
+   * @returns Operators for size greater than or equal comparison
+   */
   sizeGe: (key: string, value: unknown): Operators => [
     BASE_OPERATOR.size,
     ...OPERATORS.parenthesis([{ key }]),
@@ -842,7 +1067,15 @@ export const OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** attribute_exists(Id) AND attribute_not_exists(Id) */
+  /**
+   * Creates an impossible condition: attribute_exists($K) AND attribute_not_exists($K)
+   *
+   * This creates a condition that can never be true, useful for testing
+   * or creating conditions that should always fail.
+   *
+   * @param key - The attribute name
+   * @returns Operators for impossible condition
+   */
   impossibleCondition: (key: string): Operators => [
     ...OPERATORS.attributeExists(key),
     BASE_OPERATOR.space,
@@ -852,8 +1085,20 @@ export const OPERATORS = {
   ],
 };
 
+/**
+ * Update operators for building DynamoDB update expressions.
+ *
+ * These operators construct update expressions for DynamoDB UpdateItem
+ * operations, including SET, ADD, REMOVE, and DELETE actions.
+ */
 export const UPDATE_OPERATORS = {
-  /** $K = $V */
+  /**
+   * Creates a SET operation: $K = $V
+   *
+   * @param key - The attribute name to set
+   * @param value - The value to set
+   * @returns Operators for SET operation
+   */
   set: (key: string, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
@@ -861,7 +1106,13 @@ export const UPDATE_OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** $K = if_not_exists($K, $V) */
+  /**
+   * Creates a SET operation with if_not_exists: $K = if_not_exists($K, $V)
+   *
+   * @param key - The attribute name to set
+   * @param value - The default value if attribute doesn't exist
+   * @returns Operators for SET if_not_exists operation
+   */
   setIfNotExists: (key: string, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
@@ -870,7 +1121,13 @@ export const UPDATE_OPERATORS = {
     BASE_OPERATOR.ifNotExists,
     ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
   ],
-  /** $K = list_append($K, $V) */
+  /**
+   * Creates a SET operation with list_append: $K = list_append($K, $V)
+   *
+   * @param key - The list attribute name
+   * @param value - The list to append
+   * @returns Operators for SET list_append operation
+   */
   listAppend: (key: string, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
@@ -879,7 +1136,13 @@ export const UPDATE_OPERATORS = {
     BASE_OPERATOR.listAppend,
     ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
   ],
-  /** $K = $K + $V */
+  /**
+   * Creates a SET operation with increment: $K = $K + $V
+   *
+   * @param key - The numeric attribute name
+   * @param value - The value to add
+   * @returns Operators for SET increment operation
+   */
   increment: (key: string, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
@@ -891,7 +1154,13 @@ export const UPDATE_OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** $K = $K - $V */
+  /**
+   * Creates a SET operation with decrement: $K = $K - $V
+   *
+   * @param key - The numeric attribute name
+   * @param value - The value to subtract
+   * @returns Operators for SET decrement operation
+   */
   decrement: (key: string, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
@@ -903,10 +1172,27 @@ export const UPDATE_OPERATORS = {
     BASE_OPERATOR.space,
     { value, key },
   ],
-  /** $K $V */
+  /**
+   * Creates an ADD operation: $K $V
+   *
+   * @param key - The attribute name
+   * @param value - The value to add (for numbers or sets)
+   * @returns Operators for ADD operation
+   */
   add: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, { value, key }],
-  /** $K $V */
+  /**
+   * Creates a DELETE operation: $K $V
+   *
+   * @param key - The set attribute name
+   * @param value - The set elements to delete
+   * @returns Operators for DELETE operation
+   */
   delete: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, { value, key }],
-  /** $K */
+  /**
+   * Creates a REMOVE operation: $K
+   *
+   * @param key - The attribute name to remove
+   * @returns Operators for REMOVE operation
+   */
   remove: (key: string): Operators => [{ key }],
 };

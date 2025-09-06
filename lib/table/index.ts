@@ -30,10 +30,78 @@ import { isNotEmptyArray, Narrow, ValidationError } from '@lib/utils';
 
 import { getTableGlobalSecondaryIndexes, getTableLocalSecondaryIndexes } from './helpers/indexes';
 
+/**
+ * Manages DynamoDB table operations and provides entity managers.
+ *
+ * The TableManager is responsible for creating, deleting, and managing DynamoDB tables,
+ * as well as providing entity managers for performing CRUD operations on entities
+ * within those tables.
+ *
+ * @example
+ * ```typescript
+ * class User extends Entity {
+ *   @attribute.partitionKey.string()
+ *   id: string;
+ *
+ *   @attribute.string()
+ *   name: string;
+ * }
+ *
+ * const UserTableManager = new TableManager(User, {
+ *   tableName: 'users-table',
+ *   partitionKey: 'id',
+ *   indexes: {
+ *     NameIndex: {
+ *       partitionKey: 'name'
+ *     }
+ *   }
+ * });
+ *
+ * // Create the table
+ * await UserTableManager.createTable();
+ *
+ * // Get an entity manager
+ * const UserManager = UserTableManager.entityManager();
+ * ```
+ *
+ * @see {@link https://blazejkustra.github.io/dynamode/docs/guide/managers/tableManager} for more information
+ */
 export default class TableManager<M extends Metadata<TE>, TE extends typeof Entity> {
+  /**
+   * The table metadata configuration.
+   *
+   * @readonly
+   */
   public tableMetadata: M;
+
+  /**
+   * The base entity class for this table.
+   *
+   * @readonly
+   */
   public tableEntity: TE;
 
+  /**
+   * Creates a new TableManager instance.
+   *
+   * @param tableEntity - The base entity class for the table
+   * @param tableMetadata - The table configuration metadata
+   *
+   * @example
+   * ```typescript
+   * const tableManager = new TableManager(User, {
+   *   tableName: 'users-table',
+   *   partitionKey: 'id',
+   *   sortKey: 'createdAt',
+   *   indexes: {
+   *     StatusIndex: {
+   *       partitionKey: 'status',
+   *       sortKey: 'createdAt'
+   *     }
+   *   }
+   * });
+   * ```
+   */
   constructor(tableEntity: TE, tableMetadata: Narrow<M>) {
     const metadata: M = tableMetadata as M;
 
@@ -45,8 +113,18 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     this.tableEntity = tableEntity;
   }
 
+  /**
+   * Creates an entity manager for the base table entity.
+   *
+   * @returns An EntityManager instance for the base table entity
+   *
+   * @example
+   * ```typescript
+   * const UserManager = UserTableManager.entityManager();
+   * const user = await UserManager.get({ id: 'user-123' });
+   * ```
+   */
   public entityManager(): ReturnType<typeof EntityManager<M, TE>>;
-  public entityManager<E extends TE>(entity: E): ReturnType<typeof EntityManager<M, E>>;
   public entityManager<E extends TE>(
     entity?: E,
   ): ReturnType<typeof EntityManager<M, E>> | ReturnType<typeof EntityManager<M, TE>> {
@@ -242,9 +320,43 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     })();
   }
 
+  /**
+   * Validates that the existing DynamoDB table matches the table metadata configuration.
+   *
+   * @param options - Optional configuration for table validation
+   * @returns A promise that resolves to table data
+   * @throws {ValidationError} When the table structure doesn't match the metadata
+   *
+   * @example
+   * ```typescript
+   * // Validate the table structure
+   * const tableData = await UserTableManager.validateTable();
+   * ```
+   */
   public validateTable(options?: TableValidateOptions & { return?: 'default' }): Promise<TableData>;
+
+  /**
+   * Validates the table, returning the raw AWS response.
+   *
+   * @param options - Configuration for table validation with return type 'output'
+   * @returns A promise that resolves to the raw DescribeTableCommandOutput
+   */
   public validateTable(options: TableValidateOptions & { return: 'output' }): Promise<DescribeTableCommandOutput>;
+
+  /**
+   * Builds the DescribeTable command input without executing it.
+   *
+   * @param options - Configuration for table validation with return type 'input'
+   * @returns The DescribeTableCommandInput object
+   */
   public validateTable(options: TableValidateOptions & { return: 'input' }): DescribeTableCommandInput;
+
+  /**
+   * Validates that the existing DynamoDB table matches the table metadata configuration.
+   *
+   * @param options - Optional configuration for table validation
+   * @returns A promise that resolves to table data, raw AWS response, or command input
+   */
   public validateTable(
     options?: TableValidateOptions,
   ): Promise<TableData | DescribeTableCommandOutput> | DescribeTableCommandInput {

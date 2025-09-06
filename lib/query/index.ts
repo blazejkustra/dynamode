@@ -17,19 +17,110 @@ import {
   ValidationError,
 } from '@lib/utils';
 
+/**
+ * Query builder for DynamoDB query operations.
+ *
+ * The Query class provides a fluent interface for building and executing
+ * DynamoDB query operations. It supports querying by partition key and
+ * sort key with various comparison operators, and can work with both
+ * primary keys and secondary indexes.
+ *
+ * @example
+ * ```typescript
+ * // Query by partition key only
+ * const users = await UserManager.query()
+ *   .partitionKey('id').eq('user-123')
+ *   .run();
+ *
+ * // Query by partition key and sort key
+ * const users = await UserManager.query()
+ *   .partitionKey('id').eq('user-123')
+ *   .sortKey('createdAt').gt(new Date('2023-01-01'))
+ *   .run();
+ *
+ * // Query with filter expression
+ * const users = await UserManager.query()
+ *   .partitionKey('id').eq('user-123')
+ *   .attribute('status').eq('active')
+ *   .run();
+ *
+ * // Query with index
+ * const users = await UserManager.query()
+ *   .indexName('StatusIndex')
+ *   .partitionKey('status').eq('active')
+ *   .sortKey('createdAt').between(startDate, endDate)
+ *   .run();
+ * ```
+ *
+ * @see {@link https://blazejkustra.github.io/dynamode/docs/guide/query} for more information
+ */
 export default class Query<M extends Metadata<E>, E extends typeof Entity> extends RetrieverBase<M, E> {
+  /** The DynamoDB QueryInput object */
   protected declare input: QueryInput;
+  /** Key condition operators for building key condition expressions */
   protected keyOperators: Operators = [];
+  /** Metadata for the partition key attribute */
   protected partitionKeyMetadata?: AttributeMetadata;
+  /** Metadata for the sort key attribute */
   protected sortKeyMetadata?: AttributeMetadata;
 
+  /**
+   * Creates a new Query instance.
+   *
+   * @param entity - The entity class to query
+   */
   constructor(entity: E) {
     super(entity);
   }
 
+  /**
+   * Executes the query operation.
+   *
+   * @param options - Optional configuration for the query execution
+   * @returns A promise that resolves to the query results
+   *
+   * @example
+   * ```typescript
+   * // Execute query and get all results
+   * const result = await UserManager.query()
+   *   .partitionKey('id').eq('user-123')
+   *   .run();
+   *
+   * // Execute query with pagination
+   * const result = await UserManager.query()
+   *   .partitionKey('id').eq('user-123')
+   *   .run({ all: false, max: 10 });
+   *
+   * // Execute query with delay between pages
+   * const result = await UserManager.query()
+   *   .partitionKey('id').eq('user-123')
+   *   .run({ all: true, delay: 100 });
+   * ```
+   */
   public run(options?: QueryRunOptions & { return?: 'default' }): Promise<QueryRunOutput<M, E>>;
+
+  /**
+   * Executes the query operation, returning the raw AWS response.
+   *
+   * @param options - Configuration for the query execution with return type 'output'
+   * @returns A promise that resolves to the raw QueryCommandOutput
+   */
   public run(options: QueryRunOptions & { return: 'output' }): Promise<QueryCommandOutput>;
+
+  /**
+   * Builds the Query command input without executing it.
+   *
+   * @param options - Configuration for the query execution with return type 'input'
+   * @returns The QueryInput object
+   */
   public run(options: QueryRunOptions & { return: 'input' }): QueryInput;
+
+  /**
+   * Executes the query operation.
+   *
+   * @param options - Optional configuration for the query execution
+   * @returns A promise that resolves to the query results, raw AWS response, or command input
+   */
   public run(options?: QueryRunOptions): Promise<QueryRunOutput<M, E> | QueryCommandOutput> | QueryInput {
     this.setAssociatedIndexName();
     this.buildQueryInput(options?.extraInput);
@@ -76,34 +167,101 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
     })();
   }
 
+  /**
+   * Specifies the partition key for the query.
+   *
+   * @template Q - The query instance type
+   * @template K - The partition key type
+   * @param key - The partition key attribute name
+   * @returns An object with comparison operators for the partition key
+   *
+   * @example
+   * ```typescript
+   * const users = await UserManager.query()
+   *   .partitionKey('id').eq('user-123')
+   *   .run();
+   * ```
+   */
   public partitionKey<Q extends Query<M, E>, K extends EntityKey<E> & TablePartitionKeys<M, E>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
     const attributes = Dynamode.storage.getEntityAttributes(this.entity.name);
     this.partitionKeyMetadata = attributes[key as string];
 
     return {
+      /** Equal comparison operator */
       eq: (value: EntityValue<E, K>): Q => this.eq(this.keyOperators, key, value),
     };
   }
 
+  /**
+   * Specifies the sort key for the query.
+   *
+   * @template Q - The query instance type
+   * @template K - The sort key type
+   * @param key - The sort key attribute name
+   * @returns An object with comparison operators for the sort key
+   *
+   * @example
+   * ```typescript
+   * const users = await UserManager.query()
+   *   .partitionKey('id').eq('user-123')
+   *   .sortKey('createdAt').gt(new Date('2023-01-01'))
+   *   .run();
+   *
+   * // Using between operator
+   * const users = await UserManager.query()
+   *   .partitionKey('id').eq('user-123')
+   *   .sortKey('createdAt').between(startDate, endDate)
+   *   .run();
+   * ```
+   */
   public sortKey<Q extends Query<M, E>, K extends EntityKey<E> & TableSortKeys<M, E>>(this: Q, key: K) {
     this.maybePushKeyLogicalOperator();
     const attributes = Dynamode.storage.getEntityAttributes(this.entity.name);
     this.sortKeyMetadata = attributes[key as string];
 
     return {
+      /** Equal comparison operator */
       eq: (value: EntityValue<E, K>): Q => this.eq(this.keyOperators, key, value),
+      /** Not equal comparison operator */
       ne: (value: EntityValue<E, K>): Q => this.ne(this.keyOperators, key, value),
+      /** Less than comparison operator */
       lt: (value: EntityValue<E, K>): Q => this.lt(this.keyOperators, key, value),
+      /** Less than or equal comparison operator */
       le: (value: EntityValue<E, K>): Q => this.le(this.keyOperators, key, value),
+      /** Greater than comparison operator */
       gt: (value: EntityValue<E, K>): Q => this.gt(this.keyOperators, key, value),
+      /** Greater than or equal comparison operator */
       ge: (value: EntityValue<E, K>): Q => this.ge(this.keyOperators, key, value),
+      /** Begins with comparison operator (for string values) */
       beginsWith: (value: EntityValue<E, K>): Q => this.beginsWith(this.keyOperators, key, value),
+      /** Between comparison operator */
       between: (value1: EntityValue<E, K>, value2: EntityValue<E, K>): Q =>
         this.between(this.keyOperators, key, value1, value2),
     };
   }
 
+  /**
+   * Sets the sort order for the query results.
+   *
+   * @param order - The sort order ('ascending' or 'descending')
+   * @returns The query instance for method chaining
+   *
+   * @example
+   * ```typescript
+   * // Sort in ascending order (default)
+   * const users = await UserManager.query()
+   *   .partitionKey('id').eq('user-123')
+   *   .sort('ascending')
+   *   .run();
+   *
+   * // Sort in descending order
+   * const users = await UserManager.query()
+   *   .partitionKey('id').eq('user-123')
+   *   .sort('descending')
+   *   .run();
+   * ```
+   */
   public sort(order: 'ascending' | 'descending'): this {
     this.input.ScanIndexForward = order === 'ascending';
     return this;

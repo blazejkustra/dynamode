@@ -9,32 +9,66 @@ import {
 import Entity from '@lib/entity';
 import { ReturnOption } from '@lib/entity/types';
 
-// Table metadata types
+/**
+ * Table metadata types and configurations.
+ */
 
+/**
+ * Entity key type for table metadata.
+ *
+ * @template E - The entity class type
+ */
 type EntityKey<E extends typeof Entity> = keyof InstanceType<E> extends string ? keyof InstanceType<E> : never;
 
+/**
+ * Table indexes metadata configuration.
+ *
+ * @template E - The entity class type
+ */
 type TableIndexesMetadata<E extends typeof Entity> = {
   [indexName: string]: {
+    /** Partition key for the index */
     partitionKey?: EntityKey<E>;
+    /** Sort key for the index */
     sortKey?: EntityKey<E>;
   };
 };
 
+/**
+ * Table metadata configuration.
+ *
+ * @template E - The entity class type
+ */
 export type Metadata<E extends typeof Entity> = {
+  /** Name of the DynamoDB table */
   tableName: string;
 
+  /** Partition key attribute name */
   partitionKey: EntityKey<E>;
+  /** Sort key attribute name (optional) */
   sortKey?: EntityKey<E>;
+  /** Secondary indexes configuration */
   indexes?: TableIndexesMetadata<E>;
 
+  /** Created at timestamp attribute (optional) */
   createdAt?: EntityKey<E>;
+  /** Updated at timestamp attribute (optional) */
   updatedAt?: EntityKey<E>;
 };
 
+/** Sort key type from metadata */
 type SK<M extends Metadata<E>, E extends typeof Entity> = M['sortKey'];
+/** Partition key type from metadata */
 type PK<M extends Metadata<E>, E extends typeof Entity> = M['partitionKey'];
+/** Indexes type from metadata */
 type Idx<M extends Metadata<E>, E extends typeof Entity> = M['indexes'];
 
+/**
+ * Primary key type for table operations.
+ *
+ * @template M - The metadata type
+ * @template E - The entity class type
+ */
 export type TablePrimaryKey<M extends Metadata<E>, E extends typeof Entity> = Pick<
   InstanceType<E>,
   Extract<EntityKey<E>, SK<M, E> extends string ? PK<M, E> | SK<M, E> : PK<M, E>>
