@@ -37,6 +37,9 @@ import { BASE_OPERATOR, OPERATORS, Operators, ValidationError } from '@lib/utils
  *   { condition }
  * );
  * ```
+ *
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ConditionExpressions.html} for DynamoDB condition expressions
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html} for DynamoDB operators and functions
  */
 export default class Condition<E extends typeof Entity> {
   /** The entity class for type-safe attribute access */

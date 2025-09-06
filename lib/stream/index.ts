@@ -40,6 +40,8 @@ import { DynamoDBRecord } from './types';
  * ```
  *
  * @see {@link https://blazejkustra.github.io/dynamode/docs/guide/stream} for more information
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html} for DynamoDB Streams documentation
+ * @see {@link https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html} for AWS Lambda with DynamoDB streams
  */
 export default class Stream<E extends typeof Entity = typeof Entity> {
   /** The type of stream data available */

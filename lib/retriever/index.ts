@@ -14,9 +14,6 @@ import { AttributeNames, AttributeValues } from '@lib/utils';
  * This abstract class provides common functionality for both Query and Scan operations,
  * including index selection, pagination, filtering, and projection. It extends the
  * Condition class to provide filtering capabilities.
- *
- * @template M - The metadata type for the table
- * @template E - The entity class type
  */
 export default class RetrieverBase<M extends Metadata<E>, E extends typeof Entity> extends Condition<E> {
   /** The DynamoDB input object (QueryInput or ScanInput) */

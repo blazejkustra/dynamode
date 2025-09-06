@@ -38,6 +38,7 @@ import { ExpressionBuilder, isNotEmptyString } from '@lib/utils';
  * ```
  *
  * @see {@link https://blazejkustra.github.io/dynamode/docs/guide/scan} for more information
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Scan.html} for DynamoDB Scan operations
  */
 export default class Scan<M extends Metadata<E>, E extends typeof Entity> extends RetrieverBase<M, E> {
   /** The DynamoDB ScanInput object */

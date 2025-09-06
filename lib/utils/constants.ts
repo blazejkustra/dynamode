@@ -33,7 +33,8 @@ export const DYNAMODE_ALLOWED_KEY_TYPES: AttributeType[] = [String, Number];
  * if used as attribute names in expressions. Dynamode automatically
  * handles these by using expression attribute names when needed.
  *
- * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html}
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html} for complete list of reserved words
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ExpressionAttributeNames.html} for expression attribute names
  */
 export const RESERVED_WORDS = new Set([
   'ABORT',

@@ -32,6 +32,9 @@ import DynamodeStorage from '@lib/dynamode/storage';
  * // Use separator for key operations
  * const key = Dynamode.separator.join(['user', '123']);
  * ```
+ *
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html} for DynamoDB overview
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.html} for DynamoDB concepts
  */
 class Dynamode {
   /** Default singleton instance of Dynamode */

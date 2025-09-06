@@ -53,6 +53,7 @@ import {
  * ```
  *
  * @see {@link https://blazejkustra.github.io/dynamode/docs/guide/query} for more information
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.html} for DynamoDB Query operations
  */
 export default class Query<M extends Metadata<E>, E extends typeof Entity> extends RetrieverBase<M, E> {
   /** The DynamoDB QueryInput object */

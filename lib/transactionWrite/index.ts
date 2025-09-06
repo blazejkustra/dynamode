@@ -32,7 +32,8 @@ import type {
  * console.log('Transaction completed:', result.count, 'operations');
  * ```
  *
- * see more examples [here](https://blazejkustra.github.io/dynamode/docs/guide/transactions#transactionwritetransactions-options).
+ * @see {@link https://blazejkustra.github.io/dynamode/docs/guide/transactions#transactionwritetransactions-options} for more examples
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html#transaction-apis-write} for AWS TransactWriteItems documentation
  */
 export default function transactionWrite<TW extends Array<TransactionWrite<typeof Entity>>>(
   transactions: TransactionWriteInput<[...TW]>,

@@ -28,7 +28,8 @@ import { NotFoundError } from '@lib/utils';
  * console.log('Product:', result.items[2]);
  * ```
  *
- * see more examples [here](https://blazejkustra.github.io/dynamode/docs/guide/transactions#transactiongettransactions-options).
+ * @see {@link https://blazejkustra.github.io/dynamode/docs/guide/transactions#transactiongettransactions-options} for more examples
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html#transaction-apis-get} for AWS TransactGetItems documentation
  */
 export default function transactionGet<E extends Array<typeof Entity>>(
   transactions: TransactionGetInput<[...E]>,
