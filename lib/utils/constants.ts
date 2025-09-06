@@ -617,6 +617,11 @@ export const RESERVED_WORDS = new Set([
  */
 
 /**
+ * Literal key type for building DynamoDB expressions.
+ */
+export type LiteralKey = string | number | symbol;
+
+/**
  * Represents a literal expression string in an operator chain.
  */
 export type OperatorExpression = { expression: string };
@@ -624,12 +629,12 @@ export type OperatorExpression = { expression: string };
 /**
  * Represents an attribute name reference in an operator chain.
  */
-export type OperatorKey = { key: string };
+export type OperatorKey = { key: LiteralKey };
 
 /**
  * Represents an attribute value with its corresponding key in an operator chain.
  */
-export type OperatorValue = { value: unknown; key: string };
+export type OperatorValue = { value: unknown; key: LiteralKey };
 
 /**
  * Union type for all possible operator elements in an expression.
@@ -738,7 +743,7 @@ export const OPERATORS = {
    * @param value - The value to compare against
    * @returns Operators for equality comparison
    */
-  eq: (key: string, value: unknown): Operators => [
+  eq: (key: LiteralKey, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.eq,
@@ -752,7 +757,7 @@ export const OPERATORS = {
    * @param value - The value to compare against
    * @returns Operators for not equal comparison
    */
-  ne: (key: string, value: unknown): Operators => [
+  ne: (key: LiteralKey, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.ne,
@@ -766,7 +771,7 @@ export const OPERATORS = {
    * @param value - The value to compare against
    * @returns Operators for less than comparison
    */
-  lt: (key: string, value: unknown): Operators => [
+  lt: (key: LiteralKey, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.lt,
@@ -780,7 +785,7 @@ export const OPERATORS = {
    * @param value - The value to compare against
    * @returns Operators for less than or equal comparison
    */
-  le: (key: string, value: unknown): Operators => [
+  le: (key: LiteralKey, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.le,
@@ -794,7 +799,7 @@ export const OPERATORS = {
    * @param value - The value to compare against
    * @returns Operators for greater than comparison
    */
-  gt: (key: string, value: unknown): Operators => [
+  gt: (key: LiteralKey, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.gt,
@@ -808,7 +813,7 @@ export const OPERATORS = {
    * @param value - The value to compare against
    * @returns Operators for greater than or equal comparison
    */
-  ge: (key: string, value: unknown): Operators => [
+  ge: (key: LiteralKey, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.ge,
@@ -822,7 +827,7 @@ export const OPERATORS = {
    * @param key - The attribute name to check for existence
    * @returns Operators for attribute_exists function
    */
-  attributeExists: (key: string): Operators => [BASE_OPERATOR.attributeExists, ...OPERATORS.parenthesis([{ key }])],
+  attributeExists: (key: LiteralKey): Operators => [BASE_OPERATOR.attributeExists, ...OPERATORS.parenthesis([{ key }])],
   /**
    * Creates a contains function: contains($K, $V)
    *
@@ -830,7 +835,7 @@ export const OPERATORS = {
    * @param value - The value to check if the attribute contains
    * @returns Operators for contains function
    */
-  contains: (key: string, value: unknown): Operators => [
+  contains: (key: LiteralKey, value: unknown): Operators => [
     BASE_OPERATOR.contains,
     ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
   ],
@@ -841,7 +846,7 @@ export const OPERATORS = {
    * @param values - Array of values to check against
    * @returns Operators for IN comparison
    */
-  in: (key: string, values: unknown[]): Operators => [
+  in: (key: LiteralKey, values: unknown[]): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.in,
@@ -861,7 +866,7 @@ export const OPERATORS = {
    * @param value2 - The upper bound value
    * @returns Operators for BETWEEN comparison
    */
-  between: (key: string, value1: unknown, value2: unknown): Operators => [
+  between: (key: LiteralKey, value1: unknown, value2: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.between,
@@ -879,7 +884,7 @@ export const OPERATORS = {
    * @param value - The expected attribute type
    * @returns Operators for attribute_type function
    */
-  attributeType: (key: string, value: unknown): Operators => [
+  attributeType: (key: LiteralKey, value: unknown): Operators => [
     BASE_OPERATOR.attributeType,
     ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
   ],
@@ -890,7 +895,7 @@ export const OPERATORS = {
    * @param value - The prefix to check for
    * @returns Operators for begins_with function
    */
-  beginsWith: (key: string, value: unknown): Operators => [
+  beginsWith: (key: LiteralKey, value: unknown): Operators => [
     BASE_OPERATOR.beginsWith,
     ...OPERATORS.parenthesis([{ key }, BASE_OPERATOR.comma, BASE_OPERATOR.space, { value, key }]),
   ],
@@ -901,7 +906,7 @@ export const OPERATORS = {
    * @param key - The attribute name to check for non-existence
    * @returns Operators for attribute_not_exists function
    */
-  attributeNotExists: (key: string): Operators => [
+  attributeNotExists: (key: LiteralKey): Operators => [
     BASE_OPERATOR.attributeNotExists,
     ...OPERATORS.parenthesis([{ key }]),
   ],
@@ -912,7 +917,7 @@ export const OPERATORS = {
    * @param value - The value to check if the attribute does not contain
    * @returns Operators for NOT contains function
    */
-  notContains: (key: string, value: unknown): Operators => [
+  notContains: (key: LiteralKey, value: unknown): Operators => [
     BASE_OPERATOR.not,
     BASE_OPERATOR.space,
     ...OPERATORS.contains(key, value),
@@ -924,7 +929,7 @@ export const OPERATORS = {
    * @param values - Array of values to check against
    * @returns Operators for NOT IN comparison
    */
-  notIn: (key: string, values: unknown[]): Operators => [
+  notIn: (key: LiteralKey, values: unknown[]): Operators => [
     BASE_OPERATOR.not,
     BASE_OPERATOR.space,
     ...OPERATORS.parenthesis(OPERATORS.in(key, values)),
@@ -936,7 +941,7 @@ export const OPERATORS = {
    * @param value - The value to compare against
    * @returns Operators for NOT equal comparison
    */
-  notEq: (key: string, value: unknown): Operators => OPERATORS.ne(key, value),
+  notEq: (key: LiteralKey, value: unknown): Operators => OPERATORS.ne(key, value),
   /**
    * Creates a NOT not equal comparison: NOT $K <> $V (equivalent to $K = $V)
    *
@@ -944,7 +949,7 @@ export const OPERATORS = {
    * @param value - The value to compare against
    * @returns Operators for NOT not equal comparison
    */
-  notNe: (key: string, value: unknown): Operators => OPERATORS.eq(key, value),
+  notNe: (key: LiteralKey, value: unknown): Operators => OPERATORS.eq(key, value),
   /**
    * Creates a NOT less than comparison: NOT $K < $V (equivalent to $K >= $V)
    *
@@ -952,7 +957,7 @@ export const OPERATORS = {
    * @param value - The value to compare against
    * @returns Operators for NOT less than comparison
    */
-  notLt: (key: string, value: unknown): Operators => OPERATORS.ge(key, value),
+  notLt: (key: LiteralKey, value: unknown): Operators => OPERATORS.ge(key, value),
   /**
    * Creates a NOT less than or equal comparison: NOT $K <= $V (equivalent to $K > $V)
    *
@@ -960,7 +965,7 @@ export const OPERATORS = {
    * @param value - The value to compare against
    * @returns Operators for NOT less than or equal comparison
    */
-  notLe: (key: string, value: unknown): Operators => OPERATORS.gt(key, value),
+  notLe: (key: LiteralKey, value: unknown): Operators => OPERATORS.gt(key, value),
   /**
    * Creates a NOT greater than comparison: NOT $K > $V (equivalent to $K <= $V)
    *
@@ -968,7 +973,7 @@ export const OPERATORS = {
    * @param value - The value to compare against
    * @returns Operators for NOT greater than comparison
    */
-  notGt: (key: string, value: unknown): Operators => OPERATORS.le(key, value),
+  notGt: (key: LiteralKey, value: unknown): Operators => OPERATORS.le(key, value),
   /**
    * Creates a NOT greater than or equal comparison: NOT $K >= $V (equivalent to $K < $V)
    *
@@ -976,7 +981,7 @@ export const OPERATORS = {
    * @param value - The value to compare against
    * @returns Operators for NOT greater than or equal comparison
    */
-  notGe: (key: string, value: unknown): Operators => OPERATORS.lt(key, value),
+  notGe: (key: LiteralKey, value: unknown): Operators => OPERATORS.lt(key, value),
 
   /**
    * Creates a size function with equality: size($K) = $V
@@ -985,7 +990,7 @@ export const OPERATORS = {
    * @param value - The size value to compare against
    * @returns Operators for size equality comparison
    */
-  sizeEq: (key: string, value: unknown): Operators => [
+  sizeEq: (key: LiteralKey, value: unknown): Operators => [
     BASE_OPERATOR.size,
     ...OPERATORS.parenthesis([{ key }]),
     BASE_OPERATOR.space,
@@ -1000,7 +1005,7 @@ export const OPERATORS = {
    * @param value - The size value to compare against
    * @returns Operators for size not equal comparison
    */
-  sizeNe: (key: string, value: unknown): Operators => [
+  sizeNe: (key: LiteralKey, value: unknown): Operators => [
     BASE_OPERATOR.size,
     ...OPERATORS.parenthesis([{ key }]),
     BASE_OPERATOR.space,
@@ -1015,7 +1020,7 @@ export const OPERATORS = {
    * @param value - The size value to compare against
    * @returns Operators for size less than comparison
    */
-  sizeLt: (key: string, value: unknown): Operators => [
+  sizeLt: (key: LiteralKey, value: unknown): Operators => [
     BASE_OPERATOR.size,
     ...OPERATORS.parenthesis([{ key }]),
     BASE_OPERATOR.space,
@@ -1030,7 +1035,7 @@ export const OPERATORS = {
    * @param value - The size value to compare against
    * @returns Operators for size less than or equal comparison
    */
-  sizeLe: (key: string, value: unknown): Operators => [
+  sizeLe: (key: LiteralKey, value: unknown): Operators => [
     BASE_OPERATOR.size,
     ...OPERATORS.parenthesis([{ key }]),
     BASE_OPERATOR.space,
@@ -1045,7 +1050,7 @@ export const OPERATORS = {
    * @param value - The size value to compare against
    * @returns Operators for size greater than comparison
    */
-  sizeGt: (key: string, value: unknown): Operators => [
+  sizeGt: (key: LiteralKey, value: unknown): Operators => [
     BASE_OPERATOR.size,
     ...OPERATORS.parenthesis([{ key }]),
     BASE_OPERATOR.space,
@@ -1060,7 +1065,7 @@ export const OPERATORS = {
    * @param value - The size value to compare against
    * @returns Operators for size greater than or equal comparison
    */
-  sizeGe: (key: string, value: unknown): Operators => [
+  sizeGe: (key: LiteralKey, value: unknown): Operators => [
     BASE_OPERATOR.size,
     ...OPERATORS.parenthesis([{ key }]),
     BASE_OPERATOR.space,
@@ -1077,7 +1082,7 @@ export const OPERATORS = {
    * @param key - The attribute name
    * @returns Operators for impossible condition
    */
-  impossibleCondition: (key: string): Operators => [
+  impossibleCondition: (key: LiteralKey): Operators => [
     ...OPERATORS.attributeExists(key),
     BASE_OPERATOR.space,
     BASE_OPERATOR.and,
@@ -1100,7 +1105,7 @@ export const UPDATE_OPERATORS = {
    * @param value - The value to set
    * @returns Operators for SET operation
    */
-  set: (key: string, value: unknown): Operators => [
+  set: (key: LiteralKey, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.eq,
@@ -1114,7 +1119,7 @@ export const UPDATE_OPERATORS = {
    * @param value - The default value if attribute doesn't exist
    * @returns Operators for SET if_not_exists operation
    */
-  setIfNotExists: (key: string, value: unknown): Operators => [
+  setIfNotExists: (key: LiteralKey, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.eq,
@@ -1129,7 +1134,7 @@ export const UPDATE_OPERATORS = {
    * @param value - The list to append
    * @returns Operators for SET list_append operation
    */
-  listAppend: (key: string, value: unknown): Operators => [
+  listAppend: (key: LiteralKey, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.eq,
@@ -1144,7 +1149,7 @@ export const UPDATE_OPERATORS = {
    * @param value - The value to add
    * @returns Operators for SET increment operation
    */
-  increment: (key: string, value: unknown): Operators => [
+  increment: (key: LiteralKey, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.eq,
@@ -1162,7 +1167,7 @@ export const UPDATE_OPERATORS = {
    * @param value - The value to subtract
    * @returns Operators for SET decrement operation
    */
-  decrement: (key: string, value: unknown): Operators => [
+  decrement: (key: LiteralKey, value: unknown): Operators => [
     { key },
     BASE_OPERATOR.space,
     BASE_OPERATOR.eq,
@@ -1180,7 +1185,7 @@ export const UPDATE_OPERATORS = {
    * @param value - The value to add (for numbers or sets)
    * @returns Operators for ADD operation
    */
-  add: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, { value, key }],
+  add: (key: LiteralKey, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, { value, key }],
   /**
    * Creates a DELETE operation: $K $V
    *
@@ -1188,12 +1193,12 @@ export const UPDATE_OPERATORS = {
    * @param value - The set elements to delete
    * @returns Operators for DELETE operation
    */
-  delete: (key: string, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, { value, key }],
+  delete: (key: LiteralKey, value: unknown): Operators => [{ key }, BASE_OPERATOR.space, { value, key }],
   /**
    * Creates a REMOVE operation: $K
    *
    * @param key - The attribute name to remove
    * @returns Operators for REMOVE operation
    */
-  remove: (key: string): Operators => [{ key }],
+  remove: (key: LiteralKey): Operators => [{ key }],
 };

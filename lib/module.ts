@@ -15,7 +15,9 @@ import transactionWrite from '@lib/transactionWrite';
 // so we need them to exist to compile without having DOM.
 declare global {
   /* eslint-disable @typescript-eslint/no-empty-interface */
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface ReadableStream {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface File {}
 }
 
