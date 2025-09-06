@@ -26,6 +26,9 @@ import { DYNAMODE_ENTITY } from '@lib/utils';
  * ```
  *
  * @see {@link https://blazejkustra.github.io/dynamode/docs/getting_started/introduction} for more information
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-general-nosql-design.html} for DynamoDB data modeling best practices
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-modeling-nosql.html} for NoSQL data modeling concepts
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html} for DynamoDB core components
  */
 export default class Entity {
   /**
