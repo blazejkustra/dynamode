@@ -9,6 +9,32 @@ import type {
   TransactionWriteOutput,
 } from '@lib/transactionWrite/types';
 
+/**
+ * Executes a DynamoDB TransactWriteItems operation.
+ *
+ * This function allows you to perform multiple write operations (Put, Update, Delete, ConditionCheck)
+ * across one or more tables in a single atomic transaction. All operations succeed or all fail.
+ *
+ * @param transactions - Array of transaction write operations
+ * @param options - Optional configuration for the transaction
+ * @returns A promise that resolves to the transaction results
+ *
+ * @example
+ * ```typescript
+ * // Perform multiple write operations in a transaction
+ * const result = await transactionWrite([
+ *   UserManager.transaction.put(new User({ id: 'user-1', name: 'John' })),
+ *   UserManager.transaction.update({ id: 'user-2' }, { set: { status: 'active' } }),
+ *   UserManager.transaction.delete({ id: 'product-1' }),
+ *   UserManager.transaction.condition({ id: 'user-3' }, UserManager.condition().attribute('status').eq('active')),
+ * ]);
+ *
+ * console.log('Transaction completed:', result.count, 'operations');
+ * ```
+ *
+ * @see {@link https://blazejkustra.github.io/dynamode/docs/guide/transactions#transactionwritetransactions-options} for more examples
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html#transaction-apis-write} for AWS TransactWriteItems documentation
+ */
 export default function transactionWrite<TW extends Array<TransactionWrite<typeof Entity>>>(
   transactions: TransactionWriteInput<[...TW]>,
   options?: TransactionWriteOptions & { return?: 'default' },

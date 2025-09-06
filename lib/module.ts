@@ -19,34 +19,61 @@ declare global {
   interface File {}
 }
 
+/**
+ * Main Dynamode module exports.
+ *
+ * This module provides all the core functionality of Dynamode, including
+ * entity management, table operations, querying, scanning, and transactions.
+ *
+ * @example
+ * ```typescript
+ * import { Entity, TableManager, attribute } from 'dynamode';
+ *
+ * class User extends Entity {
+ *   ＠attribute.partitionKey.string()
+ *   id: string;
+ *
+ *   ＠attribute.string()
+ *   name: string;
+ * }
+ *
+ * const UserTableManager = new TableManager(User, {
+ *   tableName: 'users-table',
+ *   partitionKey: 'id'
+ * });
+ * ```
+ */
 export {
-  //Condition
+  /** Condition builder for building conditional expressions */
   Condition,
+  /** Attribute type definitions */
   AttributeType,
 
-  //decorators
+  /** Attribute decorators for defining entity properties */
   attribute,
+  /** Entity decorators for entity-level configurations */
   entity,
 
-  //Entity
+  /** Base Entity class for all Dynamode entities */
   Entity,
 
-  //table manager
+  /** Table manager for managing DynamoDB tables */
   TableManager,
 
-  //Query
+  /** Query builder for DynamoDB query operations */
   Query,
 
-  //Scan
+  /** Scan builder for DynamoDB scan operations */
   Scan,
 
-  //Dynamode
+  /** Main Dynamode instance for configuration and global operations */
   Dynamode,
 
-  //transactions
+  /** Transaction get operations */
   transactionGet,
+  /** Transaction write operations */
   transactionWrite,
 
-  //Stream
+  /** Stream operations for DynamoDB streams */
   Stream,
 };

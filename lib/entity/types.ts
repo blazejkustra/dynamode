@@ -18,36 +18,83 @@ import Entity from '@lib/entity';
 import { Metadata, TablePrimaryKey } from '@lib/table/types';
 import { AttributeNames, AttributeValues, FlattenObject } from '@lib/utils';
 
-// Return types
-
+/**
+ * Return type options for DynamoDB operations.
+ */
 export type ReturnOption = 'default' | 'input' | 'output';
+
+/**
+ * Return values options for DynamoDB operations.
+ */
 export type ReturnValues = 'none' | 'allOld' | 'allNew' | 'updatedOld' | 'updatedNew';
+
+/**
+ * Limited return values options for DynamoDB operations.
+ */
 export type ReturnValuesLimited = 'none' | 'allOld';
 
-// Entity Props
+/**
+ * Entity property types and utilities.
+ */
 
+/**
+ * Properties of an entity instance.
+ *
+ * @template E - The entity class type
+ */
 export type EntityProperties<E extends typeof Entity> = Partial<FlattenObject<InstanceType<E>>>;
+
+/**
+ * Key names of an entity.
+ *
+ * @template E - The entity class type
+ */
 export type EntityKey<E extends typeof Entity> = keyof EntityProperties<E> extends string
   ? keyof EntityProperties<E>
   : never;
+
+/**
+ * Value type for a specific entity key.
+ *
+ * @template E - The entity class type
+ * @template K - The key type
+ */
 export type EntityValue<E extends typeof Entity, K extends EntityKey<E>> = FlattenObject<InstanceType<E>>[K];
 
-// entityManager.get
-
+/**
+ * Options for entity get operations.
+ *
+ * @template E - The entity class type
+ */
 export type EntityGetOptions<E extends typeof Entity> = {
+  /** Additional DynamoDB input parameters */
   extraInput?: Partial<GetItemCommandInput>;
+  /** Return type option */
   return?: ReturnOption;
+  /** Specific attributes to retrieve */
   attributes?: Array<EntityKey<E>>;
+  /** Whether to use consistent read */
   consistent?: boolean;
 };
 
+/**
+ * Built projection expression for get operations.
+ */
 export type BuildGetProjectionExpression = {
+  /** Attribute names mapping */
   attributeNames?: AttributeNames;
+  /** Projection expression string */
   projectionExpression?: string;
 };
 
 // entityManager.update
 
+/**
+ * Utility type to pick properties of a specific type.
+ *
+ * @template T - The object type
+ * @template Value - The value type to filter by
+ */
 export type PickByType<T, Value> = Omit<
   {
     [P in keyof T as T[P] extends Value | undefined ? P : never]: T[P];
@@ -59,14 +106,27 @@ export type PickByType<T, Value> = Omit<
     : U | Record<string, never>
   : never;
 
+/**
+ * Update operations for entity update operations.
+ *
+ * @template E - The entity class type
+ */
 export type UpdateProps<E extends typeof Entity> = RequireAtLeastOne<{
+  /** ADD operation for numbers and sets */
   add?: PickByType<EntityProperties<E>, number | Set<unknown>>;
+  /** SET operation for setting attribute values */
   set?: EntityProperties<E>;
+  /** SET operation only if attribute doesn't exist */
   setIfNotExists?: EntityProperties<E>;
+  /** LIST_APPEND operation for arrays */
   listAppend?: PickByType<EntityProperties<E>, Array<unknown>>;
+  /** Increment operation for numbers */
   increment?: PickByType<EntityProperties<E>, number>;
+  /** Decrement operation for numbers */
   decrement?: PickByType<EntityProperties<E>, number>;
+  /** DELETE operation for sets */
   delete?: PickByType<EntityProperties<E>, Set<unknown>>;
+  /** REMOVE operation for removing attributes */
   remove?: Array<EntityKey<E>>;
 }>;
 

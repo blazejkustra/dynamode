@@ -5,6 +5,32 @@ import { convertAttributeValuesToEntity } from '@lib/entity/helpers/converters';
 import type { TransactionGetInput, TransactionGetOptions, TransactionGetOutput } from '@lib/transactionGet/types';
 import { NotFoundError } from '@lib/utils';
 
+/**
+ * Executes a DynamoDB TransactGetItems operation.
+ *
+ * This function allows you to retrieve multiple items from one or more tables
+ * in a single atomic operation. All items are retrieved or none are retrieved.
+ *
+ * @param transactions - Array of transaction get operations
+ * @returns A promise that resolves to the transaction results
+ * @throws {NotFoundError} When items are not found and throwOnNotFound is true
+ *
+ * @example
+ * ```typescript
+ * // Get multiple items in a transaction
+ * const result = await transactionGet([
+ *   UserManager.transactionGet({ id: 'user-1' }),
+ *   UserManager.transactionGet({ id: 'user-2' }),
+ *   UserManager.transactionGet({ id: 'product-1' }),
+ * ]);
+ *
+ * console.log('Users:', result.items[0], result.items[1]);
+ * console.log('Product:', result.items[2]);
+ * ```
+ *
+ * @see {@link https://blazejkustra.github.io/dynamode/docs/guide/transactions#transactiongettransactions-options} for more examples
+ * @see {@link https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html#transaction-apis-get} for AWS TransactGetItems documentation
+ */
 export default function transactionGet<E extends Array<typeof Entity>>(
   transactions: TransactionGetInput<[...E]>,
 ): Promise<TransactionGetOutput<[...E]>>;
