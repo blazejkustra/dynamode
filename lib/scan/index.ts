@@ -42,7 +42,7 @@ import { ExpressionBuilder, isNotEmptyString } from '@lib/utils';
  */
 export default class Scan<M extends Metadata<E>, E extends typeof Entity> extends RetrieverBase<M, E> {
   /** The DynamoDB ScanInput object */
-  protected declare input: ScanInput;
+  declare protected input: ScanInput;
 
   /**
    * Creates a new Scan instance.

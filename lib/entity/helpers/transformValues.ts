@@ -1,29 +1,29 @@
 import Dynamode from '@lib/dynamode/index';
 import Entity from '@lib/entity';
-import { InvalidParameter } from '@lib/utils';
+import { InvalidParameter, LiteralKey } from '@lib/utils';
 
-export function prefixSuffixValue<E extends typeof Entity>(entity: E, key: string, value: unknown): unknown {
+export function prefixSuffixValue<E extends typeof Entity>(entity: E, key: LiteralKey, value: unknown): unknown {
   if (typeof value !== 'string') {
     return value;
   }
 
   const attributes = Dynamode.storage.getEntityAttributes(entity.name);
   const separator = Dynamode.separator.get();
-  const prefix = attributes[key]?.prefix || '';
-  const suffix = attributes[key]?.suffix || '';
+  const prefix = attributes[key as string]?.prefix || '';
+  const suffix = attributes[key as string]?.suffix || '';
 
   return [prefix, value, suffix].filter((p) => p).join(separator);
 }
 
-export function truncateValue<E extends typeof Entity>(entity: E, key: string, value: unknown): unknown {
+export function truncateValue<E extends typeof Entity>(entity: E, key: LiteralKey, value: unknown): unknown {
   if (typeof value !== 'string') {
     return value;
   }
 
   const attributes = Dynamode.storage.getEntityAttributes(entity.name);
   const separator = Dynamode.separator.get();
-  const prefix = attributes[key].prefix || '';
-  const suffix = attributes[key].suffix || '';
+  const prefix = attributes[key as string].prefix || '';
+  const suffix = attributes[key as string].suffix || '';
 
   const valueSections = value.split(separator);
 
@@ -38,9 +38,9 @@ export function truncateValue<E extends typeof Entity>(entity: E, key: string, v
   return valueSections.join(separator);
 }
 
-export function transformDateValue<E extends typeof Entity>(entity: E, key: string, value: unknown): unknown {
+export function transformDateValue<E extends typeof Entity>(entity: E, key: LiteralKey, value: unknown): unknown {
   const attributes = Dynamode.storage.getEntityAttributes(entity.name);
-  const attribute = attributes[key];
+  const attribute = attributes[key as string];
 
   if (value instanceof Date) {
     if (attribute.role !== 'date') {
@@ -63,7 +63,7 @@ export function transformDateValue<E extends typeof Entity>(entity: E, key: stri
   return value;
 }
 
-export function transformValue<E extends typeof Entity>(entity: E, key: string, value: unknown): unknown {
+export function transformValue<E extends typeof Entity>(entity: E, key: LiteralKey, value: unknown): unknown {
   const processedValue = transformDateValue(entity, key, value);
   return prefixSuffixValue(entity, key, processedValue);
 }

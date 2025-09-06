@@ -57,7 +57,7 @@ import {
  */
 export default class Query<M extends Metadata<E>, E extends typeof Entity> extends RetrieverBase<M, E> {
   /** The DynamoDB QueryInput object */
-  protected declare input: QueryInput;
+  declare protected input: QueryInput;
   /** Key condition operators for building key condition expressions */
   protected keyOperators: Operators = [];
   /** Metadata for the partition key attribute */

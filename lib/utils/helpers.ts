@@ -6,7 +6,7 @@ export function isEmpty(obj: object): boolean {
   return Object.keys(obj).length === 0;
 }
 
-export function isNotEmpty(obj?: object): obj is object {
+export function isNotEmpty(obj?: unknown): obj is object {
   if (!obj) return false;
   return !isEmpty(obj);
 }

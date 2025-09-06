@@ -3,6 +3,7 @@ import {
   AttributeValues,
   InvalidParameter,
   isNotEmpty,
+  LiteralKey,
   Operators,
   RESERVED_WORDS,
   splitListPathReference,
@@ -49,8 +50,8 @@ export class ExpressionBuilder {
       .join('');
   }
 
-  public substituteName(key: string): string {
-    return key
+  public substituteName(key: LiteralKey): string {
+    return (key as string)
       .split('.')
       .map((key) => {
         const [keyPart, listReferencePart] = splitListPathReference(key);
@@ -66,8 +67,8 @@ export class ExpressionBuilder {
       .join('.');
   }
 
-  public substituteValue(key: string, value: unknown): string {
-    const valueName = key.replace(/\[/g, '_index').replace(/\]/g, '').split('.').join('_');
+  public substituteValue(key: LiteralKey, value: unknown): string {
+    const valueName = (key as string).replace(/\[/g, '_index').replace(/\]/g, '').split('.').join('_');
 
     for (let i = 0; i < 1000; i++) {
       const suffix = i ? `__${i}` : '';
@@ -78,6 +79,6 @@ export class ExpressionBuilder {
       }
     }
 
-    throw new InvalidParameter(`Couldn't substitute a value for key: ${key}. Value key out of range`);
+    throw new InvalidParameter(`Couldn't substitute a value for key: ${key as string}. Value key out of range`);
   }
 }

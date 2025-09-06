@@ -95,16 +95,17 @@ export type BuildGetProjectionExpression = {
  * @template T - The object type
  * @template Value - The value type to filter by
  */
-export type PickByType<T, Value> = Omit<
-  {
-    [P in keyof T as T[P] extends Value | undefined ? P : never]: T[P];
-  },
-  'dynamodeEntity'
-> extends infer U
-  ? U extends Record<string, never>
-    ? Record<string, never>
-    : U | Record<string, never>
-  : never;
+export type PickByType<T, Value> =
+  Omit<
+    {
+      [P in keyof T as T[P] extends Value | undefined ? P : never]: T[P];
+    },
+    'dynamodeEntity'
+  > extends infer U
+    ? U extends Record<string, never>
+      ? Record<string, never>
+      : U | Record<string, never>
+    : never;
 
 /**
  * Update operations for entity update operations.
