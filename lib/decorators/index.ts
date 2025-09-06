@@ -25,19 +25,19 @@ import {
  * @example
  * ```typescript
  * class User extends Entity {
- *   @attribute.partitionKey.string()
+ *   ＠attribute.partitionKey.string()
  *   id: string;
  *
- *   @attribute.sortKey.number()
+ *   ＠attribute.sortKey.number()
  *   createdAt: number;
  *
- *   @attribute.string()
+ *   ＠attribute.string()
  *   name: string;
  *
- *   @attribute.gsi.partitionKey.string({ indexName: 'NameIndex' })
+ *   ＠attribute.gsi.partitionKey.string({ indexName: 'NameIndex' })
  *   nameIndex: string;
  *
- *   @attribute.lsi.sortKey.string({ indexName: 'StatusIndex' })
+ *   ＠attribute.lsi.sortKey.string({ indexName: 'StatusIndex' })
  *   status: string;
  * }
  * ```
@@ -124,7 +124,7 @@ const attribute = {
  * ```typescript
  * @entity.customName('CustomUser')
  * class User extends Entity {
- *   @attribute.partitionKey.string()
+ *   ＠attribute.partitionKey.string()
  *   id: string;
  * }
  * ```

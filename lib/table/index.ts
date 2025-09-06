@@ -40,10 +40,10 @@ import { getTableGlobalSecondaryIndexes, getTableLocalSecondaryIndexes } from '.
  * @example
  * ```typescript
  * class User extends Entity {
- *   @attribute.partitionKey.string()
+ *   ＠attribute.partitionKey.string()
  *   id: string;
  *
- *   @attribute.string()
+ *   ＠attribute.string()
  *   name: string;
  * }
  *
@@ -114,17 +114,50 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
   }
 
   /**
-   * Creates an entity manager for the base table entity.
+   * Creates an entity manager for the table.
    *
    * @returns An EntityManager instance for the base table entity
    *
    * @example
    * ```typescript
+   * // Get manager for base table entity
    * const UserManager = UserTableManager.entityManager();
    * const user = await UserManager.get({ id: 'user-123' });
    * ```
    */
   public entityManager(): ReturnType<typeof EntityManager<M, TE>>;
+  /**
+   * Creates an entity manager for a specific entity.
+   *
+   * @param entity - The entity class constructor
+   * @returns An EntityManager instance for the specific entity
+   *
+   * @example
+   * ```typescript
+   * // Get manager for specific entity
+   * const AdminManager = UserTableManager.entityManager(Admin);
+   * const admin = await AdminManager.get({ id: 'admin-123' });
+   * ```
+   */
+  public entityManager<E extends TE>(entity: E): ReturnType<typeof EntityManager<M, E>>;
+
+  /**
+   * Creates an entity manager for the table.
+   *
+   * @param entity - Optional entity class constructor. If not provided, uses the base table entity.
+   * @returns An EntityManager instance for the specified entity or base table entity
+   *
+   * @example
+   * ```typescript
+   * // Get manager for base table entity
+   * const UserManager = UserTableManager.entityManager();
+   * const user = await UserManager.get({ id: 'user-123' });
+   *
+   * // Get manager for specific entity
+   * const AdminManager = UserTableManager.entityManager(Admin);
+   * const admin = await AdminManager.get({ id: 'admin-123' });
+   * ```
+   */
   public entityManager<E extends TE>(
     entity?: E,
   ): ReturnType<typeof EntityManager<M, E>> | ReturnType<typeof EntityManager<M, TE>> {
@@ -136,9 +169,63 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     return EntityManager<M, TE>(this.tableEntity, this.tableMetadata.tableName);
   }
 
+  /**
+   * Creates a DynamoDB table with default return type (converted table data).
+   *
+   * @param options - Optional configuration for table creation
+   * @returns A promise that resolves to converted table data
+   *
+   * @example
+   * ```typescript
+   * const tableData = await UserTableManager.createTable();
+   * ```
+   */
   public createTable(options?: TableCreateOptions & { return?: 'default' }): Promise<TableData>;
+
+  /**
+   * Creates a DynamoDB table, returning the raw AWS response.
+   *
+   * @param options - Configuration for table creation with return type 'output'
+   * @returns A promise that resolves to the raw CreateTableCommandOutput
+   *
+   * @example
+   * ```typescript
+   * const response = await UserTableManager.createTable({ return: 'output' });
+   * console.log(response.TableDescription);
+   * ```
+   */
   public createTable(options: TableCreateOptions & { return: 'output' }): Promise<CreateTableCommandOutput>;
+
+  /**
+   * Builds the CreateTable command input without executing it.
+   *
+   * @param options - Configuration for table creation with return type 'input'
+   * @returns The CreateTableCommandInput object
+   *
+   * @example
+   * ```typescript
+   * const input = UserTableManager.createTable({ return: 'input' });
+   * // Use input with AWS SDK directly
+   * ```
+   */
   public createTable(options: TableCreateOptions & { return: 'input' }): CreateTableCommandInput;
+
+  /**
+   * Creates a DynamoDB table with the specified configuration.
+   *
+   * @param options - Optional configuration for table creation
+   * @returns A promise that resolves to table data, raw AWS response, or command input
+   *
+   * @example
+   * ```typescript
+   * // Create table with custom options
+   * const tableData = await UserTableManager.createTable({
+   *   throughput: { read: 5, write: 5 },
+   *   tags: { Environment: 'production' },
+   *   deletionProtection: true
+   * });
+   * ```
+   */
   public createTable(
     options?: TableCreateOptions,
   ): Promise<TableData | CreateTableCommandOutput> | CreateTableCommandInput {
@@ -178,15 +265,69 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     })();
   }
 
+  /**
+   * Deletes a DynamoDB table with default return type (converted table data).
+   *
+   * @param tableName - The name of the table to delete
+   * @param options - Optional configuration for table deletion
+   * @returns A promise that resolves to converted table data
+   *
+   * @example
+   * ```typescript
+   * const tableData = await UserTableManager.deleteTable('UserTable');
+   * ```
+   */
   public deleteTable(tableName: string, options?: TableDeleteOptions & { return?: 'default' }): Promise<TableData>;
 
+  /**
+   * Deletes a DynamoDB table, returning the raw AWS response.
+   *
+   * @param tableName - The name of the table to delete
+   * @param options - Configuration for table deletion with return type 'output'
+   * @returns A promise that resolves to the raw DeleteTableCommandOutput
+   *
+   * @example
+   * ```typescript
+   * const response = await UserTableManager.deleteTable('UserTable', { return: 'output' });
+   * console.log(response.TableDescription);
+   * ```
+   */
   public deleteTable(
     tableName: string,
     options: TableDeleteOptions & { return: 'output' },
   ): Promise<DeleteTableCommandOutput>;
 
+  /**
+   * Builds the DeleteTable command input without executing it.
+   *
+   * @param tableName - The name of the table to delete
+   * @param options - Configuration for table deletion with return type 'input'
+   * @returns The DeleteTableCommandInput object
+   *
+   * @example
+   * ```typescript
+   * const input = UserTableManager.deleteTable('UserTable', { return: 'input' });
+   * // Use input with AWS SDK directly
+   * ```
+   */
   public deleteTable(tableName: string, options: TableDeleteOptions & { return: 'input' }): DeleteTableCommandInput;
 
+  /**
+   * Deletes a DynamoDB table with the specified configuration.
+   *
+   * @param tableName - The name of the table to delete
+   * @param options - Optional configuration for table deletion
+   * @returns A promise that resolves to table data, raw AWS response, or command input
+   * @throws {ValidationError} When the table name doesn't match the table metadata
+   *
+   * @example
+   * ```typescript
+   * // Delete table with custom options
+   * const tableData = await UserTableManager.deleteTable('UserTable', {
+   *   extraInput: { BillingMode: 'PAY_PER_REQUEST' }
+   * });
+   * ```
+   */
   public deleteTable(
     tableName: string,
     options?: TableDeleteOptions,
@@ -212,21 +353,75 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     })();
   }
 
+  /**
+   * Creates a table index with default return type (converted table data).
+   *
+   * @param indexName - The name of the index to create
+   * @param options - Optional configuration for index creation
+   * @returns A promise that resolves to converted table data
+   *
+   * @example
+   * ```typescript
+   * const tableData = await UserTableManager.createTableIndex('GSI_1_NAME');
+   * ```
+   */
   public createTableIndex(
     indexName: TableIndexNames<M, TE>,
     options?: TableCreateIndexOptions & { return?: 'default' },
   ): Promise<TableData>;
 
+  /**
+   * Creates a table index, returning the raw AWS response.
+   *
+   * @param indexName - The name of the index to create
+   * @param options - Configuration for index creation with return type 'output'
+   * @returns A promise that resolves to the raw UpdateTableCommandOutput
+   *
+   * @example
+   * ```typescript
+   * const response = await UserTableManager.createTableIndex('GSI_1_NAME', { return: 'output' });
+   * console.log(response.TableDescription);
+   * ```
+   */
   public createTableIndex(
     indexName: TableIndexNames<M, TE>,
     options: TableCreateIndexOptions & { return: 'output' },
   ): Promise<UpdateTableCommandOutput>;
 
+  /**
+   * Builds the UpdateTable command input for creating an index without executing it.
+   *
+   * @param indexName - The name of the index to create
+   * @param options - Configuration for index creation with return type 'input'
+   * @returns The UpdateTableCommandInput object
+   *
+   * @example
+   * ```typescript
+   * const input = UserTableManager.createTableIndex('GSI_1_NAME', { return: 'input' });
+   * // Use input with AWS SDK directly
+   * ```
+   */
   public createTableIndex(
     indexName: TableIndexNames<M, TE>,
     options: TableCreateIndexOptions & { return: 'input' },
   ): UpdateTableCommandInput;
 
+  /**
+   * Creates a table index with the specified configuration.
+   *
+   * @param indexName - The name of the index to create
+   * @param options - Optional configuration for index creation
+   * @returns A promise that resolves to table data, raw AWS response, or command input
+   * @throws {ValidationError} When the index is not decorated in the entity or missing partition key
+   *
+   * @example
+   * ```typescript
+   * // Create index with custom throughput
+   * const tableData = await UserTableManager.createTableIndex('GSI_1_NAME', {
+   *   throughput: { read: 5, write: 5 }
+   * });
+   * ```
+   */
   public createTableIndex(
     indexName: TableIndexNames<M, TE>,
     options?: TableCreateIndexOptions,
@@ -273,21 +468,75 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
     })();
   }
 
+  /**
+   * Deletes a table index with default return type (converted table data).
+   *
+   * @param indexName - The name of the index to delete
+   * @param options - Optional configuration for index deletion
+   * @returns A promise that resolves to converted table data
+   *
+   * @example
+   * ```typescript
+   * const tableData = await UserTableManager.deleteTableIndex('OldIndex');
+   * ```
+   */
   public deleteTableIndex(
     indexName: string,
     options?: TableDeleteIndexOptions & { return?: 'default' },
   ): Promise<TableData>;
 
+  /**
+   * Deletes a table index, returning the raw AWS response.
+   *
+   * @param indexName - The name of the index to delete
+   * @param options - Configuration for index deletion with return type 'output'
+   * @returns A promise that resolves to the raw UpdateTableCommandOutput
+   *
+   * @example
+   * ```typescript
+   * const response = await UserTableManager.deleteTableIndex('OldIndex', { return: 'output' });
+   * console.log(response.TableDescription);
+   * ```
+   */
   public deleteTableIndex(
     indexName: string,
     options: TableDeleteIndexOptions & { return: 'output' },
   ): Promise<UpdateTableCommandOutput>;
 
+  /**
+   * Builds the UpdateTable command input for deleting an index without executing it.
+   *
+   * @param indexName - The name of the index to delete
+   * @param options - Configuration for index deletion with return type 'input'
+   * @returns The UpdateTableCommandInput object
+   *
+   * @example
+   * ```typescript
+   * const input = UserTableManager.deleteTableIndex('OldIndex', { return: 'input' });
+   * // Use input with AWS SDK directly
+   * ```
+   */
   public deleteTableIndex(
     indexName: string,
     options: TableDeleteIndexOptions & { return: 'input' },
   ): UpdateTableCommandInput;
 
+  /**
+   * Deletes a table index with the specified configuration.
+   *
+   * @param indexName - The name of the index to delete
+   * @param options - Optional configuration for index deletion
+   * @returns A promise that resolves to table data, raw AWS response, or command input
+   * @throws {ValidationError} When the index is still decorated in the entity
+   *
+   * @example
+   * ```typescript
+   * // Delete index with custom options
+   * const tableData = await UserTableManager.deleteTableIndex('OldIndex', {
+   *   extraInput: { BillingMode: 'PAY_PER_REQUEST' }
+   * });
+   * ```
+   */
   public deleteTableIndex(
     indexName: string,
     options?: TableDeleteIndexOptions,
@@ -321,15 +570,13 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
   }
 
   /**
-   * Validates that the existing DynamoDB table matches the table metadata configuration.
+   * Validates a table with default return type (converted table data).
    *
    * @param options - Optional configuration for table validation
-   * @returns A promise that resolves to table data
-   * @throws {ValidationError} When the table structure doesn't match the metadata
+   * @returns A promise that resolves to converted table data
    *
    * @example
    * ```typescript
-   * // Validate the table structure
    * const tableData = await UserTableManager.validateTable();
    * ```
    */
@@ -340,6 +587,12 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
    *
    * @param options - Configuration for table validation with return type 'output'
    * @returns A promise that resolves to the raw DescribeTableCommandOutput
+   *
+   * @example
+   * ```typescript
+   * const response = await UserTableManager.validateTable({ return: 'output' });
+   * console.log(response.Table);
+   * ```
    */
   public validateTable(options: TableValidateOptions & { return: 'output' }): Promise<DescribeTableCommandOutput>;
 
@@ -348,6 +601,12 @@ export default class TableManager<M extends Metadata<TE>, TE extends typeof Enti
    *
    * @param options - Configuration for table validation with return type 'input'
    * @returns The DescribeTableCommandInput object
+   *
+   * @example
+   * ```typescript
+   * const input = UserTableManager.validateTable({ return: 'input' });
+   * // Use input with AWS SDK directly
+   * ```
    */
   public validateTable(options: TableValidateOptions & { return: 'input' }): DescribeTableCommandInput;
 

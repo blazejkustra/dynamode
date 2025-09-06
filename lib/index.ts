@@ -17,10 +17,10 @@
  *
  * // Define an entity
  * class User extends Entity {
- *   @attribute.partitionKey.string()
+ *   ＠attribute.partitionKey.string()
  *   id: string;
  *
- *   @attribute.string()
+ *   ＠attribute.string()
  *   name: string;
  * }
  *

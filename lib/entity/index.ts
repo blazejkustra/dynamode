@@ -11,10 +11,10 @@ import { DYNAMODE_ENTITY } from '@lib/utils';
  * @example
  * ```typescript
  * class User extends Entity {
- *   @attribute.partitionKey.string()
+ *   ＠attribute.partitionKey.string()
  *   id: string;
  *
- *   @attribute.string()
+ *   ＠attribute.string()
  *   name: string;
  *
  *   constructor(props: { id: string; name: string }) {
@@ -55,7 +55,7 @@ export default class Entity {
    * @example
    * ```typescript
    * class Product extends Entity {
-   *   @attribute.partitionKey.string()
+   *   ＠attribute.partitionKey.string()
    *   id: string;
    *
    *   constructor(props: { id: string }) {
