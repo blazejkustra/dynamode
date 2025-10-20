@@ -50,8 +50,6 @@ export function convertEntityToAttributeValues<E extends typeof Entity>(
   const dynamoObject: GenericObject = {};
   const attributes = Dynamode.storage.getEntityAttributes(entity.name);
 
-  console.log(`%%% attributes`, attributes);
-
   Object.values(attributes).forEach((attribute) => {
     dynamoObject[attribute.propertyName] = transformValue(
       entity,
