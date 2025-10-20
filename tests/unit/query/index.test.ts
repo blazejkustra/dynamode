@@ -250,7 +250,7 @@ describe('Query', () => {
 
         expect(timeoutSpy).not.toBeCalled();
         expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(1);
-        expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, { key: 'value' });
+        expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, { key: 'value' }, []);
         expect(convertAttributeValuesToLastKeySpy).toBeCalledTimes(1);
         expect(convertAttributeValuesToLastKeySpy).toBeCalledWith(MockEntity, {
           partitionKey: 'lastValue',
@@ -281,9 +281,9 @@ describe('Query', () => {
 
         expect(timeoutSpy).toBeCalledTimes(3);
         expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(3);
-        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, { key: 'value1' });
-        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, MockEntity, { key: 'value2' });
-        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(3, MockEntity, { key: 'value3' });
+        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, { key: 'value1' }, []);
+        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, MockEntity, { key: 'value2' }, []);
+        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(3, MockEntity, { key: 'value3' }, []);
         expect(convertAttributeValuesToLastKeySpy).not.toBeCalled();
       });
 
@@ -309,8 +309,8 @@ describe('Query', () => {
 
         expect(timeoutSpy).toBeCalledTimes(2);
         expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(2);
-        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, { key: 'value1' });
-        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, MockEntity, { key: 'value2' });
+        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, { key: 'value1' }, []);
+        expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, MockEntity, { key: 'value2' }, []);
         expect(convertAttributeValuesToLastKeySpy).toBeCalledTimes(1);
         expect(convertAttributeValuesToLastKeySpy).toBeCalledWith(MockEntity, { key: 'value2' });
       });

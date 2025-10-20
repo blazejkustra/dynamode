@@ -167,7 +167,7 @@ describe('entityManager', () => {
         Key: primaryKey,
         ConsistentRead: false,
       });
-      expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, mockInstance);
+      expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, mockInstance, undefined);
     });
 
     test("Should throw an error if item wasn't found", async () => {
@@ -928,8 +928,8 @@ describe('entityManager', () => {
         },
       });
       expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(2);
-      expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance);
-      expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, MockEntity, testTableInstance);
+      expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance, undefined);
+      expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, MockEntity, testTableInstance, undefined);
     });
 
     test('Should return dynamode result (one item found)', async () => {
@@ -958,7 +958,7 @@ describe('entityManager', () => {
         },
       });
       expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(1);
-      expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance);
+      expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance, undefined);
     });
 
     test('Should return dynamode result with unprocessed keys', async () => {
