@@ -29,11 +29,14 @@ export function convertAttributeValuesToEntity<E extends typeof Entity>(
   const instance = new entity(object) as InstanceType<E>;
 
   if (selectedAttributes && selectedAttributes.length > 0) {
+    // Remove nested attributes from the selected attributes
+    const selectedAttributesSet = new Set([
+      'dynamodeEntity',
+      ...selectedAttributes.map((attribute) => attribute.split('.')[0]),
+    ]);
+
     Object.values(attributes)
-      .filter(
-        (attribute) =>
-          !selectedAttributes.includes(attribute.propertyName) && attribute.propertyName !== 'dynamodeEntity',
-      )
+      .filter((attribute) => !selectedAttributesSet.has(attribute.propertyName))
       .forEach((attribute) => {
         // @ts-expect-error undefined is not assignable to every Entity's property
         instance[attribute.propertyName] = undefined;
