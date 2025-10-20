@@ -148,9 +148,24 @@ describe('Converters entity helpers', () => {
     truncateValueSpy.mockImplementation((_1, _2, v) => v);
 
     transformValueSpy = vi.spyOn(transformValuesHelpers, 'transformValue');
-    transformValueSpy.mockImplementation((_1, k, v) =>
-      v instanceof Date ? (k === 'updatedAt' ? v.getTime() : v.toISOString()) : v,
-    );
+    transformValueSpy.mockImplementation((entity, k, v) => {
+      if (v instanceof Date) {
+        const attributes = Dynamode.storage.getEntityAttributes(entity.name);
+        const attribute = attributes[k as string];
+
+        if (attribute?.role === 'date') {
+          switch (attribute.type) {
+            case String:
+              return v.toISOString();
+            case Number:
+              return v.getTime();
+            default:
+              return v;
+          }
+        }
+      }
+      return v;
+    });
   });
 
   afterEach(() => {
@@ -192,7 +207,7 @@ describe('Converters entity helpers', () => {
       getEntityAttributesSpy.mockReturnValue(mockEntityAttributes);
 
       expect(convertEntityToAttributeValues(MockEntity, mockInstance)).toEqual(dynamoObject);
-      expect(transformValueSpy).toBeCalledTimes(16);
+      expect(transformValueSpy).toBeCalledTimes(18);
     });
   });
 
