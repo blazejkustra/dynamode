@@ -38,6 +38,7 @@ import {
   EntityGetOptions,
   EntityKey,
   EntityPutOptions,
+  EntitySelectedAttributes,
   EntityTransactionDeleteOptions,
   EntityTransactionGetOptions,
   EntityTransactionPutOptions,
@@ -170,10 +171,10 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
    * });
    * ```
    */
-  function get(
+  function get<const Attributes extends Array<EntityKey<E>> | undefined = undefined>(
     primaryKey: TablePrimaryKey<M, E>,
-    options?: EntityGetOptions<E> & { return?: 'default' },
-  ): Promise<InstanceType<E>>;
+    options?: EntityGetOptions<E, Attributes> & { return?: 'default' },
+  ): Promise<EntitySelectedAttributes<E, Attributes>>;
 
   /**
    * Retrieves a single item from the table by its primary key, returning the raw AWS response.
@@ -184,7 +185,7 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
    */
   function get(
     primaryKey: TablePrimaryKey<M, E>,
-    options: EntityGetOptions<E> & { return: 'output' },
+    options: EntityGetOptions<E, any> & { return: 'output' },
   ): Promise<GetItemCommandOutput>;
 
   /**
@@ -196,7 +197,7 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
    */
   function get(
     primaryKey: TablePrimaryKey<M, E>,
-    options: EntityGetOptions<E> & { return: 'input' },
+    options: EntityGetOptions<E, any> & { return: 'input' },
   ): GetItemCommandInput;
 
   /**
@@ -207,10 +208,10 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
    * @returns A promise that resolves to the entity instance, raw AWS response, or command input
    * @throws {NotFoundError} When the item is not found and return type is 'default'
    */
-  function get(
+  function get<const Attributes extends Array<EntityKey<E>> | undefined = undefined>(
     primaryKey: TablePrimaryKey<M, E>,
-    options?: EntityGetOptions<E>,
-  ): Promise<InstanceType<E> | GetItemCommandOutput> | GetItemCommandInput {
+    options?: EntityGetOptions<E, Attributes>,
+  ): Promise<EntitySelectedAttributes<E, Attributes> | GetItemCommandOutput> | GetItemCommandInput {
     const { projectionExpression, attributeNames } = buildGetProjectionExpression(options?.attributes);
 
     const commandInput: GetItemCommandInput = {
@@ -237,7 +238,10 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
         throw new NotFoundError();
       }
 
-      return convertAttributeValuesToEntity(entity, result.Item, options?.attributes);
+      return convertAttributeValuesToEntity(entity, result.Item, options?.attributes) as EntitySelectedAttributes<
+        E,
+        Attributes
+      >;
     })();
   }
 
@@ -624,10 +628,10 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
    * });
    * ```
    */
-  function batchGet(
+  function batchGet<const Attributes extends Array<EntityKey<E>> | undefined = undefined>(
     primaryKeys: Array<TablePrimaryKey<M, E>>,
-    options?: EntityBatchGetOptions<E> & { return?: 'default' },
-  ): Promise<EntityBatchGetOutput<M, E>>;
+    options?: EntityBatchGetOptions<E, Attributes> & { return?: 'default' },
+  ): Promise<EntityBatchGetOutput<M, E, Attributes>>;
 
   /**
    * Retrieves multiple items, returning the raw AWS response.
@@ -638,7 +642,7 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
    */
   function batchGet(
     primaryKeys: Array<TablePrimaryKey<M, E>>,
-    options: EntityBatchGetOptions<E> & { return: 'output' },
+    options: EntityBatchGetOptions<E, any> & { return: 'output' },
   ): Promise<BatchGetItemCommandOutput>;
 
   /**
@@ -650,7 +654,7 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
    */
   function batchGet(
     primaryKeys: Array<TablePrimaryKey<M, E>>,
-    options: EntityBatchGetOptions<E> & { return: 'input' },
+    options: EntityBatchGetOptions<E, any> & { return: 'input' },
   ): BatchGetItemCommandInput;
 
   /**
@@ -660,10 +664,10 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
    * @param options - Optional configuration for the batch get operation
    * @returns A promise that resolves to the batch get result, raw AWS response, or command input
    */
-  function batchGet(
+  function batchGet<const Attributes extends Array<EntityKey<E>> | undefined = undefined>(
     primaryKeys: Array<TablePrimaryKey<M, E>>,
-    options?: EntityBatchGetOptions<E>,
-  ): Promise<EntityBatchGetOutput<M, E> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
+    options?: EntityBatchGetOptions<E, Attributes>,
+  ): Promise<EntityBatchGetOutput<M, E, Attributes> | BatchGetItemCommandOutput> | BatchGetItemCommandInput {
     const { projectionExpression, attributeNames } = buildGetProjectionExpression(options?.attributes);
 
     const commandInput: BatchGetItemCommandInput = {
@@ -701,7 +705,9 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
         result.UnprocessedKeys?.[tableName]?.Keys?.map((key) => fromDynamo(key) as TablePrimaryKey<M, E>) || [];
 
       return {
-        items: items.map((item) => convertAttributeValuesToEntity(entity, item, options?.attributes)),
+        items: items.map((item) => convertAttributeValuesToEntity(entity, item, options?.attributes)) as Array<
+          EntitySelectedAttributes<E, Attributes>
+        >,
         unprocessedKeys,
       };
     })();
