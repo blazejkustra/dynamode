@@ -7,6 +7,7 @@ import { AttributeValues, fromDynamo, GenericObject, objectToDynamo } from '@lib
 export function convertAttributeValuesToEntity<E extends typeof Entity>(
   entity: E,
   dynamoItem: AttributeValues,
+  selectedAttributes?: Array<string>,
 ): InstanceType<E> {
   const object = fromDynamo(dynamoItem);
   const attributes = Dynamode.storage.getEntityAttributes(entity.name);
@@ -25,7 +26,21 @@ export function convertAttributeValuesToEntity<E extends typeof Entity>(
     object[attribute.propertyName] = truncateValue(entity, attribute.propertyName, value);
   });
 
-  return new entity(object) as InstanceType<E>;
+  const instance = new entity(object) as InstanceType<E>;
+
+  if (selectedAttributes && selectedAttributes.length > 0) {
+    Object.values(attributes)
+      .filter(
+        (attribute) =>
+          !selectedAttributes.includes(attribute.propertyName) && attribute.propertyName !== 'dynamodeEntity',
+      )
+      .forEach((attribute) => {
+        // @ts-expect-error undefined is not assignable to every Entity's property
+        instance[attribute.propertyName] = undefined;
+      });
+  }
+
+  return instance;
 }
 
 export function convertEntityToAttributeValues<E extends typeof Entity>(
@@ -34,6 +49,8 @@ export function convertEntityToAttributeValues<E extends typeof Entity>(
 ): AttributeValues {
   const dynamoObject: GenericObject = {};
   const attributes = Dynamode.storage.getEntityAttributes(entity.name);
+
+  console.log(`%%% attributes`, attributes);
 
   Object.values(attributes).forEach((attribute) => {
     dynamoObject[attribute.propertyName] = transformValue(

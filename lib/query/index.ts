@@ -160,7 +160,7 @@ export default class Query<M extends Metadata<E>, E extends typeof Entity> exten
       } while (all && !!lastKey && count < max);
 
       return {
-        items: items.map((item) => convertAttributeValuesToEntity(this.entity, item)),
+        items: items.map((item) => convertAttributeValuesToEntity(this.entity, item, this.selectedAttributes)),
         lastKey: lastKey && convertAttributeValuesToLastKey(this.entity, lastKey),
         count,
         scannedCount,

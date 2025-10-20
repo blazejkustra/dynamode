@@ -237,7 +237,7 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
         throw new NotFoundError();
       }
 
-      return convertAttributeValuesToEntity(entity, result.Item);
+      return convertAttributeValuesToEntity(entity, result.Item, options?.attributes);
     })();
   }
 
@@ -701,7 +701,7 @@ export default function EntityManager<M extends Metadata<E>, E extends typeof En
         result.UnprocessedKeys?.[tableName]?.Keys?.map((key) => fromDynamo(key) as TablePrimaryKey<M, E>) || [];
 
       return {
-        items: items.map((item) => convertAttributeValuesToEntity(entity, item)),
+        items: items.map((item) => convertAttributeValuesToEntity(entity, item, options?.attributes)),
         unprocessedKeys,
       };
     })();

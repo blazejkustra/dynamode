@@ -113,7 +113,7 @@ export default class Scan<M extends Metadata<E>, E extends typeof Entity> extend
       const items = result.Items || [];
 
       return {
-        items: items.map((item) => convertAttributeValuesToEntity(this.entity, item)),
+        items: items.map((item) => convertAttributeValuesToEntity(this.entity, item, this.selectedAttributes)),
         count: result.Count || 0,
         scannedCount: result.ScannedCount || 0,
         lastKey: result.LastEvaluatedKey
