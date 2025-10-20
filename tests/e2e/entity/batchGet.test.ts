@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 
-import { MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../../fixtures/TestTable';
+import { MockEntity, MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../../fixtures/TestTable';
 import { mockEntityFactory } from '../mockEntityFactory';
 
 describe('EntityManager.batchGet', () => {
@@ -84,15 +84,15 @@ describe('EntityManager.batchGet', () => {
       expect(mocks).not.toEqual([mock1, mock2, mock3]);
       expect(mocks[0].number).toEqual(1);
       expect(mocks[0].string).toEqual('string');
-      expect(mocks[0].object).toEqual(undefined);
+      expect((mocks[0] as MockEntity).object).toEqual(undefined);
 
       expect(mocks[1].number).toEqual(1);
       expect(mocks[1].string).toEqual('string');
-      expect(mocks[1].object).toEqual(undefined);
+      expect((mocks[1] as MockEntity).object).toEqual(undefined);
 
       expect(mocks[2].number).toEqual(1);
       expect(mocks[2].string).toEqual('string');
-      expect(mocks[2].object).toEqual(undefined);
+      expect((mocks[2] as MockEntity).object).toEqual(undefined);
     });
   });
 });

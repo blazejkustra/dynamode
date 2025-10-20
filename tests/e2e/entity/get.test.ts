@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { NotFoundError } from '@lib/utils';
 
-import { MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../../fixtures/TestTable';
+import { MockEntity, MockEntityManager, TEST_TABLE_NAME, TestTableManager } from '../../fixtures/TestTable';
 import { mockEntityFactory } from '../mockEntityFactory';
 
 describe('EntityManager.get', () => {
@@ -57,10 +57,10 @@ describe('EntityManager.get', () => {
       // Assert
       expect(mockEntityRetrieved.string).toEqual('string');
       expect(mockEntityRetrieved.number).toEqual(1);
-      expect(mockEntityRetrieved.boolean).toEqual(undefined);
-      expect(mockEntityRetrieved.object).toEqual(undefined);
-      expect(mockEntityRetrieved.partitionKey).toEqual(undefined);
-      expect(mockEntityRetrieved.sortKey).toEqual(undefined);
+      expect((mockEntityRetrieved as MockEntity).boolean).toEqual(undefined);
+      expect((mockEntityRetrieved as MockEntity).object).toEqual(undefined);
+      expect((mockEntityRetrieved as MockEntity).partitionKey).toEqual(undefined);
+      expect((mockEntityRetrieved as MockEntity).sortKey).toEqual(undefined);
     });
   });
 });
