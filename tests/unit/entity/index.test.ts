@@ -170,6 +170,25 @@ describe('entityManager', () => {
       expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, mockInstance, undefined);
     });
 
+    test('Should return dynamode result with attributes (item found)', async () => {
+      buildGetProjectionExpressionSpy.mockReturnValue({});
+      getItemMock.mockResolvedValue({ Item: mockInstance });
+      convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
+
+      await expect(MockEntityManager.get(primaryKey, { attributes: ['string', 'number'] })).resolves.toEqual(
+        mockInstance,
+      );
+
+      expect(buildGetProjectionExpressionSpy).toBeCalledWith(['string', 'number']);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
+      expect(getItemMock).toBeCalledWith({
+        TableName: TEST_TABLE_NAME,
+        Key: primaryKey,
+        ConsistentRead: false,
+      });
+      expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, mockInstance, ['string', 'number']);
+    });
+
     test("Should throw an error if item wasn't found", async () => {
       buildGetProjectionExpressionSpy.mockReturnValue({});
       getItemMock.mockResolvedValue({ Item: undefined });
@@ -930,6 +949,44 @@ describe('entityManager', () => {
       expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(2);
       expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance, undefined);
       expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, MockEntity, testTableInstance, undefined);
+    });
+
+    test('Should return dynamode result with attributes (all items found)', async () => {
+      buildGetProjectionExpressionSpy.mockReturnValue({});
+      batchGetItem.mockResolvedValue({
+        Responses: {
+          [TEST_TABLE_NAME]: [mockInstance, testTableInstance],
+          UnprocessedKeys: undefined,
+        },
+      });
+      convertAttributeValuesToEntitySpy.mockImplementation((_, item) => item as any);
+
+      await expect(
+        MockEntityManager.batchGet([primaryKey, primaryKey], { attributes: ['string', 'number'] }),
+      ).resolves.toEqual({
+        items: [mockInstance, testTableInstance],
+        unprocessedKeys: [],
+      });
+
+      expect(buildGetProjectionExpressionSpy).toBeCalledWith(['string', 'number']);
+      expect(convertPrimaryKeyToAttributeValuesSpy).toBeCalledWith(MockEntity, primaryKey);
+      expect(batchGetItem).toBeCalledWith({
+        RequestItems: {
+          [TEST_TABLE_NAME]: {
+            Keys: [primaryKey, primaryKey],
+            ConsistentRead: false,
+          },
+        },
+      });
+      expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(2);
+      expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(1, MockEntity, mockInstance, [
+        'string',
+        'number',
+      ]);
+      expect(convertAttributeValuesToEntitySpy).toHaveBeenNthCalledWith(2, MockEntity, testTableInstance, [
+        'string',
+        'number',
+      ]);
     });
 
     test('Should return dynamode result (one item found)', async () => {
