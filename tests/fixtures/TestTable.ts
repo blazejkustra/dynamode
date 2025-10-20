@@ -209,4 +209,17 @@ export const mockInstance = new MockEntity({
   binary: new Uint8Array([1, 2, 3]),
 });
 
+export const partialMockInstance = new MockEntity({
+  string: 'string',
+  map: new Map([['1', '2']]),
+} as MockEntityProps);
+// @ts-expect-error Values are set to undefined on purpose
+partialMockInstance.strDate = undefined;
+// @ts-expect-error Values are set to undefined on purpose
+partialMockInstance.numDate = undefined;
+// @ts-expect-error Values are set to undefined on purpose
+partialMockInstance.createdAt = undefined;
+// @ts-expect-error Values are set to undefined on purpose
+partialMockInstance.updatedAt = undefined;
+
 vi.useRealTimers();
