@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- 
+
+### Changed
+- 
+
+### Fixed
+- 
+
+## [1.6.0] - 2025-10-21
+
+### Added
 - JSDoc documentation was added to the project ([#40](https://github.com/blazejkustra/dynamode/pull/40))
 - Enhanced entity conversion to handle attribute selection in EntityManager `get()` and `batchGet()` methods
 
