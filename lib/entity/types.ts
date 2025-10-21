@@ -1,4 +1,4 @@
-import { RequireAtLeastOne } from 'type-fest';
+import { NonEmptyTuple, RequireAtLeastOne } from 'type-fest';
 
 import {
   BatchGetItemCommandInput,
@@ -62,17 +62,33 @@ export type EntityKey<E extends typeof Entity> = keyof EntityProperties<E> exten
 export type EntityValue<E extends typeof Entity, K extends EntityKey<E>> = FlattenObject<InstanceType<E>>[K];
 
 /**
+ * Helper type to select only specified attributes from an entity instance.
+ * If attributes are not specified, returns the full entity type.
+ *
+ * @template E - The entity class type
+ * @template Attributes - Array of attribute keys to select (optional)
+ */
+export type EntitySelectedAttributes<
+  E extends typeof Entity,
+  Attributes extends Array<EntityKey<E>> | undefined = undefined,
+> =
+  Attributes extends NonEmptyTuple<EntityKey<E>>
+    ? Omit<InstanceType<E>, Exclude<EntityKey<E>, Attributes[number] | 'dynamodeEntity'>>
+    : InstanceType<E>;
+
+/**
  * Options for entity get operations.
  *
  * @template E - The entity class type
+ * @template Attributes - Array of attribute keys to select (optional)
  */
-export type EntityGetOptions<E extends typeof Entity> = {
+export type EntityGetOptions<E extends typeof Entity, Attributes extends Array<EntityKey<E>> | undefined> = {
   /** Additional DynamoDB input parameters */
   extraInput?: Partial<GetItemCommandInput>;
   /** Return type option */
   return?: ReturnOption;
   /** Specific attributes to retrieve */
-  attributes?: Array<EntityKey<E>>;
+  attributes?: Attributes;
   /** Whether to use consistent read */
   consistent?: boolean;
 };
@@ -178,10 +194,13 @@ export type BuildDeleteConditionExpression = {
 
 // entityManager.batchGet
 
-export type EntityBatchGetOptions<E extends typeof Entity> = {
+export type EntityBatchGetOptions<
+  E extends typeof Entity,
+  Attributes extends ReadonlyArray<EntityKey<E>> | undefined = undefined,
+> = {
   extraInput?: Partial<BatchGetItemCommandInput>;
   return?: ReturnOption;
-  attributes?: Array<EntityKey<E>>;
+  attributes?: Attributes;
   consistent?: boolean;
 };
 
@@ -191,8 +210,12 @@ export type EntityBatchDeleteOutput<PrimaryKey> = {
 
 // entityManager.batchGet
 
-export type EntityBatchGetOutput<M extends Metadata<E>, E extends typeof Entity> = {
-  items: Array<InstanceType<E>>;
+export type EntityBatchGetOutput<
+  M extends Metadata<E>,
+  E extends typeof Entity,
+  Attributes extends Array<EntityKey<E>> | undefined = undefined,
+> = {
+  items: Array<EntitySelectedAttributes<E, Attributes>>;
   unprocessedKeys: Array<TablePrimaryKey<M, E>>;
 };
 

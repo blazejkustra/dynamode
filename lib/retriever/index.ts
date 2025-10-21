@@ -18,6 +18,8 @@ import { AttributeNames, AttributeValues } from '@lib/utils';
 export default class RetrieverBase<M extends Metadata<E>, E extends typeof Entity> extends Condition<E> {
   /** The DynamoDB input object (QueryInput or ScanInput) */
   protected input: QueryInput | ScanInput;
+  /** The list of attributes actually fetched from DynamoDB */
+  protected selectedAttributes: Array<EntityKey<E>> = [];
   /** Attribute names mapping for expression attribute names */
   protected attributeNames: AttributeNames = {};
   /** Attribute values mapping for expression attribute values */
@@ -165,6 +167,7 @@ export default class RetrieverBase<M extends Metadata<E>, E extends typeof Entit
       attributes,
       this.attributeNames,
     ).projectionExpression;
+    this.selectedAttributes = attributes;
     return this;
   }
 }

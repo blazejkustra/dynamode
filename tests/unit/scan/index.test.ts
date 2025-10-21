@@ -139,7 +139,7 @@ describe('Scan', () => {
       });
 
       expect(convertAttributeValuesToEntitySpy).toBeCalledTimes(1);
-      expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, { key: 'value' });
+      expect(convertAttributeValuesToEntitySpy).toBeCalledWith(MockEntity, { key: 'value' }, []);
       expect(convertAttributeValuesToLastKeySpy).toBeCalledTimes(1);
       expect(convertAttributeValuesToLastKeySpy).toBeCalledWith(MockEntity, {
         partitionKey: 'lastValue',

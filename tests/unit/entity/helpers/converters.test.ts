@@ -11,7 +11,13 @@ import {
 } from '@lib/entity/helpers/converters';
 import * as transformValuesHelpers from '@lib/entity/helpers/transformValues';
 
-import { mockDate, MockEntity, mockInstance, TestTableMetadata } from '../../../fixtures/TestTable';
+import {
+  mockDate,
+  MockEntity,
+  mockInstance,
+  partialMockInstance,
+  TestTableMetadata,
+} from '../../../fixtures/TestTable';
 
 const metadata = {
   tableName: 'test-table',
@@ -92,6 +98,16 @@ const mockEntityAttributes = {
     propertyName: 'binary',
     type: Uint8Array,
   },
+  numDate: {
+    propertyName: 'numDate',
+    type: Number,
+    role: 'date',
+  },
+  strDate: {
+    propertyName: 'strDate',
+    type: String,
+    role: 'date',
+  },
 } as any as AttributesMetadata;
 
 const dynamoObject = {
@@ -107,6 +123,13 @@ const dynamoObject = {
   array: { L: [{ S: '1' }, { S: '2' }] },
   boolean: { BOOL: true },
   binary: { B: new Uint8Array([1, 2, 3]) },
+  strDate: { S: mockDate.toISOString() },
+  numDate: { N: mockDate.getTime().toString() },
+};
+
+const partialDynamoObject = {
+  string: { S: 'string' },
+  map: { M: { '1': { S: '2' } } },
 };
 
 describe('Converters entity helpers', () => {
@@ -125,9 +148,24 @@ describe('Converters entity helpers', () => {
     truncateValueSpy.mockImplementation((_1, _2, v) => v);
 
     transformValueSpy = vi.spyOn(transformValuesHelpers, 'transformValue');
-    transformValueSpy.mockImplementation((_1, k, v) =>
-      v instanceof Date ? (k === 'updatedAt' ? v.getTime() : v.toISOString()) : v,
-    );
+    transformValueSpy.mockImplementation((entity, k, v) => {
+      if (v instanceof Date) {
+        const attributes = Dynamode.storage.getEntityAttributes(entity.name);
+        const attribute = attributes[k as string];
+
+        if (attribute?.role === 'date') {
+          switch (attribute.type) {
+            case String:
+              return v.toISOString();
+            case Number:
+              return v.getTime();
+            default:
+              return v;
+          }
+        }
+      }
+      return v;
+    });
   });
 
   afterEach(() => {
@@ -141,15 +179,17 @@ describe('Converters entity helpers', () => {
       getEntityMetadataSpy.mockReturnValue(metadata as any);
 
       expect(convertAttributeValuesToEntity(MockEntity, dynamoObject)).toEqual(mockInstance);
-      expect(truncateValueSpy).toBeCalledTimes(16);
+      expect(truncateValueSpy).toBeCalledTimes(18);
     });
 
     test('Should return object in dynamode format', async () => {
       getEntityAttributesSpy.mockReturnValue(mockEntityAttributes);
       getEntityMetadataSpy.mockReturnValue(metadata as any);
 
-      expect(convertAttributeValuesToEntity(MockEntity, dynamoObject)).toEqual(mockInstance);
-      expect(truncateValueSpy).toBeCalledTimes(16);
+      expect(convertAttributeValuesToEntity(MockEntity, partialDynamoObject, ['map', 'string'])).toEqual(
+        partialMockInstance,
+      );
+      expect(truncateValueSpy).toBeCalledTimes(18);
     });
   });
 
@@ -167,7 +207,7 @@ describe('Converters entity helpers', () => {
       getEntityAttributesSpy.mockReturnValue(mockEntityAttributes);
 
       expect(convertEntityToAttributeValues(MockEntity, mockInstance)).toEqual(dynamoObject);
-      expect(transformValueSpy).toBeCalledTimes(16);
+      expect(transformValueSpy).toBeCalledTimes(18);
     });
   });
 
